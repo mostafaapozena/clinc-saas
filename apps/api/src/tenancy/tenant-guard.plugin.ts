@@ -33,7 +33,7 @@ export function tenantGuardPlugin(schema: Schema): void {
   schema.pre<Query<unknown, unknown>>(GUARDED_QUERIES, function () {
     if ((this.getOptions() as GuardOptions).skipTenantGuard) return;
     if (this.getFilter().organizationId == null) {
-      throw new TenantScopeError(this.model.modelName, "query");
+      throw new TenantScopeError(this.model.modelName, 'query');
     }
   });
 
