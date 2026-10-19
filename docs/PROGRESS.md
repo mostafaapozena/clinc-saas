@@ -31,7 +31,9 @@ _Last updated: 2026-10-19 (phase 1)._
 - MongoDB is pinned to **8.2.12**. MongoDB 8.0.x (8.0.34 checked) refuses to start on Linux
   kernels 6.19 and newer ([SERVER-121912](https://jira.mongodb.org/browse/SERVER-121912)),
   which some GitHub-hosted runners now use. The 8.2.12 binary no longer contains that startup
-  check. CI prints the runner kernel and MongoDB version for diagnosis. Re-check this before
+  check. CI prints the runner kernel and MongoDB version for diagnosis. As of 2026-10-20,
+  8.2.12 has passed CI only on kernel 6.17 runners; it has not yet been observed on a 6.19+
+  runner. If CI fails at "Initialize containers", check the logged kernel first. Re-check this before
   choosing a production MongoDB version.
 - No required PR reviews are configured (single maintainer), only the required CI check.
 - The owner's browser was signed in to a different GitHub account, so the private preview URL
