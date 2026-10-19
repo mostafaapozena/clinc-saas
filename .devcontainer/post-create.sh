@@ -20,14 +20,19 @@ if [ ! -f .env ]; then
   echo "==> Creating .env from .env.example"
   cp .env.example .env
 fi
+if ! grep -qE '^DEMO_PASSWORD=.+' .env; then
+  echo "==> Generating a random development DEMO_PASSWORD in .env (git-ignored)"
+  sed -i '/^DEMO_PASSWORD=/d' .env
+  echo "DEMO_PASSWORD=$(node -e "console.log(require('crypto').randomBytes(12).toString('base64url'))")" >> .env
+fi
 
 echo "==> Installing dependencies from the lockfile"
 npm ci
 
-echo "==> Installing Playwright Chromium (for the smoke test)"
+echo "==> Installing Playwright Chromium (for browser tests)"
 npx playwright install --with-deps chromium
 
-echo "==> Seeding the development database with synthetic reference data"
+echo "==> Seeding the development database with synthetic data"
 npm run seed
 
-echo "==> Done. Start the app with: npm run dev"
+echo "==> Done. Start the app with: npm run dev (demo password: see DEMO_PASSWORD in .env)"

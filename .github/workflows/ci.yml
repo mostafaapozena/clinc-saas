@@ -16,31 +16,21 @@ jobs:
   verify:
     name: verify
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
-
-    services:
-      mongo:
-        image: mongo:8.2.12
-        ports:
-          - 27017:27017
-        options: >-
-          --health-cmd "mongosh --quiet --eval 'db.adminCommand(\"ping\").ok'"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 20
+    timeout-minutes: 25
 
     env:
       CI: true
-      MONGODB_TEST_URI: mongodb://localhost:27017
+      MONGODB_TEST_URI: mongodb://localhost:27017/?directConnection=true
 
     steps:
-      # Diagnostics: MongoDB builds are sensitive to the runner's kernel (see docs/PROGRESS.md).
-      - name: Runner environment
-        run: |
-          echo "kernel: $(uname -r)"
-          docker exec "${{ job.services.mongo.id }}" mongod --version | head -1
-
       - uses: actions/checkout@v7
+
+      # Diagnostics: MongoDB builds are sensitive to the runner kernel (see docs/PROGRESS.md).
+      - name: Runner environment
+        run: echo "kernel: $(uname -r)"
+
+      - name: Start MongoDB 8.2.12 (single-node replica set)
+        run: bash scripts/ci/start-mongo.sh
 
       - uses: actions/setup-node@v7
         with:
@@ -53,8 +43,12 @@ jobs:
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
 
-      - name: Verify (lint, typecheck, unit + integration tests, build, e2e smoke)
+      - name: Verify (lint, typecheck, unit + integration tests, build, e2e)
         run: npm run verify
+
+      - name: MongoDB logs
+        if: failure()
+        run: docker logs mongo 2>&1 | tail -100
 
       - name: Upload Playwright report
         if: failure()
