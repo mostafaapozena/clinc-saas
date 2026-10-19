@@ -5,8 +5,8 @@
     "tagline": "Cloud management for clinics and medical centers in Egypt and Saudi Arabia"
   },
   "phase": {
-    "title": "Phase 1: Project foundation",
-    "description": "Temporary starter page that verifies the frontend, API and database are connected. This environment contains no real patient data."
+    "title": "System status",
+    "description": "Public page that checks the frontend, API and database are connected. This is a development environment and contains no real patient data."
   },
   "status": {
     "title": "System status",
@@ -30,9 +30,226 @@
     "error": "Could not load specialties."
   },
   "language": {
-    "switchTo": "العربية"
+    "switchTo": "العربية",
+    "switchLabel": "Switch the interface to Arabic"
   },
   "footer": {
     "devOnly": "Development environment — not a production build."
+  },
+  "common": {
+    "loading": "Loading…",
+    "retry": "Try again",
+    "save": "Save",
+    "saving": "Saving…",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "optional": "(optional)",
+    "notSet": "Not set"
+  },
+  "nav": {
+    "home": "Home",
+    "branches": "Branches",
+    "team": "Team",
+    "settings": "Organization settings",
+    "profile": "Profile"
+  },
+  "shell": {
+    "skipToContent": "Skip to main content",
+    "navigation": "Main navigation",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "organization": "Organization",
+    "branch": "Branch",
+    "allBranches": "All branches",
+    "createOrganization": "Create a new organization",
+    "logout": "Sign out",
+    "loggingOut": "Signing out…"
+  },
+  "roles": {
+    "owner": "Owner",
+    "admin": "Admin",
+    "doctor": "Doctor",
+    "receptionist": "Receptionist",
+    "viewer": "Viewer"
+  },
+  "auth": {
+    "systemStatus": "System status",
+    "loginTitle": "Sign in",
+    "loginSubtitle": "Open your organization's workspace.",
+    "email": "Email",
+    "password": "Password",
+    "submitLogin": "Sign in",
+    "submittingLogin": "Signing in…",
+    "noAccount": "Don't have an account?",
+    "registerLink": "Create an account",
+    "registerTitle": "Create an account",
+    "registerSubtitle": "Create your account, then add your first organization.",
+    "displayName": "Display name",
+    "passwordHint": "At least 10 characters.",
+    "verificationNote": "Email verification and password recovery are not available yet in this phase.",
+    "submitRegister": "Create account",
+    "submittingRegister": "Creating account…",
+    "haveAccount": "Already have an account?",
+    "loginLink": "Sign in"
+  },
+  "onboarding": {
+    "title": "Set up your organization",
+    "subtitle": "Welcome {{name}}. Add your clinic or medical center and its first branch. You will be the owner.",
+    "orgName": "Organization name",
+    "branchName": "First branch name",
+    "branchHint": "You can add more branches later.",
+    "city": "City",
+    "submit": "Create organization",
+    "submitting": "Creating…",
+    "backToWorkspace": "Back to workspace"
+  },
+  "access": {
+    "deniedTitle": "You can't open this page",
+    "deniedBody": "Your role in this organization does not include this page. Ask an owner or admin if you need access.",
+    "backToHome": "Back to home",
+    "orgUnavailableTitle": "Organization unavailable",
+    "orgUnavailableBody": "You may not be a member of this organization, or your membership was suspended.",
+    "backToWorkspace": "Back to workspace"
+  },
+  "home": {
+    "welcome": "Welcome, {{name}}",
+    "yourAccess": "Your access",
+    "organization": "Organization",
+    "yourRole": "Your role",
+    "branchAccess": "Branches you can access",
+    "allBranchesAccess": "All branches of the organization",
+    "currentBranch": "Current branch",
+    "allBranchesSelected": "Showing all branches. Pick a branch at the top to focus on it.",
+    "overview": "Overview",
+    "accessibleBranches": "Active branches you can access",
+    "activeMembers": "Active members",
+    "quickLinks": "Shortcuts"
+  },
+  "branches": {
+    "title": "Branches",
+    "readOnlyNote": "You can view the branches available to you.",
+    "listTitle": "Branch list",
+    "search": "Search by branch name",
+    "empty": "No branches are available to you.",
+    "noMatches": "No branches match your search.",
+    "name": "Branch name",
+    "city": "City",
+    "createdAt": "Created",
+    "createdOn": "Created {{date}}",
+    "statusLabel": "Status",
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "addTitle": "Add a branch",
+    "add": "Add branch",
+    "created": "Branch “{{name}}” was added.",
+    "updated": "Changes to “{{name}}” were saved.",
+    "editLabel": "Edit branch {{name}}"
+  },
+  "team": {
+    "title": "Team",
+    "subtitle": "Organization members, their roles and the branches each one can access.",
+    "members": "Members",
+    "empty": "No members yet.",
+    "you": "(you)",
+    "email": "Member's email",
+    "role": "Role",
+    "status": {
+      "active": "Active",
+      "suspended": "Suspended"
+    },
+    "scopeLabel": "Branch access",
+    "scopeAll": "All branches",
+    "scopeSelected": "Selected branches",
+    "selectBranches": "Choose branches",
+    "orgWideNote": "Owners and admins always have access to all branches.",
+    "addTitle": "Add a registered member",
+    "addHint": "Enter the full email of someone who already has an account. No email invitations are sent in this phase; if they have no account, ask them to register first.",
+    "add": "Add member",
+    "added": "{{name}} was added to the team.",
+    "updated": "{{name}}'s membership was updated.",
+    "suspend": "Suspend",
+    "reactivate": "Reactivate",
+    "suspendLabel": "Suspend {{name}}'s membership",
+    "reactivateLabel": "Reactivate {{name}}'s membership",
+    "suspendedNotice": "{{name}}'s membership was suspended. They can no longer access the organization.",
+    "reactivatedNotice": "{{name}}'s membership was reactivated.",
+    "editLabel": "Edit {{name}}'s membership"
+  },
+  "settings": {
+    "title": "Organization settings",
+    "general": "General",
+    "orgName": "Organization name",
+    "createdOn": "Created {{date}}",
+    "saved": "The organization name was saved."
+  },
+  "profile": {
+    "title": "Profile",
+    "details": "Your details",
+    "emailStatus": "Email status",
+    "emailVerified": "Verified",
+    "emailUnverified": "Not verified (verification is not available yet)",
+    "language": "Preferred interface language",
+    "saved": "Your profile was saved."
+  },
+  "notFound": {
+    "title": "Page not found",
+    "body": "The link you opened doesn't exist or has moved.",
+    "home": "Back to workspace"
+  },
+  "errors": {
+    "NOT_FOUND": "This item doesn't exist or you don't have access to it.",
+    "FORBIDDEN": "You don't have permission to do this.",
+    "UNAUTHENTICATED": "Your session has ended. Please sign in again.",
+    "INVALID_CREDENTIALS": "The email or password is incorrect.",
+    "EMAIL_UNAVAILABLE": "This email can't be used to create an account.",
+    "RATE_LIMITED": "Too many attempts. Please wait a moment and try again.",
+    "CSRF_INVALID": "The request could not be verified. Refresh the page and try again.",
+    "ORIGIN_NOT_ALLOWED": "The request was rejected because it didn't come from this app.",
+    "VALIDATION_ERROR": "Please review the highlighted fields.",
+    "USER_NOT_FOUND": "No account uses this email. Ask the person to register first, then add them.",
+    "ALREADY_MEMBER": "This person is already a member of the organization.",
+    "ROLE_NOT_ASSIGNABLE": "The owner role can't be granted through team management.",
+    "OWNER_PROTECTED": "Only owners can change an owner's membership.",
+    "LAST_OWNER": "An organization must keep at least one active owner.",
+    "SELF_MODIFICATION": "You can't change your own membership.",
+    "INVALID_BRANCH": "One or more branches aren't available in this organization.",
+    "BRANCH_NAME_TAKEN": "A branch with this name already exists.",
+    "NETWORK_ERROR": "Can't reach the server. Check your connection and try again.",
+    "INTERNAL_ERROR": "Something went wrong. Please try again.",
+    "UNKNOWN": "Something went wrong. Please try again."
+  },
+  "validation": {
+    "required": "This field is required.",
+    "invalid_format": "The format is not valid.",
+    "too_short": "This is too short.",
+    "too_long": "This is too long.",
+    "invalid_choice": "Choose a valid option.",
+    "invalid": "This value is not valid.",
+    "empty_update": "There are no changes to save.",
+    "email": {
+      "invalid_format": "Enter a valid email address, like name@example.com."
+    },
+    "password": {
+      "too_short": "Password must be at least 10 characters.",
+      "too_long": "Password is too long (128 characters at most)."
+    },
+    "displayName": {
+      "too_long": "Name is too long (80 characters at most)."
+    },
+    "name": {
+      "too_short": "Name must be at least 2 characters."
+    },
+    "branch": {
+      "name": {
+        "too_short": "Branch name must be at least 2 characters."
+      }
+    },
+    "branchScope": {
+      "branchIds": {
+        "too_short": "Choose at least one branch."
+      }
+    }
   }
 }
