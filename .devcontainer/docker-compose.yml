@@ -12,7 +12,7 @@ services:
         condition: service_healthy
 
   mongo:
-    image: mongo:8.0.34
+    image: mongo:8.2.12
     restart: unless-stopped
     volumes:
       # Development data only — reproducible via `npm run seed`, never a backup.

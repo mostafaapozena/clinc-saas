@@ -11,7 +11,7 @@ Arabia. Arabic (RTL) is the default language; English (LTR) is supported.
 | -------- | ----------------------------------------------------------- | ----------- |
 | Web      | React 19, Vite 8, TypeScript, i18next (ar/en)               | `apps/web`  |
 | API      | Node.js 24, Express 5, Mongoose 9, TypeScript, zod, pino    | `apps/api`  |
-| Database | MongoDB 8.0 (devcontainer service; CI service container)    | —           |
+| Database | MongoDB 8.2 (devcontainer service; CI service container)    | —           |
 | Tests    | Vitest (unit + API integration), Playwright (browser smoke) | `*/test`, `e2e` |
 
 Package manager: **npm** (workspaces) with the committed `package-lock.json`.
@@ -74,7 +74,7 @@ only works while the Codespace is running and is **not** production hosting.
 ## Continuous integration
 
 [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs on every pull request and every
-push to `main`: `npm ci` from the lockfile, then `npm run verify` with a MongoDB 8.0 service
+push to `main`: `npm ci` from the lockfile, then `npm run verify` with a MongoDB 8.2 service
 container. The job is named `verify`.
 
 ## Project documentation

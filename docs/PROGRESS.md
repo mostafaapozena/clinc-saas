@@ -7,7 +7,7 @@ _Last updated: 2026-10-19 (phase 1)._
 ### Done
 
 - Private repository `mostafaapozena/clinc-saas`; phase work on branch `phase-1/foundation`.
-- Codespaces devcontainer: Node 24.21.0 (from `.nvmrc`), MongoDB 8.0.34 service, sshd,
+- Codespaces devcontainer: Node 24.21.0 (from `.nvmrc`), MongoDB 8.2.12 service, sshd,
   automatic `npm ci` + Playwright Chromium + seed. Tested on a fresh 2-core Codespace.
 - API: Express 5 + Mongoose; `GET /api/health` (real MongoDB ping, 503 when the DB is down),
   `GET /api/v1/specialties` (seeded synthetic reference catalog), validated env config,
@@ -28,6 +28,11 @@ _Last updated: 2026-10-19 (phase 1)._
 
 - Multi-tenancy is designed ([architecture/TENANCY.md](architecture/TENANCY.md)) but **not implemented**.
 - No authentication, users or organizations yet.
+- MongoDB is pinned to **8.2.12**. MongoDB 8.0.x (8.0.34 checked) refuses to start on Linux
+  kernels 6.19 and newer ([SERVER-121912](https://jira.mongodb.org/browse/SERVER-121912)),
+  which some GitHub-hosted runners now use. The 8.2.12 binary no longer contains that startup
+  check. CI prints the runner kernel and MongoDB version for diagnosis. Re-check this before
+  choosing a production MongoDB version.
 - No required PR reviews are configured (single maintainer), only the required CI check.
 - The owner's browser was signed in to a different GitHub account, so the private preview URL
   was not opened in it. The UI was checked with headless Chromium inside the Codespace instead.

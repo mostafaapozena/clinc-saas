@@ -20,7 +20,7 @@ jobs:
 
     services:
       mongo:
-        image: mongo:8.0.34
+        image: mongo:8.2.12
         ports:
           - 27017:27017
         options: >-
@@ -34,6 +34,12 @@ jobs:
       MONGODB_TEST_URI: mongodb://localhost:27017
 
     steps:
+      # Diagnostics: MongoDB builds are sensitive to the runner's kernel (see docs/PROGRESS.md).
+      - name: Runner environment
+        run: |
+          echo "kernel: $(uname -r)"
+          docker exec "${{ job.services.mongo.id }}" mongod --version | head -1
+
       - uses: actions/checkout@v7
 
       - uses: actions/setup-node@v7
