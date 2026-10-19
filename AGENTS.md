@@ -40,7 +40,8 @@ These rules apply to every contributor, human or AI agent. Commands and setup de
 
 ## 4. Git workflow
 
-- `main` is protected by convention: change it only through pull requests.
+- Change `main` only through pull requests. A repository ruleset requires the `verify` CI check
+  and blocks force-pushes and deletion.
 - Branch naming: `phase-<n>/<topic>` for phase work, `feat/<topic>`, `fix/<topic>`, `docs/<topic>`.
 - Small, focused commits with conventional prefixes (`feat:`, `fix:`, `test:`, `docs:`,
   `chore:`, `ci:`).

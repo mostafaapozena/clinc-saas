@@ -16,15 +16,21 @@ _Last updated: 2026-10-19 (phase 1)._
   status panel, specialties loaded from the database through the same-origin `/api` proxy.
 - Tests: 23 Vitest tests (web components/i18n, API integration against throwaway MongoDB
   databases) + 2 Playwright smoke tests against production builds.
-- `npm run verify` passes inside the Codespace. GitHub Actions CI runs it on PRs and `main`.
+- `npm run verify` passes inside the Codespace. GitHub Actions CI runs it on PRs and `main`
+  and passes (PR #1).
+- Repository ruleset "main: require CI" on the default branch: the `verify` check is required
+  (branch must be up to date), and force-pushes and deletion are blocked.
+- Phase 1 pull request: https://github.com/mostafaapozena/clinc-saas/pull/1 (ready for review,
+  not merged).
 - Continuity docs: README, AGENTS, CLAUDE, PROJECT_CONTEXT, TENANCY proposal, HANDOFF.
 
 ### Known limitations
 
 - Multi-tenancy is designed ([architecture/TENANCY.md](architecture/TENANCY.md)) but **not implemented**.
 - No authentication, users or organizations yet.
-- Branch protection / required checks: GitHub only offers these on private repositories with a
-  paid plan (Pro/Team). Merging still relies on the convention of waiting for the `verify` check.
+- No required PR reviews are configured (single maintainer), only the required CI check.
+- The owner's browser was signed in to a different GitHub account, so the private preview URL
+  was not opened in it. The UI was checked with headless Chromium inside the Codespace instead.
 - The preview URL only works while the Codespace runs; there is no hosted environment.
 
 ## Next (proposed phase 2 — not started)
