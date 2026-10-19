@@ -4,6 +4,10 @@
   "service": "app",
   "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
   "shutdownAction": "stopCompose",
+  "features": {
+    // Required for `gh codespace ssh` (used by agents and terminal-only workflows).
+    "ghcr.io/devcontainers/features/sshd:1": {}
+  },
   "hostRequirements": {
     "cpus": 2,
     "memory": "8gb"
