@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+*.tsbuildinfo
+.vite/
+
+# Test output
+coverage/
+playwright-report/
+test-results/
+blob-report/
+
+# Environment and secrets (only the placeholder template is committed)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Local database files (dev data lives in a Docker volume inside the Codespace)
+data/
+*.mongodb
+mongo-data/
+
+# Logs and OS noise
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db

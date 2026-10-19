@@ -1,0 +1,33 @@
+{
+  "name": "clinc-saas (Node + MongoDB)",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+  "shutdownAction": "stopCompose",
+  "hostRequirements": {
+    "cpus": 2,
+    "memory": "8gb"
+  },
+  "forwardPorts": [5173, 4000],
+  "portsAttributes": {
+    "5173": { "label": "Web (Vite dev server)", "onAutoForward": "notify" },
+    "4000": { "label": "API (Express)", "onAutoForward": "silent" },
+    "4100": { "label": "API (e2e tests)", "onAutoForward": "ignore" },
+    "4173": { "label": "Web preview (e2e tests)", "onAutoForward": "ignore" },
+    "27017": { "label": "MongoDB", "onAutoForward": "ignore" }
+  },
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "mongodb.mongodb-vscode",
+        "ms-playwright.playwright",
+        "vitest.explorer"
+      ]
+    },
+    "codespaces": {
+      "openFiles": ["README.md"]
+    }
+  }
+}

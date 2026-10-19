@@ -1,0 +1,27 @@
+services:
+  app:
+    image: mcr.microsoft.com/devcontainers/javascript-node:4-24-bookworm
+    volumes:
+      - ../..:/workspaces:cached
+    command: sleep infinity
+    # Share MongoDB's network namespace so the database is reachable on localhost:27017
+    # and forwarded app ports behave exactly like a local machine.
+    network_mode: service:mongo
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+  mongo:
+    image: mongo:8.0.34
+    restart: unless-stopped
+    volumes:
+      # Development data only — reproducible via `npm run seed`, never a backup.
+      - mongo-data:/data/db
+    healthcheck:
+      test: ['CMD', 'mongosh', '--quiet', '--eval', "db.adminCommand('ping').ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  mongo-data:
