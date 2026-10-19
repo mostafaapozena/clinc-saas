@@ -107,8 +107,12 @@ describe('login', () => {
   });
 
   it('rejects protected endpoints without a session', async () => {
+    const probe = await request(app).get('/api/v1/auth/session');
+    expect(probe.status).toBe(200);
+    expect(probe.body).toEqual({ user: null, csrfToken: null, memberships: [] });
+
     for (const res of [
-      await request(app).get('/api/v1/auth/session'),
+      await request(app).get(`/api/v1/orgs/${'a'.repeat(24)}`),
       await request(app).get('/api/v1/orgs'),
       await request(app).patch('/api/v1/me').send({ displayName: 'x' }),
     ]) {

@@ -94,9 +94,16 @@ export function createAuthRouter(config: AppConfig) {
     res.status(204).end();
   });
 
+  // Session probe for the web app: answers 200 { user: null } when signed out, so checking
+  // "am I signed in?" is not an error. Every other protected endpoint returns 401.
   router.get('/session', async (req, res) => {
-    const { user, session } = authOf(req);
-    res.set('Cache-Control', 'no-store').json({
+    res.set('Cache-Control', 'no-store');
+    if (!req.auth) {
+      res.json({ user: null, csrfToken: null, memberships: [] });
+      return;
+    }
+    const { user, session } = req.auth;
+    res.json({
       user: toUserDto(user),
       csrfToken: session.csrfToken,
       memberships: await listActiveMembershipsForUser(user._id),

@@ -40,7 +40,8 @@ describe('session lifecycle', () => {
 
     // Replaying the old cookie (as an attacker who copied it would) no longer works.
     const replay = await request(app).get('/api/v1/auth/session').set('Cookie', cookie);
-    expect(replay.status).toBe(401);
+    expect(replay.body.user).toBeNull();
+    expect((await request(app).get('/api/v1/orgs').set('Cookie', cookie)).status).toBe(401);
   });
 
   it('rotates the session identifier when signing in again', async () => {
@@ -56,8 +57,8 @@ describe('session lifecycle', () => {
     const secondCookie = sessionCookie(second);
 
     expect(secondCookie).not.toBe(firstCookie);
-    expect((await request(app).get('/api/v1/auth/session').set('Cookie', firstCookie)).status).toBe(401);
-    expect((await request(app).get('/api/v1/auth/session').set('Cookie', secondCookie)).status).toBe(200);
+    expect((await request(app).get('/api/v1/orgs').set('Cookie', firstCookie)).status).toBe(401);
+    expect((await request(app).get('/api/v1/orgs').set('Cookie', secondCookie)).status).toBe(200);
   });
 
   it('rejects an expired session and clears its cookie', async () => {
@@ -66,8 +67,9 @@ describe('session lifecycle', () => {
 
     const res = await client.agent.get('/api/v1/auth/session');
 
-    expect(res.status).toBe(401);
+    expect(res.body.user).toBeNull();
     expect(String(res.headers['set-cookie'])).toMatch(/clinc_sid=;/);
+    expect((await client.agent.get('/api/v1/orgs')).status).toBe(401);
   });
 
   it('sets the expiry from the configured session lifetime', async () => {
@@ -119,7 +121,7 @@ describe('CSRF protection', () => {
     const res = await client.agent.post('/api/v1/auth/logout');
 
     expect(res.status).toBe(403);
-    expect((await client.agent.get('/api/v1/auth/session')).status).toBe(200);
+    expect((await client.agent.get('/api/v1/auth/session')).body.user).not.toBeNull();
   });
 
   it('rejects cross-site origins even with a valid token', async () => {
