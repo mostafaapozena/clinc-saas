@@ -27,7 +27,8 @@ jobs:
 
       # Diagnostics: MongoDB builds are sensitive to the runner kernel (see docs/PROGRESS.md).
       - name: Runner environment
-        run: echo "kernel: $(uname -r)"
+        run: |
+          echo "kernel: $(uname -r)"
 
       - name: Start MongoDB 8.2.12 (single-node replica set)
         run: bash scripts/ci/start-mongo.sh
