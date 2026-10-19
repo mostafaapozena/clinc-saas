@@ -8,6 +8,8 @@ export async function connectTestDatabase(label: string): Promise<string> {
   const uri = process.env.MONGODB_TEST_URI ?? 'mongodb://localhost:27017';
   const dbName = `clinc${TEST_DB_MARKER}${label}_${process.pid}_${Date.now()}`;
   await connectDatabase(uri, { dbName });
+  // Wait for background index builds; otherwise one can recreate the database after it is dropped.
+  await Promise.all(Object.values(mongoose.models).map((model) => model.init()));
   return dbName;
 }
 

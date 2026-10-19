@@ -6,11 +6,14 @@ cd "$(dirname "$0")/.."
 echo "==> Installing the Node.js version pinned in .nvmrc ($(cat .nvmrc))"
 export NVM_DIR="${NVM_DIR:-/usr/local/share/nvm}"
 set +u
+# --no-use: otherwise nvm.sh exits non-zero while the .nvmrc version is not yet installed.
 # shellcheck disable=SC1091
-source "$NVM_DIR/nvm.sh"
+source "$NVM_DIR/nvm.sh" --no-use
 nvm install
 nvm alias default "$(cat .nvmrc)"
-nvm use default
+# The image puts $NVM_DIR/current/bin first on PATH; point it at the pinned version
+# so every shell (including non-interactive `gh codespace ssh`) uses it.
+ln -sfn "$NVM_DIR/versions/node/v$(cat .nvmrc)" "$NVM_DIR/current"
 set -u
 
 if [ ! -f .env ]; then
