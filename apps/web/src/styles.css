@@ -1237,6 +1237,11 @@ input[aria-invalid='true'] {
     border: 0;
   }
 
+  /* A cell with nothing to show (e.g. no permitted action) is hidden, label included. */
+  .data-table td:empty {
+    display: none;
+  }
+
   .data-table td::before {
     content: attr(data-label);
     font-weight: 600;

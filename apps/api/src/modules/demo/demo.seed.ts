@@ -209,6 +209,7 @@ async function seedFrontDesk(
       branchId: branch(a.branch),
       date: addDays(today, a.day),
       durationMinutes: required(org.practitioners.find((p) => p.email === a.practitioner), a.practitioner).durationMinutes,
+      now: ctx.now,
       skipped: ctx.skipped,
     });
   }
@@ -225,6 +226,7 @@ async function seedAppointment(
     branchId: Types.ObjectId;
     date: string;
     durationMinutes: number;
+    now: Date;
     skipped: string[];
   },
 ) {
@@ -235,8 +237,14 @@ async function seedAppointment(
   }
   const startAt = resolved.instant;
   const endAt = new Date(startAt.getTime() + ctx.durationMinutes * 60_000);
+  // Arrival a few minutes before the booked time, start at it, completion at its end — but never
+  // later than the seed time, so a morning seed has no arrivals "in the future".
+  const offsets: Record<string, number> = { checkedInAt: -5, startedAt: 0, completedAt: ctx.durationMinutes, cancelledAt: -60, noShowAt: ctx.durationMinutes };
   const stamps: Record<string, Date> = {};
-  for (const field of STATUS_TIMESTAMP[a.status] ?? []) stamps[field] = startAt;
+  for (const field of STATUS_TIMESTAMP[a.status] ?? []) {
+    const at = startAt.getTime() + (offsets[field] ?? 0) * 60_000;
+    stamps[field] = new Date(Math.min(at, ctx.now.getTime()));
+  }
 
   const appointment = await AppointmentModel.create({
     organizationId: ctx.organizationId,

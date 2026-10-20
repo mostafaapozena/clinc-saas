@@ -89,7 +89,10 @@ export function AppointmentDetailPage() {
             <div>
               <dt>{t('appointments.time')}</dt>
               <dd>
-                {fmt.time(a.startAt, timeZone)}–{fmt.time(a.endAt, timeZone)} ({t('booking.minutes', { n: a.durationMinutes })})
+                <bdi dir="ltr">
+                  {fmt.time(a.startAt, timeZone)}–{fmt.time(a.endAt, timeZone)}
+                </bdi>{' '}
+                ({t('booking.minutes', { n: a.durationMinutes })})
               </dd>
             </div>
             <div>

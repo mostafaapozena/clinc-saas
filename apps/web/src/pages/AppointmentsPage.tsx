@@ -176,7 +176,9 @@ function Schedule({
                     <tr key={a.id} data-testid="appointment-row">
                       <td data-label={t('appointments.time')}>
                         <Link to={`/app/${orgId}/appointments/${a.id}`}>
-                          {fmt.time(a.startAt, zone)}–{fmt.time(a.endAt, zone)}
+                          <bdi dir="ltr">
+                            {fmt.time(a.startAt, zone)}–{fmt.time(a.endAt, zone)}
+                          </bdi>
                         </Link>
                       </td>
                       <td data-label={t('appointments.patient')}>
