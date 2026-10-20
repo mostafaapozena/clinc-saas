@@ -7,7 +7,8 @@ Read [AGENTS.md](../AGENTS.md) (rules) and [PROGRESS.md](PROGRESS.md) (state, ga
 | Item              | Value                                                                       |
 | ----------------- | --------------------------------------------------------------------------- |
 | Repository        | https://github.com/mostafaapozena/clinc-saas (private)                      |
-| Open PRs          | #1 `phase-1/foundation` → `main`; #2 `phase-2/auth-tenancy` → `phase-1/foundation`; #3 `phase-3/patients-appointments` → `phase-2/auth-tenancy` (stacked chain) |
+| Merged            | #1, #2, #3 (phases 1–3) — `main` at `ab0551a` or later                      |
+| Planning PR       | `docs/roadmap-checkpoint` → `main`: inventory, roadmap, decisions, next-phase brief (review, then merge) |
 | Codespace         | display name `clinc-saas-dev` (`gh codespace list`), 2-core, 30-min idle timeout, 7-day retention after stopping |
 | Repo in Codespace | `/workspaces/clinc-saas`                                                    |
 | CI                | Workflow `CI`, job `verify` (required on `main`)                            |
@@ -15,6 +16,20 @@ Read [AGENTS.md](../AGENTS.md) (rules) and [PROGRESS.md](PROGRESS.md) (state, ga
 
 Everything important is in Git; a new Codespace from any branch sets itself up via the
 devcontainer.
+
+## Continuing with phase 4
+
+1. Read [NEXT_PHASE_BRIEF.md](NEXT_PHASE_BRIEF.md) and the phase 4 questions (Q1–Q3) in
+   [DECISIONS.md](DECISIONS.md); use the proposed defaults unless the owner has answered.
+2. In the Codespace: `git fetch && git checkout main && git pull --ff-only`, then
+   `git checkout -b phase-4/public-onboarding`. If the planning PR is still open, still branch
+   from `main` (that PR only touches docs) and mention it in the phase 4 PR.
+3. `npm ci` after pulling (dependencies may have changed) — and restart dev servers afterwards: a
+   running `tsx watch` API died when `node_modules` was replaced.
+4. Phases now target `main` directly; stacking is only needed while a previous phase PR is open.
+5. Merging: the ruleset requires `verify` and an up-to-date branch. Use merge commits; bring a
+   branch up to date with `gh api -X PUT repos/<repo>/pulls/<n>/update-branch -f update_method=merge`
+   and wait for CI on the new head.
 
 ## Option A: work inside the Codespace
 
@@ -75,7 +90,11 @@ are accepted with header `X-Github-Token: $GITHUB_TOKEN`. Browsers first get Git
   `gh codespace stop` + start, then starting `npm run dev`, fixed it. Check the preview URL with
   `curl -H "X-Github-Token: $GITHUB_TOKEN"` before driving a browser through it.
 - When stopping dev servers over SSH, do not `pkill -f concurrently` inside an inline command:
-  the pattern matches the SSH session's own command line and closes it. Use a script file.
+  the pattern matches the SSH session's own command line and closes it. Use a script file that
+  kills `node_modules/.bin/concurrently`, `tsx watch src/server.ts` and `node_modules/.bin/vite`,
+  then start with `setsid nohup npx concurrently -k -n api,web "npm run dev -w @clinc/api" "npm run dev -w @clinc/web" > /tmp/dev.log 2>&1 < /dev/null &`.
+  Dev servers left from an earlier session may still hold port 5173 (`strictPort`), so a second
+  start exits — stop first.
 - Do not publish app ports in `docker-compose.yml`: the Codespaces agent already listens on them
   on the VM (`bind: address already in use` → recovery container).
 
