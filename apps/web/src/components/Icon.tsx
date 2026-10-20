@@ -12,13 +12,19 @@ const PATHS = {
   globe: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20',
   chevronDown: 'M6 9l6 6 6-6',
   arrowForward: 'M5 12h14M13 6l6 6-6 6',
+  arrowBack: 'M19 12H5M11 6l-6 6 6 6',
   plus: 'M12 5v14M5 12h14',
+  calendar: 'M8 2v4M16 2v4M3 9h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z',
+  queue: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM12 6v6l4 2',
+  patients: 'M15 19v-1a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v1M8.5 10a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM19 8v6M22 11h-6',
+  stethoscope: 'M5 3v6a5 5 0 0 0 10 0V3M10 14v2a5 5 0 0 0 10 0v-2M20 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4z',
+  search: 'M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3',
 };
 
 export type IconName = keyof typeof PATHS;
 
 // Icons that point "forward"/"back" are mirrored in RTL via the .icon-directional class.
-const DIRECTIONAL: IconName[] = ['arrowForward', 'logout'];
+const DIRECTIONAL: IconName[] = ['arrowForward', 'arrowBack', 'logout'];
 
 export function Icon({ name, ...props }: { name: IconName } & SVGProps<SVGSVGElement>) {
   return (

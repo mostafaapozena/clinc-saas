@@ -1,11 +1,17 @@
+import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { useSession } from '../auth/session';
 import { Icon } from '../components/Icon';
 import { PageHeader } from '../components/PageHeader';
+import { TimeZoneRequired } from '../components/scheduling';
+import { ErrorState, Loading } from '../components/ui';
+import { api, query } from '../lib/api';
+import { errorMessage } from '../lib/errors';
 import { useFormatters } from '../lib/format';
+import type { DashboardCounts } from '../lib/types';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
-import { useOrg } from '../org/context';
+import { orgKeys, useBranchFilter, useOrg } from '../org/context';
 
 export function HomePage() {
   const { t } = useTranslation();
@@ -17,6 +23,10 @@ export function HomePage() {
   useDocumentTitle(t('nav.home'));
 
   const links = [
+    ...(can('queue.read') ? [{ to: `/app/${orgId}/queue`, label: t('nav.queue') }] : []),
+    ...(can('appointment.book') ? [{ to: `/app/${orgId}/appointments/new`, label: t('appointments.book') }] : []),
+    ...(can('appointment.read') ? [{ to: `/app/${orgId}/appointments`, label: t('nav.appointments') }] : []),
+    ...(can('patient.list') ? [{ to: `/app/${orgId}/patients`, label: t('nav.patients') }] : []),
     { to: `/app/${orgId}/branches`, label: t('nav.branches') },
     ...(can('member.read') ? [{ to: `/app/${orgId}/team`, label: t('nav.team') }] : []),
     ...(can('organization.update') ? [{ to: `/app/${orgId}/settings`, label: t('nav.settings') }] : []),
@@ -26,6 +36,7 @@ export function HomePage() {
   return (
     <>
       <PageHeader title={t('home.welcome', { name: user?.displayName ?? '' })} subtitle={organization.name} />
+      {can('dashboard.read') && <TodayCounts />}
       <div className="card-grid">
         <section className="card" aria-labelledby="access-title">
           <h2 id="access-title">{t('home.yourAccess')}</h2>
@@ -104,5 +115,47 @@ export function HomePage() {
         </section>
       </div>
     </>
+  );
+}
+
+const COUNT_KEYS: (keyof DashboardCounts)[] = ['scheduled', 'waiting', 'inProgress', 'completed', 'noShow', 'cancelled'];
+
+/**
+ * Real counts from the API for today's appointments (by their start on today's local date),
+ * scoped to the caller: their branches and selected branch; doctors their own; viewers totals.
+ */
+function TodayCounts() {
+  const { t } = useTranslation();
+  const fmt = useFormatters();
+  const { orgId, timeZone, detail } = useOrg();
+  const branchId = useBranchFilter();
+  const counts = useQuery({
+    queryKey: orgKeys.dashboard(orgId, branchId ?? 'all'),
+    queryFn: ({ signal }) => api<{ date: string; counts: DashboardCounts }>(`/orgs/${orgId}/dashboard${query({ branchId })}`, { signal }),
+    enabled: Boolean(timeZone),
+    refetchInterval: 60_000,
+  });
+  if (!timeZone) return <TimeZoneRequired />;
+  const own = detail.membership.practitionerId && !detail.membership.permissions.includes('appointment.book');
+  return (
+    <section className="card today-card" aria-labelledby="today-title">
+      <div className="section-header">
+        <h2 id="today-title">{own ? t('home.todayOwn') : t('home.today')}</h2>
+        {counts.isSuccess && <span className="muted small">{fmt.localDate(counts.data.date)}</span>}
+      </div>
+      {counts.isPending && <Loading />}
+      {counts.isError && <ErrorState message={errorMessage(t, counts.error)} onRetry={() => void counts.refetch()} />}
+      {counts.isSuccess && (
+        <dl className="stats stats--today">
+          {COUNT_KEYS.map((key) => (
+            <div key={key} className={`stat stat--${key}`}>
+              <dt>{t(`home.counts.${key}`)}</dt>
+              <dd data-testid={`today-${key}`}>{fmt.number(counts.data.counts[key])}</dd>
+            </div>
+          ))}
+        </dl>
+      )}
+      <p className="muted small">{t('home.countsDefinition')}</p>
+    </section>
   );
 }

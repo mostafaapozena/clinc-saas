@@ -1,26 +1,34 @@
 # Organizations, authorization and tenant isolation
 
-> **Status: implemented for the resources that exist in phase 2** (organizations, branches,
-> memberships, audit events) and tested in `apps/api/test/tenancy.test.ts` and
-> `apps/api/test/authorization.test.ts`. Future modules (patients, appointments, …) must follow
-> the same rules and add their own isolation tests before anyone relies on them.
+> **Status: implemented for the resources that exist in phase 3** (organizations, branches,
+> memberships, audit events, patients, practitioner profiles and exceptions, appointments, slot
+> reservations, counters) and tested in `apps/api/test/tenancy.test.ts`,
+> `authorization.test.ts`, `patients.test.ts`, `appointments.test.ts` and
+> `front-desk-isolation.test.ts`. Future modules must follow the same rules and add their own
+> isolation tests before anyone relies on them.
 
 ## Model
 
-| Collection     | Scope           | Notes                                                                  |
-| -------------- | --------------- | ---------------------------------------------------------------------- |
-| `users`        | global          | An account; may belong to several organizations.                       |
-| `organizations`| the tenant      | Its `_id` is the scope. Reached only after resolving a membership.     |
-| `branches`     | organization    | `organizationId` required; name unique per organization (case-insensitive). |
-| `memberships`  | organization    | `organizationId` + `userId` unique; `role`; `status` active/suspended; `branchScope` `all` or `selected` + `branchIds`. |
-| `audit_events` | organization    | Actor, action, target reference, small change summary, timestamp.     |
-| `sessions`     | user            | See AUTH.md.                                                          |
-| `specialties`  | platform        | **Deliberate exception**: shared public reference catalog, no tenant data. |
+| Collection           | Scope           | Notes                                                                  |
+| -------------------- | --------------- | ---------------------------------------------------------------------- |
+| `users`              | global          | An account; may belong to several organizations.                       |
+| `organizations`      | the tenant      | Its `_id` is the scope. Reached only after resolving a membership. Holds the IANA `timeZone`. |
+| `branches`           | organization    | `organizationId` required; name unique per organization (case-insensitive). |
+| `memberships`        | organization    | `organizationId` + `userId` unique; `role`; `status` active/suspended; `branchScope` `all` or `selected` + `branchIds`. |
+| `audit_events`       | organization    | Actor, action, target reference, small change summary, timestamp.     |
+| `patients`           | organization    | Organization-owned identity with branch `registrations` — see [PATIENTS.md](PATIENTS.md). |
+| `counters`           | organization    | Patient number sequence.                                              |
+| `practitioners`      | organization    | Scheduling profile of a doctor membership; branch assignments; weekly hours. |
+| `schedule_exceptions`| organization    | Date-specific closures / replacement hours.                           |
+| `appointments`       | branch          | `organizationId` + `branchId` required — see [SCHEDULING.md](SCHEDULING.md). |
+| `slot_reservations`  | organization    | Five-minute occupancy cells (unique per practitioner/patient and cell). |
+| `sessions`           | user            | See AUTH.md.                                                          |
+| `specialties`        | platform        | **Deliberate exception**: shared public reference catalog, no tenant data. |
 
-Onboarding (`POST /api/v1/orgs`) creates the organization, its first branch and the creator's
-active **owner** membership in **one MongoDB transaction** — tested by forcing the membership
-insert to fail and checking nothing remains. Transactions need a replica set: the devcontainer
-and CI run MongoDB 8.2.12 as single-node replica set `rs0`.
+Onboarding (`POST /api/v1/orgs`) creates the organization (with its explicitly chosen time zone),
+its first branch and the creator's active **owner** membership in **one MongoDB transaction** —
+tested by forcing the membership insert to fail and checking nothing remains. Transactions need a
+replica set: the devcontainer and CI run MongoDB 8.2.12 as single-node replica set `rs0`.
 
 ## Enforcement (every org-scoped request)
 
@@ -32,35 +40,52 @@ and CI run MongoDB 8.2.12 as single-node replica set `rs0`.
    branch changes therefore apply to existing sessions immediately.
 3. **Check permission** — `requirePermission('<permission>')` against the single
    `PERMISSION_MATRIX`; failures give `403 FORBIDDEN` (the caller is a member, so this discloses
-   nothing new).
+   nothing new). Appointment status actions check the permission the state machine assigns to
+   each action.
 4. **Scope the query** — handlers build filters only with `orgScope`, `accessibleBranchesFilter`
-   (branch documents) or `branchOwnedFilter` (future branch-owned records). The organization id
-   always comes from the membership, never from the request body; extra body fields are dropped.
-   Out-of-scope resource ids give the same `404`.
+   (branch documents), `branchOwnedFilter` (appointments), `patientScopeFilter` (patients via
+   registrations) and `visibleAppointmentsFilter` (adds the doctor's own-practitioner limit). The
+   organization id always comes from the membership, never from the request body; request bodies
+   are parsed with explicit allowlists. Out-of-scope ids in the path give the same `404`; ids in a
+   request body that are unknown, foreign or out of scope give the same `400`
+   (`INVALID_REFERENCE` / `INVALID_BRANCH`).
 
 **Safety net:** `tenantGuardPlugin` on every tenant-owned schema throws for any query, update,
 delete, count or aggregation whose filter (or first `$match`) lacks `organizationId`. The only
 opt-out (`skipTenantGuard`) is listing **the caller's own** memberships across organizations,
 filtered by the authenticated user id.
 
-Referenced branches (membership branch scopes) must all belong to the caller's organization;
-foreign and unknown ids give the same `400 INVALID_BRANCH`.
+Referenced branches (membership branch scopes, practitioner branches) must all belong to the
+caller's organization; foreign and unknown ids give the same `400 INVALID_BRANCH`.
 
 ## Roles and authorization matrix
 
 Branch scope: owners and admins are always organization-wide; other roles may be limited to
 selected branches and only ever see those.
 
-| Action (API)                                         | Permission            | Owner | Admin | Doctor | Receptionist | Viewer |
-| ---------------------------------------------------- | --------------------- | :---: | :---: | :----: | :----------: | :----: |
-| View organization, own role and permissions          | `organization.read`   |  ✓    |  ✓    |   ✓    |      ✓       |   ✓    |
-| Rename organization                                  | `organization.update` |  ✓    |       |        |              |        |
-| List / search / open branches (within branch scope)  | `branch.read`         |  ✓    |  ✓    |   ✓    |      ✓       |   ✓    |
-| Create branch                                        | `branch.create`       |  ✓    |  ✓    |        |              |        |
-| Update branch (name, city, active/inactive)          | `branch.update`       |  ✓    |  ✓    |        |              |        |
-| View team (members, emails, roles, scopes, count)    | `member.read`         |  ✓    |  ✓    |        |              |        |
-| Add an existing account by exact email               | `member.add`          |  ✓    |  ✓    |        |              |        |
-| Change role / branch scope / suspend / reactivate    | `member.update`       |  ✓    |  ✓¹   |        |              |        |
+| Action (API)                                         | Permission                    | Owner | Admin | Doctor | Receptionist | Viewer |
+| ---------------------------------------------------- | ----------------------------- | :---: | :---: | :----: | :----------: | :----: |
+| View organization, own role and permissions          | `organization.read`           |  ✓    |  ✓    |   ✓    |      ✓       |   ✓    |
+| Rename organization, set its time zone               | `organization.update`         |  ✓    |       |        |              |        |
+| List / search / open branches (within branch scope)  | `branch.read`                 |  ✓    |  ✓    |   ✓    |      ✓       |   ✓    |
+| Create branch                                        | `branch.create`               |  ✓    |  ✓    |        |              |        |
+| Update branch (name, city, active/inactive)          | `branch.update`               |  ✓    |  ✓    |        |              |        |
+| View team (members, emails, roles, scopes, count)    | `member.read`                 |  ✓    |  ✓    |        |              |        |
+| Add an existing account by exact email               | `member.add`                  |  ✓    |  ✓    |        |              |        |
+| Change role / branch scope / suspend / reactivate    | `member.update`               |  ✓    |  ✓¹   |        |              |        |
+| Today's aggregate counts                             | `dashboard.read`              |  ✓    |  ✓    |  ✓²    |      ✓       |  ✓³    |
+| Browse / search the patient registry                 | `patient.list`                |  ✓    |  ✓    |        |      ✓       |        |
+| Open a patient and their appointment history         | `patient.read`                |  ✓    |  ✓    |  ✓²    |      ✓       |        |
+| Register a patient                                   | `patient.create`              |  ✓    |  ✓    |        |      ✓       |        |
+| Edit administrative details                          | `patient.update`              |  ✓    |  ✓    |        |      ✓       |        |
+| Add / archive / reactivate branch registrations      | `patient.registration.manage` |  ✓    |  ✓    |        |      ✓       |        |
+| View practitioner profiles and schedules             | `practitioner.read`           |  ✓    |  ✓    |  ✓²    |      ✓       |        |
+| Manage profiles, weekly hours, exceptions            | `practitioner.manage`         |  ✓    |  ✓    |        |              |        |
+| List / open appointments                             | `appointment.read`            |  ✓    |  ✓    |  ✓²    |      ✓       |        |
+| Availability, book, reschedule                       | `appointment.book`            |  ✓    |  ✓    |        |      ✓       |        |
+| Check in, cancel, mark no-show                       | `appointment.front_desk`      |  ✓    |  ✓    |        |      ✓       |        |
+| Start and complete a visit                           | `appointment.visit`           |  ✓⁴   |  ✓⁴   |  ✓²    |              |        |
+| Today's queue                                        | `queue.read`                  |  ✓    |  ✓    |  ✓²    |      ✓       |        |
 
 ¹ Additional membership rules, checked in this order (`membership.routes.ts`):
 
@@ -71,31 +96,51 @@ selected branches and only ever see those.
 - Nobody can change **their own** membership (`403 SELF_MODIFICATION`).
 - Owners and admins are forced to organization-wide branch scope.
 
-Doctor, receptionist and viewer currently differ only in name: no clinical or front-desk actions
-exist yet, and none are invented. Their permissions will diverge when those modules are built.
+² **Doctors are limited to their own practitioner profile** (record visibility
+`own_practitioner`): their own appointments, the queue and counts for those, their own schedule
+(read-only), and the administrative details of patients linked to those appointments. They
+cannot browse the registry, edit patients or act on other practitioners' appointments (`404`).
+
+³ **Viewers** get aggregate counts within their branch scope and nothing identifiable: patient,
+appointment, queue and practitioner endpoints answer `403`.
+
+⁴ Owners and admins may correct workflow states **only through the same transitions** as everyone
+else; there is no override of the state machine.
+
+Record visibility per role is defined next to the matrix (`RECORD_VISIBILITY` in
+`apps/api/src/tenancy/permissions.ts`); routes ask for it through
+`visibleAppointmentsFilter` / `loadAccessiblePatient`, never by role name.
 
 ## Web app
 
 - The app learns the role's permissions from `GET /api/v1/orgs/:orgId` and shows only pages and
-  controls the role may use — for usability only; the API enforces everything above.
+  controls the role may use — for usability only; the API enforces everything above. A doctor's
+  own practitioner id is included there as `membership.practitionerId`.
 - The organization switcher lists only the caller's active memberships; the branch switcher only
   branches within their scope ("all branches" only for organization-wide scopes).
-- All organization data is cached under `['org', orgId, …]`; switching organization removes
-  every other organization's cache entries and remounts the shell, so no previous content can
-  appear. Signing in or out clears the whole cache.
+- All organization data is cached under `['org', orgId, …]`. Switching organization **cancels**
+  in-flight requests of every other organization, removes their cache entries and remounts the
+  shell, so no previous content can appear or arrive late. Branch-dependent queries carry the
+  selected branch in their key, so a branch switch never shows another branch's cached rows.
+  Signing in or out clears the whole cache.
 
 ## Audit events
 
-Generated by the server for: organization created/updated, branch created/updated, member
-added, role changed, branch scope changed, suspended, reactivated. Each stores actor user id,
-organization, action, target type/id, timestamp and a small change summary (e.g. role from/to,
-branch count) — never passwords, cookies, session tokens or email addresses. There is no audit
-viewer yet.
+Generated by the server for: organization created/updated (incl. time zone), branch
+created/updated, member added, role changed, branch scope changed, suspended, reactivated;
+patient created/updated/registered/registration archived/reactivated; practitioner
+created/updated/schedule updated/exception added/removed; appointment booked/rescheduled/status
+changed. Each stores actor user id, organization, action, target type/id, timestamp and a small
+change summary — never passwords, cookies, session tokens, email addresses, patient names, phone
+numbers or other demographic values (patient updates list changed field names only; a
+cancellation reason stays on the appointment and the event only notes that one was given). There
+is no audit viewer yet.
 
 ## Remaining before production use
 
 - Isolation tests for each new tenant-owned module as it is added.
 - Ownership transfer, organization deletion, member removal (not implemented).
+- Privileged cross-branch duplicate reconciliation for patients (not implemented).
 - Audit log retention, export and viewer.
 - Data residency decision (Egypt / Saudi Arabia): may require region-specific or dedicated
   databases; the scoping layer keeps that possible but nothing is decided.

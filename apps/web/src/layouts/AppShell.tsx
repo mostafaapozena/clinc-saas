@@ -17,9 +17,12 @@ export function AppShell() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
 
-  // Drop every other organization's cached data, so none of it can render in this one.
+  // Cancel in-flight requests and drop every other organization's cached data, so none of it
+  // can arrive late or render in this one.
   useEffect(() => {
-    queryClient.removeQueries({ predicate: (q) => q.queryKey[0] === 'org' && q.queryKey[1] !== orgId });
+    const otherOrg = (q: { queryKey: readonly unknown[] }) => q.queryKey[0] === 'org' && q.queryKey[1] !== orgId;
+    void queryClient.cancelQueries({ predicate: otherOrg });
+    queryClient.removeQueries({ predicate: otherOrg });
     writeStored(LAST_ORG_KEY, orgId);
   }, [orgId, queryClient]);
 
@@ -67,6 +70,7 @@ function Shell({ orgId, detail, branches }: { orgId: string; detail: OrgDetail; 
         setStoredBranch(branchId);
         writeStored(branchKey(orgId), branchId);
       },
+      timeZone: detail.organization.timeZone,
     }),
     [orgId, detail, branches, selectedBranchId],
   );
@@ -80,8 +84,16 @@ function Shell({ orgId, detail, branches }: { orgId: string; detail: OrgDetail; 
     return () => document.removeEventListener('keydown', onKey);
   }, [navOpen]);
 
+  // A doctor sees only their own schedule there; front desk and admins see every practitioner.
+  const ownScheduleOnly = !value.can('appointment.book') && !value.can('practitioner.manage');
   const nav: { to: string; icon: IconName; label: string; end?: boolean }[] = [
     { to: `/app/${orgId}`, icon: 'home', label: t('nav.home'), end: true },
+    ...(value.can('appointment.read') ? [{ to: `/app/${orgId}/appointments`, icon: 'calendar' as const, label: t('nav.appointments') }] : []),
+    ...(value.can('queue.read') ? [{ to: `/app/${orgId}/queue`, icon: 'queue' as const, label: t('nav.queue') }] : []),
+    ...(value.can('patient.list') ? [{ to: `/app/${orgId}/patients`, icon: 'patients' as const, label: t('nav.patients') }] : []),
+    ...(value.can('practitioner.read')
+      ? [{ to: `/app/${orgId}/practitioners`, icon: 'stethoscope' as const, label: ownScheduleOnly ? t('nav.mySchedule') : t('nav.practitioners') }]
+      : []),
     { to: `/app/${orgId}/branches`, icon: 'building', label: t('nav.branches') },
     ...(value.can('member.read') ? [{ to: `/app/${orgId}/team`, icon: 'users' as const, label: t('nav.team') }] : []),
     ...(value.can('organization.update')

@@ -5,9 +5,9 @@ import { vi } from 'vitest';
 import { createQueryClient } from '../auth/session';
 import { routes } from '../routes/routes';
 
-type RouteValue = unknown | Response | ((init: RequestInit) => unknown);
+type RouteValue = unknown | Response | ((init: RequestInit, url: URL) => unknown);
 
-/** Stubs fetch with "METHOD /path" → JSON body (or Response). Unknown routes answer 404. */
+/** Stubs fetch with "METHOD /path" → JSON body (or Response). Unknown routes answer 404. Handlers also get the URL (query string). */
 export function mockApi(table: Record<string, RouteValue>) {
   const fetchMock = vi.fn(async (input: RequestInfo | URL, init: RequestInit = {}) => {
     const url = new URL(String(input), 'http://localhost');
@@ -15,7 +15,7 @@ export function mockApi(table: Record<string, RouteValue>) {
     if (route === undefined) {
       return Response.json({ error: { code: 'NOT_FOUND', message: 'Not found' } }, { status: 404 });
     }
-    const value = typeof route === 'function' ? await (route as (i: RequestInit) => unknown)(init) : route;
+    const value = typeof route === 'function' ? await (route as (i: RequestInit, u: URL) => unknown)(init, url) : route;
     return value instanceof Response ? value : Response.json(value);
   });
   vi.stubGlobal('fetch', fetchMock);

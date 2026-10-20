@@ -1,0 +1,226 @@
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { useDeferredValue, useState, type FormEvent } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Link, useNavigate } from 'react-router';
+import { PageHeader } from '../components/PageHeader';
+import { PatientFields } from '../components/PatientForm';
+import { emptyPatientForm, patientBody, type PatientFormValue } from '../lib/patient-form';
+import { useInvalidateOrg } from '../lib/scheduling';
+import { EmptyState, ErrorState, Field, Loading, Notice } from '../components/ui';
+import { api, query, type ApiError } from '../lib/api';
+import { errorMessage, fieldErrors, isApiError } from '../lib/errors';
+import { useFormatters } from '../lib/format';
+import type { Page, Patient, PatientSummary } from '../lib/types';
+import { useDocumentTitle } from '../lib/useDocumentTitle';
+import { orgKeys, useBranchFilter, useOrg } from '../org/context';
+
+const PAGE_SIZE = 20;
+
+export function PatientsPage() {
+  const { t } = useTranslation();
+  const { orgId, can, branches } = useOrg();
+  const branchFilter = useBranchFilter();
+  const fmt = useFormatters();
+  const [search, setSearch] = useState('');
+  const q = useDeferredValue(search.trim());
+  const [status, setStatus] = useState<'active' | 'archived' | 'all'>('active');
+  const [sort, setSort] = useState<'recent' | 'name' | 'number'>('recent');
+  const [page, setPage] = useState(1);
+  const [creating, setCreating] = useState(false);
+  useDocumentTitle(t('nav.patients'));
+
+  const params = { q, branchId: branchFilter, status, sort, page, pageSize: PAGE_SIZE };
+  const list = useQuery({
+    queryKey: orgKeys.patients(orgId, params),
+    queryFn: ({ signal }) => api<Page<PatientSummary>>(`/orgs/${orgId}/patients${query(params)}`, { signal }),
+    placeholderData: (previous, previousQuery) =>
+      // Keep the previous page visible while paging, but never across a branch switch.
+      previousQuery?.queryKey[3] && (previousQuery.queryKey[3] as { branchId?: string }).branchId === branchFilter ? previous : undefined,
+  });
+  const branchName = new Map(branches.map((b) => [b.id, b.name]));
+  const pages = list.data ? Math.max(1, Math.ceil(list.data.total / PAGE_SIZE)) : 1;
+  const resetPage = <T,>(fn: (v: T) => void) => (v: T) => {
+    fn(v);
+    setPage(1);
+  };
+
+  return (
+    <>
+      <PageHeader title={t('patients.title')} subtitle={t('patients.subtitle')}>
+        {can('patient.create') && !creating && (
+          <button type="button" className="button button--primary" onClick={() => setCreating(true)}>
+            {t('patients.new')}
+          </button>
+        )}
+      </PageHeader>
+      {creating && <CreatePatient onCancel={() => setCreating(false)} />}
+
+      <section className="card" aria-labelledby="patients-list-title">
+        <div className="section-header">
+          <h2 id="patients-list-title">{t('patients.listTitle')}</h2>
+        </div>
+        <div className="filters">
+          <Field id="patient-search" label={t('patients.search')}>
+            <input
+              id="patient-search"
+              type="search"
+              placeholder={t('patients.searchPlaceholder')}
+              value={search}
+              maxLength={80}
+              onChange={(e) => resetPage(setSearch)(e.target.value)}
+            />
+          </Field>
+          <Field id="patient-status" label={t('patients.registrationStatus')}>
+            <select id="patient-status" value={status} onChange={(e) => resetPage(setStatus)(e.target.value as typeof status)}>
+              <option value="active">{t('patients.statusFilter.active')}</option>
+              <option value="archived">{t('patients.statusFilter.archived')}</option>
+              <option value="all">{t('patients.statusFilter.all')}</option>
+            </select>
+          </Field>
+          <Field id="patient-sort" label={t('patients.sort')}>
+            <select id="patient-sort" value={sort} onChange={(e) => resetPage(setSort)(e.target.value as typeof sort)}>
+              <option value="recent">{t('patients.sortBy.recent')}</option>
+              <option value="name">{t('patients.sortBy.name')}</option>
+              <option value="number">{t('patients.sortBy.number')}</option>
+            </select>
+          </Field>
+        </div>
+        {branchFilter && <p className="muted small">{t('patients.branchFilterNote', { branch: branchName.get(branchFilter) ?? '' })}</p>}
+
+        {list.isPending && <Loading />}
+        {list.isError && <ErrorState message={errorMessage(t, list.error)} onRetry={() => void list.refetch()} />}
+        {list.isSuccess && list.data.data.length === 0 && <EmptyState>{q ? t('patients.noMatches') : t('patients.empty')}</EmptyState>}
+        {list.isSuccess && list.data.data.length > 0 && (
+          <>
+            <table className="data-table" aria-label={t('patients.listTitle')}>
+              <thead>
+                <tr>
+                  <th scope="col">{t('patients.number')}</th>
+                  <th scope="col">{t('patients.fullName')}</th>
+                  <th scope="col">{t('patients.phone')}</th>
+                  <th scope="col">{t('patients.branches')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {list.data.data.map((p) => (
+                  <tr key={p.id} data-testid="patient-row">
+                    <td data-label={t('patients.number')}>{fmt.number(p.patientNumber)}</td>
+                    <td data-label={t('patients.fullName')}>
+                      <Link to={`/app/${orgId}/patients/${p.id}`}>{p.fullName}</Link>
+                    </td>
+                    <td data-label={t('patients.phone')}>
+                      <span dir="ltr">{p.phone.e164}</span>
+                    </td>
+                    <td data-label={t('patients.branches')}>
+                      <span className="chip-row">
+                        {p.registrations.map((r) => (
+                          <span key={r.branchId} className={`badge badge--${r.status === 'active' ? 'active' : 'inactive'}`}>
+                            {branchName.get(r.branchId) ?? '—'}
+                            {r.status === 'archived' && ` (${t('patients.archived')})`}
+                          </span>
+                        ))}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <nav className="pagination" aria-label={t('common.pagination')}>
+              <button type="button" className="button button--secondary" disabled={page <= 1} onClick={() => setPage((n) => n - 1)}>
+                {t('common.previous')}
+              </button>
+              <span className="muted" aria-live="polite">
+                {t('common.pageOf', { page: fmt.number(page), pages: fmt.number(pages), total: fmt.number(list.data.total) })}
+              </span>
+              <button type="button" className="button button--secondary" disabled={page >= pages} onClick={() => setPage((n) => n + 1)}>
+                {t('common.next')}
+              </button>
+            </nav>
+          </>
+        )}
+      </section>
+    </>
+  );
+}
+
+type DuplicateMatch = { id: string; patientNumber: number; fullName: string };
+
+function CreatePatient({ onCancel }: { onCancel: () => void }) {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { orgId, branches, selectedBranchId } = useOrg();
+  const invalidate = useInvalidateOrg();
+  const activeBranches = branches.filter((b) => b.status === 'active');
+  const [form, setForm] = useState<PatientFormValue>(() => emptyPatientForm());
+  // Derived on every render: the branch list may still be loading when the form opens.
+  const [branchChoice, setBranchId] = useState('');
+  const defaultBranch = activeBranches.some((b) => b.id === selectedBranchId) ? selectedBranchId : (activeBranches[0]?.id ?? '');
+  const branchId = activeBranches.some((b) => b.id === branchChoice) ? branchChoice : defaultBranch;
+  const create = useMutation({
+    mutationFn: (confirmDuplicate: boolean) =>
+      api<{ patient: Patient }>(`/orgs/${orgId}/patients`, {
+        method: 'POST',
+        body: { ...patientBody(form), branchId, confirmDuplicate },
+      }),
+    onSuccess: async ({ patient }) => {
+      await invalidate();
+      navigate(`/app/${orgId}/patients/${patient.id}`, { state: { created: true } });
+    },
+  });
+  const duplicates = isApiError(create.error, 'POSSIBLE_DUPLICATE')
+    ? ((create.error as ApiError).details.matches as DuplicateMatch[] | undefined) ?? []
+    : [];
+  const fields = fieldErrors(create.error);
+
+  const onSubmit = (event: FormEvent) => {
+    event.preventDefault();
+    create.mutate(false);
+  };
+
+  return (
+    <section className="card" aria-labelledby="new-patient-title">
+      <h2 id="new-patient-title">{t('patients.newTitle')}</h2>
+      <p className="muted small">{t('patients.newHint')}</p>
+      {create.isError && duplicates.length === 0 && (
+        <Notice kind="error">{Object.keys(fields).length > 0 ? t('errors.VALIDATION_ERROR') : errorMessage(t, create.error)}</Notice>
+      )}
+      {duplicates.length > 0 && (
+        <div className="notice notice--warning" role="alert" data-testid="duplicate-warning">
+          <p>{t('patients.duplicateWarning')}</p>
+          <ul>
+            {duplicates.map((d) => (
+              <li key={d.id}>
+                <Link to={`/app/${orgId}/patients/${d.id}`}>
+                  #{d.patientNumber} — {d.fullName}
+                </Link>
+              </li>
+            ))}
+          </ul>
+          <button type="button" className="button button--secondary" disabled={create.isPending} onClick={() => create.mutate(true)}>
+            {t('patients.createAnyway')}
+          </button>
+        </div>
+      )}
+      <form onSubmit={onSubmit} noValidate>
+        <PatientFields idPrefix="new-patient" value={form} onChange={setForm} fields={fields} />
+        <Field id="new-patient-branch" label={t('patients.registerAt')}>
+          <select id="new-patient-branch" value={branchId} onChange={(e) => setBranchId(e.target.value)}>
+            {activeBranches.map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.name}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <div className="form-actions">
+          <button type="submit" className="button button--primary" disabled={create.isPending}>
+            {create.isPending ? t('common.saving') : t('patients.create')}
+          </button>
+          <button type="button" className="button button--secondary" onClick={onCancel}>
+            {t('common.cancel')}
+          </button>
+        </div>
+      </form>
+    </section>
+  );
+}

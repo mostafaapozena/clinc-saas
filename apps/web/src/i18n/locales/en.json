@@ -44,14 +44,25 @@
     "cancel": "Cancel",
     "edit": "Edit",
     "optional": "(optional)",
-    "notSet": "Not set"
+    "notSet": "Not set",
+    "back": "Back",
+    "choose": "— Choose —",
+    "previous": "Previous",
+    "next": "Next",
+    "pagination": "Pagination",
+    "pageOf": "Page {{page}} of {{pages}} ({{total}} results)"
   },
   "nav": {
     "home": "Home",
     "branches": "Branches",
     "team": "Team",
     "settings": "Organization settings",
-    "profile": "Profile"
+    "profile": "Profile",
+    "appointments": "Appointments",
+    "queue": "Queue",
+    "patients": "Patients",
+    "practitioners": "Doctors & schedules",
+    "mySchedule": "My schedule"
   },
   "shell": {
     "skipToContent": "Skip to main content",
@@ -123,7 +134,18 @@
     "overview": "Overview",
     "accessibleBranches": "Active branches you can access",
     "activeMembers": "Active members",
-    "quickLinks": "Shortcuts"
+    "quickLinks": "Shortcuts",
+    "today": "Today's appointments",
+    "todayOwn": "My appointments today",
+    "counts": {
+      "scheduled": "Booked, not arrived",
+      "waiting": "Waiting",
+      "inProgress": "In progress",
+      "completed": "Completed",
+      "noShow": "No-show",
+      "cancelled": "Cancelled"
+    },
+    "countsDefinition": "Actual counts of appointments starting today, by their current status, within the branches you can access."
   },
   "branches": {
     "title": "Branches",
@@ -182,7 +204,11 @@
     "general": "General",
     "orgName": "Organization name",
     "createdOn": "Created {{date}}",
-    "saved": "The organization name was saved."
+    "saved": "The organization name was saved.",
+    "timeZone": "Organization time zone",
+    "timeZoneHint": "Working hours and appointments are interpreted in this zone. It cannot change while future appointments exist.",
+    "timeZoneMissing": "No time zone is set yet. Choose one to enable schedules and appointments.",
+    "timeZoneSaved": "The time zone was saved."
   },
   "profile": {
     "title": "Profile",
@@ -218,7 +244,37 @@
     "BRANCH_NAME_TAKEN": "A branch with this name already exists.",
     "NETWORK_ERROR": "Can't reach the server. Check your connection and try again.",
     "INTERNAL_ERROR": "Something went wrong. Please try again.",
-    "UNKNOWN": "Something went wrong. Please try again."
+    "UNKNOWN": "Something went wrong. Please try again.",
+    "TIME_ZONE_REQUIRED": "Set the organization's time zone in settings first.",
+    "TIME_ZONE_LOCKED": "The time zone cannot change while future appointments exist. A safe migration will be added later.",
+    "INVALID_REFERENCE": "One of the selected items is not available. Refresh the page and try again.",
+    "BRANCH_INACTIVE": "This branch is inactive.",
+    "PATIENT_NOT_REGISTERED": "The patient has no active registration at this branch.",
+    "PRACTITIONER_INACTIVE": "This doctor is not taking bookings right now.",
+    "OUTSIDE_WORKING_HOURS": "This time is outside the doctor's working hours at this branch.",
+    "START_IN_PAST": "Choose a time in the future.",
+    "SLOT_UNAVAILABLE": "This time was just booked. Choose another time from the refreshed list.",
+    "PATIENT_CONFLICT": "The patient already has an appointment at this time.",
+    "IDEMPOTENCY_KEY_REQUIRED": "The booking could not be sent. Refresh the page and try again.",
+    "IDEMPOTENCY_KEY_REUSED": "The booking could not be sent. Refresh the page and try again.",
+    "VERSION_CONFLICT": "Someone else just changed this record. The latest version is loaded; review it and try again.",
+    "NONEXISTENT_LOCAL_TIME": "This time does not exist on that day because of the daylight-saving change.",
+    "AMBIGUOUS_LOCAL_TIME": "This time occurs twice on that day because of the clock change; pick it from the list of times.",
+    "INVALID_TRANSITION": "This action isn't possible for the appointment in its current state.",
+    "REASON_REQUIRED": "Enter a cancellation reason once the patient has arrived.",
+    "TOO_EARLY": "A no-show can only be recorded after the appointment time.",
+    "NOT_TODAY": "Arrival and the visit are recorded on the appointment day only.",
+    "POSSIBLE_DUPLICATE": "This patient may already be registered.",
+    "ALREADY_REGISTERED": "The patient is already registered at this branch.",
+    "FUTURE_APPOINTMENTS_EXIST": "There are future appointments linked to this change.",
+    "SCHEDULE_CONFLICT": "This change would leave booked appointments outside working hours.",
+    "SCHEDULE_OVERLAP": "Working intervals overlap (including across branches).",
+    "EXCEPTION_EXISTS": "There is already a change for this date and branch.",
+    "DATE_IN_PAST": "Choose today or a later date.",
+    "MEMBERSHIP_NOT_ELIGIBLE": "A scheduling profile needs an active member with the doctor role.",
+    "INVALID_SPECIALTY": "Unknown specialty.",
+    "BRANCH_OUTSIDE_MEMBERSHIP": "A branch is outside the doctor's membership scope.",
+    "PRACTITIONER_EXISTS": "This member already has a scheduling profile."
   },
   "validation": {
     "required": "This field is required.",
@@ -250,6 +306,281 @@
       "branchIds": {
         "too_short": "Choose at least one branch."
       }
+    },
+    "invalid_phone": "This phone number is not valid for that country.",
+    "not_on_grid": "Use multiples of 5 minutes.",
+    "out_of_range": "The value is out of range.",
+    "range_too_long": "The period is too long.",
+    "end_before_start": "The end time must be after the start.",
+    "hours_need_branch_and_intervals": "Replacement hours need a branch and at least one interval.",
+    "fullName": {
+      "too_short": "The name must be at least 2 characters."
+    },
+    "phone": {
+      "required": "Choose the country for a local number, or type the international number with +.",
+      "invalid_phone": "This phone number is not valid for that country."
+    },
+    "dateOfBirth": {
+      "out_of_range": "The date of birth cannot be in the future.",
+      "invalid_format": "Invalid date."
+    },
+    "timeZone": {
+      "invalid_choice": "Choose a time zone from the list."
     }
+  },
+  "countries": {
+    "EG": "Egypt +20",
+    "SA": "Saudi Arabia +966",
+    "AE": "UAE +971",
+    "KW": "Kuwait +965",
+    "QA": "Qatar +974",
+    "BH": "Bahrain +973",
+    "OM": "Oman +968",
+    "JO": "Jordan +962"
+  },
+  "timeZones": {
+    "Africa/Cairo": "Cairo (Egypt)",
+    "Asia/Riyadh": "Riyadh (Saudi Arabia)",
+    "Asia/Dubai": "Dubai (UAE)",
+    "Asia/Kuwait": "Kuwait",
+    "Asia/Qatar": "Doha (Qatar)",
+    "Asia/Bahrain": "Manama (Bahrain)",
+    "Asia/Muscat": "Muscat (Oman)",
+    "Asia/Amman": "Amman (Jordan)"
+  },
+  "scheduling": {
+    "timeZoneRequired": "Set the organization's time zone before using schedules and appointments.",
+    "openSettings": "Open settings",
+    "resolveFirst": "Cancel or reschedule these appointments first, then try again:"
+  },
+  "patients": {
+    "title": "Patients",
+    "subtitle": "Administrative patient registry for the branches you can access.",
+    "new": "New patient",
+    "newTitle": "Register a new patient",
+    "newHint": "Only the name, a phone number with its country and a branch are required. No medical information is recorded here.",
+    "create": "Register patient",
+    "created": "The patient was registered.",
+    "saved": "The patient's details were saved.",
+    "listTitle": "Patient list",
+    "search": "Search",
+    "searchPlaceholder": "File number, name or phone",
+    "registrationStatus": "Registration status",
+    "statusFilter": {
+      "active": "Active",
+      "archived": "Archived",
+      "all": "All"
+    },
+    "sort": "Sort by",
+    "sortBy": {
+      "recent": "Most recently registered",
+      "name": "Name",
+      "number": "File number"
+    },
+    "branchFilterNote": "Showing patients registered at {{branch}} only. Choose “All branches” at the top to see everyone.",
+    "noMatches": "No patients match your search.",
+    "empty": "No patients yet.",
+    "number": "File no.",
+    "numberLabel": "File no. {{number}}",
+    "fullName": "Full name",
+    "fullNameHint": "Saved exactly as typed (Arabic or English).",
+    "phone": "Phone number",
+    "phoneHint": "Choose the country for a local number, or type the international number with +. Arabic digits are accepted.",
+    "phoneCountry": "Phone number country",
+    "secondaryPhone": "Additional phone",
+    "moreDetails": "More details (optional)",
+    "dateOfBirth": "Date of birth",
+    "sex": "Sex (administrative)",
+    "sexes": {
+      "unspecified": "Unspecified",
+      "female": "Female",
+      "male": "Male"
+    },
+    "address": "Address",
+    "branches": "Branches",
+    "archived": "archived",
+    "registerAt": "Branch",
+    "duplicateWarning": "A patient with the same name and phone number exists. It may be the same person, or another family member. Check the record before continuing.",
+    "createAnyway": "I'm sure — register a new patient",
+    "notFoundTitle": "Record unavailable",
+    "backToList": "Back to patients",
+    "details": "Administrative details",
+    "editTitle": "Edit the patient's details",
+    "sharedIdentityNote": "These details are shared by every branch of this organization where the patient is registered; changes appear in all of them.",
+    "registrations": "Branch registrations",
+    "registrationsHint": "Archiving stops new bookings at that branch without deleting the record or past appointments.",
+    "registeredOn": "Registered {{date}}",
+    "registrationState": {
+      "active": "Active",
+      "archived": "Archived"
+    },
+    "archive": "Archive",
+    "reactivate": "Reactivate",
+    "archiveLabel": "Archive the registration at {{branch}}",
+    "reactivateLabel": "Reactivate the registration at {{branch}}",
+    "addToBranch": "Register at another branch",
+    "register": "Register",
+    "appointments": "Appointments",
+    "when": {
+      "upcoming": "Upcoming",
+      "past": "Past"
+    },
+    "noAppointments": {
+      "upcoming": "No upcoming appointments.",
+      "past": "No past appointments."
+    }
+  },
+  "appointments": {
+    "title": "Appointments",
+    "book": "Book appointment",
+    "timeZoneNote": "Times in {{zone}}",
+    "filters": "Filters",
+    "view": "View",
+    "views": {
+      "day": "Day",
+      "week": "Week"
+    },
+    "previous": "Previous period",
+    "next": "Next period",
+    "date": "Date",
+    "today": "Today",
+    "practitioner": "Doctor",
+    "allPractitioners": "All doctors",
+    "statusLabel": "Status",
+    "allStatuses": "All statuses",
+    "status": {
+      "scheduled": "Scheduled",
+      "checked_in": "Arrived — waiting",
+      "in_progress": "In progress",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "no_show": "No-show"
+    },
+    "truncated": "Too many results; narrow the period or use the filters.",
+    "emptyDay": "No appointments.",
+    "dayTable": "Day's appointments",
+    "time": "Time",
+    "patient": "Patient",
+    "actions": "Actions",
+    "detailTitle": "Appointment details",
+    "notFoundTitle": "Appointment unavailable",
+    "backToSchedule": "Back to appointments",
+    "information": "Appointment information",
+    "checkedInAt": "Arrived at",
+    "startedAt": "Visit started",
+    "completedAt": "Completed",
+    "cancelledAt": "Cancelled",
+    "noShowAt": "No-show recorded",
+    "cancelReason": "Cancellation reason",
+    "cancelReasonRequired": "Cancellation reason (required after arrival)",
+    "cancelLabel": "Cancel {{name}}'s appointment",
+    "confirmCancel": "Confirm cancellation",
+    "reschedule": "Reschedule",
+    "finalState": "This appointment is final and stays in the record.",
+    "types": {
+      "new_visit": "New visit",
+      "follow_up": "Follow-up"
+    },
+    "action": {
+      "check_in": "Check in",
+      "start": "Start visit",
+      "complete": "Complete visit",
+      "cancel": "Cancel",
+      "no_show": "No-show"
+    },
+    "actionLabel": {
+      "check_in": "Check in {{name}}",
+      "start": "Start {{name}}'s visit",
+      "complete": "Complete {{name}}'s visit",
+      "cancel": "Cancel {{name}}'s appointment",
+      "no_show": "Mark {{name}} as no-show"
+    }
+  },
+  "booking": {
+    "title": "Book an appointment",
+    "rescheduleTitle": "Reschedule appointment",
+    "chooseFirst": "Choose a branch, doctor and date to see available times.",
+    "noSlots": "No available times on this day.",
+    "availableTimes": "Available times",
+    "repeatedHourHint": "Some times occur twice on this day because of the daylight-saving change; the UTC offset next to them tells them apart.",
+    "changePatient": "Change patient",
+    "patient": "Patient",
+    "searchResults": "Search results",
+    "notRegisteredHere": "The patient has no active registration at this branch. Register them there from their record first.",
+    "branch": "Branch",
+    "practitioner": "Doctor",
+    "date": "Date",
+    "duration": "Duration",
+    "minutes": "{{n}} min",
+    "type": "Visit type",
+    "confirm": "Confirm booking",
+    "booked": "The appointment was booked.",
+    "rescheduled": "The appointment was rescheduled.",
+    "currentTime": "Current time: {{time}}",
+    "confirmReschedule": "Confirm new time"
+  },
+  "queue": {
+    "title": "Today's queue",
+    "subtitle": "Waiting patients are ordered by actual arrival time, then appointment time. Refreshes automatically.",
+    "waiting": "Waiting",
+    "inProgress": "In progress",
+    "expected": "Today's appointments not yet arrived",
+    "noneWaiting": "Nobody is waiting.",
+    "noneInProgress": "No visits in progress.",
+    "noneExpected": "No other appointments expected today.",
+    "timeLabel": {
+      "arrival": "Arrived {{time}}",
+      "started": "Started {{time}}",
+      "scheduled": "Booked {{time}}"
+    },
+    "appointmentAt": "Appointment {{time}}"
+  },
+  "practitioners": {
+    "title": "Doctors & schedules",
+    "subtitle": "Scheduling profiles of the organization's doctors.",
+    "add": "Add scheduling profile",
+    "addTitle": "Scheduling profile for a doctor member",
+    "addHint": "The profile belongs to an active member with the doctor role; no new login account is created.",
+    "listTitle": "Doctors",
+    "empty": "No doctors are available to you.",
+    "emptyManage": "No scheduling profiles yet. Add one for a doctor member.",
+    "status": {
+      "active": "Taking bookings",
+      "inactive": "Not taking bookings"
+    },
+    "defaultDuration": "{{n}}-minute appointments",
+    "noCandidates": "Every doctor member already has a profile. Add a member with the doctor role on the Team page.",
+    "member": "Member",
+    "specialty": "Specialty",
+    "durationLabel": "Default appointment length (minutes, multiples of 5)",
+    "branches": "Branches they work at",
+    "create": "Create profile",
+    "profile": "Scheduling profile",
+    "saved": "The scheduling profile was saved.",
+    "displayName": "Display name",
+    "statusLabel": "Booking status"
+  },
+  "schedule": {
+    "weeklyTitle": "Weekly working hours",
+    "weeklyHint": "Intervals may not overlap, not even across different branches.",
+    "noHours": "No working hours yet.",
+    "weekday": "Day",
+    "hours": "Hours",
+    "start": "From",
+    "end": "To",
+    "remove": "Remove",
+    "removeInterval": "Remove this interval",
+    "addInterval": "Add interval",
+    "exceptionsTitle": "Date-specific changes",
+    "exceptionsHint": "Close a day or replace a branch's hours on a given date. Changes that conflict with booked appointments are refused.",
+    "noExceptions": "No upcoming changes.",
+    "allBranches": "All branches",
+    "kind": {
+      "closed": "Closed",
+      "hours": "Replacement hours"
+    },
+    "kindLabel": "Type",
+    "addException": "Add change",
+    "removeException": "Remove the change on {{date}}"
   }
 }
