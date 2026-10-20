@@ -27,6 +27,9 @@ A SaaS platform for managing clinics and medical centers, initially for **Egypt*
 
 ## Not yet decided — do not invent
 
+The full register of confirmed requirements, proposals and open questions is
+[DECISIONS.md](DECISIONS.md); the remaining plan is [ROADMAP.md](ROADMAP.md).
+
 - Product name (the UI uses "منصة العيادات / Clinics Platform", marked temporary).
 - Pricing, plans, trial length, billing provider.
 - Clinical workflows and requirements per specialty, and which roles may do what clinically

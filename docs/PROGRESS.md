@@ -1,31 +1,57 @@
 # Progress
 
-_Last updated: 2026-10-20 (phase 3)._
+_Last updated: 2026-10-20 (integration checkpoint)._
+
+Product state: [PRODUCT_INVENTORY.md](PRODUCT_INVENTORY.md). Plan: [ROADMAP.md](ROADMAP.md).
+Decisions: [DECISIONS.md](DECISIONS.md). Next phase: [NEXT_PHASE_BRIEF.md](NEXT_PHASE_BRIEF.md).
 
 ## Pull requests
 
-| Phase | PR | Branch | Status |
-| ----- | -- | ------ | ------ |
-| 1 — foundation | [#1](https://github.com/mostafaapozena/clinc-saas/pull/1) | `phase-1/foundation` → `main` | Open, CI green, not merged |
-| 2 — auth & tenancy | [#2](https://github.com/mostafaapozena/clinc-saas/pull/2) | `phase-2/auth-tenancy` → `phase-1/foundation` (stacked) | Open, CI green, not merged |
-| 3 — front desk | [#3](https://github.com/mostafaapozena/clinc-saas/pull/3) | `phase-3/patients-appointments` → `phase-2/auth-tenancy` (stacked) | Open, ready for review after #2 |
+| Phase | PR | Merge commit on `main` | Status |
+| ----- | -- | ---------------------- | ------ |
+| 1 — foundation | [#1](https://github.com/mostafaapozena/clinc-saas/pull/1) | `b33d09a` | Merged 2026-10-20 |
+| 2 — auth & tenancy | [#2](https://github.com/mostafaapozena/clinc-saas/pull/2) | `12bf659` | Merged 2026-10-20 |
+| 3 — front desk | [#3](https://github.com/mostafaapozena/clinc-saas/pull/3) | `ab0551a` | Merged 2026-10-20 |
 
-Merge in order #1 → #2 → #3. After each merge, retarget the next PR to `main` and re-check its
-diff and CI.
+The stack was merged with merge commits in order. #2 and #3 were retargeted to `main` after
+their base merged and brought up to date with GitHub's update-branch (a merge, no force-push);
+CI passed on each updated head before its merge (`b0464b8`, `09ee4e1`), and both updates
+changed no files relative to the reviewed heads. The phase branches still exist.
+
+## Integration checkpoint (2026-10-20)
+
+- `main` at `ab0551a`: push CI passed
+  ([run 39455829903](https://github.com/mostafaapozena/clinc-saas/actions/runs/39455829903)).
+  Its tree is identical to the reviewed phase 3 head.
+- `npm ci` + `npm run verify` on `main` in the Codespace: lint, typecheck, 325 Vitest, build,
+  17 Playwright — all passed.
+- Private preview on `main` (headless Chromium **inside the Codespace**, not the owner's browser):
+  new organization → receptionist creates patient (Arabic digits) → books from server slots →
+  checks in → doctor starts and completes → receptionist logs out (protected API then `401`);
+  branch-limited receptionist asking for another branch's patients `404`; the same user asking for
+  another organization's patients and appointments `404`; viewer `403` on lists, `200` on
+  counts; seeded admin booked, rescheduled and cancelled; Arabic RTL/Alexandria, English
+  LTR/Inter, language kept after reload; organization switch showed no names from the previous
+  organization; phone width without horizontal scroll; no console errors. The run added synthetic
+  records to the development database (a new organization, one cancelled booking for a seeded
+  patient); nothing was reseeded.
+- Warnings assessed (see PRODUCT_INVENTORY.md §5): `MaxListenersExceededWarning` is a supertest
+  harness diagnostic with no product impact, kept as documented debt; the 557 kB bundle warning is
+  scheduled for phase 4 code splitting.
 
 ## Phase 1 — foundation (done)
 
 Monorepo, Codespaces devcontainer, Express + MongoDB API with health check, React web app,
 Vitest + Playwright, GitHub Actions CI, ruleset requiring `verify` on `main`.
 
-## Phase 2 — authentication, organizations, tenant isolation, bilingual shell (done, in review)
+## Phase 2 — authentication, organizations, tenant isolation, bilingual shell (done, merged)
 
 Email/password auth with server-side sessions and CSRF, organizations/branches/memberships, a
 central permission matrix for five roles, tenant isolation on every org-scoped request, team
 management, bilingual shell (Arabic/RTL/Alexandria, English/LTR/Inter). Details:
 [architecture/AUTH.md](architecture/AUTH.md), [architecture/TENANCY.md](architecture/TENANCY.md).
 
-## Phase 3 — patients, schedules, appointments, check-in, daily queue (done, in review)
+## Phase 3 — patients, schedules, appointments, check-in, daily queue (done, merged)
 
 ### Implemented
 
@@ -143,17 +169,14 @@ management, bilingual shell (Arabic/RTL/Alexandria, English/LTR/Inter). Details:
 - Independent security review / penetration test, including the concurrency design under load.
 - No clinical modules, billing, subscriptions, payments, messaging or public booking exist.
 
-## Next (recommended phase 4 — not started)
+## Next
 
-Pick one, with the owner:
-
-1. **Hosting decision and a staging environment** (data residency, backups, monitoring, email
-   provider for verification/recovery/invitations) — prerequisite for any pilot.
-2. **First specialty-agnostic clinical foundation**: a visit record attached to completed
-   appointments with role rules for doctors, designed with clinicians before building.
-3. **Front-desk refinements**: reminders (after a messaging decision), audit viewer for owners,
-   duplicate reconciliation for admins, time-zone migration.
+**Phase 4 — public platform and specialty-aware onboarding** (not started): see
+[NEXT_PHASE_BRIEF.md](NEXT_PHASE_BRIEF.md). The full remaining order (clinical foundation,
+specialty workspaces, clinic finances, platform subscriptions, launch readiness) is in
+[ROADMAP.md](ROADMAP.md). Hosting, email, legal and clinical-advisor decisions run on a parallel
+owner-led decision track ([DECISIONS.md](DECISIONS.md) §4).
 
 ## Blockers
 
-None. PR #3 depends on #2 and #1 being merged first.
+None for phase 4. Later phases depend on the open questions and external setup in DECISIONS.md.
