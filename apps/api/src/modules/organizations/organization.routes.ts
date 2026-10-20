@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { requireAuth, authOf } from '../../auth/session.middleware.js';
 import type { AppConfig } from '../../config/app-config.js';
-import { notFound } from '../../http/errors.js';
+import { conflict, notFound } from '../../http/errors.js';
 import { branchNameSchema, citySchema, organizationNameSchema } from '../../http/schemas.js';
 import { parseInput } from '../../http/validate.js';
 import { hasPermission, permissionsFor } from '../../tenancy/permissions.js';
@@ -13,26 +13,45 @@ import {
   tenantOf,
   type TenantContext,
 } from '../../tenancy/tenant-context.js';
+import { SUPPORTED_TIME_ZONES } from '../../time/local-time.js';
+import { appointmentsRouter } from '../appointments/appointment.routes.js';
+import { dashboardRouter, queueRouter } from '../appointments/front-desk.routes.js';
 import { recordAudit } from '../audit/audit-event.model.js';
 import { BranchModel, toBranchDto } from '../branches/branch.model.js';
 import { branchesRouter } from '../branches/branch.routes.js';
 import { createMembersRouter } from '../memberships/membership.routes.js';
 import { MembershipModel } from '../memberships/membership.model.js';
 import { listActiveMembershipsForUser } from '../memberships/membership.service.js';
+import { patientsRouter } from '../patients/patient.routes.js';
+import { practitionersRouter } from '../practitioners/practitioner.routes.js';
+import { futureActiveAppointments } from '../scheduling/schedule.service.js';
+import { ownPractitionerId } from '../scheduling/scheduling-context.js';
 import { OrganizationModel, type Organization } from './organization.model.js';
 import { createOrganizationWithOwner } from './organization.service.js';
 
+const timeZoneSchema = z.enum(SUPPORTED_TIME_ZONES);
+
 const createOrganizationSchema = z.object({
   name: organizationNameSchema,
+  // Chosen explicitly during onboarding (the form shows the default); never inferred from language.
+  timeZone: timeZoneSchema,
   branch: z.object({ name: branchNameSchema, city: citySchema.optional() }),
 });
-const updateOrganizationSchema = z.object({ name: organizationNameSchema });
+const updateOrganizationSchema = z
+  .object({ name: organizationNameSchema.optional(), timeZone: timeZoneSchema.optional() })
+  .refine((v) => v.name !== undefined || v.timeZone !== undefined, { message: 'empty_update' });
 
 function toOrganizationDto(org: Organization & { _id: unknown }) {
-  return { id: String(org._id), name: org.name, createdAt: org.createdAt.toISOString() };
+  return {
+    id: String(org._id),
+    name: org.name,
+    timeZone: org.timeZone ?? null,
+    createdAt: org.createdAt.toISOString(),
+  };
 }
 
-function membershipView(tenant: TenantContext) {
+async function membershipView(tenant: TenantContext) {
+  const practitionerId = await ownPractitionerId(tenant);
   return {
     id: String(tenant.membershipId),
     role: tenant.role,
@@ -41,6 +60,7 @@ function membershipView(tenant: TenantContext) {
         ? { type: 'all' as const, branchIds: [] }
         : { type: 'selected' as const, branchIds: tenant.branchScope.branchIds.map(String) },
     permissions: permissionsFor(tenant.role),
+    practitionerId: practitionerId ? String(practitionerId) : null,
   };
 }
 
@@ -60,6 +80,7 @@ export function createOrganizationsRouter(config: AppConfig) {
     const { organization, branch } = await createOrganizationWithOwner({
       userId: user._id,
       name: input.name,
+      timeZone: input.timeZone,
       branch: input.branch,
     });
     res.status(201).json({
@@ -83,7 +104,7 @@ export function createOrganizationsRouter(config: AppConfig) {
       : undefined;
     res.json({
       organization: toOrganizationDto(organization),
-      membership: membershipView(tenant),
+      membership: await membershipView(tenant),
       stats: { accessibleBranches, ...(activeMembers === undefined ? {} : { activeMembers }) },
     });
   });
@@ -93,16 +114,32 @@ export function createOrganizationsRouter(config: AppConfig) {
     const input = parseInput(updateOrganizationSchema, req.body);
     const organization = await OrganizationModel.findById(tenant.organizationId);
     if (!organization) throw notFound();
-    const previousName = organization.name;
-    organization.name = input.name;
+    const changes: Record<string, { from: string | null; to: string }> = {};
+    if (input.timeZone !== undefined && input.timeZone !== organization.timeZone) {
+      // Existing bookings were made in the old zone; a safe migration is a later feature.
+      if (organization.timeZone) {
+        const future = await futureActiveAppointments(tenant.organizationId, {});
+        if (future.length > 0) {
+          throw conflict('TIME_ZONE_LOCKED', 'The time zone cannot change while future appointments exist', {
+            futureAppointments: future.length,
+          });
+        }
+      }
+      changes.timeZone = { from: organization.timeZone, to: input.timeZone };
+      organization.timeZone = input.timeZone;
+    }
+    if (input.name !== undefined && input.name !== organization.name) {
+      changes.name = { from: organization.name, to: input.name };
+      organization.name = input.name;
+    }
     await organization.save();
-    if (previousName !== input.name) {
+    if (Object.keys(changes).length > 0) {
       await recordAudit({
         organizationId: tenant.organizationId,
         actorUserId: tenant.userId,
         action: 'organization.updated',
         target: { type: 'organization', id: tenant.organizationId },
-        changes: { name: { from: previousName, to: input.name } },
+        changes,
       });
     }
     res.json({ organization: toOrganizationDto(organization) });
@@ -110,6 +147,11 @@ export function createOrganizationsRouter(config: AppConfig) {
 
   router.use('/:orgId/branches', branchesRouter);
   router.use('/:orgId/members', createMembersRouter(config));
+  router.use('/:orgId/patients', patientsRouter);
+  router.use('/:orgId/practitioners', practitionersRouter);
+  router.use('/:orgId/appointments', appointmentsRouter);
+  router.use('/:orgId/queue', queueRouter);
+  router.use('/:orgId/dashboard', dashboardRouter);
 
   return router;
 }

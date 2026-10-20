@@ -18,11 +18,12 @@ function first<T>(items: T[]): T {
 export async function createOrganizationWithOwner(input: {
   userId: Types.ObjectId;
   name: string;
+  timeZone: string;
   branch: { name: string; city?: string };
 }) {
   return mongoose.connection.transaction(async (session) => {
     const organization = first(
-      await OrganizationModel.create([{ name: input.name, createdBy: input.userId }], { session }),
+      await OrganizationModel.create([{ name: input.name, timeZone: input.timeZone, createdBy: input.userId }], { session }),
     );
     const branch = first(
       await BranchModel.create(
@@ -50,7 +51,7 @@ export async function createOrganizationWithOwner(input: {
         actorUserId: input.userId,
         action: 'organization.created',
         target: { type: 'organization', id: organization._id },
-        changes: { initialBranchId: branch._id },
+        changes: { initialBranchId: branch._id, timeZone: input.timeZone },
       },
       session,
     );

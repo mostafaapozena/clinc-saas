@@ -3,7 +3,9 @@ import { AuditEventModel } from '../src/modules/audit/audit-event.model.js';
 import { MembershipModel } from '../src/modules/memberships/membership.model.js';
 import { ROLES, permissionsFor, type Role } from '../src/tenancy/permissions.js';
 import { addBranch, addMember, createOrg, register, send, testApp, type Client } from './helpers/api.js';
+import { TODAY, TOMORROW, act, bookOk, createPatient, createPractitioner, nextPhone, pinClock } from './helpers/clinic.js';
 import { connectTestDatabase, dropTestDatabase } from './helpers/test-database.js';
+import { seedSpecialties } from '../src/modules/specialties/specialty.seed.js';
 
 const app = testApp();
 
@@ -12,19 +14,56 @@ let orgId: string;
 let branchA: string;
 let branchB: string;
 const clients = {} as Record<Role, Client>;
+const memberships = {} as Record<Role, string>;
+/** The doctor's own scheduling profile, and a patient with an appointment with that doctor. */
+let doctorPractitioner: string;
+let linkedPatient: string;
+
+const everyDayAtA = () => [0, 1, 2, 3, 4, 5, 6].map((weekday) => ({ branchId: branchA, weekday, start: '08:00', end: '20:00' }));
 
 beforeAll(async () => {
+  pinClock();
   await connectTestDatabase('authz');
+  await seedSpecialties();
   owner = await register(app, 'owner');
   ({ orgId, branchId: branchA } = await createOrg(owner, 'Authz Clinic', 'Branch A'));
   branchB = await addBranch(owner, orgId, 'Branch B');
   clients.owner = owner;
   for (const role of ['admin', 'doctor', 'receptionist', 'viewer'] as const) {
     clients[role] = await register(app, role);
-    await addMember(owner, orgId, clients[role], role, role === 'doctor' || role === 'receptionist' ? [branchA] : undefined);
+    memberships[role] = await addMember(owner, orgId, clients[role], role, role === 'doctor' || role === 'receptionist' ? [branchA] : undefined);
   }
+  doctorPractitioner = await createPractitioner(owner, orgId, memberships.doctor, [branchA], 15, everyDayAtA());
+  linkedPatient = await createPatient(owner, orgId, branchA, 'Linked Patient');
+  await bookOk(owner, orgId, { patientId: linkedPatient, practitionerId: doctorPractitioner, branchId: branchA, date: '2026-11-20', time: '09:00' });
 });
 afterAll(() => dropTestDatabase());
+
+// Unique 15-minute start times so each booking in the matrix gets its own slot.
+let slot = 0;
+const nextTime = () => {
+  slot += 1;
+  const minutes = 8 * 60 + 15 * slot;
+  return `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
+};
+
+/** A doctor membership + profile created by the owner, for actions that change profiles. */
+async function freshPractitioner() {
+  const person = await register(app, 'doc-extra');
+  const membership = await addMember(owner, orgId, person, 'doctor', [branchA]);
+  return createPractitioner(owner, orgId, membership, [branchA], 15, everyDayAtA());
+}
+
+/** A booking for today with the doctor, made by the owner (optionally checked in). */
+async function todaysBooking(checkIn: boolean) {
+  const patient = await createPatient(owner, orgId, branchA);
+  const appointment = await bookOk(owner, orgId, { patientId: patient, practitionerId: doctorPractitioner, branchId: branchA, date: TODAY, time: nextTime() });
+  if (!checkIn) return appointment;
+  return (await act(owner, orgId, appointment.id, 'check_in', appointment.version)).body.appointment as typeof appointment;
+}
+
+const FRONT_DESK: Role[] = ['owner', 'admin', 'receptionist'];
+const STAFF: Role[] = ['owner', 'admin', 'receptionist', 'doctor'];
 
 let seq = 0;
 type Action = { name: string; allowed: readonly Role[]; run: (c: Client) => Promise<{ status: number }> };
@@ -55,6 +94,105 @@ const ACTIONS: Action[] = [
       return send(c, 'patch', `/api/v1/orgs/${orgId}/members/${id}`, { role: 'receptionist', branchScope: { type: 'selected', branchIds: [branchB] } });
     },
   },
+  // Phase 3 — front desk
+  { name: 'read today’s counts', allowed: ROLES, run: (c) => c.agent.get(`/api/v1/orgs/${orgId}/dashboard`) },
+  { name: 'browse the patient registry', allowed: FRONT_DESK, run: (c) => c.agent.get(`/api/v1/orgs/${orgId}/patients`) },
+  {
+    name: 'create a patient',
+    allowed: FRONT_DESK,
+    run: (c) => send(c, 'post', `/api/v1/orgs/${orgId}/patients`, { fullName: `Matrix ${++seq}`, phone: { country: 'EG', number: nextPhone() }, branchId: branchA }),
+  },
+  { name: 'open a patient linked to their appointments', allowed: STAFF, run: (c) => c.agent.get(`/api/v1/orgs/${orgId}/patients/${linkedPatient}`) },
+  {
+    name: 'edit patient demographics',
+    allowed: FRONT_DESK,
+    run: async (c) => {
+      const id = await createPatient(owner, orgId, branchA);
+      return send(c, 'patch', `/api/v1/orgs/${orgId}/patients/${id}`, { fullName: `Edited ${++seq}`, version: 0 });
+    },
+  },
+  {
+    name: 'archive a branch registration',
+    allowed: FRONT_DESK,
+    run: async (c) => {
+      const id = await createPatient(owner, orgId, branchA);
+      return send(c, 'patch', `/api/v1/orgs/${orgId}/patients/${id}/registrations/${branchA}`, { status: 'archived' });
+    },
+  },
+  { name: 'list practitioners', allowed: STAFF, run: (c) => c.agent.get(`/api/v1/orgs/${orgId}/practitioners`) },
+  {
+    name: 'create a scheduling profile',
+    allowed: ['owner', 'admin'],
+    run: async (c) => {
+      const person = await register(app, 'profile-target');
+      const membership = await addMember(owner, orgId, person, 'doctor', [branchA]);
+      return send(c, 'post', `/api/v1/orgs/${orgId}/practitioners`, { membershipId: membership, specialtyCode: 'ent', branchIds: [branchA], defaultDurationMinutes: 20 });
+    },
+  },
+  {
+    name: 'change weekly hours',
+    allowed: ['owner', 'admin'],
+    run: async (c) => {
+      const id = await freshPractitioner();
+      return send(c, 'put', `/api/v1/orgs/${orgId}/practitioners/${id}/schedule`, { weeklySchedule: [], version: 1 });
+    },
+  },
+  {
+    name: 'add a date exception',
+    allowed: ['owner', 'admin'],
+    run: async (c) => send(c, 'post', `/api/v1/orgs/${orgId}/practitioners/${await freshPractitioner()}/exceptions`, { date: '2026-12-01', kind: 'closed' }),
+  },
+  { name: 'list appointments', allowed: STAFF, run: (c) => c.agent.get(`/api/v1/orgs/${orgId}/appointments`) },
+  {
+    name: 'check availability',
+    allowed: FRONT_DESK,
+    run: (c) => c.agent.get(`/api/v1/orgs/${orgId}/appointments/availability`).query({ practitionerId: doctorPractitioner, branchId: branchA, date: TOMORROW }),
+  },
+  {
+    name: 'book an appointment',
+    allowed: FRONT_DESK,
+    run: async (c) => {
+      const patientId = await createPatient(owner, orgId, branchA);
+      return c.agent
+        .post(`/api/v1/orgs/${orgId}/appointments`)
+        .set('X-CSRF-Token', c.csrf)
+        .set('Idempotency-Key', `matrix-${++seq}-booking`)
+        .send({ patientId, practitionerId: doctorPractitioner, branchId: branchA, date: TOMORROW, time: nextTime(), type: 'new_visit' });
+    },
+  },
+  {
+    name: 'reschedule an appointment',
+    allowed: FRONT_DESK,
+    run: async (c) => {
+      const a = await todaysBooking(false);
+      return send(c, 'post', `/api/v1/orgs/${orgId}/appointments/${a.id}/reschedule`, { date: TOMORROW, time: nextTime(), version: a.version });
+    },
+  },
+  {
+    name: 'check a patient in',
+    allowed: FRONT_DESK,
+    run: async (c) => {
+      const a = await todaysBooking(false);
+      return act(c, orgId, a.id, 'check_in', a.version);
+    },
+  },
+  {
+    name: 'cancel an appointment',
+    allowed: FRONT_DESK,
+    run: async (c) => {
+      const a = await todaysBooking(false);
+      return act(c, orgId, a.id, 'cancel', a.version);
+    },
+  },
+  {
+    name: 'start the visit (doctor: own appointment)',
+    allowed: ['owner', 'admin', 'doctor'],
+    run: async (c) => {
+      const a = await todaysBooking(true);
+      return act(c, orgId, a.id, 'start', a.version);
+    },
+  },
+  { name: 'view the arrivals queue', allowed: STAFF, run: (c) => c.agent.get(`/api/v1/orgs/${orgId}/queue`) },
 ];
 
 describe.each(ROLES)('role %s', (role) => {

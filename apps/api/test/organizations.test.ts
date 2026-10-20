@@ -29,6 +29,7 @@ describe('organization onboarding', () => {
     const client = await register(app, 'founder');
     const res = await send(client, 'post', '/api/v1/orgs', {
       name: 'عيادة الاختبار',
+      timeZone: 'Asia/Riyadh',
       branch: { name: 'الفرع الرئيسي', city: 'القاهرة' },
     });
 
@@ -39,6 +40,7 @@ describe('organization onboarding', () => {
     const detail = await client.agent.get(`/api/v1/orgs/${orgId}`);
     expect(detail.status).toBe(200);
     expect(detail.body.organization.name).toBe('عيادة الاختبار');
+    expect(detail.body.organization.timeZone).toBe('Asia/Riyadh');
     expect(detail.body.membership).toMatchObject({ role: 'owner', branchScope: { type: 'all' } });
     expect(detail.body.membership.permissions).toEqual(PERMISSIONS);
     expect(detail.body.stats).toEqual({ accessibleBranches: 1, activeMembers: 1 });
@@ -57,7 +59,8 @@ describe('organization onboarding', () => {
     const branchesBefore = await countAllBranches();
     vi.spyOn(MembershipModel, 'create').mockRejectedValueOnce(new Error('simulated failure'));
 
-    const res = await send(client, 'post', '/api/v1/orgs', { name: 'Half Made', branch: { name: 'Branch' } });
+    const body = { name: 'Half Made', timeZone: 'Africa/Cairo', branch: { name: 'Branch' } };
+    const res = await send(client, 'post', '/api/v1/orgs', body);
 
     expect(res.status).toBe(500);
     expect(await OrganizationModel.countDocuments()).toBe(orgsBefore);
@@ -65,16 +68,28 @@ describe('organization onboarding', () => {
     expect(await countAllBranches()).toBe(branchesBefore);
 
     vi.restoreAllMocks();
-    const retry = await send(client, 'post', '/api/v1/orgs', { name: 'Half Made', branch: { name: 'Branch' } });
+    const retry = await send(client, 'post', '/api/v1/orgs', body);
     expect(retry.status).toBe(201);
   });
 
   it('validates the onboarding input', async () => {
     const client = await register(app, 'invalid-org');
-    const res = await send(client, 'post', '/api/v1/orgs', { name: 'X', branch: {} });
+    const res = await send(client, 'post', '/api/v1/orgs', { name: 'X', timeZone: 'Africa/Cairo', branch: {} });
 
     expect(res.status).toBe(400);
     expect(res.body.error.fields).toEqual({ name: 'too_short', 'branch.name': 'required' });
+  });
+
+  it('requires an explicitly chosen, supported time zone', async () => {
+    const client = await register(app, 'tz-org');
+    const missing = await send(client, 'post', '/api/v1/orgs', { name: 'No Zone', branch: { name: 'Main' } });
+    const unsupported = await send(client, 'post', '/api/v1/orgs', { name: 'Odd Zone', timeZone: 'Mars/Olympus', branch: { name: 'Main' } });
+    const fixedOffset = await send(client, 'post', '/api/v1/orgs', { name: 'Offset Zone', timeZone: '+02:00', branch: { name: 'Main' } });
+
+    for (const res of [missing, unsupported, fixedOffset]) {
+      expect(res.status).toBe(400);
+      expect(Object.keys(res.body.error.fields)).toEqual(['timeZone']);
+    }
   });
 });
 

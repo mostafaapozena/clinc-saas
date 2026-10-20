@@ -34,7 +34,22 @@ export function createApp({ logger, config: overrides }: AppOptions = {}) {
   app.set('trust proxy', config.trustProxy ? 1 : false);
   app.use(helmet());
   app.use(express.json({ limit: '100kb' }));
-  if (logger) app.use(pinoHttp({ logger }));
+  if (logger) {
+    app.use(
+      pinoHttp({
+        logger,
+        // Request lines only: no headers, and no query string (patient searches carry names and
+        // phone numbers there). Bodies are never logged.
+        serializers: {
+          req: (req: { id?: unknown; method?: string; url?: string }) => ({
+            id: req.id,
+            method: req.method,
+            path: String(req.url ?? '').split('?')[0],
+          }),
+        },
+      }),
+    );
+  }
 
   // No CORS middleware on purpose: the web app reaches the API same-origin (via the proxy),
   // so browsers block cross-origin reads, and originCheck blocks cross-site writes.
@@ -56,7 +71,12 @@ export function createApp({ logger, config: overrides }: AppOptions = {}) {
   const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
     if (err instanceof HttpError) {
       res.status(err.status).json({
-        error: { code: err.code, message: err.message, ...(err.fields ? { fields: err.fields } : {}) },
+        error: {
+          code: err.code,
+          message: err.message,
+          ...(err.fields ? { fields: err.fields } : {}),
+          ...(err.details ? { details: err.details } : {}),
+        },
       });
       return;
     }
