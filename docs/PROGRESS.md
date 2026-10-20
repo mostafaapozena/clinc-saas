@@ -76,8 +76,11 @@ phase 2 by changing the devcontainer networking (see below).
 ### Known limitations and verification gaps
 
 - MongoDB is pinned to 8.2.12 because 8.0.x refuses to start on Linux kernel 6.19+
-  ([SERVER-121912](https://jira.mongodb.org/browse/SERVER-121912)). Every CI run so far landed
-  on kernel 6.17 runners, so 8.2.12 on a 6.19+ kernel remains **unverified**; CI logs the kernel.
+  ([SERVER-121912](https://jira.mongodb.org/browse/SERVER-121912)). On 2026-10-20 a CI run
+  ([39351689080](https://github.com/mostafaapozena/clinc-saas/actions/runs/39351689080)) landed
+  on kernel `7.0.0-1017-azure` — inside the affected range — and MongoDB 8.2.12 started and the
+  full suite passed. That is one observation, not a guarantee for every 6.19+ kernel; CI keeps
+  logging the kernel and MongoDB version.
 - Rate limits are per IP; in development all requests come through the Vite proxy and share one
   limit.
 - In the Codespace, `SESSION_COOKIE_SECURE=false`; the HTTPS preview would also work with `true`.
