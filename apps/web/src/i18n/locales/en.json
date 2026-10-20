@@ -1,0 +1,38 @@
+{
+  "app": {
+    "name": "Clinics Platform",
+    "tempName": "temporary name",
+    "tagline": "Cloud management for clinics and medical centers in Egypt and Saudi Arabia"
+  },
+  "phase": {
+    "title": "Phase 1: Project foundation",
+    "description": "Temporary starter page that verifies the frontend, API and database are connected. This environment contains no real patient data."
+  },
+  "status": {
+    "title": "System status",
+    "api": "Application server (API)",
+    "database": "Database",
+    "checking": "Checking…",
+    "connected": "Connected",
+    "degraded": "Running, but the database is unavailable",
+    "unreachable": "Cannot reach the server",
+    "dbUp": "Connected",
+    "dbDown": "Unavailable",
+    "dbUnknown": "Unknown",
+    "latency": "Response time: {{ms}} ms",
+    "retry": "Check again"
+  },
+  "specialties": {
+    "title": "Initial specialties",
+    "note": "Synthetic reference data from the database",
+    "loading": "Loading…",
+    "empty": "No specialties yet. Run npm run seed to initialize the data.",
+    "error": "Could not load specialties."
+  },
+  "language": {
+    "switchTo": "العربية"
+  },
+  "footer": {
+    "devOnly": "Development environment — not a production build."
+  }
+}

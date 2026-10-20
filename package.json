@@ -1,0 +1,41 @@
+{
+  "name": "clinc-saas",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Medical clinic management SaaS platform — phase 1 foundation",
+  "type": "module",
+  "workspaces": [
+    "apps/api",
+    "apps/web"
+  ],
+  "engines": {
+    "node": ">=24.21.0 <25"
+  },
+  "scripts": {
+    "dev": "concurrently -k -n api,web -c blue,magenta \"npm run dev -w @clinc/api\" \"npm run dev -w @clinc/web\"",
+    "build": "npm run build -w @clinc/api && npm run build -w @clinc/web",
+    "lint": "eslint . --max-warnings=0",
+    "typecheck": "tsc --noEmit -p apps/api && tsc --noEmit -p apps/web && tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "seed": "npm run seed -w @clinc/api",
+    "db:check": "npm run db:check -w @clinc/api",
+    "verify": "npm run lint && npm run typecheck && npm run test && npm run build && npm run test:e2e"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.64.1",
+    "@types/node": "^24.0.0",
+    "concurrently": "^10.0.6",
+    "eslint": "^10.13.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.7",
+    "globals": "^17.13.0",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.72.0",
+    "vitest": "^5.0.5"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true
+  }
+}
