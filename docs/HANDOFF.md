@@ -67,6 +67,15 @@ are accepted with header `X-Github-Token: $GITHUB_TOKEN`. Browsers first get Git
 - If API tests fail with `MongoNetworkError ... closed` in random suites, check MongoDB's open-file
   limit (`db.hostInfo().extra.maxOpenFiles`, expected 64000). A container created from an older
   `docker-compose.yml` keeps 1024 until the Codespace is rebuilt.
+- **Preview 502 on 5173 while 4000 works** (2026-10-20, after the Codespace had been shut down
+  for hours and was started by `gh codespace ssh`): the dev server answered locally, the API's
+  forwarded URL reached Express, but the 5173 URL returned 502 and `gh codespace ports forward
+  5173:…` reported `connect failed ("Connection refused")` from the agent. Vite host binding,
+  IPv6 (the container has none) and re-setting the port to private did not help; one
+  `gh codespace stop` + start, then starting `npm run dev`, fixed it. Check the preview URL with
+  `curl -H "X-Github-Token: $GITHUB_TOKEN"` before driving a browser through it.
+- When stopping dev servers over SSH, do not `pkill -f concurrently` inside an inline command:
+  the pattern matches the SSH session's own command line and closes it. Use a script file.
 - Do not publish app ports in `docker-compose.yml`: the Codespaces agent already listens on them
   on the VM (`bind: address already in use` → recovery container).
 

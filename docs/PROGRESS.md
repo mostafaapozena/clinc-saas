@@ -100,6 +100,13 @@ management, bilingual shell (Arabic/RTL/Alexandria, English/LTR/Inter). Details:
   LTR/Inter; mobile viewport without horizontal overflow; no console errors. Screenshots were
   reviewed and led to two fixes (reversed time ranges in RTL, empty action labels on mobile).
   This was **not** the owner's own browser.
+- **Preview re-verified** (2026-10-20, review session, commit `783f5b9`) the same way: a new
+  organization set up through the preview's API, receptionist UI create (Arabic-digit phone →
+  `+20…`) → book from server slots → check in; doctor queue → start → complete; doctor registry
+  `403`; seeded admin book → reschedule → cancel with reason; Arabic `rtl`/Alexandria, English
+  `ltr`/Inter, language kept after reload; viewer `403` on patients/appointments/queue and `200` on
+  dashboard; Pixel 7 queue without horizontal scroll; no console errors. Headless, inside the
+  Codespace — not the owner's browser.
 
 ### Known limitations
 
