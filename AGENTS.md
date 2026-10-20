@@ -1,69 +1,73 @@
 # Working rules for this repository
 
-These rules apply to every contributor, human or AI agent. Commands and setup details live in
-[README.md](README.md); product scope lives in [docs/PROJECT_CONTEXT.md](docs/PROJECT_CONTEXT.md).
+These rules apply to every contributor, human or AI agent. Commands live in
+[README.md](README.md); product scope in [docs/PROJECT_CONTEXT.md](docs/PROJECT_CONTEXT.md);
+security design in [docs/architecture/](docs/architecture/).
 
 ## 1. Execute in the cloud, not on the owner's computer
 
-- The owner's local disk (Windows C:) is nearly full. **Do not clone this repository, install
-  its dependencies, download browsers or pull Docker images on the owner's machine.**
+- The owner's local disk (Windows C:) is nearly full. **Do not clone this repository, install its
+  dependencies, download browsers or pull Docker images on the owner's machine.**
 - All installs, builds, tests and dev servers run inside the GitHub Codespace (or CI).
-- An agent running locally must operate the Codespace remotely, e.g.
-  `gh codespace ssh -c <name> -- '<command>'`, and confirm it is inside the Codespace
-  (`echo $CODESPACES` → `true`, working directory `/workspaces/clinc-saas`) before running
-  project commands. Opening a Codespace URL in a browser does not move an agent's session.
-- Non-interactive `gh codespace ssh` shells do not load the Codespace's Git credentials; push
-  with `bash -lc 'git push ...'`.
-- Use at most one Codespace on the smallest machine (2-core) unless there is a stated reason.
-  Do not change billing, spending limits or paid features without the owner's explicit approval.
+- An agent running locally operates the Codespace remotely (`gh codespace ssh -c <name> -- '…'`)
+  and first confirms it is inside it (`echo $CODESPACES` → `true`, `/workspaces/clinc-saas`).
+  Opening a Codespace URL in a browser does not move an agent's session.
+- Use one Codespace on the smallest machine unless there is a stated reason. Never change billing,
+  spending limits or paid features without the owner's explicit approval.
 
 ## 2. Testing requirements
 
-- `npm run verify` (lint → typecheck → tests → build → e2e smoke) must pass in the Codespace
-  before pushing, and in GitHub Actions before a PR is considered ready.
-- Every behavior change comes with a test that would fail without it. Do not add tests whose
-  only purpose is a green check, and never skip, disable or loosen a check to get past a failure.
-  Fix the cause.
-- API integration tests use a real MongoDB with throwaway databases named `clinc_test_*`
-  (see `apps/api/test/helpers/test-database.ts`). Never point tests at the dev database.
-- Passing locally in the Codespace does **not** mean CI passed. Check the actual Actions run.
-- Report results honestly: say what was verified, what was not, and paste failures.
+- `npm run verify` must pass in the Codespace before pushing, and in GitHub Actions before a PR
+  is ready. Passing in the Codespace does **not** mean CI passed — check the actual run.
+- Every behavior change comes with a test that would fail without it. Never skip, disable or
+  loosen a check to get past a failure; fix the cause.
+- API integration tests use real MongoDB (replica set) with throwaway `clinc_test_*` databases
+  (`apps/api/test/helpers/test-database.ts`). Never point tests at the dev database.
+- **Every new tenant-owned endpoint needs isolation tests**: another organization's ids, tampered
+  ids in the path or body, branch-restricted callers, and list/count/search scope. Follow
+  `apps/api/test/tenancy.test.ts`. Add new actions to the role matrix in
+  `apps/api/test/authorization.test.ts`.
+- Report results honestly: what was verified, what was not, and the failure output.
 
-## 3. Data and secrets
+## 3. Data, secrets and environments
 
-- No real patient data anywhere: not in code, seeds, fixtures, screenshots or logs.
-  Seed and demo data must be clearly synthetic.
-- Secrets never go in Git. `.env` is ignored; `.env.example` contains placeholders only.
-  Review staged files (`git diff --cached`) for secrets before every commit.
-- Ports stay **private**. Do not make Codespaces ports public, and do not deploy a public
-  environment without explicit approval.
+- No real patient data anywhere: code, seeds, fixtures, screenshots, logs. Demo data is synthetic
+  and uses `@demo.test` emails.
+- No secrets in Git. `.env` is ignored; `.env.example` holds placeholders. `DEMO_PASSWORD` lives
+  only in the Codespace's `.env` (or is generated per test run) — never commit or report it.
+  Review `git diff --cached` before every commit.
+- Ports stay **private**. No public deployment without explicit approval.
+- Never log passwords, cookies, session tokens or CSRF tokens (the logger redacts the headers).
 
 ## 4. Git workflow
 
-- Change `main` only through pull requests. A repository ruleset requires the `verify` CI check
-  and blocks force-pushes and deletion.
-- Branch naming: `phase-<n>/<topic>` for phase work, `feat/<topic>`, `fix/<topic>`, `docs/<topic>`.
-- Small, focused commits with conventional prefixes (`feat:`, `fix:`, `test:`, `docs:`,
-  `chore:`, `ci:`).
-- Never commit `node_modules`, build output, `.env` files or database files (see `.gitignore`).
-- Open a PR describing what changed and how it was verified. Do not merge your own PR unless the
-  owner asks.
-- Never force-push to `main` or rewrite shared history.
+- Change `main` only through pull requests; a repository ruleset requires the `verify` check and
+  blocks force-pushes and deletion.
+- Branches: `phase-<n>/<topic>`, `feat/…`, `fix/…`, `docs/…`. Conventional commit prefixes.
+- When the previous phase's PR is still open, **stack**: branch from its head, target its branch,
+  and say so in the PR. Retarget to `main` only after the base merges, then re-check diff and CI.
+- Never commit `node_modules`, build output, `.env` files, test reports or database files.
+- Do not merge your own PR unless the owner asks. Never force-push shared branches.
 
 ## 5. Architecture conventions
 
-- API features live in `apps/api/src/modules/<module>/` (model, routes, seed, …) and are mounted
-  in `apps/api/src/app.ts` under `/api/v1/<module>`.
-- All configuration comes from environment variables validated in `apps/api/src/config/env.ts`.
-- The web app is Arabic-first: every user-facing string goes in **both**
-  `apps/web/src/i18n/locales/ar.json` and `en.json` (a test enforces matching keys). Use CSS
-  logical properties (`margin-inline-start`, `padding-inline`, …), never left/right, so RTL and
-  LTR both work.
-- Multi-tenancy is **not implemented**. Follow [docs/architecture/TENANCY.md](docs/architecture/TENANCY.md)
-  when adding organization-owned data, and never describe the system as multi-tenant or
-  isolation-safe until that design is built and tested.
+- API modules live in `apps/api/src/modules/<module>/` and mount under `/api/v1`.
+  Configuration comes only from env vars validated in `apps/api/src/config/env.ts`.
+- **Authorization**: add permissions to `PERMISSION_MATRIX` in
+  `apps/api/src/tenancy/permissions.ts` and guard routes with `requirePermission(...)`. Never
+  check role names in routes. The web app hides controls for UX only.
+- **Tenant data**: every tenant-owned model has a required `organizationId` (branch-owned also
+  `branchId`) and applies `tenantGuardPlugin`. Org-scoped routes sit under
+  `/api/v1/orgs/:orgId/...` after `requireMembership`, read the scope from `tenantOf(req)` and
+  build filters with `orgScope` / `accessibleBranchesFilter` / `branchOwnedFilter`. Never take an
+  organization id from a request body. Inaccessible ids return the generic `404`.
+- State-changing requests need the CSRF token (the web client sends it automatically).
+- Web: Arabic first. Every user-facing string goes in **both** `ar.json` and `en.json` (a test
+  enforces matching keys); API error codes map to `errors.<CODE>`. Use CSS logical properties,
+  never left/right. Organization-scoped query keys start with `['org', orgId]`.
+- Do not claim multi-tenant isolation beyond what the tests in `apps/api/test/` prove.
 
 ## 6. Keep continuity documents current
 
-Before ending a session, update [docs/PROGRESS.md](docs/PROGRESS.md) and, if the way to resume
-changed, [docs/HANDOFF.md](docs/HANDOFF.md). Push everything, because a Codespace is not a backup.
+Before ending a session, update [docs/PROGRESS.md](docs/PROGRESS.md) and, if resuming changed,
+[docs/HANDOFF.md](docs/HANDOFF.md). Push everything — a Codespace is not a backup.

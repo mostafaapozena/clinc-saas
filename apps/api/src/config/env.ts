@@ -6,20 +6,50 @@ import { z } from 'zod';
 // src/config (or dist/config) → repository root
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../..');
 
-const envSchema = z.object({
-  NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
-  PORT: z.coerce.number().int().min(1).max(65_535).default(4000),
-  LOG_LEVEL: z
-    .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'])
-    .default('info'),
-  MONGODB_URI: z
-    .string()
-    .regex(/^mongodb(\+srv)?:\/\//, 'must start with mongodb:// or mongodb+srv://'),
-  MONGODB_DB_NAME: z
-    .string()
-    .regex(/^[A-Za-z0-9_-]+$/, 'may only contain letters, digits, "_" and "-"')
-    .optional(),
-});
+const envSchema = z
+  .object({
+    NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+    PORT: z.coerce.number().int().min(1).max(65_535).default(4000),
+    LOG_LEVEL: z
+      .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'])
+      .default('info'),
+    MONGODB_URI: z
+      .string()
+      .regex(/^mongodb(\+srv)?:\/\//, 'must start with mongodb:// or mongodb+srv://'),
+    MONGODB_DB_NAME: z
+      .string()
+      .regex(/^[A-Za-z0-9_-]+$/, 'may only contain letters, digits, "_" and "-"')
+      .optional(),
+    SESSION_TTL_HOURS: z.coerce.number().int().min(1).max(720).default(168),
+    SESSION_COOKIE_SECURE: z.stringbool().default(false),
+    TRUST_PROXY: z.stringbool().default(false),
+    APP_ORIGINS: z
+      .string()
+      .default('')
+      .transform((value, ctx) => {
+        const origins = value
+          .split(',')
+          .map((origin) => origin.trim())
+          .filter(Boolean);
+        for (const origin of origins) {
+          if (!URL.canParse(origin) || new URL(origin).origin !== origin) {
+            ctx.addIssue({ code: 'custom', message: 'each entry must be an origin like https://host' });
+          }
+        }
+        return origins;
+      }),
+    AUTH_RATE_LIMIT_MAX: z.coerce.number().int().min(1).max(10_000).default(10),
+    AUTH_RATE_LIMIT_WINDOW_MINUTES: z.coerce.number().int().min(1).max(1_440).default(15),
+  })
+  .superRefine((env, ctx) => {
+    if (env.NODE_ENV === 'production' && !env.SESSION_COOKIE_SECURE) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['SESSION_COOKIE_SECURE'],
+        message: 'must be true in production (cookies may only travel over HTTPS)',
+      });
+    }
+  });
 
 export type Env = z.infer<typeof envSchema>;
 

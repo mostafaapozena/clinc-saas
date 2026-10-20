@@ -42,10 +42,7 @@ describe('ApiStatusPanel', () => {
 
     render(<ApiStatusPanel />);
 
-    expect(await screen.findByText('يعمل، لكن قاعدة البيانات غير متاحة')).toHaveAttribute(
-      'data-state',
-      'degraded',
-    );
+    expect(await screen.findByText('يعمل، لكن قاعدة البيانات غير متاحة')).toHaveAttribute('data-state', 'degraded');
     expect(screen.getByTestId('db-status')).toHaveTextContent('غير متاحة');
   });
 
@@ -54,10 +51,7 @@ describe('ApiStatusPanel', () => {
 
     render(<ApiStatusPanel />);
 
-    expect(await screen.findByText('تعذّر الوصول إلى الخادم')).toHaveAttribute(
-      'data-state',
-      'unreachable',
-    );
+    expect(await screen.findByText('تعذّر الوصول إلى الخادم')).toHaveAttribute('data-state', 'unreachable');
   });
 
   it('shows unreachable when a proxy returns a non-JSON error page', async () => {

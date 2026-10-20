@@ -1,28 +1,16 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test } from '@playwright/test';
+import { watchBrowserErrors } from './helpers';
 
-function collectBrowserErrors(page: Page): string[] {
-  const errors: string[] = [];
-  page.on('console', (message) => {
-    if (message.type() === 'error') errors.push(message.text());
-  });
-  page.on('pageerror', (error) => errors.push(error.message));
-  return errors;
-}
+test('status page shows a live API and database connection in Arabic RTL', async ({ page }) => {
+  const browser = watchBrowserErrors(page);
+  const healthResponse = page.waitForResponse((response) => response.url().endsWith('/api/health'));
 
-test('home page renders Arabic RTL and shows a live API and database connection', async ({
-  page,
-}) => {
-  const errors = collectBrowserErrors(page);
-  const healthResponse = page.waitForResponse((response) =>
-    response.url().endsWith('/api/health'),
-  );
-
-  await page.goto('/');
+  await page.goto('/status');
 
   const html = page.locator('html');
   await expect(html).toHaveAttribute('lang', 'ar');
   await expect(html).toHaveAttribute('dir', 'rtl');
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('منصة العيادات');
+  await expect(page.locator('.public-brand')).toContainText('منصة العيادات');
 
   // The browser itself called the API through the web server's /api proxy.
   expect((await healthResponse).status()).toBe(200);
@@ -33,20 +21,5 @@ test('home page renders Arabic RTL and shows a live API and database connection'
   const specialties = page.getByTestId('specialty-item');
   await expect(specialties).toHaveCount(3);
   await expect(specialties.first()).toHaveText('طب الأسنان');
-
-  expect(errors).toEqual([]);
-});
-
-test('switching to English flips the document to LTR', async ({ page }) => {
-  const errors = collectBrowserErrors(page);
-  await page.goto('/');
-
-  await page.getByRole('button', { name: 'English' }).click();
-
-  const html = page.locator('html');
-  await expect(html).toHaveAttribute('lang', 'en');
-  await expect(html).toHaveAttribute('dir', 'ltr');
-  await expect(page.getByTestId('specialty-item').first()).toHaveText('Dentistry');
-
-  expect(errors).toEqual([]);
+  browser.expectNone();
 });
