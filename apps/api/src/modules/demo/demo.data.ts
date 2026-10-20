@@ -56,7 +56,10 @@ export type DemoOrganization = {
   key: string;
   name: string;
   timeZone: string;
-  branches: { name: string; city: string }[];
+  /** null + no specialties = an organization as it was before phase 4 (setup not done yet). */
+  type: 'clinic' | 'medical_center' | 'multi_branch' | null;
+  specialtyCodes: string[];
+  branches: { name: string; city: string; specialtyCodes: string[] }[];
   members: DemoMembership[];
   practitioners: DemoPractitioner[];
   exceptions: DemoException[];
@@ -75,6 +78,7 @@ export const DEMO_USERS: DemoUser[] = [
   { email: 'owner.shifa@demo.test', displayName: 'Faisal (demo owner)', language: 'en' },
   { email: 'multi@demo.test', displayName: 'ريم (عضو في منشأتين)', language: 'ar' },
   { email: 'newcomer@demo.test', displayName: 'نادر (بدون منشأة)', language: 'ar' },
+  { email: 'owner.legacy@demo.test', displayName: 'حسام (مالك منشأة قديمة)', language: 'ar' },
 ];
 
 const NASR = 'فرع مدينة نصر';
@@ -87,10 +91,13 @@ export const DEMO_ORGANIZATIONS: DemoOrganization[] = [
     key: 'demo-nour',
     name: 'عيادات النور (تجريبي)',
     timeZone: 'Africa/Cairo',
+    // A medical center with two specialties, offered at different branches.
+    type: 'medical_center',
+    specialtyCodes: ['dentistry', 'physiotherapy'],
     branches: [
-      { name: NASR, city: 'القاهرة' },
-      { name: MAADI, city: 'القاهرة' },
-      { name: ALEX, city: 'الإسكندرية' },
+      { name: NASR, city: 'القاهرة', specialtyCodes: ['physiotherapy', 'dentistry'] },
+      { name: MAADI, city: 'القاهرة', specialtyCodes: ['dentistry'] },
+      { name: ALEX, city: 'الإسكندرية', specialtyCodes: ['physiotherapy'] },
     ],
     members: [
       { email: 'owner.nour@demo.test', role: 'owner' },
@@ -177,9 +184,11 @@ export const DEMO_ORGANIZATIONS: DemoOrganization[] = [
     key: 'demo-shifa',
     name: 'مركز الشفاء (تجريبي)',
     timeZone: 'Asia/Riyadh',
+    type: 'multi_branch',
+    specialtyCodes: ['ent'],
     branches: [
-      { name: 'فرع العليا', city: 'الرياض' },
-      { name: JEDDAH, city: 'جدة' },
+      { name: 'فرع العليا', city: 'الرياض', specialtyCodes: ['ent'] },
+      { name: JEDDAH, city: 'جدة', specialtyCodes: ['ent'] },
     ],
     members: [
       { email: 'owner.shifa@demo.test', role: 'owner' },
@@ -204,5 +213,25 @@ export const DEMO_ORGANIZATIONS: DemoOrganization[] = [
       { key: 'c02', practitioner: 'multi@demo.test', patient: 's2', branch: JEDDAH, day: 0, time: '17:00', status: 'scheduled' },
       { key: 'c03', practitioner: 'multi@demo.test', patient: 's1', branch: JEDDAH, day: 1, time: '16:20', status: 'scheduled', type: 'follow_up' },
     ],
+  },
+  {
+    // Created "before phase 4": no type and no specialties yet. Its owner sees the setup prompt;
+    // everything else keeps working until the specialties are chosen in settings.
+    key: 'demo-legacy',
+    name: 'عيادة الأمل (تجريبي، إعداد قديم)',
+    timeZone: 'Africa/Cairo',
+    type: null,
+    specialtyCodes: [],
+    branches: [
+      { name: 'الفرع الرئيسي', city: 'الجيزة', specialtyCodes: [] },
+      { name: 'فرع الدقي', city: 'الجيزة', specialtyCodes: [] },
+    ],
+    members: [{ email: 'owner.legacy@demo.test', role: 'owner' }],
+    practitioners: [],
+    exceptions: [],
+    patients: [
+      { key: 'l1', fullName: 'Mariam Fathy', phone: { country: 'EG', number: '01001234601' }, sex: 'female', registrations: [{ branch: 'الفرع الرئيسي' }] },
+    ],
+    appointments: [],
   },
 ];

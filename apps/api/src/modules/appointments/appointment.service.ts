@@ -25,6 +25,15 @@ export const invalidReference = (field: string) =>
 const versionConflict = () =>
   conflict('VERSION_CONFLICT', 'This appointment was changed by someone else. Reload and try again.');
 
+/**
+ * A branch with configured specialties only books practitioners of those specialties. The
+ * configuration rules already prevent such an assignment; this keeps booking safe regardless.
+ */
+export const offersSpecialty = (branch: { specialtyCodes?: string[] }, specialtyCode: string) =>
+  !branch.specialtyCodes?.length || branch.specialtyCodes.includes(specialtyCode);
+export const specialtyNotOffered = () =>
+  conflict('SPECIALTY_NOT_OFFERED', "This branch does not offer the practitioner's specialty");
+
 /** Local date/time → UTC instant; skipped times are rejected, repeated times must name an offset. */
 export function resolveStart(start: LocalStart, zone: string): Date {
   const resolved = resolveLocalTime(start.date, start.time, zone, start.utcOffsetMinutes);
@@ -77,6 +86,7 @@ async function validateTarget(tenant: TenantContext, target: BookingTarget, zone
   ).lean();
   if (!practitioner) throw invalidReference('practitionerId');
   if (practitioner.status !== 'active') throw conflict('PRACTITIONER_INACTIVE', 'This practitioner is not taking bookings');
+  if (!offersSpecialty(branch, practitioner.specialtyCode)) throw specialtyNotOffered();
   const membership = await MembershipModel.findOne({
     organizationId: tenant.organizationId,
     _id: practitioner.membershipId,

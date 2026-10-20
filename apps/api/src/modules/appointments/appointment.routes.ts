@@ -17,13 +17,22 @@ import {
   minutesOfDay,
   todayIn,
 } from '../../time/local-time.js';
+import { BranchModel } from '../branches/branch.model.js';
 import { MembershipModel } from '../memberships/membership.model.js';
 import { PractitionerModel, ScheduleExceptionModel } from '../practitioners/practitioner.model.js';
 import { computeSlots } from '../scheduling/schedule.service.js';
-import { requireTimeZone, visibleAppointmentsFilter } from '../scheduling/scheduling-context.js';
+import { narrowToSpecialty, requireTimeZone, visibleAppointmentsFilter } from '../scheduling/scheduling-context.js';
+import { specialtyCodeSchema } from '../specialties/specialty.service.js';
 import { toAppointmentDto, toAppointmentDtos } from './appointment.dto.js';
 import { APPOINTMENT_TYPES, AppointmentModel } from './appointment.model.js';
-import { bookAppointment, changeStatus, invalidReference, rescheduleAppointment } from './appointment.service.js';
+import {
+  bookAppointment,
+  changeStatus,
+  invalidReference,
+  offersSpecialty,
+  rescheduleAppointment,
+  specialtyNotOffered,
+} from './appointment.service.js';
 import { APPOINTMENT_STATUSES, STATUS_ACTIONS, TRANSITIONS } from './appointment.state.js';
 
 const MAX_RANGE_DAYS = 31;
@@ -61,6 +70,7 @@ const listQuerySchema = z
     to: dateSchema.optional(),
     branchId: objectIdSchema.optional(),
     practitionerId: objectIdSchema.optional(),
+    specialty: specialtyCodeSchema.optional(),
     status: z
       .string()
       .max(120)
@@ -108,8 +118,9 @@ appointmentsRouter.get('/', requirePermission('appointment.read'), async (req, r
     res.json({ data: [], from, to, timeZone: zone, truncated: false });
     return;
   }
-  const items = filter
-    ? await AppointmentModel.find(filter).sort({ startAt: 1, _id: 1 }).limit(MAX_RESULTS + 1).lean()
+  const narrowed = await narrowToSpecialty(tenant, filter, query.specialty);
+  const items = narrowed
+    ? await AppointmentModel.find(narrowed).sort({ startAt: 1, _id: 1 }).limit(MAX_RESULTS + 1).lean()
     : [];
   res.json({
     data: await toAppointmentDtos(tenant, items.slice(0, MAX_RESULTS)),
@@ -143,6 +154,9 @@ appointmentsRouter.get('/availability', requirePermission('appointment.book'), a
     membership &&
     (membership.branchScope.type === 'all' || membership.branchScope.branchIds.some((b) => b.equals(branchId)));
   if (!bookable) throw conflict('PRACTITIONER_INACTIVE', 'This practitioner is not taking bookings');
+  const branch = await BranchModel.findOne({ organizationId: tenant.organizationId, _id: branchId }).select('specialtyCodes').lean();
+  if (!branch) throw invalidReference('branchId');
+  if (!offersSpecialty(branch, practitioner.specialtyCode)) throw specialtyNotOffered();
 
   const exceptions = await ScheduleExceptionModel.find({
     organizationId: tenant.organizationId,
