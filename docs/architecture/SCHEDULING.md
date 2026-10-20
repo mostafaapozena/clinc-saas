@@ -126,7 +126,11 @@ branch, patient registration, practitioner status, membership and working hours,
 deactivation, branch removal and registration archiving also write those documents inside their
 own transactions. MongoDB reports a write conflict for one of two such concurrent transactions,
 the driver retries it, and the retry sees the other's committed result — so a booking cannot slip
-past a concurrent schedule change, and vice versa.
+past a concurrent schedule change, and vice versa. `schedule-races.test.ts` forces each pairing in
+both orders (booking vs working-hours change, deactivation and registration archiving): the first
+transaction is held open right after its serializing write while the second request starts. With
+the booking's two writes replaced by plain reads, all six races fail (the booking lands outside
+the new hours, on an inactive practitioner or an archived registration).
 
 **Optimistic versions.** Status changes and reschedules must send the `version` they are based on;
 the update filters on it and increments it. Concurrent changes of the same appointment therefore
@@ -137,15 +141,20 @@ practitioner profiles use the same scheme.
 key is stored on the appointment with a unique partial index on
 `(organizationId, createdBy, key)` — scoped to the user who sent it. A retry with the same key and
 the same request returns the original appointment (`200`, `replayed: true`); the same key with a
-different request is `409 IDEMPOTENCY_KEY_REUSED`. Concurrent duplicates are resolved by the same
-index inside the transaction. The web app creates one key per booking attempt and reuses it when
+different request is `409 IDEMPOTENCY_KEY_REUSED`. The key is looked up **before** the booking
+checks run, so a retry still gets its appointment back after the booked start has passed or the
+registration was archived. A replay only returns an appointment the caller can still see;
+otherwise the key is reported as used. Concurrent duplicates are resolved by the same index inside
+the transaction. The web app creates one key per booking attempt and reuses it when
 the same attempt is retried.
 
 **Tests with real concurrency** (`appointments.test.ts`): eight simultaneous bookings for the same
 practitioner time (exactly one succeeds, no orphan cells); two simultaneous reschedules into the
 same time (one succeeds, the other keeps its original time and cells); five simultaneous requests
 with one idempotency key (one appointment); simultaneous check-in and cancel (one version
-conflict); twelve simultaneous patient creations (unique numbers).
+conflict); twelve simultaneous patient creations (unique numbers). `schedule-races.test.ts`: a
+booking against a working-hours change, a deactivation and a registration archive, each in both
+orders.
 
 ## Queue and dashboard
 

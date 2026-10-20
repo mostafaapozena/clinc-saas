@@ -264,6 +264,25 @@ describe('idempotent retries', () => {
     expect(theirs.status).toBe(409);
     expect(theirs.body.error.code).toBe('SLOT_UNAVAILABLE');
   });
+
+  it('replays a booking that went through even when its checks would now fail', async () => {
+    const patient = await createPatient(c.receptionist, c.orgId, c.branchA);
+    const body = { patientId: patient, practitionerId: c.practitioner2, branchId: c.branchA, date: TODAY, time: '11:40' };
+    const key = randomUUID();
+    const first = await book(c.receptionist, c.orgId, body, key);
+    expect(first.status).toBe(201);
+    // 12:00 Cairo: the booked start has passed, so a new booking with these details is refused…
+    pinClock('2026-11-10T10:00:00Z');
+    const fresh = await book(c.receptionist, c.orgId, body);
+    expect(fresh.body.error.code).toBe('START_IN_PAST');
+    // …but the retry of the original request still gets its appointment back.
+    const retry = await book(c.receptionist, c.orgId, body, key);
+    expect(retry.status).toBe(200);
+    expect(retry.body).toMatchObject({ replayed: true, appointment: { id: first.body.appointment.id } });
+    const changed = await book(c.receptionist, c.orgId, { ...body, time: '12:30' }, key);
+    expect(changed.body.error.code).toBe('IDEMPOTENCY_KEY_REUSED');
+    expect(await AppointmentModel.countDocuments({ organizationId: c.orgId, patientId: patient })).toBe(1);
+  });
 });
 
 describe('rescheduling and status workflow', () => {

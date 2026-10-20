@@ -146,6 +146,19 @@ async function reserveCells(
 
 class IdempotentReplay extends Error {}
 
+const keyReused = () => conflict('IDEMPOTENCY_KEY_REUSED', 'This request key was already used for a different booking');
+
+/**
+ * The appointment an earlier request with this key created, if the caller can still see it.
+ * The same key with a different request is refused.
+ */
+async function findReplay(tenant: TenantContext, idempotencyKey: string, requestHash: string) {
+  const filter = await visibleAppointmentsFilter(tenant, { createdBy: tenant.userId, idempotencyKey });
+  const existing = filter ? await AppointmentModel.findOne(filter).lean() : null;
+  if (existing && existing.requestHash !== requestHash) throw keyReused();
+  return existing;
+}
+
 export type BookInput = {
   patientId: Types.ObjectId;
   practitionerId: Types.ObjectId;
@@ -175,6 +188,10 @@ export async function bookAppointment(tenant: TenantContext, input: BookInput, z
       ]),
     )
     .digest('base64url');
+  // A retry of a booking that already went through gets it back, even once its checks would
+  // fail (the start has passed, the slot is now its own, the registration was archived).
+  const earlier = await findReplay(tenant, input.idempotencyKey, requestHash);
+  if (earlier) return { appointment: earlier, replayed: true };
   const startAt = resolveStart(input.start, zone);
 
   try {
@@ -229,15 +246,10 @@ export async function bookAppointment(tenant: TenantContext, input: BookInput, z
     return { appointment, replayed: false };
   } catch (err) {
     if (!(err instanceof IdempotentReplay)) throw err;
-    const existing = await AppointmentModel.findOne({
-      organizationId: tenant.organizationId,
-      createdBy: tenant.userId,
-      idempotencyKey: input.idempotencyKey,
-    }).lean();
-    if (!existing) throw err;
-    if (existing.requestHash !== requestHash) {
-      throw conflict('IDEMPOTENCY_KEY_REUSED', 'This request key was already used for a different booking');
-    }
+    // A concurrent request with the same key committed first. If its appointment is no longer
+    // visible to the caller, say only that the key is taken.
+    const existing = await findReplay(tenant, input.idempotencyKey, requestHash);
+    if (!existing) throw keyReused();
     return { appointment: existing, replayed: true };
   }
 }

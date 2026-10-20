@@ -43,6 +43,12 @@ $G codespace ssh -c <name> -- 'cd /workspaces/clinc-saas && (setsid nohup npm ru
 ```
 
 Commit messages with quotes/apostrophes: write them to a file and use `git commit -F <file>`.
+Small file sets can also be streamed as a tar: `tar -c <files> | $G codespace ssh -c <name> -- 'cd /workspaces/clinc-saas && tar -x'`.
+
+For mutation checks (temporarily breaking code to prove a test catches it), put the mutation in a
+Node script file and check that it applied: regexes passed inline through `gh codespace ssh`
+silently matched nothing once. Back up the file and restore it from the backup rather than `git
+checkout`, which would also drop uncommitted work; use `git stash -u` if new files are involved.
 
 ### Verifying the private preview without the owner's browser
 

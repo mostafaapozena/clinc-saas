@@ -62,11 +62,10 @@ management, bilingual shell (Arabic/RTL/Alexandria, English/LTR/Inter). Details:
 
 ### Test evidence
 
-- `npm run verify` passes in the Codespace (2026-10-20): lint, typecheck, **318 Vitest tests**
-  (292 API integration/unit, 26 web) and **17 Playwright tests** (15 desktop, 2 Pixel 7 mobile).
-- GitHub Actions `verify` passed on PR #3 for commit `721ef53`
-  ([run 39366999200](https://github.com/mostafaapozena/clinc-saas/actions/runs/39366999200));
-  see the PR checks for the latest commit.
+- `npm run verify` passes in the Codespace (2026-10-20, second session): lint, typecheck,
+  **325 Vitest tests** (299 API integration/unit, 26 web) and **17 Playwright tests** (15 desktop,
+  2 Pixel 7 mobile).
+- GitHub Actions `verify` passes on PR #3; see the PR checks for the latest commit.
 - Highlights: Cairo DST gap and repeated hour (unit + API); adjacent vs overlapping bookings;
   practitioner conflicts across branches proven at the reservation layer; patient conflicts
   without leaking details; **real concurrency** (8 simultaneous conflicting bookings → exactly one;
@@ -76,8 +75,19 @@ management, bilingual shell (Arabic/RTL/Alexandria, English/LTR/Inter). Details:
   matrix for all new actions; cross-organization id tampering in paths and bodies; branch-restricted
   lists/search/counts/availability/history/queue; doctor-only visibility; viewer aggregates only;
   immediate effect of suspension and role changes.
-- Mutation check: removing the patient branch-scope filter failed 4 isolation tests; skipping the
-  practitioner reservation failed 7 booking/concurrency tests (both reverted).
+- **Schedule change vs booking races** (`schedule-races.test.ts`, added in the review session):
+  booking against a working-hours change, a deactivation and a registration archive, each forced
+  in both orders by holding the first transaction open after its serializing write. Never both
+  succeed.
+- **Idempotent replay before validation** (fix in the review session): a retried booking used to
+  re-run the booking checks first, so a retry after the booked start (or after archiving) got an
+  error instead of its appointment. The key is now checked first; tested in
+  `appointments.test.ts`.
+- Mutation checks: removing the patient branch-scope filter failed 4 isolation tests; skipping the
+  practitioner reservation failed 7 booking/concurrency tests; replacing the booking's
+  serializing writes with reads failed all 6 race tests (all reverted).
+- A `MaxListenersExceededWarning` from parallel supertest requests appears in the API test output
+  (also on the unchanged phase 3 base); it is a test-harness warning, not a failure.
 - Browser (Playwright, headless Chromium in the Codespace/CI): create patient → book → check in →
   doctor starts → completes; reschedule and cancel; viewer/receptionist/doctor restrictions;
   Arabic RTL Alexandria and English LTR Inter; branch and organization switching without leftovers;
