@@ -18,6 +18,13 @@ services:
   mongo:
     image: mongo:8.2.12
     restart: unless-stopped
+    # Every collection and index is a WiredTiger file, and test runs create and drop many databases.
+    # With Docker's default limit of 1024 open files mongod aborted mid-test (phase 3); MongoDB
+    # recommends 64000.
+    ulimits:
+      nofile:
+        soft: 64000
+        hard: 64000
     # Single-node replica set: required for multi-document transactions (organization onboarding).
     command: ['--replSet', 'rs0', '--bind_ip_all']
     volumes:

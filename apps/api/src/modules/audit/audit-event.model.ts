@@ -11,18 +11,35 @@ export const AUDIT_ACTIONS = [
   'member.branch_scope_changed',
   'member.suspended',
   'member.reactivated',
+  'patient.created',
+  'patient.updated',
+  'patient.branch_registered',
+  'patient.registration_archived',
+  'patient.registration_reactivated',
+  'practitioner.created',
+  'practitioner.updated',
+  'practitioner.schedule_updated',
+  'practitioner.exception_added',
+  'practitioner.exception_removed',
+  'appointment.booked',
+  'appointment.rescheduled',
+  'appointment.status_changed',
 ] as const;
 export type AuditAction = (typeof AUDIT_ACTIONS)[number];
 
+export const AUDIT_TARGET_TYPES = ['organization', 'branch', 'membership', 'patient', 'practitioner', 'appointment'] as const;
+export type AuditTargetType = (typeof AUDIT_TARGET_TYPES)[number];
+
 /**
  * Security-relevant event, always produced by the server. Holds references and small
- * before/after values only — never passwords, cookies, session tokens or contact details.
+ * before/after values only — never passwords, cookies, session tokens, contact details or
+ * copies of patient records (patient changes list the changed field names, not their values).
  */
 export interface AuditEvent {
   organizationId: Types.ObjectId;
   actorUserId: Types.ObjectId;
   action: AuditAction;
-  target: { type: 'organization' | 'branch' | 'membership'; id: Types.ObjectId };
+  target: { type: AuditTargetType; id: Types.ObjectId };
   changes?: Record<string, unknown>;
   createdAt: Date;
 }
@@ -33,7 +50,7 @@ const auditEventSchema = new Schema<AuditEvent>(
     actorUserId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     action: { type: String, enum: AUDIT_ACTIONS, required: true },
     target: {
-      type: { type: String, enum: ['organization', 'branch', 'membership'], required: true },
+      type: { type: String, enum: AUDIT_TARGET_TYPES, required: true },
       id: { type: Schema.Types.ObjectId, required: true },
     },
     changes: { type: Schema.Types.Mixed },
@@ -41,6 +58,7 @@ const auditEventSchema = new Schema<AuditEvent>(
   { collection: 'audit_events', timestamps: { createdAt: true, updatedAt: false } },
 );
 auditEventSchema.index({ organizationId: 1, createdAt: -1 });
+auditEventSchema.index({ organizationId: 1, 'target.id': 1, createdAt: 1 });
 auditEventSchema.plugin(tenantGuardPlugin);
 
 export const AuditEventModel = model<AuditEvent>('AuditEvent', auditEventSchema);

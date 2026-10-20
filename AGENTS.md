@@ -25,8 +25,11 @@ security design in [docs/architecture/](docs/architecture/).
   (`apps/api/test/helpers/test-database.ts`). Never point tests at the dev database.
 - **Every new tenant-owned endpoint needs isolation tests**: another organization's ids, tampered
   ids in the path or body, branch-restricted callers, and list/count/search scope. Follow
-  `apps/api/test/tenancy.test.ts`. Add new actions to the role matrix in
-  `apps/api/test/authorization.test.ts`.
+  `apps/api/test/tenancy.test.ts` and `apps/api/test/front-desk-isolation.test.ts`. Add new
+  actions to the role matrix in `apps/api/test/authorization.test.ts`.
+- Time-dependent rules read `clock.now()` (`apps/api/src/time/clock.ts`); tests pin it with
+  `pinClock()` from `apps/api/test/helpers/clinic.ts` instead of depending on when they run.
+  Browser tests that need "today" create their own data in a time zone with time left today.
 - Report results honestly: what was verified, what was not, and the failure output.
 
 ## 3. Data, secrets and environments

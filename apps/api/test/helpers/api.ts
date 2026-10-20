@@ -30,12 +30,17 @@ export async function register(app: App, label: string, displayName = label): Pr
 }
 
 /** Authenticated mutation with the session's CSRF token. */
-export function send(client: Client, method: 'post' | 'patch', url: string, body: object = {}) {
+export function send(client: Client, method: 'post' | 'patch' | 'put' | 'delete', url: string, body: object = {}) {
   return client.agent[method](url).set('X-CSRF-Token', client.csrf).send(body);
 }
 
-export async function createOrg(client: Client, name = 'Test Clinic', branchName = 'Main branch') {
-  const res = await send(client, 'post', '/api/v1/orgs', { name, branch: { name: branchName } });
+export async function createOrg(
+  client: Client,
+  name = 'Test Clinic',
+  branchName = 'Main branch',
+  timeZone = 'Africa/Cairo',
+) {
+  const res = await send(client, 'post', '/api/v1/orgs', { name, timeZone, branch: { name: branchName } });
   expect(res.status).toBe(201);
   return { orgId: res.body.organization.id as string, branchId: res.body.branch.id as string };
 }

@@ -4,7 +4,8 @@
 set -euo pipefail
 IMAGE="${MONGO_IMAGE:-mongo:8.2.12}"
 
-docker run -d --name mongo -p 27017:27017 "$IMAGE" --replSet rs0 --bind_ip_all >/dev/null
+# Explicit open-file limit (MongoDB recommends 64000) instead of relying on the runner default.
+docker run -d --name mongo --ulimit nofile=64000:64000 -p 27017:27017 "$IMAGE" --replSet rs0 --bind_ip_all >/dev/null
 
 for _ in $(seq 1 60); do
   if docker exec mongo mongosh --quiet --eval "db.adminCommand('ping').ok" >/dev/null 2>&1; then break; fi

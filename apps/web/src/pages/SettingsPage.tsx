@@ -8,6 +8,7 @@ import { describedBy } from '../lib/a11y';
 import { api } from '../lib/api';
 import { errorMessage, fieldErrors, fieldMessage } from '../lib/errors';
 import { useFormatters } from '../lib/format';
+import { DEFAULT_TIME_ZONE, TIME_ZONES } from '../lib/types';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { orgKeys, useOrg } from '../org/context';
 
@@ -57,6 +58,49 @@ export function SettingsPage() {
           </button>
         </form>
       </section>
+      <TimeZoneSettings />
     </>
+  );
+}
+
+function TimeZoneSettings() {
+  const { t } = useTranslation();
+  const { orgId, detail, timeZone } = useOrg();
+  const queryClient = useQueryClient();
+  const [zone, setZone] = useState(timeZone ?? DEFAULT_TIME_ZONE);
+  const save = useMutation({
+    mutationFn: () => api(`/orgs/${orgId}`, { method: 'PATCH', body: { timeZone: zone } }),
+    // Every scheduling view depends on the zone: refresh the whole organization.
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: orgKeys.all(orgId) }),
+  });
+  return (
+    <section className="card" aria-labelledby="time-zone-title">
+      <h2 id="time-zone-title">{t('settings.timeZone')}</h2>
+      {!detail.organization.timeZone && <Notice kind="info">{t('settings.timeZoneMissing')}</Notice>}
+      <p className="muted small">{t('settings.timeZoneHint')}</p>
+      {save.isSuccess && <Notice kind="success">{t('settings.timeZoneSaved')}</Notice>}
+      {save.isError && <Notice kind="error">{errorMessage(t, save.error)}</Notice>}
+      <form
+        className="inline-form"
+        onSubmit={(e) => {
+          e.preventDefault();
+          save.mutate();
+        }}
+        noValidate
+      >
+        <Field id="settings-time-zone" label={t('settings.timeZone')}>
+          <select id="settings-time-zone" value={zone} onChange={(e) => setZone(e.target.value)}>
+            {TIME_ZONES.map((z) => (
+              <option key={z} value={z}>
+                {t(`timeZones.${z}`)}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <button type="submit" className="button button--primary" disabled={save.isPending || zone === timeZone}>
+          {save.isPending ? t('common.saving') : t('common.save')}
+        </button>
+      </form>
+    </section>
   );
 }

@@ -8,6 +8,7 @@ import { PublicLayout } from '../layouts/PublicLayout';
 import { describedBy } from '../lib/a11y';
 import { api } from '../lib/api';
 import { errorMessage, fieldErrors, fieldMessage } from '../lib/errors';
+import { DEFAULT_TIME_ZONE, TIME_ZONES } from '../lib/types';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 
 export function OnboardingPage() {
@@ -16,7 +17,8 @@ export function OnboardingPage() {
   const queryClient = useQueryClient();
   const session = useSession().data;
   const { logout } = useAuthActions();
-  const [form, setForm] = useState({ name: '', branchName: '', city: '' });
+  // The default zone is shown and editable; it is never inferred from the interface language.
+  const [form, setForm] = useState({ name: '', branchName: '', city: '', timeZone: DEFAULT_TIME_ZONE });
   const [error, setError] = useState<unknown>(null);
   const [submitting, setSubmitting] = useState(false);
   useDocumentTitle(t('onboarding.title'));
@@ -26,6 +28,7 @@ export function OnboardingPage() {
     name: fieldMessage(t, 'name', fields.name),
     branchName: fieldMessage(t, 'branch.name', fields['branch.name']),
     city: fieldMessage(t, 'branch.city', fields['branch.city']),
+    timeZone: fieldMessage(t, 'timeZone', fields.timeZone),
   };
   const hasMemberships = (session?.memberships.length ?? 0) > 0;
 
@@ -36,7 +39,7 @@ export function OnboardingPage() {
     try {
       const created = await api<{ organization: { id: string } }>('/orgs', {
         method: 'POST',
-        body: { name: form.name, branch: { name: form.branchName, city: form.city || undefined } },
+        body: { name: form.name, timeZone: form.timeZone, branch: { name: form.branchName, city: form.city || undefined } },
       });
       await queryClient.invalidateQueries({ queryKey: SESSION_KEY });
       navigate(`/app/${created.organization.id}`, { replace: true });
@@ -85,6 +88,15 @@ export function OnboardingPage() {
           </Field>
           <Field id="branch-city" label={`${t('onboarding.city')} ${t('common.optional')}`} error={messages.city}>
             <input id="branch-city" value={form.city} onChange={update('city')} {...describedBy('branch-city', messages.city)} />
+          </Field>
+          <Field id="org-time-zone" label={t('settings.timeZone')} error={messages.timeZone} hint={t('settings.timeZoneHint')}>
+            <select id="org-time-zone" value={form.timeZone} onChange={update('timeZone')} {...describedBy('org-time-zone', messages.timeZone, t('settings.timeZoneHint'))}>
+              {TIME_ZONES.map((zone) => (
+                <option key={zone} value={zone}>
+                  {t(`timeZones.${zone}`)}
+                </option>
+              ))}
+            </select>
           </Field>
           <button type="submit" className="button button--primary button--block" disabled={submitting}>
             {submitting ? t('onboarding.submitting') : t('onboarding.submit')}

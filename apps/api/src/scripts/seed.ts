@@ -31,9 +31,12 @@ try {
   }
   await ensureIndexes();
   const specialties = await seedSpecialties();
-  const accounts = await seedDemoData(password);
+  const { accounts, skippedAppointments } = await seedDemoData(password);
 
   console.log(`Seeded ${specialties} specialties and demo data into "${dbName}".`);
+  if (skippedAppointments.length > 0) {
+    console.log(`Skipped ${skippedAppointments.length} demo appointment(s): ${skippedAppointments.join(', ')}`);
+  }
   console.log('\nDemo accounts (synthetic, development only — refused when NODE_ENV=production):');
   for (const account of accounts) console.log(`  ${account.email.padEnd(26)} ${account.summary}`);
   if (providedPassword) {
