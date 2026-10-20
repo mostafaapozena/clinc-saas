@@ -21,16 +21,19 @@ A SaaS platform for managing clinics and medical centers, initially for **Egypt*
 | Scheduling        | Doctors' scheduling profiles on their memberships; five-minute grid; double-booking prevented by transactional reservations |
 | Product shape     | Shared management foundation plus specialty-specific functionality            |
 | First specialties | Dentistry, physiotherapy, ENT                                                 |
+| Specialties       | Organizations enable one or more; branches offer a subset; doctors' specialties must fit — see [architecture/SPECIALTIES.md](architecture/SPECIALTIES.md) |
 | Out of scope      | Complex systems such as radiology centers are separate custom projects        |
-| Commercial        | Subscriptions and a free trial are part of the concept                        |
-| Ownership track   | Ownership-based delivery is a separate commercial track, scope to be defined  |
+| Public website    | Separate from the workspace: home, solutions, custom-project path; existing users sign in directly — see [architecture/PUBLIC_SITE.md](architecture/PUBLIC_SITE.md) |
+| Commercial        | Subscriptions and a free trial are part of the concept; until terms exist the call to action is "Create your clinic workspace" with no prices or trial length (approved working default, phase 4) |
+| Ownership track   | Ownership-based delivery is a separate commercial track, scope to be defined; requests are stored and reviewed with a script (approved working default, phase 4) |
 
 ## Not yet decided — do not invent
 
 The full register of confirmed requirements, proposals and open questions is
 [DECISIONS.md](DECISIONS.md); the remaining plan is [ROADMAP.md](ROADMAP.md).
 
-- Product name (the UI uses "منصة العيادات / Clinics Platform", marked temporary).
+- Product name (the UI uses "منصة العيادات / Clinics Platform", marked temporary) and the public
+  domain. Public copy is provisional until the owner approves it.
 - Pricing, plans, trial length, billing provider.
 - Clinical workflows and requirements per specialty, and which roles may do what clinically
   (no clinical notes, diagnoses, prescriptions, attachments, dental charts or treatment plans
@@ -45,7 +48,7 @@ The full register of confirmed requirements, proposals and open questions is
 
 ## Working assumptions (revisit when decided)
 
-- Specialties are a platform-wide reference catalog; organizations will later choose theirs.
+- Specialties are a platform-wide reference catalog; organizations choose theirs (phase 4).
 - Front-desk policy (phase 3): receptionists register patients and run bookings, arrivals and
   cancellations; doctors see their own appointments and linked patients and start/complete their
   own visits; viewers see aggregate counts only. See the matrix in TENANCY.md.

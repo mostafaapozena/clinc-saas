@@ -1,9 +1,10 @@
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, Navigate, Outlet, useLocation } from 'react-router';
+import { Link, Navigate, Outlet, useLocation, useSearchParams } from 'react-router';
 import { useSession } from '../auth/session';
 import { ErrorState, Loading } from '../components/ui';
 import { errorMessage } from '../lib/errors';
+import { safeNext } from '../lib/navigation';
 import { LAST_ORG_KEY, readStored } from '../lib/storage';
 import type { Permission } from '../lib/types';
 import { useOrg } from '../org/context';
@@ -31,10 +32,12 @@ export function RequireAuth() {
   return <Outlet />;
 }
 
+/** Sign-in and registration: a signed-in visitor goes straight on (to a validated destination). */
 export function PublicOnly() {
   const session = useSession();
+  const [params] = useSearchParams();
   if (session.isPending) return <FullPage><Loading /></FullPage>;
-  if (session.data) return <Navigate to="/app" replace />;
+  if (session.data) return <Navigate to={safeNext(params.get('next'))} replace />;
   return <Outlet />;
 }
 

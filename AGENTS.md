@@ -68,6 +68,13 @@ security design in [docs/architecture/](docs/architecture/).
 - Web: Arabic first. Every user-facing string goes in **both** `ar.json` and `en.json` (a test
   enforces matching keys); API error codes map to `errors.<CODE>`. Use CSS logical properties,
   never left/right. Organization-scoped query keys start with `['org', orgId]`.
+- Web code loading: `src/public` (public website) must not import workspace modules
+  (`src/workspace`, `src/layouts/AppShell`, workspace pages); routes load the public, account
+  and workspace chunks lazily (`src/routes/routes.tsx`). Public pages use `usePageMeta`, all
+  other pages `useDocumentTitle` (noindex). Never hard-code a production URL: indexing is
+  controlled by `VITE_PUBLIC_SITE_URL` + `VITE_PUBLIC_INDEXING` ([PUBLIC_SITE.md](docs/architecture/PUBLIC_SITE.md)).
+- Public copy must not claim prices, trial length, customers, usage numbers, outcomes,
+  certifications or delivery promises, and must label unbuilt features as planned.
 - Do not claim multi-tenant isolation beyond what the tests in `apps/api/test/` prove.
 
 ## 6. Keep continuity documents current

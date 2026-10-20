@@ -50,18 +50,23 @@ describe('login', () => {
     const fetchMock = mockApi({
       'GET /api/v1/auth/session': signedOut,
       'POST /api/v1/auth/login': { user, csrfToken: 'csrf-xyz', memberships: [] },
-      'POST /api/v1/orgs': apiError(400, 'VALIDATION_ERROR'),
+      'GET /api/v1/onboarding': { draft: null },
+      'GET /api/v1/specialties': { data: [] },
+      'PUT /api/v1/onboarding': apiError(400, 'VALIDATION_ERROR'),
     });
     renderRoute('/login');
     await fillAndSubmit();
     await screen.findByRole('heading', { name: 'Set up your organization' });
 
+    // First onboarding step, saved as a draft.
+    fireEvent.click(await screen.findByRole('radio', { name: /Individual clinic/ }));
     fireEvent.change(screen.getByLabelText('Organization name'), { target: { value: 'Clinic' } });
-    fireEvent.change(screen.getByLabelText('First branch name'), { target: { value: 'Main' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Create organization' }));
+    fireEvent.change(screen.getByLabelText('Time zone'), { target: { value: 'Africa/Cairo' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
 
-    await waitFor(() => expect(fetchMock.mock.calls.some(([url]) => String(url) === '/api/v1/orgs')).toBe(true));
-    const [, init] = fetchMock.mock.calls.find(([url]) => String(url) === '/api/v1/orgs') as [string, RequestInit];
+    const isSave = ([url, init]: [unknown, RequestInit?]) => String(url) === '/api/v1/onboarding' && init?.method === 'PUT';
+    await waitFor(() => expect(fetchMock.mock.calls.some((call) => isSave(call as [unknown, RequestInit?]))).toBe(true));
+    const [, init] = fetchMock.mock.calls.find((call) => isSave(call as [unknown, RequestInit?])) as [string, RequestInit];
     expect((init.headers as Record<string, string>)['X-CSRF-Token']).toBe('csrf-xyz');
     const stored = JSON.stringify({ ...window.localStorage }) + JSON.stringify({ ...window.sessionStorage });
     expect(stored).not.toContain('csrf-xyz');

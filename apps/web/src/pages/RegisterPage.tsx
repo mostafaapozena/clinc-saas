@@ -1,17 +1,21 @@
 import { useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, useNavigate } from 'react-router';
+import { Link, useNavigate, useSearchParams } from 'react-router';
 import { useAuthActions } from '../auth/session';
 import { Field, Notice } from '../components/ui';
 import { PublicLayout } from '../layouts/PublicLayout';
 import { describedBy } from '../lib/a11y';
 import { ApiError } from '../lib/api';
 import { errorMessage, fieldErrors, fieldMessage } from '../lib/errors';
+import { safeNext, withNext } from '../lib/navigation';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 
 export function RegisterPage() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
+  // A solution chosen on the public site travels as ?next=/onboarding?specialty=…
+  const [params] = useSearchParams();
+  const next = params.get('next');
   const { register } = useAuthActions();
   const [form, setForm] = useState({ displayName: '', email: '', password: '' });
   const [error, setError] = useState<unknown>(null);
@@ -33,7 +37,7 @@ export function RegisterPage() {
     setError(null);
     try {
       await register({ ...form, preferredLanguage: i18n.resolvedLanguage === 'en' ? 'en' : 'ar' });
-      navigate('/onboarding', { replace: true });
+      navigate(safeNext(next, '/onboarding'), { replace: true });
     } catch (err) {
       setError(err);
       setSubmitting(false);
@@ -92,7 +96,7 @@ export function RegisterPage() {
           </button>
         </form>
         <p className="auth-switch">
-          {t('auth.haveAccount')} <Link to="/login">{t('auth.loginLink')}</Link>
+          {t('auth.haveAccount')} <Link to={withNext('/login', next)}>{t('auth.loginLink')}</Link>
         </p>
       </section>
     </PublicLayout>

@@ -1261,3 +1261,162 @@ input[aria-invalid='true'] {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* ---------- Phase 4: onboarding wizard, specialties ---------- */
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+}
+
+.choice-group--flush {
+  padding-inline-start: 0;
+}
+
+.auth-card.onboarding-card {
+  max-inline-size: 720px;
+}
+
+.wizard {
+  display: grid;
+  gap: 12px;
+}
+
+.wizard-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.wizard-steps li {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+}
+
+.wizard-step-number {
+  display: grid;
+  place-items: center;
+  inline-size: 26px;
+  block-size: 26px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  border: 2px solid var(--border);
+  border-radius: 50%;
+}
+
+.wizard-steps li[aria-current='step'] {
+  font-weight: 700;
+  color: var(--text);
+}
+
+.wizard-steps li[aria-current='step'] .wizard-step-number {
+  color: var(--primary-contrast);
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.wizard-step--done .wizard-step-number {
+  color: var(--primary);
+  border-color: var(--primary);
+}
+
+.wizard-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.wizard-actions .button--primary:only-child {
+  margin-inline-start: auto;
+}
+
+.type-options {
+  display: grid;
+  gap: 8px;
+}
+
+.type-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.type-option:has(input:checked) {
+  border-color: var(--primary);
+  background: var(--surface-muted);
+}
+
+.type-option input {
+  margin-block-start: 4px;
+}
+
+.type-option > span {
+  display: grid;
+  gap: 2px;
+}
+
+.review-list dd {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.link-button {
+  padding: 0;
+  font: inherit;
+  color: var(--primary);
+  text-decoration: underline;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.onboarding-existing {
+  display: grid;
+  gap: 12px;
+}
+
+.specialty-overview {
+  display: grid;
+  gap: 10px;
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+}
+
+.specialty-overview li {
+  display: grid;
+  gap: 2px;
+  padding-inline-start: 10px;
+  border-inline-start: 3px solid var(--border);
+}
+
+.specialty-overview li[aria-current='true'] {
+  border-inline-start-color: var(--primary);
+}
+
+.branch-specialties {
+  display: grid;
+  gap: 10px;
+}
+
+.branch-specialties h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.inline-form .fieldset {
+  grid-column: 1 / -1;
+}

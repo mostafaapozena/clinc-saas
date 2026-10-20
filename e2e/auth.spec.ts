@@ -13,11 +13,25 @@ test('registration → organization onboarding → workspace, then sign out and 
   await page.getByRole('button', { name: 'إنشاء الحساب' }).click();
 
   await expect(page).toHaveURL(/\/onboarding$/);
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('أنشئ منشأتك');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('إعداد المنشأة');
+  await page.getByRole('radio', { name: /عيادة فردية/ }).check();
   await page.locator('#org-name').fill('عيادة الاختبار الآلي');
+  await page.locator('#org-time-zone').selectOption('Africa/Cairo');
+  await page.getByRole('button', { name: 'التالي' }).click();
+  await expect(page.getByTestId('onboarding-step-specialties')).toBeVisible();
+
+  // A reload resumes the saved setup at the same step.
+  await page.reload();
+  await expect(page.getByText('أنت تكمل إعدادًا بدأته من قبل.')).toBeVisible();
+  await expect(page.getByTestId('onboarding-step-specialties')).toBeVisible();
+  await page.getByRole('checkbox', { name: 'طب الأسنان' }).check();
+  await page.getByRole('button', { name: 'التالي' }).click();
   await page.locator('#branch-name').fill('الفرع الرئيسي');
   await page.locator('#branch-city').fill('الجيزة');
-  await page.getByRole('button', { name: 'إنشاء المنشأة' }).click();
+  await expect(page.getByRole('checkbox', { name: 'طب الأسنان' })).toBeChecked();
+  await page.getByRole('button', { name: 'التالي' }).click();
+  await expect(page.getByTestId('onboarding-review')).toContainText('عيادة الاختبار الآلي');
+  await page.getByRole('button', { name: 'إنشاء مساحة العمل' }).click();
 
   await expect(page).toHaveURL(/\/app\/[a-f\d]{24}$/);
   await expect(page.getByTestId('home-org-name')).toHaveText('عيادة الاختبار الآلي');

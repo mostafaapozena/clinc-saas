@@ -13,14 +13,14 @@ const FRONT_DESK: Permission[] = [
 ];
 const DOCTOR: Permission[] = ['organization.read', 'branch.read', 'dashboard.read', 'patient.read', 'practitioner.read', 'appointment.read', 'appointment.visit', 'queue.read'];
 
-const branch = (id: string, name: string) => ({ id, name, city: '', status: 'active', createdAt: '2026-01-01T00:00:00.000Z' });
+const branch = (id: string, name: string) => ({ id, name, city: '', status: 'active', specialtyCodes: [], createdAt: '2026-01-01T00:00:00.000Z' });
 const BRANCHES = [branch('b1', 'North'), branch('b2', 'South')];
 
 function shell(role: string, permissions: Permission[], practitionerId: string | null = null) {
   return {
     'GET /api/v1/auth/session': { user, csrfToken: 'csrf', memberships: [{ organization: { id: ORG, name: 'Clinic' }, role }] },
     [`GET /api/v1/orgs/${ORG}`]: {
-      organization: { id: ORG, name: 'Clinic', timeZone: ZONE, createdAt: '2026-01-01T00:00:00.000Z' },
+      organization: { id: ORG, name: 'Clinic', timeZone: ZONE, type: null, specialtyCodes: [], configVersion: 0, createdAt: '2026-01-01T00:00:00.000Z' },
       membership: { id: 'm1', role, branchScope: { type: 'all', branchIds: [] }, permissions, practitionerId },
       stats: { accessibleBranches: 2 },
     },
@@ -236,11 +236,87 @@ describe('home', () => {
       ...base,
       [`GET /api/v1/orgs/${ORG}`]: {
         ...(base[`GET /api/v1/orgs/${ORG}`] as object),
-        organization: { id: ORG, name: 'Clinic', timeZone: null, createdAt: '2026-01-01T00:00:00.000Z' },
+        organization: { id: ORG, name: 'Clinic', timeZone: null, type: null, specialtyCodes: [], configVersion: 0, createdAt: '2026-01-01T00:00:00.000Z' },
       },
     });
     renderRoute(`/app/${ORG}`);
     expect(await screen.findByText(/يجب تحديد المنطقة الزمنية/)).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'افتح الإعدادات' })).toHaveAttribute('href', `/app/${ORG}/settings`);
+  });
+});
+
+describe('specialty context', () => {
+  const catalog = {
+    data: [
+      { code: 'dentistry', name: { ar: 'طب الأسنان', en: 'Dentistry' } },
+      { code: 'physiotherapy', name: { ar: 'العلاج الطبيعي', en: 'Physiotherapy' } },
+    ],
+  };
+  function center() {
+    const base = shell('receptionist', FRONT_DESK);
+    const detail = base[`GET /api/v1/orgs/${ORG}`] as { organization: Record<string, unknown> };
+    return {
+      ...base,
+      [`GET /api/v1/orgs/${ORG}`]: {
+        ...detail,
+        organization: { ...detail.organization, type: 'medical_center', specialtyCodes: ['dentistry', 'physiotherapy'] },
+      },
+      [`GET /api/v1/orgs/${ORG}/branches`]: {
+        data: [
+          { ...branch('b1', 'North'), specialtyCodes: ['dentistry', 'physiotherapy'] },
+          { ...branch('b2', 'South'), specialtyCodes: ['dentistry'] },
+        ],
+      },
+      'GET /api/v1/specialties': catalog,
+    };
+  }
+
+  it('filters the queue by the chosen specialty, and only offers what the branch provides', async () => {
+    const fetchMock = mockApi({
+      ...center(),
+      [`GET /api/v1/orgs/${ORG}/queue`]: { date: todayIn(ZONE), waiting: [], inProgress: [] },
+      [`GET /api/v1/orgs/${ORG}/appointments`]: { data: [], truncated: false },
+    });
+    renderRoute(`/app/${ORG}/queue`);
+    const switcher = await screen.findByLabelText('التخصص');
+    fireEvent.change(switcher, { target: { value: 'physiotherapy' } });
+    await waitFor(() =>
+      expect(
+        fetchMock.mock.calls.some(([url]) => String(url).includes('/queue?') && String(url).includes('specialty=physiotherapy')),
+      ).toBe(true),
+    );
+    // South offers only dentistry: no choice left, so the switcher disappears and the filter resets.
+    fireEvent.change(screen.getByLabelText('الفرع'), { target: { value: 'b2' } });
+    await waitFor(() => expect(screen.queryByLabelText('التخصص')).toBeNull());
+    const last = fetchMock.mock.calls.filter(([url]) => String(url).includes('/queue')).at(-1)?.[0];
+    expect(String(last)).toContain('branchId=b2');
+    expect(String(last)).not.toContain('specialty=');
+  });
+
+  it('shows where each specialty is offered and that the workspace is shared', async () => {
+    mockApi({
+      ...center(),
+      [`GET /api/v1/orgs/${ORG}/dashboard`]: { date: todayIn(ZONE), timeZone: ZONE, counts: { scheduled: 0, waiting: 0, inProgress: 0, completed: 0, noShow: 0, cancelled: 0 } },
+    });
+    renderRoute(`/app/${ORG}`);
+    const overview = await screen.findByTestId('specialty-overview');
+    expect(await within(overview).findByText('طب الأسنان')).toBeInTheDocument();
+    expect(overview).toHaveTextContent('متاح في: North وSouth');
+    expect(overview).toHaveTextContent('أدوات التخصصات الطبية غير متاحة بعد');
+    expect(screen.queryByTestId('specialty-setup-notice')).toBeNull();
+  });
+
+  it('asks the owner of an organization without specialties to set them up, without blocking anything', async () => {
+    const base = shell('owner', [...FRONT_DESK, 'organization.update', 'member.read']);
+    mockApi({
+      ...base,
+      'GET /api/v1/specialties': catalog,
+      [`GET /api/v1/orgs/${ORG}/dashboard`]: { date: todayIn(ZONE), timeZone: ZONE, counts: { scheduled: 1, waiting: 0, inProgress: 0, completed: 0, noShow: 0, cancelled: 0 } },
+    });
+    renderRoute(`/app/${ORG}`);
+    const notice = await screen.findByTestId('specialty-setup-notice');
+    expect(within(notice).getByRole('link', { name: 'فتح الإعدادات' })).toHaveAttribute('href', `/app/${ORG}/settings`);
+    expect(await screen.findByTestId('today-scheduled')).toHaveTextContent(new Intl.NumberFormat('ar').format(1));
+    expect(screen.queryByLabelText('التخصص')).toBeNull();
   });
 });

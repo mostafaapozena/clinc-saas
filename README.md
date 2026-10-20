@@ -3,8 +3,8 @@
 Cloud platform for managing clinics and medical centers, initially for Egypt and Saudi Arabia.
 Arabic (RTL) is the default language; English (LTR) is fully supported.
 
-> **Status:** phase 3 (patient registry, practitioner schedules, appointments, check-in and the
-> daily queue) is in review, stacked on phase 2. This is a development system with synthetic data
+> **Status:** phases 1–3 are merged; phase 4 (public website, solution selection and
+> specialty-aware onboarding) is in review. This is a development system with synthetic data
 > only: it is **not** ready for real patient data or production deployment. See
 > [docs/PROGRESS.md](docs/PROGRESS.md).
 
@@ -16,6 +16,17 @@ Arabic (RTL) is the default language; English (LTR) is fully supported.
 | Tests    | Vitest (unit + API integration), Playwright (browser flows, mobile)   | `*/test`, `e2e` |
 
 Package manager: **npm** workspaces with the committed `package-lock.json`. Node version: [`.nvmrc`](.nvmrc).
+
+## Public website and onboarding (phase 4)
+
+`/` is now the public website: home, solutions (dentistry, physiotherapy, ENT, multi-specialty
+medical centers), a separate custom-project path with a request form, and "Create your clinic
+workspace" → registration → a resumable setup (organization type, explicit time zone, one or
+more specialties, first branch and its specialties, review) → the workspace. Existing users sign
+in directly at `/login` and go straight to their workspace. Public copy is provisional and under
+review. Details: [docs/architecture/PUBLIC_SITE.md](docs/architecture/PUBLIC_SITE.md),
+[ONBOARDING.md](docs/architecture/ONBOARDING.md), [SPECIALTIES.md](docs/architecture/SPECIALTIES.md),
+[INQUIRIES.md](docs/architecture/INQUIRIES.md).
 
 ## What the front desk can do (phase 3)
 
@@ -55,16 +66,17 @@ Demo accounts are refused when `NODE_ENV=production`, and the seed refuses to ru
 
 | Account                    | Scenario                                                      |
 | -------------------------- | ------------------------------------------------------------- |
-| `owner.nour@demo.test`     | Owner of "عيادات النور (تجريبي)" (3 branches, Africa/Cairo)   |
+| `owner.nour@demo.test`     | Owner of "عيادات النور (تجريبي)" — medical center, dentistry + physiotherapy, 3 branches, Africa/Cairo |
 | `admin.nour@demo.test`     | Admin, all branches                                           |
 | `doctor.nour@demo.test`    | Doctor (د. هالة) restricted to فرع المعادي                     |
 | `doctor2.nour@demo.test`   | Doctor (د. سامي) at فرع مدينة نصر (mornings) and فرع الإسكندرية (evenings) |
 | `reception.nour@demo.test` | Receptionist restricted to فرع مدينة نصر                       |
 | `viewer.nour@demo.test`    | Viewer (prefers English) — aggregate counts only              |
 | `suspended.nour@demo.test` | Suspended membership (no access)                              |
-| `owner.shifa@demo.test`    | Owner of the second organization "مركز الشفاء (تجريبي)" (Asia/Riyadh) |
+| `owner.shifa@demo.test`    | Owner of the second organization "مركز الشفاء (تجريبي)" — multi-branch, ENT, Asia/Riyadh |
 | `multi@demo.test`          | Admin in the first organization, branch-restricted doctor (د. ريم) in the second |
 | `newcomer@demo.test`       | Registered, no organization (onboarding / "add member" flows) |
+| `owner.legacy@demo.test`   | Owner of an organization created "before specialties" (setup prompt, explicit specialty setup) |
 
 Seeded front-desk data: 9 + 2 patients (one family sharing a phone number, a patient only in
 Alexandria that the Nasr City receptionist cannot see, an archived registration), weekly hours,
@@ -81,6 +93,7 @@ database first.
 | `npm run dev`       | API (port 4000, auto-reload) + web (port 5173). Stop with Ctrl+C.            |
 | `npm run seed`      | Upsert specialties and demo data (idempotent). `-- --reset` drops the DB first |
 | `npm run db:check`  | Print MongoDB version, database and ping                                     |
+| `npm run inquiries -w @clinc/api -- list` | Review custom-project requests (operators; contact details masked) — see [INQUIRIES.md](docs/architecture/INQUIRIES.md) |
 | `npm run lint`      | ESLint, zero warnings allowed                                                |
 | `npm run typecheck` | TypeScript for API, web and test configuration                              |
 | `npm test`          | Vitest: web unit tests + API integration tests on throwaway databases        |
@@ -100,6 +113,9 @@ database first.
 
 While `npm run dev` runs, the app is at `https://<codespace-name>-5173.app.github.dev`. It is a
 private development preview that works only while the Codespace runs — not production hosting.
+It is never indexable: without `VITE_PUBLIC_SITE_URL` and `VITE_PUBLIC_INDEXING=true` at build
+time, `robots.txt` disallows everything and every page is `noindex`
+([PUBLIC_SITE.md](docs/architecture/PUBLIC_SITE.md)).
 
 ## Continuous integration
 
@@ -116,5 +132,10 @@ The job is named `verify` and is a required check for `main`.
 - [docs/architecture/TENANCY.md](docs/architecture/TENANCY.md) — organizations, roles, authorization matrix, scoping
 - [docs/architecture/PATIENTS.md](docs/architecture/PATIENTS.md) — patient data model, phone rules, visibility, duplicates
 - [docs/architecture/SCHEDULING.md](docs/architecture/SCHEDULING.md) — time zones, availability, appointment states, concurrency and idempotency
+- [docs/architecture/PUBLIC_SITE.md](docs/architecture/PUBLIC_SITE.md) — public pages, route boundaries, code loading, SEO and indexing
+- [docs/architecture/ONBOARDING.md](docs/architecture/ONBOARDING.md) — signup, resumable setup, safe completion, existing users
+- [docs/architecture/SPECIALTIES.md](docs/architecture/SPECIALTIES.md) — organization/branch/practitioner specialties, migration, workspace context
+- [docs/architecture/INQUIRIES.md](docs/architecture/INQUIRIES.md) — custom-project requests and the review script
+- [docs/PRODUCT_INVENTORY.md](docs/PRODUCT_INVENTORY.md), [docs/ROADMAP.md](docs/ROADMAP.md), [docs/DECISIONS.md](docs/DECISIONS.md), [docs/NEXT_PHASE_BRIEF.md](docs/NEXT_PHASE_BRIEF.md)
 - [docs/PROGRESS.md](docs/PROGRESS.md) — status, test evidence, production gaps
 - [docs/HANDOFF.md](docs/HANDOFF.md) — how to continue in a fresh session

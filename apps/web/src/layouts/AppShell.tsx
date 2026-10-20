@@ -8,7 +8,8 @@ import { LanguageSwitcher } from '../components/LanguageSwitcher';
 import { ErrorState, Loading } from '../components/ui';
 import { ApiError, api } from '../lib/api';
 import { errorMessage } from '../lib/errors';
-import { LAST_ORG_KEY, branchKey, readStored, writeStored } from '../lib/storage';
+import { useSpecialtyNames } from '../lib/specialties';
+import { LAST_ORG_KEY, branchKey, readStored, specialtyKey, writeStored } from '../lib/storage';
 import type { Branch, OrgDetail, Permission } from '../lib/types';
 import { OrgContext, orgKeys, useOrg, type OrgContextValue } from '../org/context';
 
@@ -52,12 +53,23 @@ function Shell({ orgId, detail, branches }: { orgId: string; detail: OrgDetail; 
   const { t } = useTranslation();
   const [navOpen, setNavOpen] = useState(false);
   const [storedBranch, setStoredBranch] = useState(() => readStored(branchKey(orgId)));
+  const [storedSpecialty, setStoredSpecialty] = useState(() => readStored(specialtyKey(orgId)));
 
   const orgWide = detail.membership.branchScope.type === 'all';
   const activeBranches = branches.filter((b) => b.status === 'active');
   const storedIsValid = storedBranch === 'all' ? orgWide : activeBranches.some((b) => b.id === storedBranch);
   const selectedBranchId =
     storedBranch && storedIsValid ? storedBranch : orgWide ? 'all' : (activeBranches[0]?.id ?? '');
+
+  // Specialty filter choices: the organization's specialties, limited to what the selected branch
+  // offers. An option that no longer applies falls back to "all specialties".
+  const specialties = detail.organization.specialtyCodes;
+  const selectedBranch = activeBranches.find((b) => b.id === selectedBranchId);
+  const specialtyOptions = useMemo(
+    () => (selectedBranch ? specialties.filter((code) => selectedBranch.specialtyCodes.includes(code)) : specialties),
+    [specialties, selectedBranch],
+  );
+  const selectedSpecialty = storedSpecialty && specialtyOptions.includes(storedSpecialty) ? storedSpecialty : 'all';
 
   const value = useMemo<OrgContextValue>(
     () => ({
@@ -71,8 +83,15 @@ function Shell({ orgId, detail, branches }: { orgId: string; detail: OrgDetail; 
         writeStored(branchKey(orgId), branchId);
       },
       timeZone: detail.organization.timeZone,
+      specialties,
+      specialtyOptions,
+      selectedSpecialty,
+      selectSpecialty: (code: string) => {
+        setStoredSpecialty(code);
+        writeStored(specialtyKey(orgId), code);
+      },
     }),
-    [orgId, detail, branches, selectedBranchId],
+    [orgId, detail, branches, selectedBranchId, specialties, specialtyOptions, selectedSpecialty],
   );
 
   useEffect(() => {
@@ -147,6 +166,7 @@ function Shell({ orgId, detail, branches }: { orgId: string; detail: OrgDetail; 
             </button>
             <OrgSwitcher orgId={orgId} currentName={detail.organization.name} />
             <BranchSwitcher />
+            <SpecialtySwitcher />
             <div className="topbar-end">
               <LanguageSwitcher />
               <UserMenu orgId={orgId} />
@@ -199,6 +219,29 @@ function BranchSwitcher() {
         {active.map((b) => (
           <option key={b.id} value={b.id}>
             {b.name}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+/** Offered when there is a choice. It filters the shared operational views; access stays as is. */
+function SpecialtySwitcher() {
+  const { t } = useTranslation();
+  const specialties = useSpecialtyNames();
+  const { specialtyOptions, selectedSpecialty, selectSpecialty } = useOrg();
+  if (specialtyOptions.length < 2) return null;
+  return (
+    <div className="switcher">
+      <label htmlFor="specialty-switcher" className="switcher-label">
+        {t('specialtyContext.label')}
+      </label>
+      <select id="specialty-switcher" value={selectedSpecialty} onChange={(e) => selectSpecialty(e.target.value)}>
+        <option value="all">{t('specialtyContext.all')}</option>
+        {specialtyOptions.map((code) => (
+          <option key={code} value={code}>
+            {specialties.name(code)}
           </option>
         ))}
       </select>

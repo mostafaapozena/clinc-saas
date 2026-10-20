@@ -12,7 +12,7 @@ import { useFormatters } from '../lib/format';
 import { addDays, datesFrom, isValidDateInput, localDateOf, todayIn } from '../lib/time';
 import { APPOINTMENT_STATUSES, type Appointment, type AppointmentStatus, type Practitioner } from '../lib/types';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
-import { orgKeys, useBranchFilter, useOrg } from '../org/context';
+import { orgKeys, useBranchFilter, useOrg, useSpecialtyFilter } from '../org/context';
 
 type View = 'day' | 'week';
 
@@ -20,16 +20,18 @@ export function AppointmentsPage() {
   const { t } = useTranslation();
   const { orgId, can, timeZone } = useOrg();
   const branchFilter = useBranchFilter();
+  const specialty = useSpecialtyFilter();
   const [view, setView] = useState<View>('day');
   const [date, setDate] = useState(() => (timeZone ? todayIn(timeZone) : ''));
   const [practitionerId, setPractitionerId] = useState('');
   const [status, setStatus] = useState<AppointmentStatus | ''>('');
   useDocumentTitle(t('nav.appointments'));
 
+  const practitionerParams = { branchId: branchFilter, specialty };
   const practitioners = useQuery({
-    queryKey: orgKeys.practitioners(orgId, { branchId: branchFilter }),
+    queryKey: orgKeys.practitioners(orgId, practitionerParams),
     queryFn: ({ signal }) =>
-      api<{ data: Practitioner[] }>(`/orgs/${orgId}/practitioners${query({ branchId: branchFilter })}`, { signal }).then((r) => r.data),
+      api<{ data: Practitioner[] }>(`/orgs/${orgId}/practitioners${query(practitionerParams)}`, { signal }).then((r) => r.data),
     enabled: can('practitioner.read'),
   });
 
@@ -130,7 +132,8 @@ function Schedule({
   const { orgId, timeZone } = useOrg();
   const fmt = useFormatters();
   const zone = timeZone ?? 'UTC';
-  const params = { from, to, branchId, practitionerId: practitionerId || undefined, status: status || undefined };
+  const specialty = useSpecialtyFilter();
+  const params = { from, to, branchId, specialty, practitionerId: practitionerId || undefined, status: status || undefined };
   const list = useQuery({
     queryKey: orgKeys.appointments(orgId, params),
     queryFn: ({ signal }) =>

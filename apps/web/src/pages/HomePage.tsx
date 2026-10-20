@@ -10,8 +10,9 @@ import { api, query } from '../lib/api';
 import { errorMessage } from '../lib/errors';
 import { useFormatters } from '../lib/format';
 import type { DashboardCounts } from '../lib/types';
+import { useSpecialtyNames } from '../lib/specialties';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
-import { orgKeys, useBranchFilter, useOrg } from '../org/context';
+import { orgKeys, useBranchFilter, useOrg, useSpecialtyFilter } from '../org/context';
 
 export function HomePage() {
   const { t } = useTranslation();
@@ -36,8 +37,10 @@ export function HomePage() {
   return (
     <>
       <PageHeader title={t('home.welcome', { name: user?.displayName ?? '' })} subtitle={organization.name} />
+      <SpecialtySetupNotice />
       {can('dashboard.read') && <TodayCounts />}
       <div className="card-grid">
+        <SpecialtyOverview />
         <section className="card" aria-labelledby="access-title">
           <h2 id="access-title">{t('home.yourAccess')}</h2>
           <dl className="details">
@@ -118,7 +121,53 @@ export function HomePage() {
   );
 }
 
-const COUNT_KEYS: (keyof DashboardCounts)[] = ['scheduled', 'waiting', 'inProgress', 'completed', 'noShow', 'cancelled'];
+/** Organizations created before phase 4: the owner is asked (not forced) to choose specialties. */
+function SpecialtySetupNotice() {
+  const { t } = useTranslation();
+  const { orgId, specialties, can } = useOrg();
+  if (specialties.length > 0 || !can('organization.update')) return null;
+  return (
+    <section className="notice notice--info" aria-labelledby="specialty-setup-title" data-testid="specialty-setup-notice">
+      <h2 id="specialty-setup-title">{t('home.specialtySetupTitle')}</h2>
+      <p>{t('home.specialtySetupBody')}</p>
+      <Link className="button button--secondary" to={`/app/${orgId}/settings`}>
+        {t('home.specialtySetupLink')}
+      </Link>
+    </section>
+  );
+}
+
+/**
+ * The organization's specialties and where they are offered (accessible branches only). The
+ * workspace is the same shared operational one for every specialty; this says so plainly.
+ */
+function SpecialtyOverview() {
+  const { t } = useTranslation();
+  const fmt = useFormatters();
+  const names = useSpecialtyNames();
+  const { specialties, branches, selectedSpecialty } = useOrg();
+  if (specialties.length === 0) return null;
+  const active = branches.filter((b) => b.status === 'active');
+  return (
+    <section className="card" aria-labelledby="specialties-title" data-testid="specialty-overview">
+      <h2 id="specialties-title">{t('home.specialtiesTitle')}</h2>
+      <ul className="specialty-overview">
+        {specialties.map((code) => {
+          const at = active.filter((b) => b.specialtyCodes.includes(code)).map((b) => b.name);
+          return (
+            <li key={code} aria-current={selectedSpecialty === code ? 'true' : undefined}>
+              <strong>{names.name(code)}</strong>
+              <span className="muted small">{at.length > 0 ? t('home.offeredAt', { branches: fmt.list(at) }) : t('home.notOfferedHere')}</span>
+            </li>
+          );
+        })}
+      </ul>
+      <p className="muted small">{t('specialtyContext.sharedNote')}</p>
+    </section>
+  );
+}
+
+const COUNT_KEYS: (keyof DashboardCounts)[] =['scheduled', 'waiting', 'inProgress', 'completed', 'noShow', 'cancelled'];
 
 /**
  * Real counts from the API for today's appointments (by their start on today's local date),
@@ -129,9 +178,11 @@ function TodayCounts() {
   const fmt = useFormatters();
   const { orgId, timeZone, detail } = useOrg();
   const branchId = useBranchFilter();
+  const specialty = useSpecialtyFilter();
   const counts = useQuery({
-    queryKey: orgKeys.dashboard(orgId, branchId ?? 'all'),
-    queryFn: ({ signal }) => api<{ date: string; counts: DashboardCounts }>(`/orgs/${orgId}/dashboard${query({ branchId })}`, { signal }),
+    queryKey: orgKeys.dashboard(orgId, branchId ?? 'all', specialty ?? 'all'),
+    queryFn: ({ signal }) =>
+      api<{ date: string; counts: DashboardCounts }>(`/orgs/${orgId}/dashboard${query({ branchId, specialty })}`, { signal }),
     enabled: Boolean(timeZone),
     refetchInterval: 60_000,
   });
