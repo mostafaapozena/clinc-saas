@@ -1,7 +1,10 @@
 import { randomUUID } from 'node:crypto';
 import { DateTime } from 'luxon';
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
+import { Types } from 'mongoose';
 import { AuditEventModel } from '../src/modules/audit/audit-event.model.js';
+import { resolveClinicalActor } from '../src/modules/clinical/clinical-access.js';
+import type { TenantContext } from '../src/tenancy/tenant-context.js';
 import { AddendumModel, ClinicalAuditModel, EncounterModel } from '../src/modules/clinical/clinical.model.js';
 import { register, send, testApp, createOrg, type Client } from './helpers/api.js';
 import { TODAY, act, bookOk, buildClinic, createPatient, pinClock, type Clinic } from './helpers/clinic.js';
@@ -586,6 +589,85 @@ describe('access', () => {
       expect(on.status).toBe(200);
     }
     expect((await read(c.doctor, appointment.id)).status).toBe(200);
+  });
+
+  it('the in-transaction access check refuses a membership suspended after the request was admitted', async () => {
+    // requireMembership admitted the request with this context; the membership is then suspended
+    // before the mutation's own check runs (the window the transaction re-check closes).
+    const tenant: TenantContext = {
+      organizationId: new Types.ObjectId(c.orgId),
+      membershipId: new Types.ObjectId(c.doctorMembership),
+      userId: new Types.ObjectId(c.doctor.userId),
+      role: 'doctor',
+      branchScope: { type: 'all' },
+    };
+    expect(await resolveClinicalActor(tenant)).not.toBeNull();
+    expect((await send(c.owner, 'patch', orgUrl(`/members/${c.doctorMembership}`), { status: 'suspended' })).status).toBe(200);
+    try {
+      expect(await resolveClinicalActor(tenant)).toBeNull();
+    } finally {
+      expect((await send(c.owner, 'patch', orgUrl(`/members/${c.doctorMembership}`), { status: 'active' })).status).toBe(200);
+    }
+  });
+
+  it('a record whose author is another user stays closed, even to the same practitioner profile', async () => {
+    // Defense in depth: the API never produces this, so simulate it in the database.
+    const { appointment, encounter } = await draft();
+    const stranger = await register(app, 'clin-stranger');
+    await EncounterModel.updateOne(
+      { organizationId: c.orgId, _id: encounter.id, status: 'draft' },
+      { $set: { authorUserId: stranger.userId } },
+    );
+    expect((await read(c.doctor, appointment.id)).status).toBe(404);
+    expect((await save(c.doctor, encounter.id, { plan: 'x' }, encounter.version)).status).toBe(404);
+    expect((await history(c.doctor, appointment.patientId)).body.data).toEqual([]);
+  });
+
+  it('tampered ids from another organization answer 404 and change nothing', async () => {
+    // A second organization with its own treating doctor and record.
+    const other = await buildClinic(app, 'clin-other');
+    const otherUrl = (path: string) => `/api/v1/orgs/${other.orgId}${path}`;
+    const patientId = await createPatient(other.receptionist, other.orgId, other.branchA);
+    vi.restoreAllMocks();
+    pinClock(`${TODAY}T05:00:00.000Z`);
+    let a = await bookOk(other.owner, other.orgId, {
+      patientId,
+      practitionerId: other.practitioner,
+      branchId: other.branchA,
+      date: TODAY,
+      time: '13:30',
+    });
+    for (const [action, actor] of [
+      ['check_in', other.receptionist],
+      ['start', other.doctor],
+    ] as const) {
+      a = (await act(actor, other.orgId, a.id, action, a.version)).body.appointment;
+    }
+    const created = await other.doctor.agent
+      .post(otherUrl(`/appointments/${a.id}/encounter`))
+      .set('X-CSRF-Token', other.doctor.csrf)
+      .set('Idempotency-Key', key())
+      .send({ sections: { reason: `${MARK} other org` } });
+    expect(created.status).toBe(201);
+    const foreign = created.body.encounter as { id: string; version: number };
+
+    // This organization's doctor uses the other organization's ids under their own organization.
+    const attempts = [
+      await read(c.doctor, a.id),
+      await start(c.doctor, a.id),
+      await save(c.doctor, foreign.id, { plan: 'x' }, foreign.version),
+      await finalize(c.doctor, foreign.id, foreign.version),
+      await addendum(c.doctor, foreign.id, { reason: 'Clarification', content: 'x' }),
+    ];
+    for (const res of attempts) {
+      expect(res.status).toBe(404);
+      expect(JSON.stringify(res.body)).not.toContain(MARK);
+    }
+    expect((await history(c.doctor, patientId)).body.data).toEqual([]);
+    // And not through the other organization's path either (no membership there).
+    expect((await c.doctor.agent.get(otherUrl(`/appointments/${a.id}/encounter`))).status).toBe(404);
+    const stored = await EncounterModel.findOne({ organizationId: other.orgId, _id: foreign.id }).lean();
+    expect(stored).toMatchObject({ version: 0, status: 'draft' });
   });
 
   it('lists only the caller’s own records in a patient’s clinical history', async () => {

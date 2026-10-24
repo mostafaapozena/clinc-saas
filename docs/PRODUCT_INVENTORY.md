@@ -48,7 +48,7 @@ development Codespace.
 | Duplicate warnings within the caller's scope | Implemented and verified | Merging/reconciliation is not built. |
 | Practitioner scheduling profiles, weekly hours, date exceptions | Implemented and verified | Profiles carry a specialty code; that is a label, not a specialty workspace. |
 | Availability, booking, rescheduling, cancellation, no-show | Implemented and verified | Concurrency-safe reservations, idempotent booking. See [architecture/SCHEDULING.md](architecture/SCHEDULING.md). |
-| Check-in, daily queue, start/complete visit | Implemented and verified | **Start/complete changes appointment status only. No visit record or clinical documentation exists.** |
+| Check-in, daily queue, start/complete visit | Implemented and verified | Start/complete changes appointment status; the visit record is separate (below). |
 | Today's counts on the home page | Implemented and verified | Scoped per role; viewers get aggregates only. |
 | Audit events | Partial | Written for administrative changes; no viewer, export or retention policy. |
 | Organization time-zone change with future appointments | Partial | Refused until a migration workflow exists. |
@@ -60,8 +60,8 @@ development Codespace.
 
 | Capability | Status | Notes |
 | ---------- | ------ | ----- |
-| Encounter / visit record | Planned | Nothing stores clinical content. |
-| Clinical access rules distinct from administrative access | Planned | Today owners/admins can see administrative patient data; no clinical data exists to protect yet. |
+| Encounter / visit record | Implemented and tested _(phase 5, in review; clinician review pending)_ | General sections, draft, finalize, append-only addenda, late entry, one record per appointment, idempotent and concurrency-safe. Synthetic data only; not clinically validated. [CLINICAL.md](architecture/CLINICAL.md) |
+| Clinical access rules distinct from administrative access | Implemented and tested _(phase 5, in review)_ | Treating doctor only; owners/admins see documentation status only; separate clinical audit log. No delegation or break-glass yet. |
 | Dentistry workspace (e.g. charting, treatment plans) | Planned | Requires clinician validation. Not implied by the specialty name in the catalog. |
 | Physiotherapy workspace (e.g. treatment plans, session tracking) | Planned | Requires clinician validation. |
 | ENT workspace | Planned | Requires clinician validation. |

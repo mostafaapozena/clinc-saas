@@ -1,7 +1,10 @@
 # Next phase brief — Phase 5: clinical visit records and clinical access
 
-_Recommended 2026-10-20, after phase 4 (public platform and specialty-aware onboarding) was
-implemented and put up for review. Not started._ Context: [ROADMAP.md](ROADMAP.md),
+_Recommended 2026-10-20. **Implemented** on `phase-5/visit-records` following the owner's phase 5
+brief of 2026-10-24, which decided: treating doctor only (no clinical grants for other doctors,
+owners or admins), corrections as append-only addenda (instead of amended versions), late entries
+with a reason, finalization while in progress or completed. See
+[architecture/CLINICAL.md](architecture/CLINICAL.md); clinician review (Q6) still pending._ Context: [ROADMAP.md](ROADMAP.md),
 [PRODUCT_INVENTORY.md](PRODUCT_INVENTORY.md), [DECISIONS.md](DECISIONS.md).
 
 Phase 4's own brief (public site and onboarding) is recorded in the phase 4 PR and in

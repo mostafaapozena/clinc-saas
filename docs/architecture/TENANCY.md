@@ -87,6 +87,8 @@ selected branches and only ever see those.
 | Check in, cancel, mark no-show                       | `appointment.front_desk`      |  ✓    |  ✓    |        |      ✓       |        |
 | Start and complete a visit                           | `appointment.visit`           |  ✓⁴   |  ✓⁴   |  ✓²    |              |        |
 | Today's queue                                        | `queue.read`                  |  ✓    |  ✓    |  ✓²    |      ✓       |        |
+| Write and read own visit records (clinical text)⁶    | `clinical.encounter.own`      |       |       |  ✓⁶    |              |        |
+| See whether a visit is documented (status only)⁶     | `clinical.documentation_status.read` |  ✓    |  ✓    |  ✓²    |              |        |
 
 ¹ Additional membership rules, checked in this order (`membership.routes.ts`):
 
@@ -111,6 +113,12 @@ else; there is no override of the state machine.
 ⁵ Specialty rules and their consistency checks: [SPECIALTIES.md](SPECIALTIES.md). The
 `specialty` query parameter on practitioners, appointments, queue and dashboard is a view filter
 that **only narrows** the authorized result; it never grants access to anything.
+
+⁶ **Clinical visit records (phase 5)** — only the **treating doctor**: an active doctor membership
+with an active practitioner profile, on that profile's own appointments, as the record's author,
+within the current branch scope; re-checked on every request and inside every mutation. Owners
+and admins get **no** clinical text (status only); other doctors get the generic `404`. Details:
+[CLINICAL.md](CLINICAL.md).
 
 Outside organizations (phase 4): creating a new organization — directly (`POST /orgs`) or by
 completing one's own onboarding draft — is open to every signed-in user, who becomes its owner;
@@ -145,6 +153,9 @@ change summary — never passwords, cookies, session tokens, email addresses, pa
 numbers or other demographic values (patient updates list changed field names only; a
 cancellation reason stays on the appointment and the event only notes that one was given). There
 is no audit viewer yet.
+
+Clinical reads, writes and denials go to a separate, insert-only clinical audit log with ids and
+metadata only ([CLINICAL.md](CLINICAL.md#audit-and-privacy)).
 
 ## Remaining before production use
 

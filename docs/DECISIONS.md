@@ -67,8 +67,8 @@ the brand source of truth (C23).
 
 | # | Question | Proposed default |
 | - | -------- | ---------------- |
-| Q5 | Clinical access policy: who reads/writes visit records; can owners/admins be granted clinical access; audit expectations. | Author (the visit's doctor) writes; doctors of the same organization read only with an explicit clinical grant; owners/admins have **no** clinical access unless granted; every read and write audited. See NEXT_PHASE_BRIEF.md. |
-| Q6 | Which clinicians validate the visit-record content? | At least one practicing doctor per launch specialty reviews the generic sections before merge. |
+| Q5 | Clinical access policy. | **Answered by the owner (phase 5 brief, 2026-10-24):** the treating doctor only (active doctor membership + active practitioner relationship, authorized branch); other doctors denied; owners/admins see documentation status only, no clinical text; receptionists/viewers nothing clinical; membership changes apply immediately; no sharing or break-glass in this phase. Corrections are append-only addenda with a reason. Implemented: [CLINICAL.md](architecture/CLINICAL.md). |
+| Q6 | Which clinicians validate the visit-record content? **Still open.** | At least one practicing doctor per launch specialty completes [CLINICIAN_REVIEW.md](CLINICIAN_REVIEW.md) before any real use. |
 | Q7 | Are prescriptions and attachments in scope, and when? **Needs authoritative validation.** | Not in phase 5. |
 
 ### Blocking public launch (not development)
