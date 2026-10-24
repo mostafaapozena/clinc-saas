@@ -77,7 +77,8 @@ export function EncounterPage() {
 
   return (
     <>
-      <PageHeader title={t('clinical.title')} subtitle={`${a.patient?.fullName ?? '—'} · ${fmt.dateTime(a.startAt, timeZone)}`}>
+      {/* First-strong isolates keep a Latin name and the date in order inside Arabic text. */}
+      <PageHeader title={t('clinical.title')} subtitle={`\u2068${a.patient?.fullName ?? '—'}\u2069 · \u2068${fmt.dateTime(a.startAt, timeZone)}\u2069`}>
         <DocumentationBadge status={encounter?.status ?? 'none'} />
         {encounter?.lateEntry && <span className="badge badge--late-entry">{t('clinical.lateEntryBadge')}</span>}
       </PageHeader>
