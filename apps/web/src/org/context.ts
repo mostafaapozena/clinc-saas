@@ -62,4 +62,8 @@ export const orgKeys = {
   appointment: (orgId: string, id: string) => ['org', orgId, 'appointment', id] as const,
   availability: (orgId: string, params: object) => ['org', orgId, 'availability', params] as const,
   queue: (orgId: string, params: object) => ['org', orgId, 'queue', params] as const,
+  // Clinical entries: always used with CLINICAL_QUERY (lib/clinical.ts), so they are not kept.
+  clinical: (orgId: string) => ['org', orgId, 'clinical'] as const,
+  encounter: (orgId: string, appointmentId: string) => ['org', orgId, 'clinical', 'encounter', appointmentId] as const,
+  clinicalHistory: (orgId: string, patientId: string) => ['org', orgId, 'clinical', 'history', patientId] as const,
 };

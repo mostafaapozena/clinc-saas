@@ -17,6 +17,25 @@ Read [AGENTS.md](../AGENTS.md) (rules) and [PROGRESS.md](PROGRESS.md) (state, ga
 Everything important is in Git; a new Codespace from any branch sets itself up via the
 devcontainer.
 
+## Resume Phase 5 (paused checkpoint, 2026-10-24)
+
+State, completed work, checks run and remaining work: [PROGRESS.md](PROGRESS.md), section "Phase 5".
+
+1. Start the Codespace (`gh codespace list`, then `gh codespace ssh -c <name>`), `cd /workspaces/clinc-saas`.
+2. `git fetch && git checkout phase-5/visit-records && git pull --ff-only`; check `git log -3`
+   shows the WIP checkpoint on top of `4ccb635`.
+3. `npm ci` only if `package-lock.json` changed; then start the dev servers (`npm run dev`).
+4. Re-run before continuing: `npx vitest run` (whole repo), `npx tsc -p apps/web --noEmit`,
+   `npx eslint . --max-warnings=0`.
+5. Continue with the "Not started" list in PROGRESS.md: e2e, clinical docs, `npm run verify`,
+   push, open the Phase 5 PR with base `phase-4/public-onboarding`, CI, preview check.
+6. Rules unchanged: do not merge #5 or the Phase 5 PR; synthetic data only; no clinical text in
+   logs, URLs, storage, audit or errors; never call this clinically validated or production-ready.
+
+PR #5 (`phase-4/public-onboarding`, head `9257190`): CI run 40115405573 passed; still waiting on
+the owner's review. The private preview is the Codespace's forwarded port 5173 (private; it only
+works while the Codespace is running).
+
 ## Continuing
 
 **Phase 4 review changes** (owner feedback on PR #5): work on `phase-4/public-onboarding`. Public

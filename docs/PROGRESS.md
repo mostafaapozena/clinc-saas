@@ -15,6 +15,63 @@ Decisions: [DECISIONS.md](DECISIONS.md). Next phase: [NEXT_PHASE_BRIEF.md](NEXT_
 | Planning docs | [#4](https://github.com/mostafaapozena/clinc-saas/pull/4) | `d8b93b9` | Merged 2026-10-20 (docs only, CI green) |
 | 4 — public site & onboarding | [#5](https://github.com/mostafaapozena/clinc-saas/pull/5) | — | Open, `phase-4/public-onboarding` → `main`; awaiting owner review of the public copy; not merged |
 
+## Phase 5 — clinical visit records (IN PROGRESS — paused at a WIP checkpoint, 2026-10-24)
+
+Branch `phase-5/visit-records`, stacked on `phase-4/public-onboarding` (PR #5 still open). No
+Phase 5 PR has been opened yet. Nothing here is clinically validated or production-ready.
+
+**Done (API, commit `4ccb635`)**
+- `apps/api/src/modules/clinical/`: `clinical.model.ts` (encounters, addenda, clinical audit;
+  one encounter per appointment via unique index; delete/rewrite blocked by hooks except
+  `allowSeedCleanup`; encounter updates must filter `status: 'draft'`; timestamps from the server
+  clock), `clinical-access.ts` (treating doctor = active doctor membership + active practitioner
+  profile + record practitioner/author + branch scope, read fresh; `lock` increments
+  `Membership.accessSeq` inside mutation transactions), `clinical-audit.ts` (metadata only,
+  reads/denials deduped 10 min), `clinical.routes.ts` (GET/POST encounter per appointment, PUT draft
+  with optimistic version, POST finalize, POST addenda, GET patient clinical-history; Idempotency-Key
+  on create/finalize/addendum, reused key + different body → `IDEMPOTENCY_KEY_REUSED`; no-store),
+  `clinical-status.ts` (documentation status for owner/admin/doctor in appointment DTOs).
+- Permissions `clinical.encounter.own` (doctor only) and `clinical.documentation_status.read`
+  (owner, admin, doctor). Membership `accessSeq`. Models registered; router mounted before the others.
+- Demo seed: 5 synthetic encounters + 1 addendum in `demo-nour` (b03/b04 left free for late-entry /
+  start demos).
+- Tests: `apps/api/test/clinical.test.ts` (22: lifecycle, idempotency, real parallel concurrency,
+  access per role, suspension/branch/profile changes, audit privacy), 3 clinical actions in the
+  authorization matrix, seed test, owner-permissions test updated.
+
+**Done but uncommitted before this checkpoint → included in the WIP commit (web)**
+- `apps/web/src/lib/clinical.ts`, `components/clinical.tsx` (status badge, appointment card,
+  patient timeline), `pages/EncounterPage.tsx` (start / late entry, draft editor with conflict
+  banner, finalize confirmation, unsaved-changes blocker + beforeunload, finalized view, record
+  timeline, addenda), route `appointments/:appointmentId/record` (guarded by
+  `clinical.encounter.own`), queue badge, `clinical.*` strings (ar/en), error/validation strings,
+  styles, public copy (visit records now listed as available; specialty tools still planned),
+  regenerated `docs/PUBLIC_COPY.md`, `pages/Clinical.test.tsx` (6 tests).
+
+**Checks actually run (Codespace)**
+- API: full `vitest` run before the web work — 384 tests, all passing after the
+  organizations-test update; `clinical.test.ts` 22/22; authorization 180/180; demo-seed 6/6;
+  `eslint apps/api` and `tsc -p apps/api` clean.
+- Web: `tsc -p apps/web` and `eslint apps/web` clean; web `vitest` 52/53 with one failure that was
+  a wrong expected string in the new test, fixed; `Clinical.test.tsx` then 6/6 three times in a row.
+  The full web suite was not re-run after that fix.
+- **Not run yet:** `npm run verify` as a whole, `npm run build`, Playwright e2e (no clinical e2e
+  written yet), mutation checks, preview verification, CI for this branch.
+
+**Not started**
+- Playwright e2e: clinical flow, late entry, addendum, denied roles, two-tab conflict, English,
+  mobile, logout / organization-switch clearing.
+- Docs: `docs/architecture/CLINICAL.md` (auth matrix, lifecycle, concurrency/idempotency,
+  audit/privacy), `docs/CLINICIAN_REVIEW.md`, production gates; updates to TENANCY matrix,
+  PRODUCT_INVENTORY, ROADMAP, DECISIONS, README, PROJECT_CONTEXT.
+- Phase 5 PR (base `phase-4/public-onboarding`), CI, preview verification on this branch, final report.
+
+**Known issues / notes**
+- Running Prettier without options rewrites the repo (no Prettier config; the style is single quotes,
+  wide lines). Only the new clinical API files were formatted, with
+  `--single-quote --print-width 140 --trailing-comma all`.
+- The dev servers in the Codespace were still on the earlier branch state; restart them after resuming.
+
 ## Phase 4 — public website, solution selection, specialty-aware onboarding (in review)
 
 ### Implemented
