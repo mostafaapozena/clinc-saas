@@ -5,6 +5,7 @@ import '../auth/session.model.js';
 import '../modules/appointments/appointment.model.js';
 import '../modules/audit/audit-event.model.js';
 import '../modules/branches/branch.model.js';
+import '../modules/clinical/clinical.model.js';
 import '../modules/inquiries/inquiry.model.js';
 import '../modules/onboarding/onboarding.model.js';
 import '../modules/memberships/membership.model.js';

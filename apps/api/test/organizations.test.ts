@@ -42,7 +42,8 @@ describe('organization onboarding', () => {
     expect(detail.body.organization.name).toBe('عيادة الاختبار');
     expect(detail.body.organization.timeZone).toBe('Asia/Riyadh');
     expect(detail.body.membership).toMatchObject({ role: 'owner', branchScope: { type: 'all' } });
-    expect(detail.body.membership.permissions).toEqual(PERMISSIONS);
+    // Every permission except writing clinical records, which belongs to the treating doctor only.
+    expect(detail.body.membership.permissions).toEqual(PERMISSIONS.filter((p) => p !== 'clinical.encounter.own'));
     expect(detail.body.stats).toEqual({ accessibleBranches: 1, activeMembers: 1 });
 
     const list = await client.agent.get('/api/v1/orgs');
