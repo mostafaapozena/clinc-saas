@@ -8,7 +8,7 @@ Read [AGENTS.md](../AGENTS.md) (rules) and [PROGRESS.md](PROGRESS.md) (state, ga
 | ----------------- | --------------------------------------------------------------------------- |
 | Repository        | https://github.com/mostafaapozena/clinc-saas (private)                      |
 | Merged            | #1–#3 (phases 1–3) and #4 (planning docs) — `main` at `d8b93b9` or later     |
-| Open PR           | #5 `phase-4/public-onboarding` → `main` (phase 4); waits on the owner's copy review; do not merge without it |
+| Open PRs          | #5 `phase-4/public-onboarding` → `main` (phase 4); [#6](https://github.com/mostafaapozena/clinc-saas/pull/6) `phase-5/visit-records` → `phase-4/public-onboarding` (phase 5, stacked). Do not merge without the owner |
 | Codespace         | display name `clinc-saas-dev` (`gh codespace list`), 2-core, 30-min idle timeout, 7-day retention after stopping |
 | Repo in Codespace | `/workspaces/clinc-saas`                                                    |
 | CI                | Workflow `CI`, job `verify` (required on `main`)                            |
@@ -17,24 +17,20 @@ Read [AGENTS.md](../AGENTS.md) (rules) and [PROGRESS.md](PROGRESS.md) (state, ga
 Everything important is in Git; a new Codespace from any branch sets itself up via the
 devcontainer.
 
-## Resume Phase 5 (paused checkpoint, 2026-10-24)
+## Phase 5 state (2026-10-25)
 
-State, completed work, checks run and remaining work: [PROGRESS.md](PROGRESS.md), section "Phase 5".
+Implemented on `phase-5/visit-records` (PR [#6](https://github.com/mostafaapozena/clinc-saas/pull/6), stacked on `phase-4/public-onboarding`); see
+[PROGRESS.md](PROGRESS.md) "Phase 5" and [architecture/CLINICAL.md](architecture/CLINICAL.md).
 
-1. Start the Codespace (`gh codespace list`, then `gh codespace ssh -c <name>`), `cd /workspaces/clinc-saas`.
-2. `git fetch && git checkout phase-5/visit-records && git pull --ff-only`; check `git log -3`
-   shows the WIP checkpoint on top of `4ccb635`.
-3. `npm ci` only if `package-lock.json` changed; then start the dev servers (`npm run dev`).
-4. Re-run before continuing: `npx vitest run` (whole repo), `npx tsc -p apps/web --noEmit`,
-   `npx eslint . --max-warnings=0`.
-5. Continue with the "Not started" list in PROGRESS.md: e2e, clinical docs, `npm run verify`,
-   push, open the Phase 5 PR with base `phase-4/public-onboarding`, CI, preview check.
-6. Rules unchanged: do not merge #5 or the Phase 5 PR; synthetic data only; no clinical text in
-   logs, URLs, storage, audit or errors; never call this clinically validated or production-ready.
-
-PR #5 (`phase-4/public-onboarding`, head `9257190`): CI run 40115405573 passed; still waiting on
-the owner's review. The private preview is the Codespace's forwarded port 5173 (private; it only
-works while the Codespace is running).
+- When #5 merges: retarget the phase 5 PR to `main`
+  (`gh pr edit <n> --base main`), check the diff contains only phase 5, wait for CI.
+- Clinician feedback goes into [CLINICIAN_REVIEW.md](CLINICIAN_REVIEW.md) and then code + tests.
+- Try it: `doctor2.nour@demo.test` (visit in progress without a record, completed visit for a
+  late entry), `doctor.nour@demo.test` (draft and finalized records), `owner.nour@demo.test`
+  (status only). Re-seed resets the demo records.
+- Rules unchanged: do not merge #5 or the phase 5 PR without the owner; synthetic data only; no
+  clinical text in logs, URLs, storage, audit or errors; never call this clinically validated or
+  production-ready.
 
 ## Continuing
 
@@ -42,8 +38,8 @@ works while the Codespace is running).
 copy lives in `apps/web/src/i18n/locales/{ar,en}.json` under `site.*` (both files, same keys).
 After edits: `npm run verify`, push, check CI on the new head.
 
-**Phase 5** (after #5 merges): read [NEXT_PHASE_BRIEF.md](NEXT_PHASE_BRIEF.md) and confirm Q5/Q6
-in [DECISIONS.md](DECISIONS.md) with the owner first.
+**A new phase branch** (phase 5 itself is implemented — see above): read the roadmap entry and
+open questions in [DECISIONS.md](DECISIONS.md) first; these notes still apply.
 
 1. In the Codespace: `git fetch && git checkout main && git pull --ff-only`, then
    `git checkout -b phase-5/visit-records`. If #5 is still open, stack on its branch and say so.

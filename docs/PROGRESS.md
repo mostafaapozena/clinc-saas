@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 2026-10-24 (phase 4 in review)._
+_Last updated: 2026-10-25 (phase 4 and phase 5 in review)._
 
 Product state: [PRODUCT_INVENTORY.md](PRODUCT_INVENTORY.md). Plan: [ROADMAP.md](ROADMAP.md).
 Decisions: [DECISIONS.md](DECISIONS.md). Next phase: [NEXT_PHASE_BRIEF.md](NEXT_PHASE_BRIEF.md).
@@ -13,64 +13,54 @@ Decisions: [DECISIONS.md](DECISIONS.md). Next phase: [NEXT_PHASE_BRIEF.md](NEXT_
 | 2 — auth & tenancy | [#2](https://github.com/mostafaapozena/clinc-saas/pull/2) | `12bf659` | Merged 2026-10-20 |
 | 3 — front desk | [#3](https://github.com/mostafaapozena/clinc-saas/pull/3) | `ab0551a` | Merged 2026-10-20 |
 | Planning docs | [#4](https://github.com/mostafaapozena/clinc-saas/pull/4) | `d8b93b9` | Merged 2026-10-20 (docs only, CI green) |
-| 4 — public site & onboarding | [#5](https://github.com/mostafaapozena/clinc-saas/pull/5) | — | Open, `phase-4/public-onboarding` → `main`; awaiting owner review of the public copy; not merged |
+| 4 — public site & onboarding | [#5](https://github.com/mostafaapozena/clinc-saas/pull/5) | — | Open, `phase-4/public-onboarding` → `main`; awaiting owner review of the public copy and the raclinic identity; not merged |
+| 5 — clinical visit records | [#6](https://github.com/mostafaapozena/clinc-saas/pull/6) | — | Open, `phase-5/visit-records` → `phase-4/public-onboarding` (stacked); awaiting owner review and clinician review; not merged |
 
-## Phase 5 — clinical visit records (IN PROGRESS — paused at a WIP checkpoint, 2026-10-24)
+## Phase 5 — clinical visit records (implemented, in review — clinician review pending)
 
-Branch `phase-5/visit-records`, stacked on `phase-4/public-onboarding` (PR #5 still open). No
-Phase 5 PR has been opened yet. Nothing here is clinically validated or production-ready.
+Branch `phase-5/visit-records`, **stacked on `phase-4/public-onboarding`** (PR #5 still open);
+PR [#6](https://github.com/mostafaapozena/clinc-saas/pull/6) targets that branch. Design: [architecture/CLINICAL.md](architecture/CLINICAL.md).
+Nothing here is clinically validated or production-ready; synthetic data only.
 
-**Done (API, commit `4ccb635`)**
-- `apps/api/src/modules/clinical/`: `clinical.model.ts` (encounters, addenda, clinical audit;
-  one encounter per appointment via unique index; delete/rewrite blocked by hooks except
-  `allowSeedCleanup`; encounter updates must filter `status: 'draft'`; timestamps from the server
-  clock), `clinical-access.ts` (treating doctor = active doctor membership + active practitioner
-  profile + record practitioner/author + branch scope, read fresh; `lock` increments
-  `Membership.accessSeq` inside mutation transactions), `clinical-audit.ts` (metadata only,
-  reads/denials deduped 10 min), `clinical.routes.ts` (GET/POST encounter per appointment, PUT draft
-  with optimistic version, POST finalize, POST addenda, GET patient clinical-history; Idempotency-Key
-  on create/finalize/addendum, reused key + different body → `IDEMPOTENCY_KEY_REUSED`; no-store),
-  `clinical-status.ts` (documentation status for owner/admin/doctor in appointment DTOs).
-- Permissions `clinical.encounter.own` (doctor only) and `clinical.documentation_status.read`
-  (owner, admin, doctor). Membership `accessSeq`. Models registered; router mounted before the others.
-- Demo seed: 5 synthetic encounters + 1 addendum in `demo-nour` (b03/b04 left free for late-entry /
-  start demos).
-- Tests: `apps/api/test/clinical.test.ts` (22: lifecycle, idempotency, real parallel concurrency,
-  access per role, suspension/branch/profile changes, audit privacy), 3 clinical actions in the
-  authorization matrix, seed test, owner-permissions test updated.
+Delivered:
+- General visit record per appointment for the **treating doctor only** (active doctor membership +
+  active practitioner profile + own appointment/record + branch scope, re-checked inside every
+  mutation): start for a visit in progress, late entry with a reason for a completed visit,
+  draft saves with optimistic versions, explicit finalization with a provisional minimum,
+  immutable finalized text, append-only addenda with a reason, patient timeline of own records.
+- Owners/admins: documentation status only (`none` / `draft` / `finalized`); receptionists and
+  viewers: nothing clinical. Other doctors and cross-organization ids: generic `404`.
+- Idempotency keys on create / finalize / addendum (reuse with different content → `409`);
+  unique index for one record per appointment; `Membership.accessSeq` write-lock so suspensions
+  and scope changes cannot race a mutation.
+- Separate insert-only clinical audit log (metadata only); no clinical text in logs, URLs, browser
+  storage, document titles, errors or the administrative audit log; `no-store` responses.
+- Web (ar/en): record page, conflict banner, finalize confirmation, unsaved-changes guard, finalized
+  view and timeline, addenda, appointment card, queue badge, patient timeline.
+- Synthetic demo records in `demo-nour`; public copy lists general visit records as available
+  and specialty tools / prescriptions / attachments as planned ([PUBLIC_COPY.md](PUBLIC_COPY.md)).
+- Docs: CLINICAL.md (authorization matrix, lifecycle, concurrency/idempotency, audit/privacy,
+  production gates), [CLINICIAN_REVIEW.md](CLINICIAN_REVIEW.md) (not yet reviewed), TENANCY matrix,
+  inventory, roadmap, decisions (Q5 answered by the owner's brief; Q6 open).
 
-**Done but uncommitted before this checkpoint → included in the WIP commit (web)**
-- `apps/web/src/lib/clinical.ts`, `components/clinical.tsx` (status badge, appointment card,
-  patient timeline), `pages/EncounterPage.tsx` (start / late entry, draft editor with conflict
-  banner, finalize confirmation, unsaved-changes blocker + beforeunload, finalized view, record
-  timeline, addenda), route `appointments/:appointmentId/record` (guarded by
-  `clinical.encounter.own`), queue badge, `clinical.*` strings (ar/en), error/validation strings,
-  styles, public copy (visit records now listed as available; specialty tools still planned),
-  regenerated `docs/PUBLIC_COPY.md`, `pages/Clinical.test.tsx` (6 tests).
+Evidence (Codespace, 2026-10-25):
+- `npm run verify` on the final tree → exit 0: lint, typecheck, Vitest 27 files / 440 tests, build,
+  Playwright 30 tests (desktop + mobile).
+- `apps/api/test/clinical.test.ts`: 25 tests — lifecycle, validation, idempotency, real parallel
+  concurrency (create, save vs finalize, two tabs, parallel finalize, addendum retries, suspension
+  race), access per role, cross-organization tampered ids, suspension / branch scope / profile
+  deactivation, author mismatch, in-transaction recheck, audit privacy, read dedupe.
+- Authorization matrix: 3 clinical actions × 5 roles. Web: `Clinical.test.tsx` 6 tests.
+  `e2e/clinical.spec.ts`: full flow with other roles, late entry + patient timeline, two-tab
+  conflict in English, mobile layout.
+- Mutation checks (11, each breaking one safeguard, all caught by the tests): practitioner, branch,
+  author and active-membership checks; clinical permission granted to owners/admins; version check
+  on save; finalized-record guard; addendum key reuse; finalization minimum; clinical text in audit;
+  documentation status to receptionists.
 
-**Checks actually run (Codespace)**
-- API: full `vitest` run before the web work — 384 tests, all passing after the
-  organizations-test update; `clinical.test.ts` 22/22; authorization 180/180; demo-seed 6/6;
-  `eslint apps/api` and `tsc -p apps/api` clean.
-- Web: `tsc -p apps/web` and `eslint apps/web` clean; web `vitest` 52/53 with one failure that was
-  a wrong expected string in the new test, fixed; `Clinical.test.tsx` then 6/6 three times in a row.
-  The full web suite was not re-run after that fix.
-- **Not run yet:** `npm run verify` as a whole, `npm run build`, Playwright e2e (no clinical e2e
-  written yet), mutation checks, preview verification, CI for this branch.
-
-**Not started**
-- Playwright e2e: clinical flow, late entry, addendum, denied roles, two-tab conflict, English,
-  mobile, logout / organization-switch clearing.
-- Docs: `docs/architecture/CLINICAL.md` (auth matrix, lifecycle, concurrency/idempotency,
-  audit/privacy), `docs/CLINICIAN_REVIEW.md`, production gates; updates to TENANCY matrix,
-  PRODUCT_INVENTORY, ROADMAP, DECISIONS, README, PROJECT_CONTEXT.
-- Phase 5 PR (base `phase-4/public-onboarding`), CI, preview verification on this branch, final report.
-
-**Known issues / notes**
-- Running Prettier without options rewrites the repo (no Prettier config; the style is single quotes,
-  wide lines). Only the new clinical API files were formatted, with
-  `--single-quote --print-width 140 --trailing-comma all`.
-- The dev servers in the Codespace were still on the earlier branch state; restart them after resuming.
+Remaining / limitations: clinician review (Q6); no delegation, cover or break-glass access; no
+audit viewer or retention policy; legal review of clinical record keeping; data residency and
+encryption decisions; free text only.
 
 ## Phase 4 — public website, solution selection, specialty-aware onboarding (in review)
 
@@ -283,12 +273,14 @@ management, bilingual shell (Arabic/RTL/Alexandria, English/LTR/Inter). Details:
 - Audit viewer, retention and export; ownership transfer, organization deletion, member removal.
 - Patient duplicate reconciliation policy; time-zone migration workflow.
 - Independent security review / penetration test, including the concurrency design under load.
-- No clinical modules, billing, subscriptions, payments, messaging or public booking exist.
+- Clinical records: clinician review, legal review of record keeping, delegation/break-glass policy,
+  clinical audit viewer and retention ([CLINICAL.md](architecture/CLINICAL.md#known-limitations-and-production-gates)).
+- No specialty clinical tools, billing, subscriptions, payments, messaging or public booking exist.
 
 ## Next
 
-Phase 4 is in review (PR #5). **Recommended next: phase 5 — clinical visit records with
-deliberately designed clinical access** (not started): see [NEXT_PHASE_BRIEF.md](NEXT_PHASE_BRIEF.md).
+Phase 4 (PR #5) and phase 5 (stacked on it) are in review. After both merge, the next phase in
+[ROADMAP.md](ROADMAP.md) is phase 6 (specialty workspaces), which needs clinician input first.
 The full remaining order (specialty workspaces, clinic finances, platform subscriptions, launch
 readiness) is in
 [ROADMAP.md](ROADMAP.md). Hosting, email, legal and clinical-advisor decisions run on a parallel
@@ -296,6 +288,7 @@ owner-led decision track ([DECISIONS.md](DECISIONS.md) §4).
 
 ## Blockers
 
-PR #5 waits on the owner's review of the public copy. Phase 5 waits on the owner's confirmation
-of the clinical access policy (Q5) and a clinician reviewer (Q6). Later phases depend on the open
+PR #5 waits on the owner's review of the public copy. Phase 5 waits on owner review and a
+clinician reviewer (Q6, [CLINICIAN_REVIEW.md](CLINICIAN_REVIEW.md)); merge order: #5 first, then
+retarget the phase 5 PR to `main`. Later phases depend on the open
 questions and external setup in DECISIONS.md.
