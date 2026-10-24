@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 2026-10-20 (integration checkpoint)._
+_Last updated: 2026-10-24 (phase 4 in review)._
 
 Product state: [PRODUCT_INVENTORY.md](PRODUCT_INVENTORY.md). Plan: [ROADMAP.md](ROADMAP.md).
 Decisions: [DECISIONS.md](DECISIONS.md). Next phase: [NEXT_PHASE_BRIEF.md](NEXT_PHASE_BRIEF.md).
@@ -12,6 +12,65 @@ Decisions: [DECISIONS.md](DECISIONS.md). Next phase: [NEXT_PHASE_BRIEF.md](NEXT_
 | 1 — foundation | [#1](https://github.com/mostafaapozena/clinc-saas/pull/1) | `b33d09a` | Merged 2026-10-20 |
 | 2 — auth & tenancy | [#2](https://github.com/mostafaapozena/clinc-saas/pull/2) | `12bf659` | Merged 2026-10-20 |
 | 3 — front desk | [#3](https://github.com/mostafaapozena/clinc-saas/pull/3) | `ab0551a` | Merged 2026-10-20 |
+| Planning docs | [#4](https://github.com/mostafaapozena/clinc-saas/pull/4) | `d8b93b9` | Merged 2026-10-20 (docs only, CI green) |
+| 4 — public site & onboarding | [#5](https://github.com/mostafaapozena/clinc-saas/pull/5) | — | Open, `phase-4/public-onboarding` → `main`; awaiting owner review of the public copy; not merged |
+
+## Phase 4 — public website, solution selection, specialty-aware onboarding (in review)
+
+### Implemented
+
+- Public website separate from the workspace: home, solutions (dentistry, physiotherapy, ENT,
+  multi-specialty centers), solution detail pages (what works today vs planned tools), SaaS vs
+  custom-project explanation, custom-project request form. Arabic default, English, mobile.
+- "Create your clinic workspace" → `/start` → registration or sign-in → resumable onboarding
+  (type, explicit time zone, specialties, first branch and its specialties, review) → workspace.
+  The pre-selected specialty survives registration and sign-in. Existing members see their
+  workspaces first; onboarding never changes an existing organization.
+- Specialty model: organization specialties, branch subsets, practitioner consistency, explicit
+  setup for organizations created earlier, serialization on `configVersion`, defensive booking
+  check ([architecture/SPECIALTIES.md](architecture/SPECIALTIES.md)).
+- Workspace specialty context: overview per branch, a view filter that only narrows, setup prompt
+  for owners of unconfigured organizations.
+- Custom-project inquiries: write-only public endpoint, idempotent, rate limited; operator review
+  script with masked contact details ([architecture/INQUIRIES.md](architecture/INQUIRIES.md)).
+- Route-level code splitting (public / account / workspace), SEO foundations with
+  environment-controlled indexing, hardened post-login redirect validation
+  ([architecture/PUBLIC_SITE.md](architecture/PUBLIC_SITE.md)).
+
+### Test evidence
+
+- `npm run verify` in the Codespace on `b5a0fa5`: lint, typecheck, **390 Vitest tests (24 files)**,
+  build without the chunk-size warning, **25 Playwright tests** (desktop + Pixel 7).
+- GitHub Actions `verify` passed on `b5a0fa5`
+  ([run 39472576893](https://github.com/mostafaapozena/clinc-saas/actions/runs/39472576893));
+  see the PR checks for the latest commit.
+- Mutation checks (each reverted): a specialty filter that ignores the doctor restriction, a
+  missing configuration lock, onboarding completion without its replay check, and the old
+  `safeNext` each make their tests fail.
+- Bundles: shared framework ≈ 219 kB + 280 kB (≈ 157 kB gzip), public 21 kB, account 17 kB,
+  workspace 95 kB; previously one 557 kB chunk.
+- **Private preview verified 2026-10-24** through `https://<codespace>-5173.app.github.dev` with
+  headless Chromium **inside the Codespace** (not the owner's browser), after a non-destructive
+  re-seed: public home Arabic/RTL/Alexandria and `noindex`; `robots.txt` `Disallow: /`, no sitemap,
+  `X-Robots-Tag: noindex`; physiotherapy solution → registration → onboarding with the
+  pre-selection, reload resumed at the review step → medical center with two specialties created
+  → workspace with specialty overview and switcher; signed-in `/start` showed the existing
+  workspace; custom request stored (`R-FQJQ2XT3`, listed by the review script with the contact
+  masked) and no read endpoint; regression in a fresh organization: patient with Arabic digits →
+  book → check in → doctor started and completed (registry `403` for the doctor) → book,
+  reschedule and cancel; direct sign-in from the public site; viewer `403` on lists; organization
+  switch without leftovers; legacy-organization setup prompt; English LTR/Inter; phone width
+  without horizontal scroll and a working menu; no console errors.
+
+### Known limitations
+
+- Public copy is provisional until the owner approves it in PR #5.
+- Public pages are client-rendered; prerendering and the final domain are decided before
+  indexing is enabled. A production web host must send `X-Robots-Tag` for non-public
+  environments itself.
+- Inquiry retention is a proposal, not automated; no operator console; no messages are sent.
+- No plans, prices, trial or subscription states exist; onboarding is the place where they will
+  attach (phase 8).
 
 The stack was merged with merge commits in order. #2 and #3 were retargeted to `main` after
 their base merged and brought up to date with GitHub's update-branch (a merge, no force-push);
@@ -171,12 +230,15 @@ management, bilingual shell (Arabic/RTL/Alexandria, English/LTR/Inter). Details:
 
 ## Next
 
-**Phase 4 — public platform and specialty-aware onboarding** (not started): see
-[NEXT_PHASE_BRIEF.md](NEXT_PHASE_BRIEF.md). The full remaining order (clinical foundation,
-specialty workspaces, clinic finances, platform subscriptions, launch readiness) is in
+Phase 4 is in review (PR #5). **Recommended next: phase 5 — clinical visit records with
+deliberately designed clinical access** (not started): see [NEXT_PHASE_BRIEF.md](NEXT_PHASE_BRIEF.md).
+The full remaining order (specialty workspaces, clinic finances, platform subscriptions, launch
+readiness) is in
 [ROADMAP.md](ROADMAP.md). Hosting, email, legal and clinical-advisor decisions run on a parallel
 owner-led decision track ([DECISIONS.md](DECISIONS.md) §4).
 
 ## Blockers
 
-None for phase 4. Later phases depend on the open questions and external setup in DECISIONS.md.
+PR #5 waits on the owner's review of the public copy. Phase 5 waits on the owner's confirmation
+of the clinical access policy (Q5) and a clinician reviewer (Q6). Later phases depend on the open
+questions and external setup in DECISIONS.md.
