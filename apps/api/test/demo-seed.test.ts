@@ -2,6 +2,7 @@ import { Types } from 'mongoose';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { AppointmentModel, SlotReservationModel } from '../src/modules/appointments/appointment.model.js';
 import { BranchModel } from '../src/modules/branches/branch.model.js';
+import { AddendumModel, ClinicalAuditModel, EncounterModel } from '../src/modules/clinical/clinical.model.js';
 import { seedDemoData } from '../src/modules/demo/demo.seed.js';
 import { MembershipModel } from '../src/modules/memberships/membership.model.js';
 import { OrganizationModel } from '../src/modules/organizations/organization.model.js';
@@ -92,6 +93,25 @@ describe('demo seed', () => {
       .filter((a) => ['scheduled', 'checked_in', 'in_progress', 'completed'].includes(a.status))
       .reduce((sum, a) => sum + (a.durationMinutes / 5) * 2, 0);
     expect(reservations).toBe(expected);
+  });
+
+  it('seeds synthetic visit records on the treating doctors’ appointments, once', async () => {
+    const nour = await OrganizationModel.findOne({ seedKey: 'demo-nour' }).lean();
+    const organizationId = nour?._id;
+    const encounters = await EncounterModel.find({ organizationId }).lean();
+    expect(encounters.map((e) => e.seedKey).sort()).toEqual(['e01', 'e02', 'e03', 'e04', 'e05']);
+    for (const e of encounters) {
+      const appointment = await AppointmentModel.findOne({ organizationId, _id: e.appointmentId }).lean();
+      expect(appointment?.practitionerId.equals(e.practitionerId)).toBe(true);
+      expect(appointment?.patientId.equals(e.patientId)).toBe(true);
+      const practitioner = await PractitionerModel.findOne({ organizationId, _id: e.practitionerId }).lean();
+      expect(practitioner?.userId?.equals(e.authorUserId)).toBe(true);
+    }
+    expect(encounters.filter((e) => e.status === 'draft')).toHaveLength(1);
+    expect(encounters.filter((e) => e.lateEntry)).toHaveLength(1);
+    expect(await AddendumModel.countDocuments({ organizationId })).toBe(1);
+    // Seeding writes no clinical audit events: nobody accessed anything.
+    expect(await ClinicalAuditModel.countDocuments({ organizationId })).toBe(0);
   });
 
   it('re-seeding keeps hand-made records and skips a seed booking that would collide', async () => {

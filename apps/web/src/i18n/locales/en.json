@@ -346,7 +346,13 @@
     "BRANCH_SPECIALTIES_INVALID": "Each branch needs at least one of the organization's specialties.",
     "SPECIALTIES_NOT_CONFIGURED": "Choose the organization's specialties in settings first.",
     "SPECIALTY_NOT_OFFERED": "This branch does not offer the doctor's specialty.",
-    "ONBOARDING_INCOMPLETE": "Some setup details are missing. Check the highlighted step."
+    "ONBOARDING_INCOMPLETE": "Some setup details are missing. Check the highlighted step.",
+    "ENCOUNTER_EXISTS": "This visit already has a record. Reload the page to open it.",
+    "ENCOUNTER_NOT_ALLOWED": "A visit record can be started only for a visit in progress or completed.",
+    "ENCOUNTER_FINALIZED": "This record is finalized and cannot be changed. Add an addendum instead.",
+    "ENCOUNTER_NOT_FINALIZED": "Addenda are for finalized records; edit the draft directly.",
+    "ENCOUNTER_INCOMPLETE": "The record cannot be finalized yet: fill in the reason for the visit, and at least one of examination findings, assessment or plan.",
+    "LATE_ENTRY_REASON_REQUIRED": "Give the reason for the late entry."
   },
   "validation": {
     "required": "This field is required.",
@@ -429,6 +435,24 @@
       "interest": {
         "invalid_choice": "Choose one of the options."
       }
+    },
+    "lateEntryReason": {
+      "too_short": "Write a reason of at least 5 characters.",
+      "required": "Write the reason for the late entry."
+    },
+    "addendumReason": {
+      "too_short": "Write a reason of at least 3 characters.",
+      "required": "Write the reason for the addendum."
+    },
+    "addendumContent": {
+      "too_short": "Write the addendum text.",
+      "required": "Write the addendum text."
+    },
+    "sections": {
+      "reason": {
+        "required": "The reason for the visit is required to finalize."
+      },
+      "needs_findings_assessment_or_plan": "Fill in at least one of examination findings, assessment or plan before finalizing."
     }
   },
   "countries": {
@@ -713,6 +737,7 @@
       "Each doctor's weekly working hours and date-specific changes",
       "Booking, rescheduling and cancellation without double booking",
       "Check-in on arrival and the daily waiting queue",
+      "General visit records written by the treating doctor: draft, finalize, and dated addenda for corrections",
       "Today's appointment counts by status",
       "Several branches, with access by role and branch",
       "Full Arabic and English interface"
@@ -748,7 +773,7 @@
       "availableTitle": "Available today",
       "availableLead": "These features work now in the shared workspace:",
       "plannedTitle": "Not available yet",
-      "plannedBody": "Clinical records, specialty tools such as dental charts, physiotherapy treatment plans and ENT examination records, billing, reminders and online booking for patients are planned for later stages. They are not part of the workspace today.",
+      "plannedBody": "Specialty tools such as dental charts, physiotherapy treatment plans and ENT examination records, prescriptions, attachments, billing, reminders and online booking for patients are planned for later stages. They are not part of the workspace today.",
       "stepsTitle": "How to get started",
       "steps": {
         "account": {
@@ -776,7 +801,7 @@
         },
         "clinical": {
           "q": "Can I keep clinical notes and medical records?",
-          "a": "Not yet. The current workspace covers administration: patient contact details, schedules, appointments and the daily queue. Clinical records are planned for a later stage."
+          "a": "Yes, in a general form. For each visit, the treating doctor can write a record — reason for visit, relevant history, examination findings, assessment and plan — save it as a draft, finalize it, and later add dated addenda; the finalized text never changes. Only that doctor can read it; owners and administrators see whether a visit is documented, not what it says. Specialty charts, prescriptions and attachments are not available yet, and the general template is pending review by practising clinicians."
         },
         "specialties": {
           "q": "Are there tools specific to dentistry, physiotherapy or ENT?",
@@ -973,6 +998,90 @@
   "specialtyContext": {
     "label": "Specialty",
     "all": "All specialties",
-    "sharedNote": "Appointments, the queue and patient records are shared by all specialties. Specialty clinical tools are not available yet."
+    "sharedNote": "Appointments, the queue, patient records and general visit records are shared by all specialties. Specialty clinical tools are not available yet."
+  },
+  "clinical": {
+    "title": "Visit record",
+    "notFoundTitle": "Visit record unavailable",
+    "backToAppointment": "Back to the appointment",
+    "provisionalNote": "A general, provisional visit template, pending review by practising clinicians. It makes no suggestions and no automated diagnosis.",
+    "privacyNote": "Only the treating doctor who writes this record can read it.",
+    "status": {
+      "none": "Not started",
+      "draft": "Draft",
+      "finalized": "Finalized"
+    },
+    "documentationLabel": "Visit record: {{status}}",
+    "statusOnlyNote": "You see the documentation status only; the record's content is for the treating doctor alone.",
+    "sections": {
+      "reason": "Reason for visit",
+      "history": "Relevant history",
+      "examination": "Examination findings",
+      "assessment": "Assessment",
+      "plan": "Plan and follow-up"
+    },
+    "sectionHints": {
+      "reason": "The presenting complaint or reason for this visit. Required to finalize.",
+      "history": "History relevant to this visit.",
+      "examination": "What was found on examination.",
+      "assessment": "The treating doctor's assessment.",
+      "plan": "Plan, instructions and follow-up."
+    },
+    "finalizeRule": "To finalize: the reason for the visit, plus at least one of examination findings, assessment or plan.",
+    "notRecorded": "Not recorded",
+    "start": "Start visit record",
+    "starting": "Starting…",
+    "open": "Open visit record",
+    "startHint": "The record starts as a draft that you can save and come back to.",
+    "lateEntryTitle": "Late entry",
+    "lateEntryExplain": "This visit is already completed. The record is created now, with the real time of writing, together with the reason for the delay.",
+    "lateEntryReason": "Reason for the late entry",
+    "lateEntryBadge": "Late entry",
+    "lateEntryShown": "Late-entry reason: {{reason}}",
+    "cannotStart": {
+      "notStarted": "A record can be started once the visit is in progress.",
+      "closed": "Cancelled and no-show visits cannot have a visit record."
+    },
+    "draftTitle": "Draft",
+    "saveDraft": "Save draft",
+    "savedAt": "Draft saved at {{time}}",
+    "unsaved": "Unsaved changes",
+    "allSaved": "All changes saved",
+    "finalize": "Finalize record",
+    "saveBeforeFinalize": "Save your changes before finalizing.",
+    "confirmTitle": "Finalize this visit record?",
+    "confirmBody": "Once finalized, the record cannot be edited or deleted. Any later correction is added as an addendum with a reason; the original stays as it is.",
+    "confirmFinalize": "Yes, finalize",
+    "finalizing": "Finalizing…",
+    "conflictTitle": "This record changed in another tab or window",
+    "conflictBody": "Nothing from this page was saved. Your changes are still here.",
+    "loadLatest": "Load the latest saved version (discard my changes here)",
+    "keepMine": "Save my version over it",
+    "finalizedElsewhereTitle": "This record was finalized in another tab or window",
+    "finalizedElsewhereBody": "Your unsaved changes can no longer be saved to it. Copy what you need, then add it as an addendum.",
+    "openFinalized": "Show the finalized record",
+    "leaveTitle": "Leave without saving?",
+    "leaveBody": "You have unsaved changes in this visit record.",
+    "stay": "Stay on this page",
+    "leave": "Leave without saving",
+    "finalizedTitle": "Finalized record",
+    "finalizedAt": "finalized {{time}}",
+    "author": "Treating doctor",
+    "timelineTitle": "Record history",
+    "timelineCreated": "Record started",
+    "timelineCreatedLate": "Record started (late entry)",
+    "timelineFinalized": "Record finalized",
+    "addendum": "Addendum",
+    "addAddendum": "Add addendum",
+    "addendumHint": "An addendum does not change the original record. It is shown after it, with its time and reason.",
+    "addendumReason": "Reason for the addendum",
+    "addendumContent": "Addendum text",
+    "adding": "Adding…",
+    "addendumAdded": "Addendum added.",
+    "addendumReasonShown": "Reason: {{reason}}",
+    "addendaCount": "Addenda: {{n}}",
+    "patientHistory": "My visit records for this patient",
+    "patientHistoryNote": "Only records you wrote are shown here.",
+    "noHistory": "You have not written any visit records for this patient."
   }
 }

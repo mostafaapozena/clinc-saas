@@ -37,8 +37,8 @@ The full register of confirmed requirements, proposals and open questions is
   provisional until the owner approves them ([PUBLIC_COPY.md](PUBLIC_COPY.md), [BRAND.md](BRAND.md)).
 - Pricing, plans, trial length, billing provider.
 - Clinical workflows and requirements per specialty, and which roles may do what clinically
-  (no clinical notes, diagnoses, prescriptions, attachments, dental charts or treatment plans
-  exist yet).
+  (phase 5 adds only a general visit record for the treating doctor, pending clinician review;
+  no diagnoses coding, prescriptions, attachments, dental charts or treatment plans exist).
 - **Hosting and data residency for Egypt and Saudi Arabia** (e.g. whether data must stay in-country,
   per-country deployments, dedicated databases for some customers). Unresolved until hosting is
   approved; nothing in the development setup implies regulatory compliance.

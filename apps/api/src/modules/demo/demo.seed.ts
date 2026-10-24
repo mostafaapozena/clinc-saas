@@ -6,6 +6,7 @@ import { UserModel } from '../../users/user.model.js';
 import { AppointmentModel, SlotReservationModel } from '../appointments/appointment.model.js';
 import { OCCUPYING_STATUSES, type AppointmentStatus } from '../appointments/appointment.state.js';
 import { BranchModel } from '../branches/branch.model.js';
+import { AddendumModel, EncounterModel } from '../clinical/clinical.model.js';
 import { MembershipModel } from '../memberships/membership.model.js';
 import { OrganizationModel } from '../organizations/organization.model.js';
 import { nextPatientNumber } from '../patients/counter.model.js';
@@ -198,13 +199,19 @@ async function seedFrontDesk(
     patientIds.set(p.key, required(doc, p.key)._id);
   }
 
+  // Seed visit records belong to seed appointments, which are re-created below. Clinical records
+  // can never be deleted — except these synthetic ones, by the seed (allowSeedCleanup).
+  await AddendumModel.deleteMany({ organizationId, seedKey: { $type: 'string' } }, { allowSeedCleanup: true });
+  await EncounterModel.deleteMany({ organizationId, seedKey: { $type: 'string' } }, { allowSeedCleanup: true });
+
   // Replace the previous run's seed appointments (and only those) with today's set.
   const previous = await AppointmentModel.find({ organizationId, seedKey: { $type: 'string' } }).select('_id').lean();
   await SlotReservationModel.deleteMany({ organizationId, appointmentId: { $in: previous.map((a) => a._id) } });
   await AppointmentModel.deleteMany({ organizationId, _id: { $in: previous.map((a) => a._id) } });
 
+  const appointments = new Map<string, Awaited<ReturnType<typeof seedAppointment>>>();
   for (const a of org.appointments) {
-    await seedAppointment(org, a, {
+    const created = await seedAppointment(org, a, {
       organizationId,
       ownerId,
       practitionerId: practitioner(a.practitioner),
@@ -215,6 +222,58 @@ async function seedFrontDesk(
       now: ctx.now,
       skipped: ctx.skipped,
     });
+    appointments.set(a.key, created);
+  }
+
+  for (const e of org.encounters ?? []) {
+    const appointment = appointments.get(e.appointment);
+    if (!appointment) {
+      ctx.skipped.push(`${org.key}/${e.key} (its appointment was skipped)`);
+      continue;
+    }
+    const demo = required(org.appointments.find((a) => a.key === e.appointment), e.appointment);
+    const authorUserId = required(ctx.userIds.get(demo.practitioner), demo.practitioner);
+    const visitTime = appointment.completedAt ?? appointment.startedAt ?? ctx.now;
+    // A late entry is written some hours after the visit; otherwise during it.
+    const createdAt = e.lateEntryReason
+      ? new Date(Math.min(visitTime.getTime() + 3 * 3_600_000, ctx.now.getTime()))
+      : (appointment.startedAt ?? visitTime);
+    const finalizedAt =
+      e.status === 'finalized' ? new Date(Math.min(Math.max(visitTime.getTime(), createdAt.getTime()) + 10 * 60_000, ctx.now.getTime())) : null;
+    const encounter = await EncounterModel.create({
+      organizationId,
+      branchId: appointment.branchId,
+      patientId: appointment.patientId,
+      appointmentId: appointment._id,
+      practitionerId: appointment.practitionerId,
+      authorUserId,
+      status: e.status,
+      sections: { reason: '', history: '', examination: '', assessment: '', plan: '', ...e.sections },
+      version: e.status === 'finalized' ? 2 : 1,
+      lateEntry: e.lateEntryReason ? { reason: e.lateEntryReason } : null,
+      creationKey: `seed-${e.key}`,
+      creationHash: `seed-${e.key}`,
+      lastEditedAt: createdAt,
+      finalizedAt,
+      finalizedBy: finalizedAt ? authorUserId : null,
+      finalizationKey: finalizedAt ? `seed-${e.key}-final` : null,
+      seedKey: e.key,
+      createdAt,
+    });
+    for (const [i, x] of (e.addenda ?? []).entries()) {
+      await AddendumModel.create({
+        organizationId,
+        encounterId: encounter._id,
+        authorUserId,
+        practitionerId: appointment.practitionerId,
+        reason: x.reason,
+        content: x.content,
+        idempotencyKey: `seed-${x.key}`,
+        requestHash: `seed-${x.key}`,
+        seedKey: x.key,
+        createdAt: new Date(Math.min((finalizedAt ?? createdAt).getTime() + (i + 1) * 3_600_000, ctx.now.getTime())),
+      });
+    }
   }
 }
 
@@ -236,7 +295,7 @@ async function seedAppointment(
   const resolved = resolveLocalTime(ctx.date, a.time, org.timeZone);
   if (resolved.kind !== 'ok') {
     ctx.skipped.push(`${org.key}/${a.key} (${a.time} does not map to one instant on ${ctx.date})`);
-    return;
+    return null;
   }
   const startAt = resolved.instant;
   const endAt = new Date(startAt.getTime() + ctx.durationMinutes * 60_000);
@@ -265,7 +324,7 @@ async function seedAppointment(
     updatedBy: ctx.ownerId,
     seedKey: a.key,
   });
-  if (!OCCUPYING_STATUSES.includes(a.status)) return;
+  if (!OCCUPYING_STATUSES.includes(a.status)) return appointment;
   const cells = gridCells(startAt, ctx.durationMinutes);
   const rows = (['practitioner', 'patient'] as const).flatMap((resourceType) =>
     cells.map((slotStart) => ({
@@ -283,5 +342,7 @@ async function seedAppointment(
     await SlotReservationModel.deleteMany({ organizationId: ctx.organizationId, appointmentId: appointment._id });
     await AppointmentModel.deleteOne({ organizationId: ctx.organizationId, _id: appointment._id });
     ctx.skipped.push(`${org.key}/${a.key} (time already taken)`);
+    return null;
   }
+  return appointment;
 }

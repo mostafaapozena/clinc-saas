@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { Link, useLocation, useParams } from 'react-router';
 import { PageHeader } from '../components/PageHeader';
+import { VisitRecordCard } from '../components/clinical';
 import { AppointmentActions, StatusBadge, TimeZoneRequired } from '../components/scheduling';
 import { ErrorState, Loading, Notice } from '../components/ui';
 import { ApiError, api } from '../lib/api';
@@ -122,6 +123,7 @@ export function AppointmentDetailPage() {
           )}
           {!['scheduled', 'checked_in', 'in_progress'].includes(a.status) && <p className="muted">{t('appointments.finalState')}</p>}
         </section>
+        <VisitRecordCard appointment={a} />
       </div>
     </>
   );

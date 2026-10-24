@@ -1,5 +1,6 @@
 import type { Types } from 'mongoose';
 import type { TenantContext } from '../../tenancy/tenant-context.js';
+import { documentationStatuses } from '../clinical/clinical-status.js';
 import { PatientModel } from '../patients/patient.model.js';
 import { PractitionerModel } from '../practitioners/practitioner.model.js';
 import type { Appointment } from './appointment.model.js';
@@ -15,13 +16,14 @@ const iso = (value: Date | null) => (value ? value.toISOString() : null);
 export async function toAppointmentDtos(tenant: TenantContext, appointments: AppointmentLean[]) {
   const patientIds = [...new Set(appointments.map((a) => String(a.patientId)))];
   const practitionerIds = [...new Set(appointments.map((a) => String(a.practitionerId)))];
-  const [patients, practitioners] = await Promise.all([
+  const [patients, practitioners, documentation] = await Promise.all([
     PatientModel.find({ organizationId: tenant.organizationId, _id: { $in: patientIds } })
       .select('patientNumber fullName phone')
       .lean(),
     PractitionerModel.find({ organizationId: tenant.organizationId, _id: { $in: practitionerIds } })
       .select('displayName')
       .lean(),
+    documentationStatuses(tenant, appointments.map((a) => a._id)),
   ]);
   const patientById = new Map(patients.map((p) => [String(p._id), p]));
   const practitionerById = new Map(practitioners.map((p) => [String(p._id), p]));
@@ -49,6 +51,8 @@ export async function toAppointmentDtos(tenant: TenantContext, appointments: App
       noShowAt: iso(a.noShowAt),
       version: a.version,
       createdAt: a.createdAt.toISOString(),
+      // Only for roles with clinical.documentation_status.read; a status, never clinical text.
+      ...(documentation ? { documentation: documentation.get(String(a._id)) ?? ('none' as const) } : {}),
     };
   });
 }

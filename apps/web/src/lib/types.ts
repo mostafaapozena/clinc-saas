@@ -21,7 +21,9 @@ export type Permission =
   | 'appointment.book'
   | 'appointment.front_desk'
   | 'appointment.visit'
-  | 'queue.read';
+  | 'queue.read'
+  | 'clinical.encounter.own'
+  | 'clinical.documentation_status.read';
 
 export const ASSIGNABLE_ROLES: Role[] = ['admin', 'doctor', 'receptionist', 'viewer'];
 export const ORG_WIDE_ROLES: Role[] = ['owner', 'admin'];
@@ -199,6 +201,8 @@ export type Appointment = {
   noShowAt: string | null;
   version: number;
   createdAt: string;
+  /** Visit-record status, only for roles allowed to see it (never clinical text). */
+  documentation?: 'none' | 'draft' | 'finalized';
 };
 
 /** A conflicting appointment named in an error's details. */
