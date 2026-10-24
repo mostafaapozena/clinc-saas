@@ -79,5 +79,9 @@ only the active language (≈ 10 kB gzip less) is a possible later optimization,
 All public text is in `ar.json` / `en.json` under `site.*`. It is **provisional and must be
 reviewed by the owner in the phase 4 PR**. It states what works today (the shared operational
 workspace), labels specialty tools as planned without dates, and makes no claims about prices,
-trial length, customers, usage numbers, outcomes, certifications or delivery. The product name
-is still the temporary "منصة العيادات / Clinics Platform".
+trial length, customers, usage numbers, outcomes, certifications or delivery. The product is
+**raclinic** with the tagline "مساعدك الذكي في كل تفاصيل العيادة" / "Smart clinic management"
+(the tagline is a brand line, not an AI feature; the FAQ says so explicitly). The complete wording
+for review, by page, is [docs/PUBLIC_COPY.md](../PUBLIC_COPY.md) (generated from the locale files
+and checked by a test, together with a list of forbidden claims). Brand assets and tokens:
+[docs/BRAND.md](../BRAND.md).

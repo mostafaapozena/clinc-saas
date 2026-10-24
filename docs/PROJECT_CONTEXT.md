@@ -9,6 +9,7 @@ A SaaS platform for managing clinics and medical centers, initially for **Egypt*
 
 | Topic             | Decision                                                                      |
 | ----------------- | ----------------------------------------------------------------------------- |
+| Product name      | **raclinic** — tagline "مساعدك الذكي في كل تفاصيل العيادة" / "Smart clinic management" ([BRAND.md](BRAND.md)) |
 | Stack             | MERN (MongoDB, Express, React, Node.js) in TypeScript                         |
 | Language          | Arabic default (RTL, Alexandria font); full English (LTR, Inter font)         |
 | Customers         | Individual clinics, medical centers, and organizations with multiple branches |
@@ -32,8 +33,8 @@ A SaaS platform for managing clinics and medical centers, initially for **Egypt*
 The full register of confirmed requirements, proposals and open questions is
 [DECISIONS.md](DECISIONS.md); the remaining plan is [ROADMAP.md](ROADMAP.md).
 
-- Product name (the UI uses "منصة العيادات / Clinics Platform", marked temporary) and the public
-  domain. Public copy is provisional until the owner approves it.
+- The public domain. Public copy and the visual application of the raclinic identity are
+  provisional until the owner approves them ([PUBLIC_COPY.md](PUBLIC_COPY.md), [BRAND.md](BRAND.md)).
 - Pricing, plans, trial length, billing provider.
 - Clinical workflows and requirements per specialty, and which roles may do what clinically
   (no clinical notes, diagnoses, prescriptions, attachments, dental charts or treatment plans

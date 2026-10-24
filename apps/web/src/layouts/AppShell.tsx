@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, NavLink, Outlet, useNavigate, useParams } from 'react-router';
 import { SESSION_KEY, useAuthActions, useSession } from '../auth/session';
+import { BrandLogo } from '../components/BrandLogo';
 import { Icon, type IconName } from '../components/Icon';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
 import { ErrorState, Loading } from '../components/ui';
@@ -129,10 +130,9 @@ function Shell({ orgId, detail, branches }: { orgId: string; detail: OrgDetail; 
         </a>
         <aside className="sidebar" id="app-sidebar">
           <div className="sidebar-brand">
-            <span className="brand-mark" aria-hidden="true">+</span>
-            <span>
-              {t('app.name')} <small className="temp-name">({t('app.tempName')})</small>
-            </span>
+            <Link to={`/app/${orgId}`} className="sidebar-brand-link" onClick={() => setNavOpen(false)}>
+              <BrandLogo variant="wordmark" />
+            </Link>
             <button type="button" className="icon-button sidebar-close" onClick={() => setNavOpen(false)} aria-label={t('shell.closeMenu')}>
               <Icon name="close" />
             </button>

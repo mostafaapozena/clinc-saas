@@ -1,8 +1,7 @@
 {
   "app": {
-    "name": "Clinics Platform",
-    "tempName": "temporary name",
-    "tagline": "Cloud management for clinics and medical centers in Egypt and Saudi Arabia"
+    "name": "raclinic",
+    "tagline": "Smart clinic management"
   },
   "phase": {
     "title": "System status",
@@ -703,9 +702,9 @@
       "create": "Create your clinic workspace",
       "custom": "Request a custom project"
     },
-    "notice": "This platform is still in development. Use test data only. Prices and subscription terms have not been announced yet.",
+    "notice": "raclinic is in development: use test data only. Prices and subscription terms have not been announced yet.",
     "footer": {
-      "about": "A cloud workspace for clinics and medical centers in Egypt and Saudi Arabia.",
+      "about": "raclinic — a cloud workspace for clinics and medical centers in Egypt and Saudi Arabia.",
       "devNotice": "Development version: use test data only and do not enter real patient information.",
       "status": "System status"
     },
@@ -715,42 +714,42 @@
       "Booking, rescheduling and cancellation without double booking",
       "Check-in on arrival and the daily waiting queue",
       "Today's appointment counts by status",
-      "Several branches, with access limited by role and branch",
+      "Several branches, with access by role and branch",
       "Full Arabic and English interface"
     ],
     "home": {
-      "metaTitle": "Clinic workspace for appointments, arrivals and patient records",
-      "metaDescription": "A bilingual cloud workspace for clinics and medical centers in Egypt and Saudi Arabia: patient registry, doctors' schedules, conflict-free booking, check-in and the daily queue.",
-      "eyebrow": "For clinics and medical centers in Egypt and Saudi Arabia",
-      "title": "Run appointments, arrivals and patient records from one workspace",
-      "lead": "Register patients, set each doctor's working hours, book without double appointments, check patients in and follow the daily queue — in Arabic or English, for one clinic or several branches.",
+      "metaTitle": "Appointments, front desk and patient records for clinics",
+      "metaDescription": "raclinic is a bilingual cloud workspace for clinics and medical centers in Egypt and Saudi Arabia: patient registry, doctors' schedules, conflict-free booking, check-in and the daily queue.",
+      "eyebrow": "Smart clinic management",
+      "title": "Your clinic, organized from the first booking to the last visit",
+      "lead": "raclinic is a cloud workspace for clinics and medical centers in Egypt and Saudi Arabia. Register patients, set each doctor's working hours, book without clashes, and follow arrivals and the waiting queue — in Arabic or English, for one clinic or several branches.",
       "signInHint": "Already have a workspace?",
-      "problemsTitle": "What it helps with",
+      "problemsTitle": "What changes in your day",
       "problems": {
         "booking": {
           "title": "No double bookings",
-          "body": "Free times come from the doctor's working hours and existing appointments, and the server checks again at the moment of booking."
+          "body": "Free times come from the doctor's working hours and existing bookings, and are checked again the moment a booking is confirmed."
         },
         "queue": {
           "title": "An orderly waiting room",
-          "body": "Reception checks patients in when they arrive. Doctors see who is waiting, in order of arrival, and start and finish each visit."
+          "body": "Reception checks patients in as they arrive; doctors see who is waiting in order of arrival, then start and finish each visit."
         },
         "records": {
-          "title": "One patient record per organization",
+          "title": "One record per patient",
           "body": "Contact details are entered once and shared by the branches where the patient is registered, instead of scattered notebooks and spreadsheets."
         },
         "branches": {
           "title": "Several branches, clear access",
-          "body": "Each team member sees only the branches and actions their role allows. Doctors see their own appointments."
+          "body": "Each team member sees only the branches and actions their role allows; doctors see their own appointments."
         }
       },
       "pathsTitle": "Solutions",
-      "pathsLead": "Start from the solution closest to your clinic. All of them use the same shared clinic workspace today.",
+      "pathsLead": "Start from the solution closest to your clinic; all of them run on the same operational workspace today.",
       "availableTitle": "Available today",
-      "availableLead": "These features work now in the shared clinic workspace:",
+      "availableLead": "These features work now in the shared workspace:",
       "plannedTitle": "Not available yet",
-      "plannedBody": "Clinical records, specialty tools (such as dental charts, physiotherapy treatment plans or ENT examination records), billing, reminders and online booking for patients are planned for later. They are not part of the workspace today.",
-      "stepsTitle": "How setup works",
+      "plannedBody": "Clinical records, specialty tools such as dental charts, physiotherapy treatment plans and ENT examination records, billing, reminders and online booking for patients are planned for later stages. They are not part of the workspace today.",
+      "stepsTitle": "How to get started",
       "steps": {
         "account": {
           "title": "Create your account",
@@ -758,37 +757,41 @@
         },
         "organization": {
           "title": "Describe your organization",
-          "body": "A clinic, a medical center or several branches — its name and its time zone."
+          "body": "A clinic, a medical center or several branches — its name and time zone."
         },
         "specialties": {
           "title": "Choose specialties and the first branch",
-          "body": "Pick the specialties you practice and which of them the first branch offers."
+          "body": "The specialties you offer, and which of them the first branch provides."
         },
         "workspace": {
           "title": "Review and start",
-          "body": "Check the details, create the workspace and add your team, doctors and further branches."
+          "body": "Check the details, create the workspace, then add your team, doctors and further branches."
         }
       },
       "faqTitle": "Frequently asked questions",
       "faq": {
         "price": {
           "q": "How much does it cost?",
-          "a": "Prices and subscription plans have not been announced yet. They will be published before the platform is offered commercially."
+          "a": "Prices and subscription plans have not been announced yet. They will be published before raclinic is offered commercially."
         },
         "clinical": {
           "q": "Can I keep clinical notes and medical records?",
           "a": "Not yet. The current workspace covers administration: patient contact details, schedules, appointments and the daily queue. Clinical records are planned for a later stage."
         },
         "specialties": {
-          "q": "Do you have tools specific to dentistry, physiotherapy or ENT?",
-          "a": "Not yet. These specialties use the shared operational workspace today. Specialty tools will be designed with clinicians and added later."
+          "q": "Are there tools specific to dentistry, physiotherapy or ENT?",
+          "a": "Not yet. These specialties use the shared operational workspace today. Specialty tools will be designed with practising clinicians and added later."
+        },
+        "ai": {
+          "q": "Does raclinic include AI or diagnosis?",
+          "a": "No. Our line “Smart clinic management” is about organizing the clinic's daily work. raclinic does not diagnose, recommend treatments or write medical notes automatically."
         },
         "branches": {
-          "q": "Can a center with several specialties or branches use it?",
-          "a": "Yes. An organization can enable several specialties, choose which branches offer each one, and give every team member access to the right branches only."
+          "q": "Does it suit a center with several specialties or branches?",
+          "a": "Yes. You can enable several specialties, choose which branches offer each one, and give every team member access to their own branches only."
         },
         "ownership": {
-          "q": "Can I get my own system instead of a subscription?",
+          "q": "Can I have a system of my own instead of a subscription?",
           "a": "You can request a custom project. Its scope, schedule, support and price are agreed separately for each project after a review of your needs."
         },
         "data": {
@@ -802,10 +805,10 @@
       }
     },
     "compare": {
-      "title": "Two ways to work with us",
+      "title": "Two ways to work with raclinic",
       "saas": {
         "title": "Hosted workspace (subscription)",
-        "body": "Use the platform online. Your organization gets its own workspace on the shared platform.",
+        "body": "Use raclinic online. Your organization gets its own workspace on the shared platform.",
         "points": [
           "Ready to use: set up your organization in a few steps",
           "The same features for every organization, improved over time",
@@ -824,21 +827,21 @@
     },
     "solutions": {
       "metaTitle": "Solutions for clinics and medical centers",
-      "metaDescription": "Solutions for dental clinics, physiotherapy centers, ENT clinics and multi-specialty medical centers, built on a shared clinic workspace.",
+      "metaDescription": "raclinic solutions for dental clinics, physiotherapy centers, ENT clinics and multi-specialty medical centers, on a shared operational workspace.",
       "title": "Solutions",
-      "lead": "Every solution starts from the same shared clinic workspace. Specialty-specific clinical tools are planned and will be added after review with clinicians.",
+      "lead": "Every solution starts from the same operational workspace. Specialty clinical tools are planned and will be added after review with practising clinicians.",
       "labels": {
         "audience": "Who it is for",
         "needs": "Everyday needs it covers today",
         "available": "Available today in the shared workspace",
         "planned": "Specialty tools being planned",
-        "plannedNote": "Not available yet. These tools need validation with clinicians and have no release date.",
+        "plannedNote": "Not available yet. These tools need review with practising clinicians and have no release date.",
         "back": "All solutions",
-        "sharedBadge": "Shared clinic workspace"
+        "sharedBadge": "Shared workspace"
       },
       "dentistry": {
         "name": "Dental clinics",
-        "summary": "Organize appointments by dentist, patient arrivals and contact details for dental clinics and centers.",
+        "summary": "Organize each dentist's appointments, patient arrivals and contact details for dental clinics and centers.",
         "metaDescription": "Appointments by dentist, check-in, the daily queue and patient records for dental clinics in Egypt and Saudi Arabia.",
         "audience": "Dental clinics with one or more dentists, and dental departments of medical centers.",
         "needs": [
@@ -881,7 +884,7 @@
         ]
       },
       "medicalCenters": {
-        "name": "Medical centers with several specialties",
+        "name": "Multi-specialty medical centers",
         "summary": "Run several specialties and branches in one organization; each branch offers the specialties you choose.",
         "metaDescription": "One workspace for multi-specialty medical centers: specialties per branch, shared patient records and role-based access.",
         "audience": "Medical centers and groups that offer several specialties, at one location or several branches.",
@@ -902,21 +905,21 @@
     },
     "custom": {
       "metaTitle": "Custom clinic system projects",
-      "metaDescription": "Request a separately scoped custom project, for example for a radiology center, when the hosted clinic workspace does not fit.",
+      "metaDescription": "Request a separately scoped custom project from raclinic — for example for a radiology center — when the hosted workspace does not fit.",
       "title": "Custom projects",
       "lead": "When the hosted workspace does not fit — for example a radiology center, or an organization that wants a separately run system — you can request a custom project.",
       "differenceTitle": "How it differs from the hosted workspace",
       "processTitle": "What happens after you send a request",
       "process": [
         "Your request is saved with a reference number.",
-        "It is reviewed by the team.",
+        "The raclinic team reviews it.",
         "If a custom project can be discussed, you are contacted through the details you gave."
       ],
       "noPromise": "Sending a request does not create an agreement. No delivery date, source-code transfer, support terms or price is promised on this site."
     },
     "inquiry": {
       "metaTitle": "Request a custom project",
-      "metaDescription": "Tell us about your organization and what you need from a custom clinic system project.",
+      "metaDescription": "Tell raclinic about your organization and what you need from a custom clinic system project.",
       "title": "Request a custom project",
       "lead": "Tell us about your organization and what you need. Fields are required unless marked optional.",
       "privacy": "Do not include patient names, medical records or any other patient information in this form.",

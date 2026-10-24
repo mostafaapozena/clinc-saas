@@ -48,7 +48,7 @@ export function RegisterPage() {
     setForm((f) => ({ ...f, [key]: e.target.value }));
 
   return (
-    <PublicLayout>
+    <PublicLayout brand>
       <section className="card auth-card" aria-labelledby="register-title">
         <h1 id="register-title">{t('auth.registerTitle')}</h1>
         <p className="muted">{t('auth.registerSubtitle')}</p>

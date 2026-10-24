@@ -4,22 +4,36 @@
  * Alexandria for Arabic, Inter for English, chosen by the document language.
  */
 :root {
-  --bg: #f4f7f7;
+  /*
+   * raclinic brand colors, read from the vector fills of "raclinic logo .pdf" (docs/BRAND.md):
+   * navy #122640 (wordmark), navy #1A3553 (symbol), turquoise #3ECABA, coral #FB7254.
+   * Turquoise and coral fail text contrast on white (2.0:1, 2.8:1): decorative/accent use only.
+   * Tokens marked "derived" are accessibility adjustments, not official brand values.
+   */
+  --brand-navy: #122640;
+  --brand-navy-symbol: #1a3553;
+  --brand-turquoise: #3ecaba;
+  --brand-coral: #fb7254;
+  --brand-teal-text: #0e7a6f; /* derived: turquoise family with 5.2:1 on white */
+  --bg: #f5f8fa; /* derived neutral */
   --surface: #ffffff;
-  --surface-muted: #eef3f3;
-  --text: #102a2a;
-  --muted: #5b6f6f;
-  --border: #d9e3e3;
-  --primary: #0f766e;
-  --primary-strong: #0b5e58;
+  --surface-muted: #edf3f6; /* derived neutral */
+  --text: var(--brand-navy);
+  --muted: #556677; /* derived: 5.9:1 on white */
+  --border: #d8e1e8; /* derived neutral */
+  --primary: var(--brand-navy-symbol);
+  --primary-strong: var(--brand-navy);
   --primary-contrast: #ffffff;
+  --link: var(--brand-teal-text);
+  --accent: var(--brand-turquoise);
   --ok: #15803d;
   --ok-bg: #dcfce7;
   --warn: #a16207;
   --warn-bg: #fef9c3;
   --bad: #b91c1c;
   --bad-bg: #fee2e2;
-  --neutral-bg: #e5eaea;
+  --neutral-bg: #e5ecf0;
+  /* Focus stays a dedicated, high-contrast blue (not turquoise, which is too light on white). */
   --focus: #2563eb;
   --radius: 12px;
   --sidebar-width: 248px;
@@ -39,15 +53,18 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #0d1717;
-    --surface: #142222;
-    --surface-muted: #1b2c2c;
-    --text: #e3eeee;
-    --muted: #9db1b1;
-    --border: #284040;
-    --primary: #2dd4bf;
-    --primary-strong: #5eead4;
-    --primary-contrast: #062120;
+    /* Dark surfaces are derived from the brand navy; turquoise becomes the primary (8.5:1). */
+    --bg: #0d1b2e;
+    --surface: #13253c;
+    --surface-muted: #192f4a;
+    --text: #e6eef5;
+    --muted: #9fb2c4;
+    --border: #2a4260;
+    --primary: var(--brand-turquoise);
+    --primary-strong: #7fdfd4;
+    --primary-contrast: var(--brand-navy);
+    --link: #7fdfd4;
+    --accent: var(--brand-turquoise);
     --ok: #4ade80;
     --ok-bg: #12331f;
     --warn: #facc15;
@@ -80,7 +97,7 @@ h2 {
 }
 
 a {
-  color: var(--primary);
+  color: var(--link);
 }
 
 :focus-visible {
@@ -105,10 +122,57 @@ a {
   white-space: nowrap;
 }
 
-.temp-name {
-  font-size: 0.8rem;
-  font-weight: normal;
-  color: var(--muted);
+/* ---------- Brand ---------- */
+/* Height only: the width follows the artwork's own proportions (never stretched or cropped). */
+.brand-logo {
+  display: block;
+  inline-size: auto;
+  max-inline-size: 100%;
+}
+
+.brand-logo--wordmark {
+  block-size: 30px;
+}
+
+.brand-logo--lockup {
+  block-size: 64px;
+}
+
+.brand-logo--symbol {
+  block-size: 28px;
+}
+
+/* The supplied logo has no reverse variant: on dark surfaces it sits on a light container. */
+@media (prefers-color-scheme: dark) {
+  .brand-logo {
+    box-sizing: content-box;
+    padding: 6px 10px;
+    background: #ffffff;
+    border-radius: 8px;
+  }
+}
+
+.auth-brand {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  margin-block: 8px 20px;
+  text-align: center;
+}
+
+.auth-brand-link {
+  border-radius: 8px;
+}
+
+.brand-tagline {
+  margin: 0;
+  font-weight: 600;
+  color: var(--link);
+}
+
+.sidebar-brand-link {
+  display: inline-block;
+  border-radius: 8px;
 }
 
 /* ---------- Icons ---------- */
@@ -547,17 +611,6 @@ input[aria-invalid='true'] {
   font-weight: 700;
   color: var(--text);
   text-decoration: none;
-}
-
-.brand-mark {
-  display: inline-grid;
-  place-items: center;
-  inline-size: 32px;
-  block-size: 32px;
-  font-size: 1.3rem;
-  color: var(--primary-contrast);
-  background: var(--primary);
-  border-radius: 8px;
 }
 
 .public-main {

@@ -8,7 +8,7 @@ import { startPath } from './solutions';
 
 const PROBLEMS = ['booking', 'queue', 'records', 'branches'] as const;
 const STEPS = ['account', 'organization', 'specialties', 'workspace'] as const;
-const FAQ = ['price', 'clinical', 'specialties', 'branches', 'ownership', 'data', 'languages'] as const;
+const FAQ = ['price', 'clinical', 'specialties', 'ai', 'branches', 'ownership', 'data', 'languages'] as const;
 
 export function PublicHomePage() {
   const { t } = useTranslation();

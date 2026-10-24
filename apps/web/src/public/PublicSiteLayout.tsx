@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, NavLink, Outlet, useSearchParams } from 'react-router';
 import { useSession } from '../auth/session';
+import { BrandLogo } from '../components/BrandLogo';
 import { Icon } from '../components/Icon';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
 import { setLanguage } from '../i18n';
@@ -54,10 +55,7 @@ export function PublicSiteLayout() {
       <header className="site-header">
         <div className="site-header-inner">
           <Link to="/" className="public-brand">
-            <span className="brand-mark" aria-hidden="true">+</span>
-            <span>
-              {t('app.name')} <small className="temp-name">({t('app.tempName')})</small>
-            </span>
+            <BrandLogo variant="wordmark" />
           </Link>
           <button
             type="button"

@@ -11,7 +11,7 @@ test('public site to workspace: solution → registration → multi-specialty se
   await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
   expect(await bodyFont(page)).toMatch(/^"Alexandria Variable"/);
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex, nofollow');
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('أدِر المواعيد ووصول المرضى وملفاتهم من مساحة عمل واحدة');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('عيادتك منظَّمة من أول حجز حتى آخر زيارة');
 
   // Choose a solution and start from it.
   await page.getByRole('link', { name: 'عيادات الأسنان' }).click();
@@ -166,4 +166,38 @@ test('mobile public site: menu, journeys and no horizontal scroll @mobile', asyn
   await expect(page).toHaveURL(/\/solutions$/);
   await expect(page.getByRole('button', { name: 'فتح القائمة' })).toHaveAttribute('aria-expanded', 'false');
   errors.expectNone();
+});
+
+test('raclinic branding: supplied logos load everywhere, favicon and manifest, dark and reduced-motion behavior', async ({ page, browser }) => {
+  const errors = watchBrowserErrors(page);
+  const loaded = (selector: string) =>
+    page.locator(selector).first().evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0 && img.alt === 'raclinic');
+
+  await page.goto('/');
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+  expect(await loaded('.site-header img.brand-logo--wordmark')).toBe(true);
+  // Height is set, width follows the artwork: the rendered ratio equals the file's ratio.
+  const ratio = await page.locator('.site-header img.brand-logo').evaluate((img: HTMLImageElement) => [img.getBoundingClientRect().width / img.getBoundingClientRect().height, img.naturalWidth / img.naturalHeight]);
+  expect(Math.abs((ratio[0] ?? 0) - (ratio[1] ?? 0))).toBeLessThan(0.05);
+  await expect(page.locator('link[rel="icon"][type="image/svg+xml"]')).toHaveAttribute('href', '/favicon.svg');
+  expect((await page.request.get('/favicon.svg')).headers()['content-type']).toContain('svg');
+  expect((await (await page.request.get('/site.webmanifest')).json()).name).toBe('raclinic');
+  await expect(page).toHaveTitle(/ · raclinic$/);
+
+  await page.goto('/login');
+  expect(await loaded('.auth-brand img.brand-logo--lockup')).toBe(true);
+  await expect(page.locator('.brand-tagline')).toHaveText('مساعدك الذكي في كل تفاصيل العيادة');
+  await login(page, 'owner.nour@demo.test');
+  expect(await loaded('.sidebar img.brand-logo--wordmark')).toBe(true);
+  errors.expectNone();
+
+  // Dark scheme: the logo keeps its colors on a light container; reduced motion: no animation.
+  const dark = await browser.newContext({ colorScheme: 'dark', reducedMotion: 'reduce' });
+  const darkPage = await dark.newPage();
+  await darkPage.goto('/');
+  await expect(darkPage.getByRole('heading', { level: 1 })).toBeVisible();
+  const style = await darkPage.locator('.site-header img.brand-logo').evaluate((img) => getComputedStyle(img).backgroundColor);
+  expect(style).toBe('rgb(255, 255, 255)');
+  expect(await darkPage.locator('.site-hero-inner').evaluate((el) => getComputedStyle(el).animationName)).toBe('none');
+  await dark.close();
 });

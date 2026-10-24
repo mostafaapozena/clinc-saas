@@ -1,6 +1,7 @@
-# clinc-saas
+# raclinic (repository: clinc-saas)
 
-Cloud platform for managing clinics and medical centers, initially for Egypt and Saudi Arabia.
+**raclinic** — مساعدك الذكي في كل تفاصيل العيادة / Smart clinic management. A cloud platform for
+managing clinics and medical centers, initially for Egypt and Saudi Arabia.
 Arabic (RTL) is the default language; English (LTR) is fully supported.
 
 > **Status:** phases 1–3 are merged; phase 4 (public website, solution selection and
@@ -136,6 +137,7 @@ The job is named `verify` and is a required check for `main`.
 - [docs/architecture/ONBOARDING.md](docs/architecture/ONBOARDING.md) — signup, resumable setup, safe completion, existing users
 - [docs/architecture/SPECIALTIES.md](docs/architecture/SPECIALTIES.md) — organization/branch/practitioner specialties, migration, workspace context
 - [docs/architecture/INQUIRIES.md](docs/architecture/INQUIRIES.md) — custom-project requests and the review script
+- [docs/BRAND.md](docs/BRAND.md) — raclinic assets, color tokens, usage rules; [docs/PUBLIC_COPY.md](docs/PUBLIC_COPY.md) — all public wording by page for review
 - [docs/PRODUCT_INVENTORY.md](docs/PRODUCT_INVENTORY.md), [docs/ROADMAP.md](docs/ROADMAP.md), [docs/DECISIONS.md](docs/DECISIONS.md), [docs/NEXT_PHASE_BRIEF.md](docs/NEXT_PHASE_BRIEF.md)
 - [docs/PROGRESS.md](docs/PROGRESS.md) — status, test evidence, production gaps
 - [docs/HANDOFF.md](docs/HANDOFF.md) — how to continue in a fresh session

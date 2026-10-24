@@ -64,7 +64,6 @@ export function usePageMeta({ title, description, path, structuredData }: PageMe
     setMeta('property', 'og:title', title);
     setMeta('property', 'og:description', description);
     setMeta('property', 'og:locale', language === 'ar' ? 'ar_AR' : 'en_US');
-    setMeta('name', 'twitter:card', 'summary');
     if (SITE_URL) {
       const canonical = publicUrl(path, language);
       addLink('canonical', canonical);
@@ -72,8 +71,16 @@ export function usePageMeta({ title, description, path, structuredData }: PageMe
       addLink('alternate', publicUrl(path, 'en'), 'en');
       addLink('alternate', publicUrl(path, 'ar'), 'x-default');
       setMeta('property', 'og:url', canonical);
+      // The supplied raclinic lockup on white (public/brand/og-image.png, see docs/BRAND.md).
+      setMeta('property', 'og:image', `${SITE_URL}/brand/og-image.png`);
+      setMeta('property', 'og:image:width', '1200');
+      setMeta('property', 'og:image:height', '630');
+      setMeta('property', 'og:image:alt', 'raclinic');
+      setMeta('name', 'twitter:card', 'summary_large_image');
     } else {
-      setMeta('property', 'og:url', null);
+      // Social images need an absolute URL; without a configured site URL there is none.
+      for (const key of ['og:url', 'og:image', 'og:image:width', 'og:image:height', 'og:image:alt']) setMeta('property', key, null);
+      setMeta('name', 'twitter:card', 'summary');
     }
     if (json) {
       const script = document.createElement('script');
@@ -92,7 +99,9 @@ export function usePrivatePageMeta(title: string) {
     document.title = `${title} · ${t('app.name')}`;
     clearManaged();
     setMeta('name', 'robots', 'noindex, nofollow');
-    for (const key of ['og:type', 'og:site_name', 'og:title', 'og:description', 'og:locale', 'og:url']) setMeta('property', key, null);
+    for (const key of ['og:type', 'og:site_name', 'og:title', 'og:description', 'og:locale', 'og:url', 'og:image', 'og:image:width', 'og:image:height', 'og:image:alt']) {
+      setMeta('property', key, null);
+    }
     setMeta('name', 'description', null);
     setMeta('name', 'twitter:card', null);
   }, [title, t]);

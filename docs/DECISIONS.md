@@ -33,6 +33,7 @@ validation** must be checked by a qualified professional for Egypt and Saudi Ara
 | C20 | **Approved working default (phase 4, 2026-10-20):** custom-ownership requests are stored in the database and reviewed with an authorized script until another delivery channel is configured. | Owner, phase 4 brief |
 | C21 | **Approved working default (phase 4, 2026-10-20):** public copy is provisional and reviewed by the owner in the phase 4 PR before merge. These defaults do not authorize public deployment or sending messages. | Owner, phase 4 brief |
 | C22 | Specialty-specific clinical tools, the operator console, billing, subscriptions and messaging are out of phase 4. | Owner, phase 4 brief |
+| C23 | Brand: **raclinic** (lowercase in text); Latin wordmark in both languages (no Arabic transliteration); taglines "مساعدك الذكي في كل تفاصيل العيادة" / "Smart clinic management"; the supplied "raclinic logo .pdf" is the source of truth and its marketing page is a visual reference, not a feature list. Visual application and wording pending owner review. | Owner, 2026-10-24 — see BRAND.md |
 
 ## 2. Provisional recommendations (engineering proposals, not approved)
 
@@ -59,8 +60,8 @@ Ordered by what blocks the next phase. Proposed defaults are proposals.
 ### Answered for phase 4
 
 Q1 (entry-point wording), Q2 (where ownership requests go) and Q3 (who approves public copy) were
-answered by the owner on 2026-10-20 — see C19–C21. Q4 (product name) stays open: the temporary
-"منصة العيادات / Clinics Platform" is kept and marked temporary.
+answered by the owner on 2026-10-20 — see C19–C21. Q4 (product name) was answered on 2026-10-24: **raclinic**, with the supplied logo PDF as
+the brand source of truth (C23).
 
 ### Blocking phase 5 (clinical visit records)
 
@@ -76,7 +77,7 @@ answered by the owner on 2026-10-20 — see C19–C21. Q4 (product name) stays o
 | - | -------- |
 | Q15 | Privacy notice and retention rules for the inquiry form and registration (P11). **Needs authoritative validation.** |
 | Q16 | Prerendering or server rendering for the public pages before enabling indexing; final domain (E6). |
-| Q4 | Final product name and branding. |
+| Q16b | Official brand color values from the designer (the current tokens are read from the PDF fills). |
 
 ### Blocking later phases (answer before the phase starts)
 

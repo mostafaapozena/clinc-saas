@@ -77,7 +77,7 @@ describe('public website', () => {
   it('home: Arabic by default, both paths, working entry points, honest notices, noindex here', async () => {
     mockApi({ 'GET /api/v1/auth/session': signedOut });
     renderRoute('/');
-    expect(await screen.findByRole('heading', { level: 1, name: 'أدِر المواعيد ووصول المرضى وملفاتهم من مساحة عمل واحدة' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { level: 1, name: 'عيادتك منظَّمة من أول حجز حتى آخر زيارة' })).toBeInTheDocument();
     expect(document.documentElement).toHaveAttribute('dir', 'rtl');
     expect(screen.getByTestId('hero-create')).toHaveAttribute('href', '/start');
     expect(screen.getByTestId('hero-create')).toHaveTextContent('أنشئ مساحة عمل لعيادتك');
@@ -88,16 +88,16 @@ describe('public website', () => {
     expect(screen.getByText(/لم تُعلن الأسعار وخطط الاشتراك بعد/)).toBeInTheDocument();
     expectOnlyKnownLinks();
     expect(document.querySelector('meta[name="robots"]')).toHaveAttribute('content', 'noindex, nofollow');
-    expect(document.title).toContain('مساحة عمل للعيادات');
+    expect(document.title).toBe('إدارة المواعيد والاستقبال وملفات المرضى · raclinic');
     const faq = JSON.parse(document.querySelector('script[type="application/ld+json"]')?.textContent ?? '{}');
     expect(faq['@type']).toBe('FAQPage');
-    expect(faq.mainEntity).toHaveLength(7);
+    expect(faq.mainEntity).toHaveLength(8);
   });
 
   it('English via ?lang=en, left to right', async () => {
     mockApi({ 'GET /api/v1/auth/session': signedOut });
     renderRoute('/?lang=en');
-    expect(await screen.findByRole('heading', { level: 1, name: 'Run appointments, arrivals and patient records from one workspace' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { level: 1, name: 'Your clinic, organized from the first booking to the last visit' })).toBeInTheDocument();
     expect(document.documentElement).toHaveAttribute('dir', 'ltr');
     expect(document.documentElement).toHaveAttribute('lang', 'en');
   });

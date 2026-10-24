@@ -62,6 +62,7 @@ export function OnboardingPage() {
 
   return (
     <PublicLayout
+      brand
       actions={
         <button type="button" className="button button--ghost" onClick={() => void signOut()}>
           {t('shell.logout')}

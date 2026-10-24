@@ -96,7 +96,8 @@
 
 .site-hero {
   padding-block: 64px 56px;
-  background: linear-gradient(180deg, var(--surface-muted), var(--surface));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 12%, var(--surface)), var(--surface));
+  border-block-end: 1px solid var(--border);
 }
 
 .site-hero--compact {
@@ -121,9 +122,25 @@
 }
 
 .site-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   margin: 0;
   font-weight: 600;
-  color: var(--primary);
+  color: var(--link);
+}
+
+/* The coral dot of the logo, used once as a small accent (decorative). */
+.site-hero .site-eyebrow::before {
+  inline-size: 10px;
+  block-size: 10px;
+  background: var(--brand-coral);
+  border-radius: 50%;
+  content: '';
+}
+
+.site-hero--compact .site-eyebrow::before {
+  display: none;
 }
 
 .site-eyebrow a {
@@ -283,8 +300,8 @@
   justify-self: start;
   padding: 2px 10px;
   font-size: 0.8rem;
-  color: var(--primary);
-  background: var(--surface-muted);
+  color: var(--text);
+  background: color-mix(in srgb, var(--accent) 18%, var(--surface));
   border-radius: 999px;
 }
 
@@ -316,7 +333,7 @@
 
 .site-checklist .icon {
   margin-block-start: 3px;
-  color: var(--ok);
+  color: var(--link);
 }
 
 .site-planned-note {
@@ -394,7 +411,7 @@
 }
 
 .site-card--saas {
-  border-block-start: 4px solid var(--primary);
+  border-block-start: 4px solid var(--accent);
 }
 
 .site-card--ownership {
@@ -536,9 +553,30 @@
   }
 }
 
+/* Restrained motion, only for visitors who have not asked to reduce it. */
 @media (prefers-reduced-motion: no-preference) {
   .site-card--solution,
   .site-card--custom {
-    transition: border-color 0.15s ease;
+    transition:
+      border-color 0.15s ease,
+      transform 0.15s ease,
+      box-shadow 0.15s ease;
+  }
+
+  .site-card--solution:hover,
+  .site-card--custom:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgb(18 38 64 / 8%);
+  }
+
+  .site-hero-inner {
+    animation: site-rise 0.35s ease-out both;
+  }
+}
+
+@keyframes site-rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
   }
 }
