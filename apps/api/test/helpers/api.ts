@@ -11,9 +11,12 @@ export type Client = { agent: Agent; csrf: string; userId: string; email: string
 // Throwaway credential for throwaway test databases only.
 export const TEST_PASSWORD = 'test-only-password-123';
 
-/** App with a generous rate limit so suites can register many users; tests override. */
+/** App with generous rate limits so suites can register many users and organizations; tests override. */
 export function testApp(config: Partial<AppConfig> = {}): App {
-  return createApp({ config: { authRateLimit: { max: 10_000, windowMs: 60_000 }, ...config } });
+  const generous = { max: 10_000, windowMs: 60_000 };
+  return createApp({
+    config: { authRateLimit: generous, setupRateLimit: generous, inquiryRateLimit: generous, ...config },
+  });
 }
 
 let counter = 0;
@@ -45,10 +48,23 @@ export async function createOrg(
   return { orgId: res.body.organization.id as string, branchId: res.body.branch.id as string };
 }
 
-export async function addBranch(client: Client, orgId: string, name: string): Promise<string> {
-  const res = await send(client, 'post', `/api/v1/orgs/${orgId}/branches`, { name });
-  expect(res.status).toBe(201);
+/** specialtyCodes is required once the organization has configured its specialties. */
+export async function addBranch(client: Client, orgId: string, name: string, specialtyCodes?: string[]): Promise<string> {
+  const res = await send(client, 'post', `/api/v1/orgs/${orgId}/branches`, { name, specialtyCodes });
+  expect(res.status, JSON.stringify(res.body)).toBe(201);
   return res.body.branch.id;
+}
+
+/** Owner-only specialty setup: the organization's specialties, and the same list for every given branch. */
+export async function configureSpecialties(owner: Client, orgId: string, specialtyCodes: string[], branchIds: string[]) {
+  const current = await owner.agent.get(`/api/v1/orgs/${orgId}`);
+  const res = await send(owner, 'put', `/api/v1/orgs/${orgId}/specialties`, {
+    specialtyCodes,
+    branches: branchIds.map((branchId) => ({ branchId, specialtyCodes })),
+    configVersion: current.body.organization.configVersion,
+  });
+  expect(res.status, JSON.stringify(res.body)).toBe(200);
+  return res.body;
 }
 
 export async function addMember(

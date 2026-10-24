@@ -24,8 +24,8 @@ describe('demo seed', () => {
     await seedDemoData(PASSWORD);
 
     const orgs = await OrganizationModel.find().lean();
-    expect(orgs).toHaveLength(2);
-    expect(orgs.map((o) => o.timeZone).sort()).toEqual(['Africa/Cairo', 'Asia/Riyadh']);
+    expect(orgs).toHaveLength(3);
+    expect(orgs.map((o) => o.timeZone).sort()).toEqual(['Africa/Cairo', 'Africa/Cairo', 'Asia/Riyadh']);
     const userIds = new Map((await UserModel.find().lean()).map((u) => [u.email, u._id]));
     expect([...userIds.keys()].every((email) => email.endsWith('@demo.test'))).toBe(true);
 
@@ -40,6 +40,29 @@ describe('demo seed', () => {
     expect(await membershipsOf('newcomer@demo.test')).toHaveLength(0);
     for (const org of orgs) {
       expect(await BranchModel.countDocuments({ organizationId: org._id })).toBeGreaterThanOrEqual(2);
+    }
+  });
+
+  it('seeds specialty configurations that satisfy the consistency rules, plus one legacy organization', async () => {
+    const byKey = new Map((await OrganizationModel.find().lean()).map((o) => [o.seedKey, o]));
+    expect(byKey.get('demo-nour')).toMatchObject({ type: 'medical_center', specialtyCodes: ['dentistry', 'physiotherapy'] });
+    expect(byKey.get('demo-shifa')).toMatchObject({ type: 'multi_branch', specialtyCodes: ['ent'] });
+    expect(byKey.get('demo-legacy')).toMatchObject({ type: null, specialtyCodes: [] });
+
+    for (const org of byKey.values()) {
+      const branches = await BranchModel.find({ organizationId: org._id }).lean();
+      const offered = new Map(branches.map((b) => [String(b._id), b.specialtyCodes]));
+      for (const codes of offered.values()) {
+        if (org.specialtyCodes.length === 0) expect(codes).toEqual([]);
+        else {
+          expect(codes.length).toBeGreaterThan(0);
+          expect(codes.every((c) => org.specialtyCodes.includes(c))).toBe(true);
+        }
+      }
+      for (const p of await PractitionerModel.find({ organizationId: org._id }).lean()) {
+        expect(org.specialtyCodes).toContain(p.specialtyCode);
+        for (const b of p.branchIds) expect(offered.get(String(b))).toContain(p.specialtyCode);
+      }
     }
   });
 

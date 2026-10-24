@@ -20,3 +20,5 @@ export function writeStored(key: string, value: string | null) {
 
 export const LAST_ORG_KEY = 'clinc.lastOrganization';
 export const branchKey = (orgId: string) => `clinc.branch.${orgId}`;
+/** A view filter only: the API narrows to it and never shows more than the caller's scope. */
+export const specialtyKey = (orgId: string) => `clinc.specialty.${orgId}`;

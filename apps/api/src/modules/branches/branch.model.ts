@@ -9,6 +9,11 @@ export interface Branch {
   name: string;
   city: string;
   status: BranchStatus;
+  /**
+   * Specialties offered at this branch: a non-empty subset of the organization's specialties
+   * once the organization has configured them; empty before that (legacy).
+   */
+  specialtyCodes: string[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -19,6 +24,7 @@ const branchSchema = new Schema<Branch>(
     name: { type: String, required: true, trim: true, minlength: 2, maxlength: 80 },
     city: { type: String, trim: true, maxlength: 80, default: '' },
     status: { type: String, enum: BRANCH_STATUSES, required: true, default: 'active' },
+    specialtyCodes: { type: [String], default: [] },
   },
   { collection: 'branches', timestamps: true },
 );
@@ -32,7 +38,14 @@ branchSchema.plugin(tenantGuardPlugin);
 export type BranchDocument = HydratedDocument<Branch>;
 export const BranchModel = model<Branch>('Branch', branchSchema);
 
-export type BranchDto = { id: string; name: string; city: string; status: BranchStatus; createdAt: string };
+export type BranchDto = {
+  id: string;
+  name: string;
+  city: string;
+  status: BranchStatus;
+  specialtyCodes: string[];
+  createdAt: string;
+};
 
 export function toBranchDto(branch: Branch & { _id: Types.ObjectId }): BranchDto {
   return {
@@ -40,6 +53,7 @@ export function toBranchDto(branch: Branch & { _id: Types.ObjectId }): BranchDto
     name: branch.name,
     city: branch.city,
     status: branch.status,
+    specialtyCodes: [...(branch.specialtyCodes ?? [])],
     createdAt: branch.createdAt.toISOString(),
   };
 }

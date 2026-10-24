@@ -2,11 +2,13 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useDeferredValue, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PageHeader } from '../components/PageHeader';
+import { SpecialtyCheckboxes } from '../components/SpecialtyCheckboxes';
 import { EmptyState, ErrorState, Field, Loading, Notice } from '../components/ui';
 import { describedBy } from '../lib/a11y';
 import { api } from '../lib/api';
 import { errorMessage, fieldErrors, fieldMessage } from '../lib/errors';
 import { useFormatters } from '../lib/format';
+import { useSpecialtyNames } from '../lib/specialties';
 import type { Branch } from '../lib/types';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { orgKeys, useOrg } from '../org/context';
@@ -85,11 +87,18 @@ export function BranchesPage() {
 function BranchRow({ branch, onEdit }: { branch: Branch; onEdit?: () => void }) {
   const { t } = useTranslation();
   const fmt = useFormatters();
+  const names = useSpecialtyNames();
+  const { specialties } = useOrg();
   return (
     <li className="data-row" data-testid="branch-row">
       <div className="data-main">
         <strong>{branch.name}</strong>
         <span className="muted">{branch.city || t('common.notSet')}</span>
+        {specialties.length > 0 && (
+          <span className="muted small" data-testid="branch-specialties">
+            {t('branches.specialties')}: {branch.specialtyCodes.length > 0 ? fmt.list(branch.specialtyCodes.map(names.name)) : t('common.notSet')}
+          </span>
+        )}
       </div>
       <div className="data-meta">
         <span className={`badge badge--${branch.status}`}>{t(`branches.status.${branch.status}`)}</span>
@@ -112,14 +121,20 @@ function useInvalidateOrg() {
 
 function CreateBranchForm({ onCreated }: { onCreated: (name: string) => void }) {
   const { t } = useTranslation();
-  const { orgId } = useOrg();
+  const { orgId, specialties } = useOrg();
   const invalidate = useInvalidateOrg();
   const [form, setForm] = useState({ name: '', city: '' });
+  // Once the organization has specialties, each new branch says which of them it offers.
+  const [codes, setCodes] = useState<string[]>(specialties);
   const create = useMutation({
     mutationFn: () =>
-      api<{ branch: Branch }>(`/orgs/${orgId}/branches`, { method: 'POST', body: { name: form.name, city: form.city || undefined } }),
+      api<{ branch: Branch }>(`/orgs/${orgId}/branches`, {
+        method: 'POST',
+        body: { name: form.name, city: form.city || undefined, specialtyCodes: specialties.length > 0 ? codes : undefined },
+      }),
     onSuccess: async ({ branch }) => {
       setForm({ name: '', city: '' });
+      setCodes(specialties);
       await invalidate();
       onCreated(branch.name);
     },
@@ -149,6 +164,16 @@ function CreateBranchForm({ onCreated }: { onCreated: (name: string) => void }) 
         <Field id="new-branch-city" label={`${t('branches.city')} ${t('common.optional')}`}>
           <input id="new-branch-city" value={form.city} onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))} />
         </Field>
+        {specialties.length > 0 && (
+          <SpecialtyCheckboxes
+            id="new-branch-specialties"
+            legend={t('branches.offeredSpecialties')}
+            error={fieldMessage(t, 'specialtyCodes', fields.specialtyCodes)}
+            value={codes}
+            options={specialties}
+            onChange={setCodes}
+          />
+        )}
         <button type="submit" className="button button--primary" disabled={create.isPending}>
           {create.isPending ? t('common.saving') : t('branches.add')}
         </button>
@@ -159,11 +184,16 @@ function CreateBranchForm({ onCreated }: { onCreated: (name: string) => void }) 
 
 function EditBranchRow({ branch, onDone }: { branch: Branch; onDone: (savedName?: string) => void }) {
   const { t } = useTranslation();
-  const { orgId } = useOrg();
+  const { orgId, specialties } = useOrg();
   const invalidate = useInvalidateOrg();
   const [form, setForm] = useState({ name: branch.name, city: branch.city, status: branch.status });
+  const [codes, setCodes] = useState<string[]>(branch.specialtyCodes);
   const save = useMutation({
-    mutationFn: () => api<{ branch: Branch }>(`/orgs/${orgId}/branches/${branch.id}`, { method: 'PATCH', body: form }),
+    mutationFn: () =>
+      api<{ branch: Branch }>(`/orgs/${orgId}/branches/${branch.id}`, {
+        method: 'PATCH',
+        body: { ...form, specialtyCodes: specialties.length > 0 ? codes : undefined },
+      }),
     onSuccess: async ({ branch: saved }) => {
       await invalidate();
       onDone(saved.name);
@@ -205,6 +235,16 @@ function EditBranchRow({ branch, onDone }: { branch: Branch; onDone: (savedName?
             <option value="inactive">{t('branches.status.inactive')}</option>
           </select>
         </Field>
+        {specialties.length > 0 && (
+          <SpecialtyCheckboxes
+            id={`${id}-specialties`}
+            legend={t('branches.offeredSpecialties')}
+            error={fieldMessage(t, 'specialtyCodes', fields.specialtyCodes)}
+            value={codes}
+            options={specialties}
+            onChange={setCodes}
+          />
+        )}
         <div className="form-actions">
           <button type="submit" className="button button--primary" disabled={save.isPending}>
             {save.isPending ? t('common.saving') : t('common.save')}

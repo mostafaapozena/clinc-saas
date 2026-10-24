@@ -29,18 +29,26 @@ validation** must be checked by a qualified professional for Egypt and Saudi Ara
 | C16 | No invented prices, trial length, clinical requirements, delivery promises, company claims, testimonials or certifications. | Owner briefs |
 | C17 | Synthetic data only until launch readiness; no production deployment without approval; preview ports private. | Owner briefs, AGENTS.md |
 | C18 | Phase 3 front-desk policy (receptionist books and checks in; doctor starts/completes own visits; viewer sees aggregates). | Phase 3 brief; matrix in architecture/TENANCY.md |
+| C19 | **Approved working default (phase 4, 2026-10-20):** the registration call to action is "أنشئ مساحة عمل لعيادتك" / "Create your clinic workspace", without prices or trial length. | Owner, phase 4 brief |
+| C20 | **Approved working default (phase 4, 2026-10-20):** custom-ownership requests are stored in the database and reviewed with an authorized script until another delivery channel is configured. | Owner, phase 4 brief |
+| C21 | **Approved working default (phase 4, 2026-10-20):** public copy is provisional and reviewed by the owner in the phase 4 PR before merge. These defaults do not authorize public deployment or sending messages. | Owner, phase 4 brief |
+| C22 | Specialty-specific clinical tools, the operator console, billing, subscriptions and messaging are out of phase 4. | Owner, phase 4 brief |
+| C23 | Brand: **raclinic** (lowercase in text); Latin wordmark in both languages (no Arabic transliteration); taglines "مساعدك الذكي في كل تفاصيل العيادة" / "Smart clinic management"; the supplied "raclinic logo .pdf" is the source of truth and its marketing page is a visual reference, not a feature list. Visual application and wording pending owner review. | Owner, 2026-10-24 — see BRAND.md |
 
 ## 2. Provisional recommendations (engineering proposals, not approved)
 
+Status after phase 4 in brackets.
+
 | # | Proposal | Why |
 | - | -------- | --- |
-| P1 | Next phase is **public platform and specialty-aware onboarding** (phase 4). | No external blocker; phases 5–6 need organization specialties. |
-| P2 | Organizations hold a **list of enabled specialties** (one or more), editable by owners/admins later; branches may narrow it in a later phase. Practitioner profiles keep their own specialty, limited to the organization's list. | Supports C11 without per-branch complexity now. |
-| P3 | Existing organizations get no specialties automatically; owners are prompted (not blocked) to choose. Demo seed sets them explicitly. | Avoid guessing from practitioner labels. |
-| P4 | Public pages live in the same React app as a separate lazy-loaded route group; `/` shows the public home; signed-in visitors see a "go to my workspace" action instead of being redirected away. | Reuses i18n, fonts and auth; enables code splitting. SEO prerendering decided later. |
-| P5 | Until trial terms exist, the entry point says "create your clinic workspace" (no length, no price) and organizations are created without a plan; no enforcement. | Satisfies C16 while keeping the journey testable. |
-| P6 | Ownership requests are stored in the platform database as platform records (not tenant data), with a minimal set of fields and no patient data; reviewed through a developer script until the operator console exists (phase 8). | No email provider yet; avoids building platform roles early. |
-| P7 | Specialty pages describe the shared features that work today and label specialty-specific features as "planned" without dates. | Honest presentation; C16. |
+| P1 | Next phase is **public platform and specialty-aware onboarding** (phase 4). [Done — in review.] | No external blocker; phases 5–6 need organization specialties. |
+| P2 | Organizations hold a **list of enabled specialties** (one or more); practitioner profiles keep their own specialty, limited to the organization's list. [Implemented, and branches already narrow the list per branch because the phase 4 brief required per-branch associations — see architecture/SPECIALTIES.md. Changing organization specialties is owner-only, matching `organization.update`.] | Supports C11. |
+| P3 | Existing organizations get no specialties automatically; owners are prompted (not blocked) to choose. Demo seed sets them explicitly. [Implemented.] | Avoid guessing from practitioner labels. |
+| P4 | Public pages live in the same React app as a separate lazy-loaded route group; `/` shows the public home; signed-in visitors see a "go to my workspace" action. [Implemented; prerendering still to decide — Q16.] | Reuses i18n, fonts and auth; enables code splitting. |
+| P5 | Until trial terms exist, organizations are created without a plan; no enforcement. [Implemented; wording approved as C19.] | Satisfies C16 while keeping the journey testable. |
+| P6 | Ownership requests as platform records, minimal fields, no patient data, script review. [Implemented; approved as C20.] | No email provider yet; avoids building platform roles early. |
+| P7 | Specialty pages describe the shared features that work today and label specialty-specific features as "planned" without dates. [Implemented; copy under review per C21.] | Honest presentation; C16. |
+| P11 | Inquiry retention: 12 months after the last status change, earlier deletion on request. [Proposal; not automated.] | Data minimization; needs legal confirmation (E4). |
 | P8 | Clinical access (phase 5) is a separate permission dimension granted per membership; owners/admins need explicit grant. | C12. |
 | P9 | Money stored in integer minor units; one currency per organization at first (EGP or SAR). | Avoids rounding errors; simplest model. Needs owner confirmation. |
 | P10 | Subscription states never delete tenant data automatically; expired subscriptions become read-only after a grace period to be defined. | Data safety. |
@@ -49,22 +57,32 @@ validation** must be checked by a qualified professional for Egypt and Saudi Ara
 
 Ordered by what blocks the next phase. Proposed defaults are proposals.
 
-### Blocking phase 4
+### Answered for phase 4
+
+Q1 (entry-point wording), Q2 (where ownership requests go) and Q3 (who approves public copy) were
+answered by the owner on 2026-10-20 — see C19–C21. Q4 (product name) was answered on 2026-10-24: **raclinic**, with the supplied logo PDF as
+the brand source of truth (C23).
+
+### Blocking phase 5 (clinical visit records)
 
 | # | Question | Proposed default |
 | - | -------- | ---------------- |
-| Q1 | How should the trial/subscription entry point be worded while prices and trial length are undecided? | P5: "create your clinic workspace" with no terms shown. |
-| Q2 | Where should custom ownership requests go, and which fields may the form collect? | P6: stored in the database; fields: name, organization, country (EG/SA), specialties, number of branches, phone/email, free-text needs. |
-| Q3 | Who approves public-page copy (feature descriptions, wording about the custom track)? | The owner reviews the copy in the phase 4 PR before merge. |
-| Q4 | Product name to show on public pages. | Keep the temporary "منصة العيادات / Clinics Platform" marked as temporary. Not blocking. |
+| Q5 | Clinical access policy: who reads/writes visit records; can owners/admins be granted clinical access; audit expectations. | Author (the visit's doctor) writes; doctors of the same organization read only with an explicit clinical grant; owners/admins have **no** clinical access unless granted; every read and write audited. See NEXT_PHASE_BRIEF.md. |
+| Q6 | Which clinicians validate the visit-record content? | At least one practicing doctor per launch specialty reviews the generic sections before merge. |
+| Q7 | Are prescriptions and attachments in scope, and when? **Needs authoritative validation.** | Not in phase 5. |
+
+### Blocking public launch (not development)
+
+| # | Question |
+| - | -------- |
+| Q15 | Privacy notice and retention rules for the inquiry form and registration (P11). **Needs authoritative validation.** |
+| Q16 | Prerendering or server rendering for the public pages before enabling indexing; final domain (E6). |
+| Q16b | Official brand color values from the designer (the current tokens are read from the PDF fills). |
 
 ### Blocking later phases (answer before the phase starts)
 
 | # | Question | Phase |
 | - | -------- | ----- |
-| Q5 | Clinical access policy: who reads/writes encounters; can owners/admins be granted clinical access; audit expectations. | 5 |
-| Q6 | Which clinicians validate encounter content and each specialty workflow? | 5, 6 |
-| Q7 | Are prescriptions and attachments in scope, and when? **Needs authoritative validation.** | 5, 6 |
 | Q8 | Which specialty slice goes first? | 6 |
 | Q9 | Currency per organization or branch; tax treatment; e-invoicing obligations. **Needs authoritative validation.** | 7 |
 | Q10 | Plans, prices, trial length, access behavior per subscription state. | 8 |

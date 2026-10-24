@@ -1,4 +1,4 @@
-import type { Types } from 'mongoose';
+import { Types } from 'mongoose';
 import { conflict } from '../../http/errors.js';
 import { recordVisibility } from '../../tenancy/permissions.js';
 import { branchOwnedFilter } from '../../tenancy/scope.js';
@@ -48,4 +48,18 @@ export async function visibleAppointmentsFilter(tenant: TenantContext, filter: F
 export async function countableAppointmentsFilter(tenant: TenantContext, filter: Filter = {}): Promise<Filter | null> {
   if (recordVisibility(tenant.role) === 'none') return branchOwnedFilter(tenant, filter);
   return visibleAppointmentsFilter(tenant, filter);
+}
+
+/**
+ * Narrows an already-authorized appointment filter to the practitioners of one specialty. It
+ * only ever intersects: a filter that already names one practitioner (a doctor's own profile, or
+ * an explicit choice) stays as it is or becomes null when that practitioner has another
+ * specialty. null means "nothing to show".
+ */
+export async function narrowToSpecialty(tenant: TenantContext, filter: Filter | null, specialty?: string): Promise<Filter | null> {
+  if (!filter || !specialty) return filter;
+  const ids: Types.ObjectId[] = await PractitionerModel.find({ organizationId: tenant.organizationId, specialtyCode: specialty }).distinct('_id');
+  const current = filter.practitionerId;
+  if (current instanceof Types.ObjectId) return ids.some((id) => id.equals(current)) ? filter : null;
+  return { ...filter, practitionerId: { $in: ids } };
 }

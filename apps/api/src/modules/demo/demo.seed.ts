@@ -60,7 +60,10 @@ export async function seedDemoData(password: string, now = clock.now()) {
     const organization = required(
       await OrganizationModel.findOneAndUpdate(
         { seedKey: org.key },
-        { $set: { name: org.name, timeZone: org.timeZone }, $setOnInsert: { createdBy: ownerId } },
+        {
+          $set: { name: org.name, timeZone: org.timeZone, type: org.type, specialtyCodes: org.specialtyCodes },
+          $setOnInsert: { createdBy: ownerId },
+        },
         UPSERT,
       ),
       org.key,
@@ -70,7 +73,7 @@ export async function seedDemoData(password: string, now = clock.now()) {
     for (const branch of org.branches) {
       const doc = await BranchModel.findOneAndUpdate(
         { organizationId, name: branch.name },
-        { $set: { city: branch.city, status: 'active' } },
+        { $set: { city: branch.city, status: 'active', specialtyCodes: branch.specialtyCodes } },
         UPSERT,
       );
       branchIds.set(branch.name, required(doc, branch.name)._id);

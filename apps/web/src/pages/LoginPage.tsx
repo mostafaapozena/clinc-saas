@@ -6,7 +6,7 @@ import { Field, Notice } from '../components/ui';
 import { PublicLayout } from '../layouts/PublicLayout';
 import { describedBy } from '../lib/a11y';
 import { errorMessage } from '../lib/errors';
-import { safeNext } from '../lib/navigation';
+import { safeNext, withNext } from '../lib/navigation';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 
 export function LoginPage() {
@@ -34,7 +34,7 @@ export function LoginPage() {
   };
 
   return (
-    <PublicLayout>
+    <PublicLayout brand>
       <section className="card auth-card" aria-labelledby="login-title">
         <h1 id="login-title">{t('auth.loginTitle')}</h1>
         <p className="muted">{t('auth.loginSubtitle')}</p>
@@ -67,7 +67,7 @@ export function LoginPage() {
           </button>
         </form>
         <p className="auth-switch">
-          {t('auth.noAccount')} <Link to="/register">{t('auth.registerLink')}</Link>
+          {t('auth.noAccount')} <Link to={withNext('/register', params.get('next'))}>{t('auth.registerLink')}</Link>
         </p>
       </section>
     </PublicLayout>

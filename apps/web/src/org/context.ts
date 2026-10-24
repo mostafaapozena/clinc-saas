@@ -11,6 +11,13 @@ export type OrgContextValue = {
   selectBranch: (branchId: string) => void;
   /** The organization's IANA time zone, or null until an owner sets it. */
   timeZone: string | null;
+  /** The organization's enabled specialties ([] until an owner completes the setup). */
+  specialties: string[];
+  /** Specialties that can be chosen as a view filter for the selected branch. */
+  specialtyOptions: string[];
+  /** 'all' or a specialty code. A view filter: the API only ever narrows by it. */
+  selectedSpecialty: string;
+  selectSpecialty: (code: string) => void;
 };
 
 export const OrgContext = createContext<OrgContextValue | null>(null);
@@ -27,17 +34,23 @@ export function useBranchFilter(): string | undefined {
   return selectedBranchId && selectedBranchId !== 'all' ? selectedBranchId : undefined;
 }
 
+/** The selected specialty as a filter value (undefined = all specialties). */
+export function useSpecialtyFilter(): string | undefined {
+  const { selectedSpecialty } = useOrg();
+  return selectedSpecialty && selectedSpecialty !== 'all' ? selectedSpecialty : undefined;
+}
+
 /**
  * Every organization-scoped cache entry starts with ['org', orgId] so it can be dropped on
- * switch; branch-dependent entries also carry the branch, so a branch switch never shows
- * another branch's cached data.
+ * switch; branch- and specialty-dependent entries also carry them (inside their params), so a
+ * switch never shows another branch's or specialty's cached data.
  */
 export const orgKeys = {
   all: (orgId: string) => ['org', orgId] as const,
   detail: (orgId: string) => ['org', orgId, 'detail'] as const,
   branches: (orgId: string, query = '') => ['org', orgId, 'branches', query] as const,
   members: (orgId: string) => ['org', orgId, 'members'] as const,
-  dashboard: (orgId: string, branch = 'all') => ['org', orgId, 'dashboard', branch] as const,
+  dashboard: (orgId: string, branch = 'all', specialty = 'all') => ['org', orgId, 'dashboard', branch, specialty] as const,
   patients: (orgId: string, params: object = {}) => ['org', orgId, 'patients', params] as const,
   patient: (orgId: string, id: string) => ['org', orgId, 'patient', id] as const,
   patientAppointments: (orgId: string, id: string, params: object) => ['org', orgId, 'patient', id, 'appointments', params] as const,

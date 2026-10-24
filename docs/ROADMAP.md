@@ -11,8 +11,8 @@ No dates, prices or delivery promises are implied.
 ## Order and why
 
 ```
-Phase 4  Public platform and specialty-aware onboarding      ← next (no external blocker)
-Phase 5  Clinical foundation: encounters and clinical access  ← needs clinician input
+Phase 4  Public platform and specialty-aware onboarding      ← implemented, PR in review
+Phase 5  Clinical foundation: encounters and clinical access  ← next (needs clinician input)
 Phase 6  Specialty workspaces: dentistry, physiotherapy, ENT  ← one slice per specialty
 Phase 7  Clinic financial operations                          ← needs tax/legal validation
 Phase 8  Platform subscriptions and operator administration   ← needs payment provider, terms
@@ -36,6 +36,11 @@ legal/privacy review, clinical advisors, payment provider, pricing/trial terms.
   store, audit viewer) may be pulled into earlier phases when convenient.
 
 ## Phase 4 — Public platform and specialty-aware onboarding
+
+> **Status (2026-10-20):** implemented on `phase-4/public-onboarding`, PR in review with the
+> public copy. Delivered as planned below, plus per-branch specialties (the phase 4 brief asked
+> for them). Still open from this phase: owner review of the copy; prerendering and the final
+> domain before indexing is enabled (DECISIONS.md Q16).
 
 **User outcome.** A visitor understands what the platform offers per specialty, sees clearly what
 is available today versus planned, and either starts a trial/registration or requests a custom

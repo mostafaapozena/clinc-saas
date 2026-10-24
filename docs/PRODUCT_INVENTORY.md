@@ -1,11 +1,12 @@
 # Product inventory
 
-_State of `main` at `ab0551a` (phases 1–3 merged), checked 2026-10-20._
+_Phases 1–3 merged (`main`); phase 4 on branch `phase-4/public-onboarding` (PR in review).
+Updated 2026-10-20._
 
 Status meanings:
 
-- **Implemented and verified**: in `main`, covered by automated tests, and exercised through the
-  private preview.
+- **Implemented and verified**: covered by automated tests and exercised through the private
+  preview. Items marked _(phase 4, in review)_ are on the phase 4 branch, not yet in `main`.
 - **Partial**: some of it exists; the gap is named.
 - **Planned**: on the [roadmap](ROADMAP.md), nothing built.
 - **Blocked**: needs an external dependency or an owner decision first ([DECISIONS.md](DECISIONS.md)).
@@ -17,14 +18,15 @@ development Codespace.
 
 | Capability | Status | Notes |
 | ---------- | ------ | ----- |
-| Public home page | Planned | `/` redirects to `/app`; there is no marketing or landing page. |
-| Solution / specialty catalog and detail pages | Planned | `GET /api/v1/specialties` returns a reference list (dentistry, physiotherapy, ENT); no page presents solutions. |
-| Choose trial / subscription | Planned | No plans, prices or trial exist. Terms are undecided. |
-| Request custom ownership delivery | Planned | No request form or intake storage. |
+| Public home page | Implemented and verified _(phase 4, in review)_ | Who it serves, problems, solutions, what works today, what is planned, setup steps, SaaS vs custom, FAQ. Copy provisional, pending owner review. |
+| Solution catalog and detail pages | Implemented and verified _(phase 4, in review)_ | Dentistry, physiotherapy, ENT, multi-specialty centers; same codes as the platform catalog (tested). Specialty clinical tools shown as planned, without dates. |
+| "Create your clinic workspace" entry point | Implemented and verified _(phase 4, in review)_ | Carries the chosen specialty/type through registration or sign-in into onboarding. No plans, prices, trial or checkout exist (terms undecided). |
+| Request custom ownership delivery | Implemented and verified _(phase 4, in review)_ | Separate page and form; stored as platform records; operator review script. No messages are sent. |
 | Registration | Implemented and verified | Email + password; one account can belong to several organizations. |
 | Direct login for existing users | Implemented and verified | `/login` → last workspace; nothing forces the user through marketing. |
-| Organization onboarding | Partial | Creates organization, first branch and **explicit time zone**. No specialty selection, no plan/trial state. |
-| Honest capability presentation | Planned | Requires the public pages. |
+| Organization onboarding | Implemented and verified _(phase 4, in review)_ | Resumable, specialty-aware: type, explicit time zone, one or more specialties, first branch and its specialties, review; idempotent completion. No plan/trial state. |
+| Technical SEO foundations | Implemented and verified _(phase 4, in review)_ | Per-page metadata, language alternates, FAQ structured data, environment-controlled robots/sitemap; noindex everywhere until a public URL is configured. Client-rendered (no prerendering). |
+| Honest capability presentation | Implemented _(phase 4, in review)_ | Pending owner review of the public copy. |
 
 ## 2. Subscription SaaS application (authenticated clinic workspace)
 
@@ -38,6 +40,8 @@ development Codespace.
 | Five roles with a central permission matrix | Implemented and verified | Owner, admin, doctor, receptionist, viewer. Matrix in [architecture/TENANCY.md](architecture/TENANCY.md). |
 | Tenant and branch isolation | Implemented and verified | Enforced in the API and tested (cross-org ids, tampered ids, branch-limited staff, counts and searches). |
 | Organization and branch switching without stale data | Implemented and verified | |
+| Organization type and specialties; branch specialties; practitioner–branch specialty consistency | Implemented and verified _(phase 4, in review)_ | Multi-specialty organizations; explicit setup for organizations created earlier. See [architecture/SPECIALTIES.md](architecture/SPECIALTIES.md). |
+| Specialty context in the workspace | Implemented and verified _(phase 4, in review)_ | Overview of specialties per branch and a view filter for practitioners, appointments, queue and counts. **The same shared operational workspace for every specialty** — no specialty clinical screens. |
 | Arabic default (RTL, self-hosted Alexandria), English (LTR, self-hosted Inter), persisted choice | Implemented and verified | |
 | Mobile layouts for the front desk | Implemented and verified | Queue, appointments and patients tested at phone width. |
 | Patient registry (administrative data only) | Implemented and verified | Organization identity, branch registrations, number, name, phones (E.164), optional email, date of birth, administrative sex, address. **No clinical data.** |
@@ -80,7 +84,7 @@ development Codespace.
 | ---------- | ------ | ----- |
 | Plans, entitlements, trial lifecycle, subscription states | Planned | Prices, plans and trial length are undecided. |
 | Payment provider and webhooks | Blocked | Provider not chosen. |
-| Platform operator console (isolated from tenant roles) | Planned | No platform-level roles exist; all roles are tenant roles. |
+| Platform operator console (isolated from tenant roles) | Planned | No platform-level roles exist; all roles are tenant roles. Custom-project requests are reviewed with a server-side script until then. |
 | Support intake | Planned | Support hours and channel undecided. |
 | Chatbot | Not planned yet | Scope must be defined before it is considered. |
 
@@ -109,6 +113,8 @@ Radiology and similar systems belong here as candidates, not in the SaaS.
 | Item | Impact | Plan |
 | ---- | ---- | ---- |
 | `MaxListenersExceededWarning` in API tests | None on the product. Supertest 7.3.1 shares one `http.Server` per agent, and each request queued while it starts adds one-shot `listening`/`error`/`close` listeners (removed afterwards). Tests sending more than 10 simultaneous requests through one agent cross Node's default threshold. | Keep. Revisit if the test harness moves to one listening server per suite; do not raise the limit just to hide it. |
-| Web bundle above Vite's 500 kB warning (557 kB, 164 kB gzipped, single chunk) | Slower first load on slow mobile networks; no functional effect. | Route-level code splitting in phase 4, where public pages and the workspace become separate route groups. |
+| ~~Web bundle above Vite's 500 kB warning~~ | Resolved in phase 4: public, account and workspace chunks; no chunk above 500 kB, no warning. The shared framework part (≈ 157 kB gzip) is loaded by every page. | Optional later: load only the active language's translations (≈ 10 kB gzip). Sizes in [architecture/PUBLIC_SITE.md](architecture/PUBLIC_SITE.md). |
+| Public pages are client-rendered | Crawlers that do not run JavaScript see only a short `<noscript>` text. | Decide prerendering/server rendering together with hosting (before indexing is enabled). |
+| Inquiry retention not automated | Inquiries are kept until deleted by an operator. | Implement once the retention proposal in [architecture/INQUIRIES.md](architecture/INQUIRIES.md) is approved. |
 | Name search is a scoped substring regex | Slows for very large registries. | Index-assisted search when real volumes are known. |
 | Queue refreshes every 30 s | Up to 30 s delay between desks. | Push updates later if needed. |

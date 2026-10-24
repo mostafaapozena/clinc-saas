@@ -5,13 +5,13 @@ import { Link, Navigate } from 'react-router';
 import { PageHeader } from '../components/PageHeader';
 import { useInvalidateOrg } from '../lib/scheduling';
 import { EmptyState, ErrorState, Field, Loading, Notice } from '../components/ui';
-import { api } from '../lib/api';
+import { api, query } from '../lib/api';
 import { errorMessage, fieldErrors, fieldMessage } from '../lib/errors';
 import { useSpecialtyNames } from '../lib/specialties';
 import { useFormatters } from '../lib/format';
 import type { BranchScope, Practitioner } from '../lib/types';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
-import { orgKeys, useOrg } from '../org/context';
+import { orgKeys, useOrg, useSpecialtyFilter } from '../org/context';
 
 export function PractitionersPage() {
   const { t } = useTranslation();
@@ -20,9 +20,10 @@ export function PractitionersPage() {
   const specialties = useSpecialtyNames();
   const [adding, setAdding] = useState(false);
   useDocumentTitle(t('nav.practitioners'));
+  const specialty = useSpecialtyFilter();
   const list = useQuery({
-    queryKey: orgKeys.practitioners(orgId),
-    queryFn: ({ signal }) => api<{ data: Practitioner[] }>(`/orgs/${orgId}/practitioners`, { signal }).then((r) => r.data),
+    queryKey: orgKeys.practitioners(orgId, { specialty }),
+    queryFn: ({ signal }) => api<{ data: Practitioner[] }>(`/orgs/${orgId}/practitioners${query({ specialty })}`, { signal }).then((r) => r.data),
   });
   const manage = can('practitioner.manage');
   // Doctors go straight to their own schedule.
@@ -73,8 +74,9 @@ type Candidate = { membershipId: string; displayName: string; branchScope: Branc
 
 function AddPractitioner({ onDone }: { onDone: () => void }) {
   const { t } = useTranslation();
-  const { orgId, branches } = useOrg();
+  const { orgId, branches, specialties: enabled } = useOrg();
   const specialties = useSpecialtyNames();
+  const offered = enabled.length ? specialties.list.filter((s) => enabled.includes(s.code)) : specialties.list;
   const invalidate = useInvalidateOrg();
   const candidates = useQuery({
     queryKey: orgKeys.candidates(orgId),
@@ -128,7 +130,7 @@ function AddPractitioner({ onDone }: { onDone: () => void }) {
             <Field id="practitioner-specialty" label={t('practitioners.specialty')}>
               <select id="practitioner-specialty" value={specialtyCode} onChange={(e) => setSpecialtyCode(e.target.value)}>
                 <option value="">{t('common.choose')}</option>
-                {specialties.list.map((s) => (
+                {offered.map((s) => (
                   <option key={s.code} value={s.code}>
                     {s.name[specialties.lang]}
                   </option>

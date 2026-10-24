@@ -56,8 +56,22 @@ export type SessionData = { user: User; csrfToken: string; memberships: Membersh
 
 export type BranchScope = { type: 'all' | 'selected'; branchIds: string[] };
 
+export const ORGANIZATION_TYPES = ['clinic', 'medical_center', 'multi_branch'] as const;
+export type OrganizationType = (typeof ORGANIZATION_TYPES)[number];
+
+export type Organization = {
+  id: string;
+  name: string;
+  timeZone: string | null;
+  /** null / [] for organizations created before phase 4 until the owner completes the setup. */
+  type: OrganizationType | null;
+  specialtyCodes: string[];
+  configVersion: number;
+  createdAt: string;
+};
+
 export type OrgDetail = {
-  organization: { id: string; name: string; timeZone: string | null; createdAt: string };
+  organization: Organization;
   membership: {
     id: string;
     role: Role;
@@ -73,7 +87,30 @@ export type Branch = {
   name: string;
   city: string;
   status: 'active' | 'inactive';
+  /** Specialties offered here (a subset of the organization's); [] before the setup. */
+  specialtyCodes: string[];
   createdAt: string;
+};
+
+export const ONBOARDING_STEPS = ['organization', 'specialties', 'branch', 'review'] as const;
+export type OnboardingStep = (typeof ONBOARDING_STEPS)[number];
+
+export type OnboardingData = {
+  organizationType: OrganizationType | null;
+  name: string;
+  timeZone: string | null;
+  specialtyCodes: string[];
+  branch: { name: string; city: string; specialtyCodes: string[] };
+};
+
+export type OnboardingDraft = {
+  id: string;
+  status: 'draft' | 'completed';
+  step: OnboardingStep;
+  data: OnboardingData;
+  organizationId: string | null;
+  version: number;
+  updatedAt: string;
 };
 
 export type Member = {

@@ -1,9 +1,6 @@
-import { useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
+import { usePrivatePageMeta } from './pageMeta';
 
+/** Title for sign-in, onboarding and workspace pages, which are never indexed. */
 export function useDocumentTitle(title: string) {
-  const { t } = useTranslation();
-  useEffect(() => {
-    document.title = `${title} · ${t('app.name')}`;
-  }, [title, t]);
+  usePrivatePageMeta(title);
 }
