@@ -182,13 +182,16 @@ export const CLINICAL_AUDIT_ACTIONS = [
   'encounter.addendum_added',
   'clinical_history.viewed',
   'clinical.access_denied',
+  'coverage.granted',
+  'coverage.revoked',
+  'clinical_audit.viewed',
 ] as const;
 export type ClinicalAuditAction = (typeof CLINICAL_AUDIT_ACTIONS)[number];
 
 /**
  * Clinical access and change log — separate from the administrative audit log. Metadata only
- * (ids, versions, section names, reason codes); never clinical text. No API exposes it in this
- * phase; reviewing it is an operator task with database access (docs/architecture/CLINICAL.md).
+ * (ids, versions, section names, reason codes); never clinical text. Readable only by members with
+ * the `clinical_audit` capability (GET /clinical/audit; docs/architecture/CLINICAL.md).
  */
 export interface ClinicalAuditEvent {
   organizationId: Types.ObjectId;

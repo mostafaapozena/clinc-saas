@@ -600,6 +600,7 @@ describe('access', () => {
       userId: new Types.ObjectId(c.doctor.userId),
       role: 'doctor',
       branchScope: { type: 'all' },
+      capabilities: [],
     };
     expect(await resolveClinicalActor(tenant)).not.toBeNull();
     expect((await send(c.owner, 'patch', orgUrl(`/members/${c.doctorMembership}`), { status: 'suspended' })).status).toBe(200);

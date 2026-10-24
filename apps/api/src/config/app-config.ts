@@ -13,6 +13,11 @@ export type AppConfig = {
   setupRateLimit: { max: number; windowMs: number };
   /** Anonymous custom-ownership inquiries, per IP. */
   inquiryRateLimit: { max: number; windowMs: number };
+  /**
+   * Whether a `clinical_lead` capability may be assigned and used to grant coverage for another
+   * doctor's records. Off until the owner decides who holds that authority (blocker B1).
+   */
+  clinicalLeadGrantsEnabled: boolean;
 };
 
 export const defaultAppConfig: AppConfig = {
@@ -24,6 +29,7 @@ export const defaultAppConfig: AppConfig = {
   authRateLimit: { max: 10, windowMs: 15 * 60_000 },
   setupRateLimit: { max: 20, windowMs: 60 * 60_000 },
   inquiryRateLimit: { max: 5, windowMs: 60 * 60_000 },
+  clinicalLeadGrantsEnabled: false,
 };
 
 export function appConfigFromEnv(env: Env): AppConfig {
@@ -39,5 +45,6 @@ export function appConfigFromEnv(env: Env): AppConfig {
     },
     setupRateLimit: { max: env.SETUP_RATE_LIMIT_MAX, windowMs: 60 * 60_000 },
     inquiryRateLimit: { max: env.INQUIRY_RATE_LIMIT_MAX, windowMs: 60 * 60_000 },
+    clinicalLeadGrantsEnabled: env.CLINICAL_LEAD_GRANTS_ENABLED,
   };
 }

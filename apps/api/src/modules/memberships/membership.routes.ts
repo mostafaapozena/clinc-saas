@@ -6,7 +6,7 @@ import type { AppConfig } from '../../config/app-config.js';
 import { HttpError, conflict, forbidden, notFound } from '../../http/errors.js';
 import { emailSchema, objectIdSchema } from '../../http/schemas.js';
 import { parseInput } from '../../http/validate.js';
-import { ROLES, isOrgWideRole, type Role } from '../../tenancy/permissions.js';
+import { CAPABILITIES, ROLES, capabilityAllowed, isOrgWideRole, type Role } from '../../tenancy/permissions.js';
 import { orgScope } from '../../tenancy/scope.js';
 import {
   parseObjectId,
@@ -35,10 +35,12 @@ const updateMemberSchema = z
     role: z.enum(ROLES).optional(),
     status: z.enum(MEMBERSHIP_STATUSES).optional(),
     branchScope: branchScopeSchema.optional(),
+    capabilities: z.array(z.enum(CAPABILITIES)).max(CAPABILITIES.length).optional(),
   })
-  .refine((v) => v.role !== undefined || v.status !== undefined || v.branchScope !== undefined, {
-    message: 'empty_update',
-  });
+  .refine(
+    (v) => v.role !== undefined || v.status !== undefined || v.branchScope !== undefined || v.capabilities !== undefined,
+    { message: 'empty_update' },
+  );
 
 const roleNotAssignable = () =>
   forbidden('ROLE_NOT_ASSIGNABLE', 'The owner role cannot be assigned through team management');
@@ -59,6 +61,7 @@ function toMemberDto(
       type: membership.branchScope.type,
       branchIds: membership.branchScope.branchIds.map(String),
     },
+    capabilities: membership.capabilities ?? [],
     isSelf: membership.userId.equals(tenant.userId),
     createdAt: membership.createdAt.toISOString(),
   };
@@ -151,6 +154,20 @@ export function createMembersRouter(config: AppConfig) {
       input.branchScope ?? (isOrgWideRole(nextRole) ? undefined : target.branchScope);
     const nextScope = await resolveBranchScope(tenant, nextRole, scopeInput);
 
+    // Capabilities: owners only; each must fit the (new) role; the clinical-lead capability stays
+    // unavailable until the owner decides who may hold it (blocker B1, CLINICAL_LEAD_GRANTS_ENABLED).
+    const current = target.capabilities ?? [];
+    if (input.capabilities !== undefined) {
+      if (tenant.role !== 'owner') throw forbidden('CAPABILITY_OWNER_ONLY', 'Only owners can change capabilities');
+      if (input.capabilities.includes('clinical_lead') && !current.includes('clinical_lead') && !config.clinicalLeadGrantsEnabled) {
+        throw forbidden('CAPABILITY_NOT_ENABLED', 'This capability is not enabled for this platform');
+      }
+      const unfit = input.capabilities.filter((c) => !capabilityAllowed(c, nextRole));
+      if (unfit.length > 0) throw conflict('CAPABILITY_NOT_ELIGIBLE', 'The role cannot hold this capability', { capabilities: unfit });
+    }
+    // A role change silently drops capabilities the new role may not hold.
+    const nextCapabilities = [...new Set(input.capabilities ?? current)].filter((c) => capabilityAllowed(c, nextRole)).sort();
+
     const events: { action: AuditAction; changes: Record<string, unknown> }[] = [];
     if (nextRole !== target.role) {
       events.push({ action: 'member.role_changed', changes: { from: target.role, to: nextRole } });
@@ -168,9 +185,17 @@ export function createMembersRouter(config: AppConfig) {
       });
     }
 
+    if (nextCapabilities.join(',') !== [...current].sort().join(',')) {
+      events.push({
+        action: 'member.capabilities_changed',
+        changes: { from: [...current].sort(), to: nextCapabilities },
+      });
+    }
+
     target.role = nextRole;
     target.status = nextStatus;
     target.branchScope = nextScope;
+    target.capabilities = nextCapabilities;
     await target.save();
     for (const event of events) {
       await recordAudit({

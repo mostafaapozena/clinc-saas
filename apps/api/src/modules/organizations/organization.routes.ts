@@ -7,7 +7,7 @@ import type { AppConfig } from '../../config/app-config.js';
 import { HttpError, conflict, notFound } from '../../http/errors.js';
 import { branchNameSchema, citySchema, objectIdSchema, organizationNameSchema } from '../../http/schemas.js';
 import { parseInput } from '../../http/validate.js';
-import { hasPermission, permissionsFor } from '../../tenancy/permissions.js';
+import { hasPermission, effectivePermissions } from '../../tenancy/permissions.js';
 import { accessibleBranchesFilter, orgScope } from '../../tenancy/scope.js';
 import {
   requireMembership,
@@ -30,6 +30,7 @@ import { futureActiveAppointments } from '../scheduling/schedule.service.js';
 import { ownPractitionerId } from '../scheduling/scheduling-context.js';
 import { assertCatalogSpecialties, specialtyListSchema } from '../specialties/specialty.service.js';
 import { createClinicalRouter } from '../clinical/clinical.routes.js';
+import { createCoverageRouter } from '../clinical/coverage.routes.js';
 import { ORGANIZATION_TYPES, OrganizationModel, specialtiesOf, type Organization } from './organization.model.js';
 import { createOrganizationWithOwner } from './organization.service.js';
 import {
@@ -90,7 +91,8 @@ async function membershipView(tenant: TenantContext) {
       tenant.branchScope.type === 'all'
         ? { type: 'all' as const, branchIds: [] }
         : { type: 'selected' as const, branchIds: tenant.branchScope.branchIds.map(String) },
-    permissions: permissionsFor(tenant.role),
+    permissions: effectivePermissions(tenant.role, tenant.capabilities),
+    capabilities: tenant.capabilities,
     practitionerId: practitionerId ? String(practitionerId) : null,
   };
 }
@@ -248,6 +250,7 @@ export function createOrganizationsRouter(config: AppConfig) {
   });
 
   // Clinical records first: they own /appointments/:id/encounter and /patients/:id/clinical-history.
+  router.use('/:orgId', createCoverageRouter(config));
   router.use('/:orgId', createClinicalRouter());
   router.use('/:orgId/branches', branchesRouter);
   router.use('/:orgId/members', createMembersRouter(config));

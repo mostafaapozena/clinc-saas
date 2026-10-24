@@ -44,10 +44,49 @@ export const PERMISSION_MATRIX = {
   'clinical.encounter.own': ['doctor'],
   // Operational documentation status of an appointment ("none" / "draft" / "finalized"), no text.
   'clinical.documentation_status.read': ['owner', 'admin', 'doctor'],
+  // Clinical coverage (milestone 1): a treating doctor shares their own records with a colleague.
+  'clinical.coverage.grant': ['doctor'],
+  // Granted only through membership capabilities (CAPABILITY_PERMISSIONS), never by role alone.
+  'clinical.coverage.lead': [],
+  'clinical.audit.read': [],
 } as const satisfies Record<string, readonly Role[]>;
 
 export type Permission = keyof typeof PERMISSION_MATRIX;
 export const PERMISSIONS = Object.keys(PERMISSION_MATRIX) as Permission[];
+
+/**
+ * Capabilities are explicit, per-membership grants on top of the role (docs/architecture/CLINICAL.md):
+ * - `clinical_audit`: read the metadata-only clinical audit log (assigned by an owner);
+ * - `clinical_lead`: grant coverage for an unavailable doctor's records. Switched off until the
+ *   owner decides who may hold it (CLINICAL_LEAD_GRANTS_ENABLED, blocker B1).
+ */
+export const CAPABILITIES = ['clinical_audit', 'clinical_lead'] as const;
+export type Capability = (typeof CAPABILITIES)[number];
+
+export const CAPABILITY_PERMISSIONS: Record<Capability, readonly Permission[]> = {
+  clinical_audit: ['clinical.audit.read'],
+  clinical_lead: ['clinical.coverage.lead'],
+};
+
+/** Roles that may hold each capability; a role change drops capabilities that no longer fit. */
+export const CAPABILITY_ROLES: Record<Capability, readonly Role[]> = {
+  clinical_audit: ['owner', 'admin', 'doctor'],
+  clinical_lead: ['doctor'],
+};
+
+export function capabilityAllowed(capability: Capability, role: Role): boolean {
+  return CAPABILITY_ROLES[capability].includes(role);
+}
+
+/** Role permissions plus those of the membership's (still eligible) capabilities. */
+export function can(role: Role, capabilities: readonly Capability[], permission: Permission): boolean {
+  if (hasPermission(role, permission)) return true;
+  return capabilities.some((c) => capabilityAllowed(c, role) && CAPABILITY_PERMISSIONS[c].includes(permission));
+}
+
+export function effectivePermissions(role: Role, capabilities: readonly Capability[]): Permission[] {
+  return PERMISSIONS.filter((permission) => can(role, capabilities, permission));
+}
 
 /**
  * Which identifiable patient/appointment records a role may see, on top of its branch scope:
