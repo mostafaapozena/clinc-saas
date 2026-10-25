@@ -61,6 +61,11 @@ export type DemoEncounter = {
   sections: Partial<Record<'reason' | 'history' | 'examination' | 'assessment' | 'plan', string>>;
   lateEntryReason?: string;
   addenda?: { key: string; reason: string; content: string }[];
+  /**
+   * Specialty template data (validated with the template's current version). Strings
+   * "seed:<encounter key>" are replaced with that seeded record's id.
+   */
+  specialty?: { template: 'dentistry.visit' | 'physiotherapy.assessment' | 'physiotherapy.session' | 'physiotherapy.discharge' | 'ent.visit'; data: Record<string, unknown> };
 };
 export type DemoOrganization = {
   key: string;
@@ -205,24 +210,50 @@ export const DEMO_ORGANIZATIONS: DemoOrganization[] = [
           plan: 'متابعة بعد يوم واحد (مثال تجريبي).',
         },
         addenda: [{ key: 'e01-x1', reason: 'توضيح بعد المراجعة', content: 'إضافة تجريبية توضح أن السجل الأصلي لا يتغير.' }],
+        specialty: {
+          template: 'dentistry.visit',
+          data: {
+            dentition: 'permanent',
+            findings: [{ id: 'seed-f-26', tooth: '26', surfaces: ['O', 'M'], note: 'تسوس تجريبي على السطح الإطباقي (مثال)' }],
+            planItems: [{ id: 'seed-p-26', tooth: '26', description: 'حشو تجميلي (خطة تجريبية)' }],
+          },
+        },
       },
       {
         key: 'e02',
         appointment: 'a04',
         status: 'finalized',
         sections: { reason: 'زيارة متابعة (بيانات تجريبية)', plan: 'متابعة حسب الحاجة (مثال تجريبي).' },
+        specialty: {
+          template: 'dentistry.visit',
+          data: {
+            findings: [{ id: 'seed-f-26b', tooth: '26', surfaces: ['O'], note: 'حشو تجريبي سليم (مثال)' }],
+            procedures: [{ id: 'seed-x-26', tooth: '26', description: 'حشو تجميلي (إجراء تجريبي)' }],
+            planUpdates: [{ itemId: 'seed-p-26', sourceEncounterId: 'seed:e01', status: 'done', note: 'تم (مثال)' }],
+          },
+        },
       },
       {
         key: 'e03',
         appointment: 'a05',
         status: 'draft',
         sections: { reason: 'متابعة اليوم (مسودة تجريبية)', history: 'نص مسودة تجريبي لم يُعتمد بعد.' },
+        specialty: { template: 'dentistry.visit', data: { findings: [{ id: 'seed-f-11', tooth: '11', surfaces: ['B'], note: 'كسر بسيط تجريبي (مثال)' }] } },
       },
       {
         key: 'e04',
         appointment: 'b01',
         status: 'finalized',
         sections: { reason: 'Lower back stiffness (synthetic example)', examination: 'Synthetic examination text.', plan: 'Synthetic home-exercise plan.' },
+        specialty: {
+          template: 'physiotherapy.assessment',
+          data: {
+            limitations: 'Synthetic: bending limited in the morning.',
+            goals: [{ id: 'seed-g-1', text: 'Synthetic goal: walk 30 minutes without stiffness' }],
+            plannedSessions: 8,
+            frequency: 'Twice a week (synthetic)',
+          },
+        },
       },
       {
         key: 'e05',
@@ -230,6 +261,10 @@ export const DEMO_ORGANIZATIONS: DemoOrganization[] = [
         status: 'finalized',
         lateEntryReason: 'Documented after the session (synthetic example)',
         sections: { reason: 'Shoulder follow-up (synthetic example)', assessment: 'Synthetic assessment text.' },
+        specialty: {
+          template: 'physiotherapy.assessment',
+          data: { goals: [{ id: 'seed-g-2', text: 'Synthetic goal: raise the arm above the head' }], plannedSessions: 6, frequency: 'Weekly (synthetic)' },
+        },
       },
     ],
   },

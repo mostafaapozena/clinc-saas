@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import { Router, type Request, type RequestHandler, type Response } from 'express';
 import mongoose, { type ClientSession, type Types } from 'mongoose';
 import { z } from 'zod';
-import { HttpError, conflict, forbidden, isDuplicateKeyError, notFound } from '../../http/errors.js';
+import { HttpError, conflict, forbidden, isDuplicateKeyError, notFound, validationError } from '../../http/errors.js';
 import { parseInput } from '../../http/validate.js';
 import { hasPermission } from '../../tenancy/permissions.js';
 import { parseObjectId, tenantOf, type TenantContext } from '../../tenancy/tenant-context.js';
@@ -16,6 +16,7 @@ import {
   recordAccess,
   resolveClinicalActor,
   treats,
+  visibleEncountersForPatient,
   type ClinicalActor,
 } from './clinical-access.js';
 import { recordClinical, recordClinicalOnce } from './clinical-audit.js';
@@ -28,7 +29,8 @@ import {
   type Encounter,
   type EncounterSection,
 } from './clinical.model.js';
-import { CoverageModel } from './coverage.model.js';
+import { referenceProblems } from './specialty-refs.js';
+import { TEMPLATE_IDS, latestTemplate, parseTemplateData, templateVersion, templatesForSpecialty } from './templates.js';
 
 // Clinical visit records (docs/architecture/CLINICAL.md). Every endpoint:
 //   1. requires `clinical.encounter.own` (otherwise 403, and a denial is recorded);
@@ -69,9 +71,14 @@ const sectionsSchema = z.object(
 const createSchema = z.object({
   sections: sectionsSchema.optional(),
   lateEntryReason: clinicalText(300).pipe(z.string().min(5)).optional(),
+  /** Specialty template (must fit the practitioner's specialty); default: the first that fits. */
+  template: z.enum(TEMPLATE_IDS).optional(),
+  specialtyData: z.unknown().optional(),
 });
 const saveSchema = z.object({
   sections: sectionsSchema,
+  /** Full specialty data of the record's own template version (replaces the saved data). */
+  specialtyData: z.unknown().optional(),
   version: z.number().int().min(0),
 });
 const finalizeSchema = z.object({ version: z.number().int().min(0) });
@@ -138,6 +145,10 @@ async function toEncounterDto(encounter: EncounterLean, session?: ClientSession)
     createdAt: encounter.createdAt.toISOString(),
     lastEditedAt: encounter.lastEditedAt.toISOString(),
     finalizedAt: encounter.finalizedAt ? encounter.finalizedAt.toISOString() : null,
+    // The template id and version the record was created with, and its (clinician-entered) data.
+    specialty: encounter.specialty
+      ? { template: encounter.specialty.template, version: encounter.specialty.version, data: encounter.specialty.data ?? {} }
+      : null,
     addenda: addenda.map((a) => ({
       id: String(a._id),
       reason: a.reason,
@@ -242,11 +253,16 @@ export function createClinicalRouter() {
         patientId: encounter.patientId,
       });
     const canStart = !encounter && (appointment.status === 'in_progress' || appointment.status === 'completed');
+    const practitioner = await PractitionerModel.findOne({ organizationId: tenant.organizationId, _id: appointment.practitionerId })
+      .select('specialtyCode')
+      .lean();
     res.json({
       encounter: encounter ? await toEncounterDto(encounter) : null,
       appointmentStatus: appointment.status,
       canStart,
       lateEntryRequired: canStart && appointment.status === 'completed',
+      /** Specialty templates this record may use (the first is the default); [] = general record only. */
+      templates: canStart ? templatesForSpecialty(practitioner?.specialtyCode ?? '') : [],
     });
   });
 
@@ -259,7 +275,12 @@ export function createClinicalRouter() {
     const appointmentId = parseObjectId(req.params.appointmentId);
     if (!appointmentId) throw notFound();
     const input = parseInput(createSchema, req.body);
-    const creationHash = hash([String(appointmentId), input.sections ?? {}, input.lateEntryReason ?? null]);
+    const creationHash = hash([
+      String(appointmentId),
+      input.sections ?? {},
+      input.lateEntryReason ?? null,
+      ...(input.template !== undefined || input.specialtyData !== undefined ? [input.template ?? null, input.specialtyData ?? null] : []),
+    ]);
 
     const replay = async () => {
       const existing = await EncounterModel.findOne({
@@ -300,6 +321,27 @@ export function createClinicalRouter() {
         } else if (appointment.status !== 'in_progress') {
           throw conflict('ENCOUNTER_NOT_ALLOWED', 'A visit record can be started only for a visit in progress or completed');
         }
+        // Specialty template: from the practitioner's specialty, at its newest version.
+        const practitioner = await PractitionerModel.findOne({ organizationId: tenant.organizationId, _id: appointment.practitionerId })
+          .select('specialtyCode')
+          .session(session)
+          .lean();
+        const allowed = templatesForSpecialty(practitioner?.specialtyCode ?? '');
+        if (input.template && !allowed.includes(input.template)) {
+          throw new HttpError(400, 'TEMPLATE_NOT_ALLOWED', 'This template does not fit the practitioner’s specialty', {
+            template: 'invalid_choice',
+          });
+        }
+        const chosen = input.template ?? allowed[0] ?? null;
+        let specialty: { template: string; version: number; data: Record<string, unknown> } | null = null;
+        if (chosen) {
+          const template = latestTemplate(chosen);
+          const parsed = parseTemplateData(template, input.specialtyData ?? {});
+          if (!parsed.ok) throw validationError(parsed.fields);
+          specialty = { template: template.id, version: template.version, data: parsed.data };
+        } else if (input.specialtyData !== undefined) {
+          throw new HttpError(400, 'TEMPLATE_NOT_ALLOWED', 'This record has no specialty template', { specialtyData: 'invalid' });
+        }
         const now = clock.now();
         const [encounter] = await EncounterModel.create(
           [
@@ -312,6 +354,7 @@ export function createClinicalRouter() {
               authorUserId: tenant.userId,
               status: 'draft',
               sections: { ...emptySections(), ...(input.sections ?? {}) },
+              specialty,
               version: 0,
               lateEntry,
               creationKey: key,
@@ -334,6 +377,7 @@ export function createClinicalRouter() {
             lateEntry: Boolean(lateEntry),
             appointmentStatus: appointment.status,
             sections: sectionNames(input.sections),
+            template: specialty ? `${specialty.template}@${specialty.version}` : null,
           },
           session,
         );
@@ -409,6 +453,18 @@ export function createClinicalRouter() {
         ...current.sections,
         ...input.sections,
       };
+      // Specialty data: validated with the record's own template version, references checked.
+      let specialtyData: Record<string, unknown> | undefined;
+      if (input.specialtyData !== undefined) {
+        const template = current.specialty ? templateVersion(current.specialty.template, current.specialty.version) : null;
+        if (!template)
+          throw new HttpError(400, 'TEMPLATE_NOT_ALLOWED', 'This record has no specialty template', { specialtyData: 'invalid' });
+        const parsed = parseTemplateData(template, input.specialtyData);
+        if (!parsed.ok) throw validationError(parsed.fields);
+        const refs = await referenceProblems(actor, current, template.id, parsed.data, session);
+        if (Object.keys(refs).length > 0) throw validationError(refs);
+        specialtyData = parsed.data;
+      }
       const updated = await EncounterModel.findOneAndUpdate(
         {
           organizationId: tenant.organizationId,
@@ -417,7 +473,7 @@ export function createClinicalRouter() {
           version: input.version,
         },
         {
-          $set: { sections: next, lastEditedAt: clock.now() },
+          $set: { sections: next, lastEditedAt: clock.now(), ...(specialtyData ? { 'specialty.data': specialtyData } : {}) },
           $inc: { version: 1 },
         },
         { session, returnDocument: 'after' },
@@ -434,7 +490,13 @@ export function createClinicalRouter() {
           appointmentId: current.appointmentId,
           patientId: current.patientId,
         },
-        { version: updated.version, sectionsChanged: changed },
+        {
+          version: updated.version,
+          sectionsChanged: changed,
+          ...(specialtyData !== undefined
+            ? { specialtyChanged: JSON.stringify(specialtyData) !== JSON.stringify(current.specialty?.data ?? null) }
+            : {}),
+        },
         session,
       );
       return updated;
@@ -460,11 +522,19 @@ export function createClinicalRouter() {
       if (current.version !== input.version) {
         throw conflict('VERSION_CONFLICT', 'This record was changed in another tab or window', { currentVersion: current.version });
       }
-      const problems = finalizationProblems({
-        ...emptySections(),
-        ...current.sections,
-      });
-      if (problems) throw new HttpError(400, 'ENCOUNTER_INCOMPLETE', 'Some required parts of the record are empty', problems);
+      const problems: Record<string, string> = {
+        ...(finalizationProblems({ ...emptySections(), ...current.sections }) ?? {}),
+      };
+      // Specialty requirements (of the record's own template version) and cross-record references.
+      const template = current.specialty ? templateVersion(current.specialty.template, current.specialty.version) : null;
+      if (template && current.specialty) {
+        const data = current.specialty.data ?? {};
+        Object.assign(problems, template.finalizeProblems(data));
+        const refs = await referenceProblems(actor, current, template.id, data, session);
+        if (Object.keys(refs).length > 0) throw validationError(refs);
+      }
+      if (Object.keys(problems).length > 0)
+        throw new HttpError(400, 'ENCOUNTER_INCOMPLETE', 'Some required parts of the record are empty', problems);
       const appointment = await AppointmentModel.findOne({
         organizationId: tenant.organizationId,
         _id: current.appointmentId,
@@ -615,31 +685,7 @@ export function createClinicalRouter() {
     if (!patientId) throw notFound();
     const actor = await resolveClinicalActor(tenant);
     if (!actor) return deny(tenant, 'not_treating', { patientId });
-    const now = clock.now();
-    const grants = await CoverageModel.find({
-      organizationId: tenant.organizationId,
-      granteePractitionerId: actor.practitionerId,
-      granteeUserId: actor.userId,
-      'scope.patientId': patientId,
-      revokedAt: null,
-      startsAt: { $lte: now },
-      expiresAt: { $gt: now },
-    }).lean();
-    const covered = grants.map((g) =>
-      g.scope.type === 'patient'
-        ? { practitionerId: g.sourcePractitionerId }
-        : { _id: g.scope.encounterId, practitionerId: g.sourcePractitionerId },
-    );
-    const own = { practitionerId: actor.practitionerId, authorUserId: actor.userId };
-    const candidates = await EncounterModel.find({
-      organizationId: tenant.organizationId,
-      patientId,
-      $or: [own, ...covered],
-    })
-      .sort({ createdAt: -1 })
-      .limit(100)
-      .lean<EncounterLean[]>();
-    const encounters = candidates.filter((e) => actor.canAccessBranch(e.branchId));
+    const encounters = await visibleEncountersForPatient(actor, patientId, {}, { limit: 100 });
     const appointments = await AppointmentModel.find({
       organizationId: tenant.organizationId,
       _id: { $in: encounters.map((e) => e.appointmentId) },

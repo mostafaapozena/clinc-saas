@@ -35,6 +35,11 @@ export interface Encounter {
   authorUserId: Types.ObjectId;
   status: EncounterStatus;
   sections: Record<EncounterSection, string>;
+  /**
+   * Specialty template the record was created with (id + version, never changed) and its
+   * clinician-entered data, validated by exactly that version (templates.ts). Null: general record.
+   */
+  specialty: { template: string; version: number; data: Record<string, unknown> } | null;
   /** Optimistic concurrency for draft saves and finalization. */
   version: number;
   /** Set when the record was started after the appointment was completed. */
@@ -88,6 +93,18 @@ const encounterSchema = new Schema<Encounter>(
       examination: sectionField,
       assessment: sectionField,
       plan: sectionField,
+    },
+    specialty: {
+      type: new Schema(
+        {
+          template: { type: String, required: true },
+          version: { type: Number, required: true },
+          // Validated by the template version before every write (bounded sizes there).
+          data: { type: Schema.Types.Mixed, default: () => ({}) },
+        },
+        { _id: false, minimize: false },
+      ),
+      default: null,
     },
     version: { type: Number, required: true, default: 0 },
     lateEntry: {
