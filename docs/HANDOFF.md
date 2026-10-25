@@ -23,8 +23,8 @@ Follow [PLATFORM_COMPLETION_PLAN.md](PLATFORM_COMPLETION_PLAN.md): six milestone
 stacked on the previous one, each its own PR (never merged by the agent). Milestones 1
 (`phase-6/clinical-continuity`, PR [#7](https://github.com/mostafaapozena/clinc-saas/pull/7)) and 2 (`phase-7/specialty-workspaces`, PR [#8](https://github.com/mostafaapozena/clinc-saas/pull/8)) are in
 review, as are milestone 3 (`phase-8/clinic-finance`, PR [#9](https://github.com/mostafaapozena/clinc-saas/pull/9)) and milestone 4
-(`phase-9/subscriptions-operator`, PR [#10](https://github.com/mostafaapozena/clinc-saas/pull/10)); next is milestone 5 (support and operations) on
-`phase-10/support-operations` from milestone 4's head. Open owner decisions are in
+(`phase-9/subscriptions-operator`, PR [#10](https://github.com/mostafaapozena/clinc-saas/pull/10)) and milestone 5 (`phase-10/support-operations`,
+PR _(to be opened)_); next is milestone 6 (integrated acceptance) on `phase-11/acceptance` from milestone 5's head. Open owner decisions are in
 the plan's blocker register (B1 = clinical-lead authority, Q17).
 
 ## Phase 5 state (2026-10-25)

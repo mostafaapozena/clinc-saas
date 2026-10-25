@@ -10,7 +10,7 @@ Implemented in `apps/api/src/auth/`. Covered by `apps/api/test/auth.test.ts` and
 - Passwords: 10–128 characters, hashed with **Argon2id** via `@node-rs/argon2`
   (19 MiB memory, 2 iterations, 1 lane — the OWASP baseline). Hashes are `select: false` and the
   only user shape returned by the API is `toUserDto` (no password fields).
-- `emailVerifiedAt` stays `null`: there is no email infrastructure, so no address is verified.
+- `emailVerifiedAt` is set when the user opens an email-verification link (milestone 5, [ACCOUNT_EMAIL.md](ACCOUNT_EMAIL.md)). Nothing requires verification yet.
   Password recovery does not exist. Both are production gaps (see PROGRESS.md).
 - Registration reveals that an email is taken (`409 EMAIL_UNAVAILABLE`) — unavoidable without
   email verification; registration is rate limited. Login never reveals it: wrong password and
@@ -27,7 +27,10 @@ Implemented in `apps/api/src/auth/`. Covered by `apps/api/test/auth.test.ts` and
   in production (startup fails otherwise); it is `false` for local `http://127.0.0.1` tests. The
   Codespaces preview is HTTPS, so cookies there also work with `Secure` enabled.
 - Lifetime: absolute expiry `SESSION_TTL_HOURS` (default 168 h), checked on every request; a TTL
-  index removes expired documents. No sliding/idle timeout yet.
+  index removes expired documents. Since milestone 5 sessions also end after `SESSION_IDLE_MINUTES` without a request (default 120;
+  `lastSeenAt` updated at most once a minute); idle or expired sessions are deleted when next presented.
+  Users list their sessions (device hint from a truncated User-Agent) and sign out one or all others
+  (`/api/v1/me/sessions`); a password reset ends all of them.
 - **Rotation**: login and registration always create a new session and delete the one the
   request arrived with. **Logout** deletes the session server-side; a copied cookie stops
   working immediately.

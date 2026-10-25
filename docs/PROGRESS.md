@@ -15,10 +15,30 @@ Decisions: [DECISIONS.md](DECISIONS.md). Next phase: [NEXT_PHASE_BRIEF.md](NEXT_
 | Planning docs | [#4](https://github.com/mostafaapozena/clinc-saas/pull/4) | `d8b93b9` | Merged 2026-10-20 (docs only, CI green) |
 | 4 — public site & onboarding | [#5](https://github.com/mostafaapozena/clinc-saas/pull/5) | — | Open, `phase-4/public-onboarding` → `main`; awaiting owner review of the public copy and the raclinic identity; not merged |
 | 5 — clinical visit records | [#6](https://github.com/mostafaapozena/clinc-saas/pull/6) | — | Open, `phase-5/visit-records` → `phase-4/public-onboarding` (stacked); awaiting owner review and clinician review; not merged |
+| M5 — support & operations | _(to be opened)_ | — | Open, `phase-10/support-operations` → `phase-9/subscriptions-operator` (stacked); awaiting review; email via development sink only; not merged |
 | M4 — subscriptions & operator console | [#10](https://github.com/mostafaapozena/clinc-saas/pull/10) | — | Open, `phase-9/subscriptions-operator` → `phase-8/clinic-finance` (stacked); awaiting review; payments simulated, enforcement off; not merged |
 | M3 — clinic finances | [#9](https://github.com/mostafaapozena/clinc-saas/pull/9) | — | Open, `phase-8/clinic-finance` → `phase-7/specialty-workspaces` (stacked); awaiting review; tax/e-invoicing not included; not merged |
 | M2 — specialty workspaces | [#8](https://github.com/mostafaapozena/clinc-saas/pull/8) | — | Open, `phase-7/specialty-workspaces` → `phase-6/clinical-continuity` (stacked); awaiting review and clinician review; not merged |
 | M1 — clinical coverage & audit view | [#7](https://github.com/mostafaapozena/clinc-saas/pull/7) | — | Open, `phase-6/clinical-continuity` → `phase-5/visit-records` (stacked); awaiting review and decision Q17; not merged |
+
+## Platform completion — milestone 5: support and operational readiness (in review)
+
+Branch `phase-10/support-operations` (PR _(to be opened)_), stacked on milestone 4. Design:
+[SUPPORT.md](architecture/SUPPORT.md), [ACCOUNT_EMAIL.md](architecture/ACCOUNT_EMAIL.md),
+[operations/RUNBOOK.md](operations/RUNBOOK.md).
+
+Delivered: in-app support requests (tenant-isolated, conversation, statuses) and the operator
+queue; static FAQ labelled as not AI; configured-only contact details; mail boundary with a
+development sink; password recovery, email verification and invitations with hashed single-use
+expiring tokens and non-enumerating responses; idle session timeout and session list; liveness and
+readiness, graceful shutdown, log redaction, monitoring boundary; logical backup and a **restore
+drill performed** into an isolated database (36 collections verified); non-destructive retention
+report; dependency audit (one high advisory fixed in-range: body-parser 2.4.0); runbook and MFA
+options. Also fixed: blank values in `.env` (e.g. `BILLING_SIMULATOR_SECRET=`) now count as unset.
+
+Evidence (Codespace): `support-ops.test.ts` 16 tests; web `Support.test.tsx` 8 tests;
+`e2e/support.spec.ts` 3 journeys (password reset via the mail sink with single-use link, support
+request answered by an operator, mobile help page). Full `npm run verify` and CI: see the PR.
 
 ## Platform completion — milestone 4: subscriptions and operator console (in review)
 
@@ -354,8 +374,8 @@ management, bilingual shell (Arabic/RTL/Alexandria, English/LTR/Inter). Details:
   incident response, secrets management.
 - Legal/regulatory review for processing patient administrative data; retention and deletion
   policy; data-subject requests.
-- Email verification, password recovery and invitations (no email provider chosen).
-- MFA, idle session timeout, session management UI.
+- A real email provider for verification, recovery and invitations (flows built; development sink only).
+- MFA (options documented, not built).
 - Shared rate-limit store for multiple instances; abuse monitoring.
 - Audit viewer, retention and export; ownership transfer, organization deletion, member removal.
 - Patient duplicate reconciliation policy; time-zone migration workflow.
