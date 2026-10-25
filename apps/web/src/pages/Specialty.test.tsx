@@ -60,7 +60,8 @@ describe('dental visit', () => {
       },
     });
     renderRoute(`/app/${ORG}/appointments/a1/record`);
-    fireEvent.click(await screen.findByRole('button', { name: 'السن 16' }));
+    // The record page loads the lazy workspace chunk and several requests; allow for a busy machine.
+    fireEvent.click(await screen.findByRole('button', { name: 'السن 16' }, { timeout: 5000 }));
     const panel = await screen.findByTestId('tooth-panel');
     expect(within(panel).getByText('Earlier synthetic finding')).toBeInTheDocument();
     fireEvent.click(within(panel).getByLabelText('إطباقي / قاطع'));

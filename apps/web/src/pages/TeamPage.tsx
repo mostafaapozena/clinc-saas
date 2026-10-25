@@ -3,6 +3,7 @@ import { useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { BranchScopeFields } from '../components/BranchScopeFields';
 import { PageHeader } from '../components/PageHeader';
+import { InvitationsCard } from '../components/account';
 import { EmptyState, ErrorState, Field, Loading, Notice } from '../components/ui';
 import { describedBy } from '../lib/a11y';
 import { api } from '../lib/api';
@@ -31,6 +32,7 @@ export function TeamPage() {
       <PageHeader title={t('team.title')} subtitle={t('team.subtitle')} />
       {notice && <Notice kind="success">{notice}</Notice>}
       {can('member.add') && <AddMemberForm onAdded={(name) => setNotice(t('team.added', { name }))} />}
+      {can('member.add') && <InvitationsCard />}
 
       <section className="card" aria-labelledby="members-title">
         <h2 id="members-title">{t('team.members')}</h2>

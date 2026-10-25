@@ -1794,3 +1794,11 @@ input[aria-invalid='true'] {
 .badge--subscription-past_due, .badge--subscription-restricted, .badge--checkout-failed { background: #fdf0d9; color: #7a4b00; }
 .badge--subscription-canceled, .badge--subscription-expired, .badge--subscription-none, .badge--checkout-expired, .badge--plan-status-retired { background: #eceff3; color: #3d4654; }
 .badge--checkout-open, .badge--plan-status-draft { background: #e6effc; color: #1d4b8f; }
+
+/* Support (milestone 5) */
+.badge--support-open { background: #e6effc; color: #1d4b8f; }
+.badge--support-answered { background: #e3f4ea; color: #145c32; }
+.badge--support-closed { background: #eceff3; color: #3d4654; }
+.support-message--operator { border-inline-start: 3px solid #1f2a44; padding-inline-start: 0.75rem; }
+.dev-mail-text { white-space: pre-wrap; word-break: break-word; font-size: 0.875rem; }
+details > summary { cursor: pointer; font-weight: 600; padding-block: 0.25rem; }

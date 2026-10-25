@@ -73,6 +73,15 @@ const OperatorInquiriesPage = named(operatorConsole, 'OperatorInquiriesPage');
 const OperatorInquiryPage = named(operatorConsole, 'OperatorInquiryPage');
 const OperatorOperatorsPage = named(operatorConsole, 'OperatorOperatorsPage');
 const OperatorAuditPage = named(operatorConsole, 'OperatorAuditPage');
+const OperatorSupportPage = named(operatorConsole, 'OperatorSupportPage');
+const OperatorSupportRequestPage = named(operatorConsole, 'OperatorSupportRequestPage');
+const OperatorDevMailPage = named(operatorConsole, 'OperatorDevMailPage');
+const ForgotPasswordPage = named(account, 'ForgotPasswordPage');
+const ResetPasswordPage = named(account, 'ResetPasswordPage');
+const VerifyEmailPage = named(account, 'VerifyEmailPage');
+const AcceptInvitationPage = named(account, 'AcceptInvitationPage');
+const SupportPage = named(workspace, 'SupportPage');
+const SupportRequestPage = named(workspace, 'SupportRequestPage');
 
 const load = (element: ReactNode) => <Loadable>{element}</Loadable>;
 
@@ -97,6 +106,11 @@ export const routes: RouteObject[] = [
   // "Create your clinic workspace": registration (or straight to onboarding when signed in).
   { path: '/start', element: load(<StartPage />) },
   { path: '/status', element: load(<StatusPage />) },
+  // Links from emails: they work signed in or out.
+  { path: '/forgot-password', element: load(<ForgotPasswordPage />) },
+  { path: '/reset-password', element: load(<ResetPasswordPage />) },
+  { path: '/verify-email', element: load(<VerifyEmailPage />) },
+  { path: '/invitations/accept', element: load(<AcceptInvitationPage />) },
   {
     element: <PublicOnly />,
     children: [
@@ -138,6 +152,8 @@ export const routes: RouteObject[] = [
           guarded('team', 'member.read', <TeamPage />),
           guarded('settings', 'organization.update', <SettingsPage />),
           guarded('subscription', 'subscription.read', <SubscriptionPage />),
+          guarded('support', 'support.request', <SupportPage />),
+          guarded('support/:requestId', 'support.request', <SupportRequestPage />),
           guarded('subscription/checkout/:checkoutId', 'subscription.manage', <SimulatorCheckoutPage />),
           { path: 'profile', element: load(<ProfilePage />) },
           { path: '*', element: load(<NotFoundInShell />) },
@@ -157,6 +173,9 @@ export const routes: RouteObject[] = [
       { path: 'inquiries/:reference', element: load(<OperatorInquiryPage />) },
       { path: 'operators', element: load(<OperatorOperatorsPage />) },
       { path: 'audit', element: load(<OperatorAuditPage />) },
+      { path: 'support', element: load(<OperatorSupportPage />) },
+      { path: 'support/:reference', element: load(<OperatorSupportRequestPage />) },
+      { path: 'dev-mail', element: load(<OperatorDevMailPage />) },
       { path: '*', element: <NotFoundPage /> },
     ],
   },

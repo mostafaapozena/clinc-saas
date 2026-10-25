@@ -41,8 +41,8 @@ test('a branch-restricted doctor only sees permitted pages and branches', async 
 
   const nav = page.getByRole('navigation');
   // Phase 3: a doctor also gets their appointments, the queue and their own schedule — not the registry or team;
-  // milestone 1 adds clinical coverage (records shared between doctors).
-  await expect(nav.getByRole('link')).toHaveText(['الرئيسية', 'المواعيد', 'قائمة الانتظار', 'جدولي', 'التغطية السريرية', 'الفروع', 'الملف الشخصي']);
+  // milestone 1 adds clinical coverage (records shared between doctors); milestone 5 adds help & support.
+  await expect(nav.getByRole('link')).toHaveText(['الرئيسية', 'المواعيد', 'قائمة الانتظار', 'جدولي', 'التغطية السريرية', 'الفروع', 'المساعدة والدعم', 'الملف الشخصي']);
   await expect(page.getByTestId('stat-members')).toHaveCount(0);
   await expect(page.locator('#branch-switcher option')).toHaveText(['فرع المعادي']);
 
@@ -70,8 +70,10 @@ test('an owner manages the team: add an existing user, change role and branches,
 
   await page.locator('#member-email').fill('newcomer@demo.test');
   await page.locator('#member-role').selectOption('receptionist');
-  await page.getByLabel('فروع محددة').check();
-  await page.getByLabel('فرع الإسكندرية').check();
+  // The team page also has the invitation form (milestone 5); scope to "add a registered member".
+  const addForm = page.getByRole('region', { name: 'إضافة عضو مسجَّل' });
+  await addForm.getByLabel('فروع محددة').check();
+  await addForm.getByLabel('فرع الإسكندرية').check();
   await page.getByRole('button', { name: 'إضافة العضو' }).click();
   await expect(page.getByRole('status').filter({ hasText: 'تمت إضافة' })).toBeVisible();
 
