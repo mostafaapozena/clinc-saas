@@ -26,7 +26,7 @@ async function fetchSession(): Promise<SessionData | null> {
 export function createQueryClient() {
   // Any 401 means the session ended (logout elsewhere, expiry): drop to signed-out state.
   const onError = (error: unknown) => {
-    if (error instanceof ApiError && error.status === 401) {
+    if (error instanceof ApiError && error.status === 401 && !('operator' in error)) {
       setCsrfToken(null);
       client.setQueryData(SESSION_KEY, null);
     }

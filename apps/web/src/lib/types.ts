@@ -37,7 +37,9 @@ export type Permission =
   | 'finance.discount.apply'
   | 'finance.adjustment.manage'
   | 'finance.account.read'
-  | 'finance.report.read';
+  | 'finance.report.read'
+  | 'subscription.read'
+  | 'subscription.manage';
 
 /** Explicit per-membership grants on top of the role (assigned by owners). */
 export type Capability = 'clinical_audit' | 'clinical_lead';

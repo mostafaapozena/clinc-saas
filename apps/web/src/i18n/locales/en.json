@@ -64,7 +64,8 @@
     "mySchedule": "My schedule",
     "coverage": "Clinical coverage",
     "clinicalAudit": "Clinical audit",
-    "finance": "Finance"
+    "finance": "Finance",
+    "subscription": "Subscription"
   },
   "shell": {
     "skipToContent": "Skip to main content",
@@ -386,7 +387,26 @@
     "OVER_CREDIT": "A credit note cannot exceed the open balance.",
     "OVER_REFUND": "A refund cannot exceed the unallocated part of the receipt.",
     "PAYMENT_REVERSED": "This receipt was reversed.",
-    "PAYMENT_REFUNDED": "A receipt with refunds cannot be reversed."
+    "PAYMENT_REFUNDED": "A receipt with refunds cannot be reversed.",
+    "PLAN_CODE_TAKEN": "A plan with this code exists. Create a new version instead.",
+    "PLAN_NOT_DRAFT": "Only a draft plan can be changed.",
+    "PLAN_CHANGED": "The plan changed meanwhile. Reload and try again.",
+    "PLAN_DRAFT_EXISTS": "A draft of this plan already exists.",
+    "PLAN_NOT_ACTIVE": "Only an active plan can be retired.",
+    "SUBSCRIPTION_EXISTS": "Cancel the current subscription before granting another.",
+    "SUBSCRIPTION_CHANGED": "The subscription changed meanwhile. Reload and try again.",
+    "END_IN_PAST": "The end date must be in the future.",
+    "BILLING_NOT_CONFIGURED": "Online subscription payments are not configured.",
+    "PRICE_NOT_AVAILABLE": "This plan has no price for that currency and period.",
+    "SUBSCRIPTION_RESTRICTED": "The subscription is restricted. Contact raclinic support.",
+    "ALREADY_SUBSCRIBED": "The organization already has a commercial subscription. Plan changes are not available yet.",
+    "CHECKOUT_CLOSED": "This checkout is closed.",
+    "NO_PROVIDER_SUBSCRIPTION": "This organization has no simulator subscription.",
+    "PROVIDER_SUBSCRIPTION_CANCELED": "The simulator subscription is canceled.",
+    "CANNOT_CHANGE_SELF": "You cannot change your own operator account.",
+    "LAST_PLATFORM_ADMIN": "At least one active platform administrator must remain.",
+    "SUBSCRIPTION_INACTIVE": "The organization's subscription is not active, so this cannot be added now. Existing data and work are not affected.",
+    "PLAN_LIMIT_REACHED": "The subscription plan limit for this is reached. Existing data and work are not affected."
   },
   "validation": {
     "required": "This field is required.",
@@ -1514,6 +1534,269 @@
       "charged": "Charged: {{service}}",
       "confirm": "I confirm this should be charged.",
       "create": "Create charge"
+    }
+  },
+  "subscription": {
+    "title": "Subscription",
+    "subtitle": "What this organization has with raclinic. Separate from the clinic's own finances.",
+    "simulatorNotice": "Payments on this page use a payment SIMULATOR. No real money is taken and no card details are ever requested.",
+    "noProvider": "Online subscription payments are not configured in this environment.",
+    "current": "Current subscription",
+    "none": "No subscription is recorded for this organization.",
+    "kindLabel": "Type",
+    "kind": {
+      "development_grant": "Development grant",
+      "commercial": "Commercial subscription"
+    },
+    "kindHint": {
+      "development_grant": "Free access granted by raclinic for development, pilots or demonstrations. It is not a commercial subscription.",
+      "commercial": "Started through a confirmed payment-provider event."
+    },
+    "statusLabel": "Status",
+    "status": {
+      "active": "Active",
+      "past_due": "Payment overdue",
+      "restricted": "Restricted",
+      "canceled": "Canceled",
+      "expired": "Ended",
+      "none": "No subscription"
+    },
+    "plan": "Plan",
+    "endsAt": "Ends",
+    "paidThrough": "Paid through",
+    "noEnd": "No end date",
+    "price": "Price",
+    "simulatedPayment": "simulated payment",
+    "restrictionReason": "Restriction reason",
+    "dataSafe": "A subscription status never deletes data and never blocks reading existing records.",
+    "usage": "Usage",
+    "resource": {
+      "branches": "Active branches",
+      "practitioners": "Active doctors",
+      "members": "Active members"
+    },
+    "usageUnlimited": "{{count}} · not limited by the plan",
+    "usageOf": "{{count}} of {{limit}}",
+    "enforcement": {
+      "off": "Plan limits and statuses are not enforced in this environment (the policy is still to be decided).",
+      "log": "Plan limits are only recorded for review in this environment; nothing is blocked.",
+      "on": "Plan limits apply to adding branches, doctors and members. Nothing else is blocked."
+    },
+    "plans": "Available plans",
+    "noPlans": "No plans are offered yet.",
+    "noPrice": "No price set — available only as a development grant.",
+    "noLimits": "no limits",
+    "limitsSummary": "Limits: {{summary}}",
+    "limitPart": {
+      "branches": "{{count}} branches",
+      "practitioners": "{{count}} doctors",
+      "members": "{{count}} members"
+    },
+    "interval": {
+      "month": "month",
+      "year": "year"
+    },
+    "subscribeSimulated": "Subscribe (simulator)",
+    "checkoutTitle": "Simulated checkout",
+    "simulatorBanner": "PAYMENT SIMULATOR —",
+    "simulatorBannerBody": "this page stands in for a payment provider. No real payment is made, no money moves and no card details are requested.",
+    "checkoutSummary": "Summary",
+    "checkoutExpires": "Open until",
+    "checkoutStatus": {
+      "open": "Open",
+      "completed": "Completed",
+      "failed": "Failed",
+      "expired": "Expired"
+    },
+    "simulateSuccess": "Simulate a successful payment",
+    "simulateFailure": "Simulate a failed payment",
+    "checkoutResult": {
+      "completed": "The simulated payment succeeded. The subscription was updated through a signed provider event.",
+      "failed": "The simulated payment failed. The subscription did not change.",
+      "expired": "This checkout expired."
+    },
+    "backToSubscription": "Back to subscription"
+  },
+  "operator": {
+    "consoleLabel": "Operator console",
+    "footer": "Platform operators only · development environment",
+    "loginTitle": "Operator sign-in",
+    "loginSubtitle": "For raclinic platform operators. Clinic staff sign in from the main sign-in page.",
+    "noRegistration": "Operator accounts are created by raclinic administrators only. There is no registration.",
+    "navLabel": "Operator navigation",
+    "nav": {
+      "overview": "Overview",
+      "organizations": "Organizations",
+      "plans": "Plans",
+      "inquiries": "Inquiries",
+      "operators": "Operators",
+      "audit": "Platform audit"
+    },
+    "roles": {
+      "platform_admin": "Platform administrator",
+      "support": "Support"
+    },
+    "privacyRule": "This console shows organizations' metadata only. Patients, appointments, clinical records and clinic finances are not accessible here, and operators cannot act as clinic users.",
+    "overview": {
+      "organizations": "organizations",
+      "newInquiries": "new inquiries",
+      "health": "Health and configuration",
+      "database": "Database",
+      "db": {
+        "up": "Up",
+        "down": "Down"
+      },
+      "billingProvider": "Payment provider",
+      "provider": {
+        "none": "None configured",
+        "simulator": "Simulator (no real payments)"
+      },
+      "enforcement": "Enforcement",
+      "idle": "Operator idle sign-out",
+      "idleMinutes": "after {{count}} minutes"
+    },
+    "reconcile": {
+      "title": "Reconciliation",
+      "hint": "Compares subscriptions with the payment provider's own records. A dry run changes nothing.",
+      "dryRun": "Check (dry run)",
+      "apply": "Apply provider state",
+      "none": "No differences found.",
+      "applied": "applied",
+      "notApplied": "not applied",
+      "action": {
+        "change_status": "Status differs",
+        "update_period": "Period differs",
+        "missing_at_provider": "Missing at provider"
+      }
+    },
+    "organizations": {
+      "subtitle": "Metadata and subscriptions only.",
+      "search": "Search by organization name",
+      "searchButton": "Search",
+      "none": "No organizations found.",
+      "name": "Organization",
+      "created": "Created"
+    },
+    "organization": {
+      "metadataOnly": "Organization metadata — no patient or clinical data.",
+      "back": "Back to organizations",
+      "metadata": "Metadata",
+      "timeZone": "Time zone",
+      "specialties": "Specialties",
+      "branches": "Branches",
+      "owners": "Owners (contact masked)",
+      "noSubscription": "No subscription.",
+      "reason": "Reason",
+      "reasonHint": "Required, recorded in the history and the platform audit.",
+      "restrict": "Restrict",
+      "reinstate": "Reinstate",
+      "cancel": "Cancel subscription",
+      "restrictHint": "Restricting or canceling never deletes data and never blocks reading existing records. Canceling a commercial subscription here does not refund or stop anything at the payment provider.",
+      "grantTitle": "Development grant",
+      "grantHint": "Free access for development, pilots or demonstrations. It is labelled as a grant everywhere and is never a commercial subscription.",
+      "choosePlan": "Choose an active plan",
+      "grantEnd": "Ends on (optional)",
+      "grantEndHint": "Leave empty for no end date.",
+      "grantNote": "Note",
+      "grant": "Grant",
+      "history": "Subscription history",
+      "noHistory": "No history yet.",
+      "events": "Payment-provider events",
+      "noEvents": "No provider events."
+    },
+    "simulator": {
+      "title": "Payment simulator",
+      "hint": "Provider-side events for testing. Without delivery, the change happens only at the simulated provider (a lost webhook) and reconciliation must find it.",
+      "emit": "Deliver the webhook",
+      "renew": "Renew",
+      "fail_payment": "Fail a payment",
+      "cancel": "Cancel at provider"
+    },
+    "actor": {
+      "operator": "Operator",
+      "provider": "Payment provider",
+      "system": "System",
+      "owner": "Clinic owner"
+    },
+    "outcome": {
+      "applied": "Applied",
+      "ignored_stale": "Ignored (out of order)",
+      "ignored_unknown": "Ignored (unknown)",
+      "rejected": "Rejected"
+    },
+    "plans": {
+      "subtitle": "Versioned plans. Drafts can be edited; active plans are frozen and changed through a new version.",
+      "noInventedTerms": "raclinic has not decided prices, trial periods or limits. Plans here are configuration only; leave prices empty until they are decided.",
+      "create": "New draft plan",
+      "code": "Code",
+      "codeHint": "Lowercase letters, digits and hyphens.",
+      "nameAr": "Name (Arabic)",
+      "nameEn": "Name (English)",
+      "prices": "Prices",
+      "pricesHint": "Optional. A plan without prices can only be used for development grants.",
+      "currency": "Currency",
+      "interval": "Period",
+      "amount": "Amount",
+      "addPrice": "Add price",
+      "removePrice": "Remove",
+      "limits": "Limits",
+      "limitsHint": "Leave empty for no limit.",
+      "note": "Internal note",
+      "saveDraft": "Save draft",
+      "edit": "Edit",
+      "activate": "Activate",
+      "retire": "Retire",
+      "newVersion": "New version",
+      "badAmount": "Enter amounts like 150 or 150.50.",
+      "badLimit": "Limits must be whole numbers.",
+      "status": {
+        "draft": "Draft",
+        "active": "Active",
+        "retired": "Retired"
+      }
+    },
+    "inquiries": {
+      "subtitle": "Custom-ownership requests from the public website. Contact details are masked until revealed.",
+      "filter": "Filter by status",
+      "all": "All",
+      "none": "No inquiries.",
+      "status": {
+        "new": "New",
+        "reviewed": "Reviewed",
+        "closed": "Closed"
+      },
+      "markAs": {
+        "new": "Mark as new",
+        "reviewed": "Mark as reviewed",
+        "closed": "Close"
+      },
+      "back": "Back to inquiries",
+      "received": "Received",
+      "statusLabel": "Status",
+      "country": "Country",
+      "interest": "Interest",
+      "description": "Description",
+      "contact": "Contact",
+      "reveal": "Reveal contact details",
+      "revealHint": "Revealing contact details is recorded in the platform audit."
+    },
+    "operators": {
+      "subtitle": "Operator accounts are created with the operators command, never here.",
+      "neverSignedIn": "never signed in",
+      "status": {
+        "active": "Active",
+        "suspended": "Suspended"
+      },
+      "suspend": "Suspend",
+      "reactivate": "Reactivate"
+    },
+    "audit": {
+      "subtitle": "Every operator action and subscription change. Read-only.",
+      "time": "Time",
+      "actor": "By",
+      "action": "Action",
+      "target": "Target",
+      "more": "Load more"
     }
   }
 }

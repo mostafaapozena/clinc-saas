@@ -17,4 +17,5 @@ export { PractitionersPage } from '../pages/PractitionersPage';
 export { ProfilePage } from '../pages/ProfilePage';
 export { QueuePage } from '../pages/QueuePage';
 export { SettingsPage } from '../pages/SettingsPage';
+export { SimulatorCheckoutPage, SubscriptionPage } from '../pages/SubscriptionPage';
 export { TeamPage } from '../pages/TeamPage';
