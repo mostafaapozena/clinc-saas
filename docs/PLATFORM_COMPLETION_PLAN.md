@@ -119,7 +119,7 @@ its diff re-checked and CI re-run.
 
 ## M5 — Support and operational readiness
 
-**Status: implemented and verified in the Codespace; PR _(to be opened)_ in review. Email via development sink only (B7); MFA documented, not built (B6); production backups/monitoring depend on hosting (B8).**
+**Status: implemented and verified in the Codespace; PR [#11](https://github.com/mostafaapozena/clinc-saas/pull/11) in review. Email via development sink only (B7); MFA documented, not built (B6); production backups/monitoring depend on hosting (B8).**
 
 - **Outcome:** customers can ask for help in the app and reset their password; operators work a
   support queue; the platform has tested backups and runbooks.

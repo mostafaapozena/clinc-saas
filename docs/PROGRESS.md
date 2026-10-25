@@ -15,7 +15,7 @@ Decisions: [DECISIONS.md](DECISIONS.md). Next phase: [NEXT_PHASE_BRIEF.md](NEXT_
 | Planning docs | [#4](https://github.com/mostafaapozena/clinc-saas/pull/4) | `d8b93b9` | Merged 2026-10-20 (docs only, CI green) |
 | 4 — public site & onboarding | [#5](https://github.com/mostafaapozena/clinc-saas/pull/5) | — | Open, `phase-4/public-onboarding` → `main`; awaiting owner review of the public copy and the raclinic identity; not merged |
 | 5 — clinical visit records | [#6](https://github.com/mostafaapozena/clinc-saas/pull/6) | — | Open, `phase-5/visit-records` → `phase-4/public-onboarding` (stacked); awaiting owner review and clinician review; not merged |
-| M5 — support & operations | _(to be opened)_ | — | Open, `phase-10/support-operations` → `phase-9/subscriptions-operator` (stacked); awaiting review; email via development sink only; not merged |
+| M5 — support & operations | [#11](https://github.com/mostafaapozena/clinc-saas/pull/11) | — | Open, `phase-10/support-operations` → `phase-9/subscriptions-operator` (stacked); awaiting review; email via development sink only; not merged |
 | M4 — subscriptions & operator console | [#10](https://github.com/mostafaapozena/clinc-saas/pull/10) | — | Open, `phase-9/subscriptions-operator` → `phase-8/clinic-finance` (stacked); awaiting review; payments simulated, enforcement off; not merged |
 | M3 — clinic finances | [#9](https://github.com/mostafaapozena/clinc-saas/pull/9) | — | Open, `phase-8/clinic-finance` → `phase-7/specialty-workspaces` (stacked); awaiting review; tax/e-invoicing not included; not merged |
 | M2 — specialty workspaces | [#8](https://github.com/mostafaapozena/clinc-saas/pull/8) | — | Open, `phase-7/specialty-workspaces` → `phase-6/clinical-continuity` (stacked); awaiting review and clinician review; not merged |
@@ -23,7 +23,7 @@ Decisions: [DECISIONS.md](DECISIONS.md). Next phase: [NEXT_PHASE_BRIEF.md](NEXT_
 
 ## Platform completion — milestone 5: support and operational readiness (in review)
 
-Branch `phase-10/support-operations` (PR _(to be opened)_), stacked on milestone 4. Design:
+Branch `phase-10/support-operations` (PR [#11](https://github.com/mostafaapozena/clinc-saas/pull/11)), stacked on milestone 4. Design:
 [SUPPORT.md](architecture/SUPPORT.md), [ACCOUNT_EMAIL.md](architecture/ACCOUNT_EMAIL.md),
 [operations/RUNBOOK.md](operations/RUNBOOK.md).
 
