@@ -5,6 +5,7 @@ import { Link, useBlocker, useParams } from 'react-router';
 import { PageHeader } from '../components/PageHeader';
 import { DocumentationBadge } from '../components/clinical';
 import { ShareRecord } from '../components/coverage';
+import { ClinicalCharges } from '../components/finance';
 import { SpecialtyEditor, SpecialtyView } from '../components/specialty';
 import { isEditable } from '../lib/templates';
 import { TimeZoneRequired } from '../components/scheduling';
@@ -96,6 +97,7 @@ export function EncounterPage() {
       {!encounter && <StartRecord view={view} appointmentId={a.id} />}
       {encounter?.status === 'draft' && <DraftEditor encounter={encounter} reload={async () => (await record.refetch()).data?.encounter ?? null} />}
       {encounter?.status === 'finalized' && <FinalizedRecord encounter={encounter} onUpdated={update} />}
+      {encounter?.status === 'finalized' && <ClinicalCharges encounter={encounter} />}
       {encounter && <ShareRecord encounter={encounter} />}
     </>
   );

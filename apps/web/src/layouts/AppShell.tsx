@@ -114,6 +114,7 @@ function Shell({ orgId, detail, branches }: { orgId: string; detail: OrgDetail; 
     ...(value.can('practitioner.read')
       ? [{ to: `/app/${orgId}/practitioners`, icon: 'stethoscope' as const, label: ownScheduleOnly ? t('nav.mySchedule') : t('nav.practitioners') }]
       : []),
+    ...(value.can('finance.account.read') ? [{ to: `/app/${orgId}/finance`, icon: 'wallet' as const, label: t('nav.finance') }] : []),
     ...(value.can('clinical.encounter.own') ? [{ to: `/app/${orgId}/coverage`, icon: 'share' as const, label: t('nav.coverage') }] : []),
     ...(value.can('clinical.audit.read') ? [{ to: `/app/${orgId}/clinical-audit`, icon: 'shield' as const, label: t('nav.clinicalAudit') }] : []),
     { to: `/app/${orgId}/branches`, icon: 'building', label: t('nav.branches') },

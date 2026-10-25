@@ -483,8 +483,8 @@ export function createFinanceRouter() {
     if (!encounter || !treats(actor, encounter)) throw notFound();
     const data = (encounter.specialty?.data ?? {}) as { procedures?: { id: string }[]; planItems?: { id: string }[] };
     const items = input.kind === 'procedure' ? data.procedures : data.planItems;
-    // Plan items are billable once recorded in a finalized visit; procedures from any of the doctor's own records.
-    if (!items?.some((i) => i.id === input.itemId) || (input.kind === 'plan_item' && encounter.status !== 'finalized')) {
+    // Only items of a finalized record can be charged (a draft's items may still be removed).
+    if (!items?.some((i) => i.id === input.itemId) || encounter.status !== 'finalized') {
       throw validationError({ itemId: 'invalid_reference' });
     }
     const currency = await organizationCurrency(tenant);

@@ -82,6 +82,8 @@ its diff re-checked and CI re-run.
 
 ## M3 — Clinic financial operations
 
+**Status: implemented and verified in the Codespace; PR _(to be opened)_ in review. Tax / e-invoicing not included.**
+
 - **Outcome:** the clinic prices its services, charges what was performed, issues invoices, takes
   partial or full payments and sees balances and statements.
 - **Scope:** service catalog with branch prices; charges from appointments / performed services /

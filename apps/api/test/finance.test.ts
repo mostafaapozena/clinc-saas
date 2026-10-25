@@ -153,10 +153,13 @@ describe('charges', () => {
     expect((await withKey(c.doctor, '/finance/charges/clinical', { ...body, itemId: 'pr-999999' })).body.error.fields).toEqual({
       itemId: 'invalid_reference',
     });
-    // A plan item becomes chargeable only once the visit is finalized.
+    // Items become chargeable only once the record is finalized.
     expect(
       (await withKey(c.doctor, '/finance/charges/clinical', { ...body, kind: 'plan_item', itemId: 'pl-111111' })).body.error.fields,
     ).toEqual({ itemId: 'invalid_reference' });
+    expect((await withKey(c.doctor, '/finance/charges/clinical', body)).body.error.fields).toEqual({ itemId: 'invalid_reference' });
+    const saved = await send(c.doctor, 'put', orgUrl(`/encounters/${encounterId}`), { sections: { reason: `${MARK} reason`, plan: `${MARK} plan` }, version: started.body.encounter.version });
+    expect((await withKey(c.doctor, `/encounters/${encounterId}/finalize`, { version: saved.body.encounter.version })).status).toBe(201);
 
     const ok = await withKey(c.doctor, '/finance/charges/clinical', body);
     expect(ok.status, JSON.stringify(ok.body)).toBe(201);

@@ -15,8 +15,29 @@ Decisions: [DECISIONS.md](DECISIONS.md). Next phase: [NEXT_PHASE_BRIEF.md](NEXT_
 | Planning docs | [#4](https://github.com/mostafaapozena/clinc-saas/pull/4) | `d8b93b9` | Merged 2026-10-20 (docs only, CI green) |
 | 4 — public site & onboarding | [#5](https://github.com/mostafaapozena/clinc-saas/pull/5) | — | Open, `phase-4/public-onboarding` → `main`; awaiting owner review of the public copy and the raclinic identity; not merged |
 | 5 — clinical visit records | [#6](https://github.com/mostafaapozena/clinc-saas/pull/6) | — | Open, `phase-5/visit-records` → `phase-4/public-onboarding` (stacked); awaiting owner review and clinician review; not merged |
+| M3 — clinic finances | _(to be opened)_ | — | Open, `phase-8/clinic-finance` → `phase-7/specialty-workspaces` (stacked); awaiting review; tax/e-invoicing not included; not merged |
 | M2 — specialty workspaces | [#8](https://github.com/mostafaapozena/clinc-saas/pull/8) | — | Open, `phase-7/specialty-workspaces` → `phase-6/clinical-continuity` (stacked); awaiting review and clinician review; not merged |
 | M1 — clinical coverage & audit view | [#7](https://github.com/mostafaapozena/clinc-saas/pull/7) | — | Open, `phase-6/clinical-continuity` → `phase-5/visit-records` (stacked); awaiting review and decision Q17; not merged |
+
+## Platform completion — milestone 3: clinic finances (in review)
+
+Branch `phase-8/clinic-finance` (PR _(to be opened)_), stacked on milestone 2. Design:
+[architecture/FINANCE.md](architecture/FINANCE.md).
+
+Delivered: organization currency (EGP/SAR, once), branch-priced catalog, manual and
+doctor-confirmed clinical charges (one per record item, no clinical text), draft → issued invoices
+with discounts and atomic numbering, receipts with allocation, credit notes, refunds and
+reversals, patient account and running statement, per-currency reports, printable ordinary
+invoice and receipt, accountant role, synthetic seed catalog. Public wording updated (clinic
+invoicing available; tax e-invoicing, insurance and online payments planned).
+
+Evidence (Codespace): `finance.test.ts` 11 tests incl. parallel invoice claiming, parallel issue
+numbering, racing allocations and credit notes, idempotency, immutability hooks, clinical-charge
+rules, branch and organization isolation, statement = account balance; authorization matrix +7
+finance actions × 6 roles; web `Finance.test.tsx` 6 tests (money parsing without floats, account
+flows, issue confirmation, print labelling, doctor's confirmation); `e2e/finance.spec.ts` 3
+journeys; 9/9 mutation checks caught. Bug found by e2e and fixed: the payment form kept a stale
+"apply to" choice after an invoice was issued. Full `npm run verify` and CI: see the PR.
 
 ## Platform completion — milestone 2: specialty workspaces (in review)
 

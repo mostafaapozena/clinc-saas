@@ -75,9 +75,9 @@ development Codespace.
 
 | Capability | Status | Notes |
 | ---------- | ------ | ----- |
-| Service catalog and prices | Planned | |
-| Charges, invoices, payments, balances | Planned | |
-| Financial permissions and reports | Planned | |
+| Service catalog and prices | Implemented and tested _(milestone 3, in review)_ | Branch prices, integer minor units, one currency per organization. [FINANCE.md](architecture/FINANCE.md) |
+| Charges, invoices, payments, balances | Implemented and tested _(milestone 3, in review)_ | Doctor-confirmed charges from own records (one per item), draft/issued invoices, receipts with allocation, credit notes, refunds, reversals, statement; printable ordinary invoice/receipt. Not tax invoices. |
+| Financial permissions and reports | Implemented and tested _(milestone 3, in review)_ | Accountant role; finance permissions separate from clinical ones; per-currency reports. |
 | Tax / e-invoicing obligations (Egypt, Saudi Arabia) | Blocked | Needs authoritative tax/legal validation before design. |
 
 ### Platform subscriptions and administration

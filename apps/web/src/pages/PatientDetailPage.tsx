@@ -54,6 +54,11 @@ export function PatientDetailPage() {
   return (
     <>
       <PageHeader title={p.fullName} subtitle={t('patients.numberLabel', { number: fmt.number(p.patientNumber) })}>
+        {can('finance.account.read') && (
+          <Link className="button button--secondary" to={`/app/${orgId}/finance/patients/${p.id}`}>
+            {t('finance.account')}
+          </Link>
+        )}
         {can('appointment.book') && (
           <Link className="button button--primary" to={`/app/${orgId}/appointments/new?patientId=${p.id}`}>
             {t('appointments.book')}
