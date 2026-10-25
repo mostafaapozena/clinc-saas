@@ -15,7 +15,7 @@ Decisions: [DECISIONS.md](DECISIONS.md). Next phase: [NEXT_PHASE_BRIEF.md](NEXT_
 | Planning docs | [#4](https://github.com/mostafaapozena/clinc-saas/pull/4) | `d8b93b9` | Merged 2026-10-20 (docs only, CI green) |
 | 4 — public site & onboarding | [#5](https://github.com/mostafaapozena/clinc-saas/pull/5) | — | Open, `phase-4/public-onboarding` → `main`; awaiting owner review of the public copy and the raclinic identity; not merged |
 | 5 — clinical visit records | [#6](https://github.com/mostafaapozena/clinc-saas/pull/6) | — | Open, `phase-5/visit-records` → `phase-4/public-onboarding` (stacked); awaiting owner review and clinician review; not merged |
-| M6 — integrated acceptance | _(to be opened)_ | — | Open, `phase-11/acceptance` → `phase-10/support-operations` (stacked); awaiting review; not merged |
+| M6 — integrated acceptance | [#12](https://github.com/mostafaapozena/clinc-saas/pull/12) | — | Open, `phase-11/acceptance` → `phase-10/support-operations` (stacked); awaiting review; not merged |
 | M5 — support & operations | [#11](https://github.com/mostafaapozena/clinc-saas/pull/11) | — | Open, `phase-10/support-operations` → `phase-9/subscriptions-operator` (stacked); awaiting review; email via development sink only; not merged |
 | M4 — subscriptions & operator console | [#10](https://github.com/mostafaapozena/clinc-saas/pull/10) | — | Open, `phase-9/subscriptions-operator` → `phase-8/clinic-finance` (stacked); awaiting review; payments simulated, enforcement off; not merged |
 | M3 — clinic finances | [#9](https://github.com/mostafaapozena/clinc-saas/pull/9) | — | Open, `phase-8/clinic-finance` → `phase-7/specialty-workspaces` (stacked); awaiting review; tax/e-invoicing not included; not merged |
@@ -24,7 +24,7 @@ Decisions: [DECISIONS.md](DECISIONS.md). Next phase: [NEXT_PHASE_BRIEF.md](NEXT_
 
 ## Platform completion — milestone 6: integrated acceptance (in review)
 
-Branch `phase-11/acceptance` (PR _(to be opened)_), stacked on milestone 5.
+Branch `phase-11/acceptance` (PR [#12](https://github.com/mostafaapozena/clinc-saas/pull/12)), stacked on milestone 5.
 [ACCEPTANCE.md](ACCEPTANCE.md) maps the ten browser journeys of the brief to tests (language and
 device per journey); [COMPLETION_MATRIX.md](COMPLETION_MATRIX.md) states every capability as
 implemented and verified, simulated, awaiting credentials or decision, or deferred — nothing is
