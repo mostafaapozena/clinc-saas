@@ -205,6 +205,16 @@ describe('dentistry', () => {
         history: [expect.objectContaining({ status: 'done' })],
       }),
     ]);
+    // Drafts never reach the chart (only finalized visits do).
+    const third = await visit(c.doctor, c.practitioner, first.patientId);
+    const draft3 = await start(c.doctor, third.appointmentId);
+    expect(
+      (await save(c.doctor, draft3.body.encounter.id, 0, { findings: [{ id: 'f-777777', tooth: '47', note: `${MARK} draft only` }] }))
+        .status,
+    ).toBe(200);
+    const again = await c.doctor.agent.get(orgUrl(`/patients/${first.patientId}/dental-chart`));
+    expect(again.body.teeth.map((x: { tooth: string }) => x.tooth)).toEqual(['16']);
+    expect(again.body.drafts).toBe(1);
     // The first visit's own data is unchanged.
     const stored = await EncounterModel.findOne({ organizationId: c.orgId, _id: visit1.id }).lean();
     expect(stored?.specialty?.data.findings).toEqual([{ id: 'f-111111', tooth: '16', surfaces: ['O', 'M'], note: `${MARK} caries 16` }]);

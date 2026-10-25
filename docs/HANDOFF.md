@@ -20,9 +20,9 @@ devcontainer.
 ## Platform completion (from 2026-10-25)
 
 Follow [PLATFORM_COMPLETION_PLAN.md](PLATFORM_COMPLETION_PLAN.md): six milestones, each a branch
-stacked on the previous one, each its own PR (never merged by the agent). Milestone 1
-(`phase-6/clinical-continuity`, PR [#7](https://github.com/mostafaapozena/clinc-saas/pull/7)) is in review; next is milestone 2 (specialty
-workspaces) on `phase-7/specialty-workspaces` from milestone 1's head. Open owner decisions are in
+stacked on the previous one, each its own PR (never merged by the agent). Milestones 1
+(`phase-6/clinical-continuity`, PR [#7](https://github.com/mostafaapozena/clinc-saas/pull/7)) and 2 (`phase-7/specialty-workspaces`, PR _(to be opened)_) are in
+review; next is milestone 3 (clinic finances) on `phase-8/clinic-finance` from milestone 2's head. Open owner decisions are in
 the plan's blocker register (B1 = clinical-lead authority, Q17).
 
 ## Phase 5 state (2026-10-25)

@@ -71,4 +71,7 @@ export const orgKeys = {
   coverageRecords: (orgId: string, coverageId: string) => ['org', orgId, 'clinical', 'coverage', coverageId] as const,
   coverageCandidates: (orgId: string) => ['org', orgId, 'clinical', 'coverage-candidates'] as const,
   clinicalAudit: (orgId: string, params: object) => ['org', orgId, 'clinical', 'audit', params] as const,
+  dentalChart: (orgId: string, patientId: string) => ['org', orgId, 'clinical', 'dental-chart', patientId] as const,
+  physioCourses: (orgId: string, patientId: string) => ['org', orgId, 'clinical', 'physio-courses', patientId] as const,
+  specialtySummary: (orgId: string) => ['org', orgId, 'specialty-summary'] as const,
 };

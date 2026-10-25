@@ -4,6 +4,7 @@ import { Link } from 'react-router';
 import { useSession } from '../auth/session';
 import { Icon } from '../components/Icon';
 import { PageHeader } from '../components/PageHeader';
+import { SpecialtySummaryCard } from '../components/specialty';
 import { TimeZoneRequired } from '../components/scheduling';
 import { ErrorState, Loading } from '../components/ui';
 import { api, query } from '../lib/api';
@@ -116,6 +117,7 @@ export function HomePage() {
             ))}
           </ul>
         </section>
+        {can('clinical.documentation_status.read') && <SpecialtySummaryCard />}
       </div>
     </>
   );

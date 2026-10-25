@@ -116,7 +116,7 @@ describe('public website', () => {
     expect(await screen.findByRole('heading', { level: 1, name: 'عيادات الأسنان' })).toBeInTheDocument();
     expect(within(screen.getByTestId('available-now')).getAllByRole('listitem').length).toBeGreaterThan(3);
     const planned = screen.getByTestId('planned-tools');
-    expect(planned).toHaveTextContent('غير متاحة بعد');
+    expect(planned).toHaveTextContent('نسخة أولى');
     expect(planned).toHaveTextContent('مخطط الأسنان');
     expect(screen.getByTestId('solution-create')).toHaveAttribute('href', '/start?specialty=dentistry');
     expect(screen.getByTestId('solution-custom')).toHaveAttribute('href', '/custom-solutions/request?interest=dentistry');

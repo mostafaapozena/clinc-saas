@@ -16,7 +16,7 @@ test('public site to workspace: solution → registration → multi-specialty se
   // Choose a solution and start from it.
   await page.getByRole('link', { name: 'عيادات الأسنان' }).click();
   await expect(page).toHaveURL(/\/solutions\/dentistry$/);
-  await expect(page.getByTestId('planned-tools')).toContainText('غير متاحة بعد');
+  await expect(page.getByTestId('planned-tools')).toContainText('نسخة أولى');
   await page.getByTestId('solution-create').click();
   await expect(page).toHaveURL(/\/register\?next=%2Fonboarding%3Fspecialty%3Ddentistry$/);
 

@@ -5,6 +5,8 @@ import { Link, useBlocker, useParams } from 'react-router';
 import { PageHeader } from '../components/PageHeader';
 import { DocumentationBadge } from '../components/clinical';
 import { ShareRecord } from '../components/coverage';
+import { SpecialtyEditor, SpecialtyView } from '../components/specialty';
+import { isEditable } from '../lib/templates';
 import { TimeZoneRequired } from '../components/scheduling';
 import { ErrorState, Field, Loading, Notice } from '../components/ui';
 import { ApiError, api } from '../lib/api';
@@ -181,12 +183,14 @@ function StartRecord({ view, appointmentId }: { view: EncounterView; appointment
   const { orgId } = useOrg();
   const update = useRecordUpdater(appointmentId);
   const [reason, setReason] = useState('');
+  // Specialty template (only offered when the practitioner's specialty has several).
+  const [template, setTemplate] = useState(view.templates?.[0] ?? '');
   const key = useRef(newRequestKey());
   const start = useMutation({
     mutationFn: () =>
       api<{ encounter: Encounter }>(`/orgs/${orgId}/appointments/${appointmentId}/encounter`, {
         method: 'POST',
-        body: view.lateEntryRequired ? { lateEntryReason: reason } : {},
+        body: { ...(view.lateEntryRequired ? { lateEntryReason: reason } : {}), ...(template ? { template } : {}) },
         headers: { 'Idempotency-Key': key.current },
       }),
     onSuccess: (r) => update(r.encounter),
@@ -230,6 +234,26 @@ function StartRecord({ view, appointmentId }: { view: EncounterView; appointment
         ) : (
           <p className="muted">{t('clinical.startHint')}</p>
         )}
+        {(view.templates?.length ?? 0) > 1 && (
+          <fieldset className="fieldset">
+            <legend>{t('specialty.chooseTemplate')}</legend>
+            {view.templates.map((id) => (
+              <label key={id} className="choice">
+                <input
+                  type="radio"
+                  name="record-template"
+                  value={id}
+                  checked={template === id}
+                  onChange={() => {
+                    setTemplate(id);
+                    key.current = newRequestKey();
+                  }}
+                />
+                {t(`specialty.templates.${id}`)}
+              </label>
+            ))}
+          </fieldset>
+        )}
         {start.isError && !fields.lateEntryReason && <Notice kind="error">{errorMessage(t, start.error)}</Notice>}
         <div className="form-actions">
           <button type="submit" className="button button--primary" disabled={start.isPending}>
@@ -251,12 +275,16 @@ function DraftEditor({ encounter, reload }: { encounter: Encounter; reload: () =
   // `base` is the last version known to be saved; `sections` is what is on screen.
   const [base, setBase] = useState(encounter);
   const [sections, setSections] = useState<Sections>(encounter.sections);
+  // Specialty data is edited only for template versions this app knows (others stay read-only).
+  const editableSpecialty = encounter.specialty && isEditable(encounter.specialty) ? encounter.specialty : null;
+  const [specialtyData, setSpecialtyData] = useState<Record<string, unknown>>(encounter.specialty?.data ?? {});
   const [conflict, setConflict] = useState<Conflict>(null);
   const [savedAt, setSavedAt] = useState<string | null>(null);
   const [confirming, setConfirming] = useState(false);
   const finalizeKey = useRef(newRequestKey());
   const confirmRef = useRef<HTMLHeadingElement>(null);
-  const dirty = !sameSections(sections, base.sections);
+  const specialtyDirty = Boolean(editableSpecialty) && JSON.stringify(specialtyData) !== JSON.stringify(base.specialty?.data ?? {});
+  const dirty = !sameSections(sections, base.sections) || specialtyDirty;
 
   const onConflict = (error: unknown) => {
     if (isApiError(error, 'VERSION_CONFLICT')) {
@@ -268,9 +296,14 @@ function DraftEditor({ encounter, reload }: { encounter: Encounter; reload: () =
   };
   const save = useMutation({
     mutationFn: (version: number) =>
-      api<{ encounter: Encounter }>(`/orgs/${orgId}/encounters/${encounter.id}`, { method: 'PUT', body: { sections, version } }),
+      api<{ encounter: Encounter }>(`/orgs/${orgId}/encounters/${encounter.id}`, {
+        method: 'PUT',
+        body: { sections, version, ...(editableSpecialty ? { specialtyData } : {}) },
+      }),
     onSuccess: (r) => {
       setBase(r.encounter);
+      // The API returns the normalized data (trimmed text, defaults); show exactly what was saved.
+      if (r.encounter.specialty) setSpecialtyData(r.encounter.specialty.data);
       setSavedAt(r.encounter.lastEditedAt);
       setConflict(null);
       update(r.encounter);
@@ -313,9 +346,10 @@ function DraftEditor({ encounter, reload }: { encounter: Encounter; reload: () =
     if (latest && latest.status === 'draft') {
       setBase(latest);
       setSections(latest.sections);
+      setSpecialtyData(latest.specialty?.data ?? {});
     }
   };
-  const fields = fieldErrors(finalize.error);
+  const fields = { ...fieldErrors(save.error), ...fieldErrors(finalize.error) };
   const incomplete = isApiError(finalize.error, 'ENCOUNTER_INCOMPLETE');
 
   return (
@@ -381,10 +415,27 @@ function DraftEditor({ encounter, reload }: { encounter: Encounter; reload: () =
             </Field>
           );
         })}
+        {encounter.specialty && (
+          <SpecialtyEditor
+            specialty={encounter.specialty}
+            value={specialtyData}
+            onChange={setSpecialtyData}
+            patientId={encounter.patientId}
+            encounterId={encounter.id}
+            errors={fields}
+          />
+        )}
         <p className="muted small">{t('clinical.finalizeRule')}</p>
         {incomplete && (
           <Notice kind="error">
             {fields.sections ? fieldMessage(t, 'sections', fields.sections) : errorMessage(t, finalize.error)}
+            {Object.keys(fields)
+              .filter((k) => k.startsWith('specialty.'))
+              .map((k) => (
+                <span key={k} className="block">
+                  {t(`specialty.required.${k.slice('specialty.'.length)}`, { defaultValue: t('specialty.fixErrors') })}
+                </span>
+              ))}
           </Notice>
         )}
         {finalize.isError && !incomplete && !conflict && <Notice kind="error">{errorMessage(t, finalize.error)}</Notice>}
@@ -485,6 +536,7 @@ function RecordSections({ encounter }: { encounter: Encounter }) {
             </div>
           ))}
         </dl>
+        {encounter.specialty && <SpecialtyView specialty={encounter.specialty} />}
       </section>
     </>
   );

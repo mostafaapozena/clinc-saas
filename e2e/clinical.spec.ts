@@ -45,6 +45,8 @@ test('treating doctor writes, finalizes and corrects a record; other roles see t
   await page.getByRole('button', { name: 'بدء سجل الزيارة' }).click();
   await page.getByLabel('سبب الزيارة', { exact: true }).fill(`${MARK} سبب`);
   await page.getByLabel('نتائج الفحص', { exact: true }).fill(`${MARK} فحص`);
+  // Dr. Sami is a physiotherapist: the record is an initial assessment, which needs planned sessions.
+  await page.getByLabel('عدد الجلسات المخطط', { exact: true }).fill('6');
   await expect(page.getByTestId('save-state')).toHaveText('تغييرات غير محفوظة');
   await expect(page.getByRole('button', { name: 'اعتماد السجل' })).toBeDisabled();
   await page.getByRole('button', { name: 'حفظ المسودة' }).click();

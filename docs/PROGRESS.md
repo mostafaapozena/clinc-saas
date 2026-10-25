@@ -15,7 +15,27 @@ Decisions: [DECISIONS.md](DECISIONS.md). Next phase: [NEXT_PHASE_BRIEF.md](NEXT_
 | Planning docs | [#4](https://github.com/mostafaapozena/clinc-saas/pull/4) | `d8b93b9` | Merged 2026-10-20 (docs only, CI green) |
 | 4 — public site & onboarding | [#5](https://github.com/mostafaapozena/clinc-saas/pull/5) | — | Open, `phase-4/public-onboarding` → `main`; awaiting owner review of the public copy and the raclinic identity; not merged |
 | 5 — clinical visit records | [#6](https://github.com/mostafaapozena/clinc-saas/pull/6) | — | Open, `phase-5/visit-records` → `phase-4/public-onboarding` (stacked); awaiting owner review and clinician review; not merged |
+| M2 — specialty workspaces | _(to be opened)_ | — | Open, `phase-7/specialty-workspaces` → `phase-6/clinical-continuity` (stacked); awaiting review and clinician review; not merged |
 | M1 — clinical coverage & audit view | [#7](https://github.com/mostafaapozena/clinc-saas/pull/7) | — | Open, `phase-6/clinical-continuity` → `phase-5/visit-records` (stacked); awaiting review and decision Q17; not merged |
+
+## Platform completion — milestone 2: specialty workspaces (in review)
+
+Branch `phase-7/specialty-workspaces` (PR _(to be opened)_), stacked on milestone 1. Design:
+[architecture/SPECIALTY_WORKSPACES.md](architecture/SPECIALTY_WORKSPACES.md).
+
+Delivered: versioned templates stored with each record (dentistry, physiotherapy assessment /
+session / discharge, ENT), validated by the record's own version; FDI tooth chart with per-visit
+findings, procedures, plan items and later status changes; physiotherapy courses linked to real
+appointments; ENT region fields; derived chart / plan / course views from finalized records only;
+counts-only documentation summary on the home page; synthetic seed data; public wording now
+describes the specialty tools as a first version pending clinician review.
+
+Evidence (Codespace): `specialty-records.test.ts` 8 tests (template selection, unknown version
+kept read-only, bounded input, chart history without overwrite, drafts excluded, plan references,
+course references and goal notes, access incl. coverage, counts-only summary); web
+`Specialty.test.tsx` 4 tests; `e2e/specialty.spec.ts` 3 journeys (dentistry, physiotherapy,
+ENT); existing clinical e2e adapted (a physiotherapist's record is an assessment); 6/6 mutation
+checks caught. Full `npm run verify` and CI: see the PR.
 
 ## Platform completion — milestone 1: clinical continuity (in review)
 

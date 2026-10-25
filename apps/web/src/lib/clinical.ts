@@ -3,6 +3,7 @@
 // cache as soon as no page shows them, and the whole cache is cleared on sign-out.
 
 import { useOrg } from '../org/context';
+import type { SpecialtyRecord } from './templates';
 import type { Appointment, AppointmentStatus } from './types';
 
 export const ENCOUNTER_SECTIONS = ['reason', 'history', 'examination', 'assessment', 'plan'] as const;
@@ -34,6 +35,8 @@ export type Encounter = {
   createdAt: string;
   lastEditedAt: string;
   finalizedAt: string | null;
+  /** Specialty template (id + the version the record was created with) and its data; null = general. */
+  specialty: SpecialtyRecord | null;
   addenda: Addendum[];
 };
 
@@ -42,6 +45,8 @@ export type EncounterView = {
   appointmentStatus: AppointmentStatus;
   canStart: boolean;
   lateEntryRequired: boolean;
+  /** Templates a new record may use (the first is the default); [] = general record only. */
+  templates: string[];
 };
 
 export type ClinicalHistoryItem = {

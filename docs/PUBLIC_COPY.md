@@ -52,7 +52,7 @@ when asking for a change.
 | `site.home.availableTitle` | المتاح اليوم | Available today |
 | `site.home.availableLead` | هذه الخصائص تعمل الآن في مساحة العمل المشتركة: | These features work now in the shared workspace: |
 | `site.home.plannedTitle` | غير متاح بعد | Not available yet |
-| `site.home.plannedBody` | أدوات التخصصات مثل مخطط الأسنان وخطط العلاج الطبيعي وسجلات فحص الأنف والأذن والحنجرة، والوصفات الطبية والمرفقات، والفواتير والتذكيرات والحجز الإلكتروني للمرضى — كلها مخططة لمراحل قادمة، وليست جزءًا من مساحة العمل اليوم. | Specialty tools such as dental charts, physiotherapy treatment plans and ENT examination records, prescriptions, attachments, billing, reminders and online booking for patients are planned for later stages. They are not part of the workspace today. |
+| `site.home.plannedBody` | الوصفات الطبية والمرفقات، والفواتير والتذكيرات والحجز الإلكتروني للمرضى — كلها مخططة لمراحل قادمة، وليست جزءًا من مساحة العمل اليوم. | Prescriptions, attachments, billing, reminders and online booking for patients are planned for later stages. They are not part of the workspace today. |
 | `site.home.stepsTitle` | كيف تبدأ | How to get started |
 | `site.home.steps.account.title` | أنشئ حسابك | Create your account |
 | `site.home.steps.account.body` | اسمك وبريدك الإلكتروني وكلمة مرور. | Your name, email address and a password. |
@@ -66,9 +66,9 @@ when asking for a change.
 | `site.home.faq.price.q` | كم التكلفة؟ | How much does it cost? |
 | `site.home.faq.price.a` | لم تُعلن الأسعار وخطط الاشتراك بعد، وستُنشر قبل إتاحة raclinic تجاريًا. | Prices and subscription plans have not been announced yet. They will be published before raclinic is offered commercially. |
 | `site.home.faq.clinical.q` | هل يمكنني حفظ الملاحظات والسجلات الطبية؟ | Can I keep clinical notes and medical records? |
-| `site.home.faq.clinical.a` | نعم، بشكل عام. لكل زيارة يستطيع الطبيب المعالج كتابة سجل يشمل سبب الزيارة والتاريخ المرضي ذا الصلة ونتائج الفحص والتقييم والخطة، وحفظه كمسودة ثم اعتماده، وإضافة ملاحق مؤرخة بعد ذلك؛ ولا يتغير النص بعد اعتماده. لا يقرأ السجل إلا ذلك الطبيب، ويرى المالك والمدير هل وُثّقت الزيارة فقط دون محتواها. مخططات التخصصات والوصفات والمرفقات غير متاحة بعد، والنموذج العام بانتظار مراجعة أطباء ممارسين. | Yes, in a general form. For each visit, the treating doctor can write a record — reason for visit, relevant history, examination findings, assessment and plan — save it as a draft, finalize it, and later add dated addenda; the finalized text never changes. Only that doctor can read it; owners and administrators see whether a visit is documented, not what it says. Specialty charts, prescriptions and attachments are not available yet, and the general template is pending review by practising clinicians. |
+| `site.home.faq.clinical.a` | نعم. لكل زيارة يكتب الطبيب المعالج سجلًا يشمل سبب الزيارة والتاريخ المرضي ذا الصلة ونتائج الفحص والتقييم والخطة، إضافة إلى حقول التخصص، ويحفظه كمسودة ثم يعتمده، ويضيف ملاحق مؤرخة بعد ذلك؛ ولا يتغير النص بعد اعتماده. لا يقرأ السجل إلا ذلك الطبيب (ومن يشاركه معه صراحةً من زملائه)، ويرى المالك والمدير هل وُثّقت الزيارة فقط دون محتواها. الوصفات والمرفقات غير متاحة بعد، والنماذج بانتظار مراجعة أطباء ممارسين. | Yes. For each visit, the treating doctor writes a record — reason for visit, relevant history, examination findings, assessment and plan, plus the specialty fields — saves it as a draft, finalizes it, and later adds dated addenda; the finalized text never changes. Only that doctor (and colleagues they explicitly share it with) can read it; owners and administrators see whether a visit is documented, not what it says. Prescriptions and attachments are not available yet, and the templates are pending review by practising clinicians. |
 | `site.home.faq.specialties.q` | هل توجد أدوات خاصة بطب الأسنان أو العلاج الطبيعي أو الأنف والأذن والحنجرة؟ | Are there tools specific to dentistry, physiotherapy or ENT? |
-| `site.home.faq.specialties.a` | ليس بعد. تستخدم هذه التخصصات اليوم مساحة العمل التشغيلية المشتركة، وستُصمَّم أدوات كل تخصص بالتعاون مع أطباء ممارسين وتضاف لاحقًا. | Not yet. These specialties use the shared operational workspace today. Specialty tools will be designed with practising clinicians and added later. |
+| `site.home.faq.specialties.a` | نعم، كنسخة أولى: مخطط أسنان مع بنود خطة العلاج، وتقييم وجلسات وملخص إنهاء للعلاج الطبيعي، وفحص الأنف والأذن والحنجرة حسب المنطقة. كل ما فيها يكتبه الطبيب — لا توجد اقتراحات ولا محتوى مولَّد — وهي بانتظار مراجعة أطباء ممارسين. | Yes, as a first version: a dental chart with treatment-plan items, physiotherapy assessments, sessions and discharge summaries, and ENT examination by region. Everything is written by the clinician — nothing is suggested or generated — and the tools are pending review by practising clinicians. |
 | `site.home.faq.ai.q` | هل يتضمن raclinic ذكاءً اصطناعيًا أو تشخيصًا؟ | Does raclinic include AI or diagnosis? |
 | `site.home.faq.ai.a` | لا. شعار «مساعدك الذكي في كل تفاصيل العيادة» يعبّر عن تنظيم عمل العيادة اليومي، ولا يقدّم raclinic تشخيصًا ولا توصيات علاجية ولا يكتب ملاحظات طبية تلقائيًا. | No. Our line “Smart clinic management” is about organizing the clinic's daily work. raclinic does not diagnose, recommend treatments or write medical notes automatically. |
 | `site.home.faq.branches.q` | هل يناسب مركزًا متعدد التخصصات أو الفروع؟ | Does it suit a center with several specialties or branches? |
@@ -100,12 +100,12 @@ when asking for a change.
 | `site.solutions.metaTitle` | حلول للعيادات والمراكز الطبية | Solutions for clinics and medical centers |
 | `site.solutions.metaDescription` | حلول raclinic لعيادات الأسنان ومراكز العلاج الطبيعي وعيادات الأنف والأذن والحنجرة والمراكز الطبية متعددة التخصصات، على مساحة عمل تشغيلية مشتركة. | raclinic solutions for dental clinics, physiotherapy centers, ENT clinics and multi-specialty medical centers, on a shared operational workspace. |
 | `site.solutions.title` | الحلول | Solutions |
-| `site.solutions.lead` | كل الحلول تبدأ من مساحة العمل التشغيلية نفسها. أدوات التخصصات الطبية مخططة، وستضاف بعد مراجعتها مع أطباء ممارسين. | Every solution starts from the same operational workspace. Specialty clinical tools are planned and will be added after review with practising clinicians. |
+| `site.solutions.lead` | كل الحلول تعمل على مساحة العمل التشغيلية نفسها، مع نسخة أولى من أدوات كل تخصص بانتظار مراجعة أطباء ممارسين. | Every solution runs on the same operational workspace, with a first version of each specialty’s tools, pending review by practising clinicians. |
 | `site.solutions.labels.audience` | لمن هذا الحل | Who it is for |
 | `site.solutions.labels.needs` | احتياجات يومية يغطيها اليوم | Everyday needs it covers today |
 | `site.solutions.labels.available` | المتاح اليوم في مساحة العمل المشتركة | Available today in the shared workspace |
-| `site.solutions.labels.planned` | أدوات التخصص المخططة | Specialty tools being planned |
-| `site.solutions.labels.plannedNote` | غير متاحة بعد. تحتاج هذه الأدوات إلى مراجعة مع أطباء ممارسين، ولا يوجد موعد محدد لإتاحتها. | Not available yet. These tools need review with practising clinicians and have no release date. |
+| `site.solutions.labels.planned` | أدوات التخصص (نسخة أولى) | Specialty tools (first version) |
+| `site.solutions.labels.plannedNote` | متاحة في مساحة العمل كنسخة أولى للتجربة ببيانات تجريبية، ولم يراجعها أطباء ممارسون بعد. | Available in the workspace as a first version, for trying out with synthetic data. Not yet reviewed by practising clinicians. |
 | `site.solutions.labels.back` | كل الحلول | All solutions |
 | `site.solutions.labels.sharedBadge` | مساحة العمل المشتركة | Shared workspace |
 | `site.solutions.customCard.title` | تحتاج إلى شيء مختلف؟ | Need something different? |
@@ -121,7 +121,7 @@ when asking for a change.
 | `site.solutions.dentistry.metaDescription` | مواعيد لكل طبيب أسنان، وتسجيل الوصول، وقائمة الانتظار، وملفات المرضى لعيادات الأسنان في مصر والسعودية. | Appointments by dentist, check-in, the daily queue and patient records for dental clinics in Egypt and Saudi Arabia. |
 | `site.solutions.dentistry.audience` | عيادات الأسنان التي يعمل بها طبيب أو أكثر، وأقسام الأسنان في المراكز الطبية. | Dental clinics with one or more dentists, and dental departments of medical centers. |
 | `site.solutions.dentistry.needs` | • مواعيد بمدد مختلفة لكل طبيب أسنان<br>• حجز زيارات المتابعة دون تعارض<br>• تسجيل وصول المرضى ودخولهم حسب ترتيب الوصول | • Appointments of different lengths for each dentist<br>• Follow-up visits booked without clashes<br>• Patients checked in and seen in order of arrival |
-| `site.solutions.dentistry.planned` | • مخطط الأسنان<br>• خطط علاج على عدة جلسات | • Dental chart<br>• Treatment plans over several sessions |
+| `site.solutions.dentistry.planned` | • مخطط الأسنان بترقيم FDI مع نتائج الفحص والإجراءات لكل زيارة<br>• بنود خطة العلاج وحالتها عبر الزيارات | • Dental chart (FDI notation) with findings and procedures per visit<br>• Treatment-plan items and their status across visits |
 
 ## Physiotherapy centers (`/solutions/physiotherapy`)
 
@@ -132,7 +132,7 @@ when asking for a change.
 | `site.solutions.physiotherapy.metaDescription` | حجز الجلسات لكل أخصائي، وعدة فروع، وتسجيل الوصول، وقائمة الانتظار لمراكز العلاج الطبيعي. | Session booking per therapist, several branches, check-in and the daily queue for physiotherapy centers. |
 | `site.solutions.physiotherapy.audience` | مراكز العلاج الطبيعي وأقسام التأهيل التي يعمل بها أخصائي أو أكثر. | Physiotherapy centers and rehabilitation departments with one or more therapists. |
 | `site.solutions.physiotherapy.needs` | • جلسات متكررة مع الأخصائي نفسه<br>• أخصائيون يعملون في أكثر من فرع<br>• جدول واضح لكل أخصائي ولكل يوم | • Repeated sessions with the same therapist<br>• Therapists working at more than one branch<br>• A clear schedule for each therapist and day |
-| `site.solutions.physiotherapy.planned` | • خطط علاج مع متابعة الجلسات<br>• سجلات التقدم | • Treatment plans with session tracking<br>• Progress records |
+| `site.solutions.physiotherapy.planned` | • تقييم أولي بأهداف وعدد جلسات مخطط<br>• ملاحظات الجلسات مرتبطة بالمواعيد الفعلية، وملخص إنهاء العلاج | • Initial assessment with goals and planned sessions<br>• Session notes linked to real appointments, and a discharge summary |
 
 ## ENT clinics (`/solutions/ent`)
 
@@ -143,7 +143,7 @@ when asking for a change.
 | `site.solutions.ent.metaDescription` | المواعيد وتسجيل الوصول وقائمة الانتظار وملفات المرضى لعيادات الأنف والأذن والحنجرة. | Appointments, check-in, the waiting queue and patient records for ear, nose and throat clinics. |
 | `site.solutions.ent.audience` | عيادات الأنف والأذن والحنجرة وأقسامها في المراكز الطبية. | Ear, nose and throat clinics and ENT departments of medical centers. |
 | `site.solutions.ent.needs` | • مواعيد كشف قصيرة<br>• غرفة انتظار مزدحمة تُدار حسب ترتيب الوصول<br>• مرضى يعودون للمتابعة | • Short consultation slots<br>• A busy waiting room handled in order of arrival<br>• Patients returning for follow-up |
-| `site.solutions.ent.planned` | • سجلات فحص منظمة | • Structured examination records |
+| `site.solutions.ent.planned` | • التاريخ المرضي والفحص حسب المنطقة للأنف والأذن والحنجرة، مع المتابعة | • Ear, nose and throat history and examination by region, with follow-up |
 
 ## Multi-specialty medical centers (`/solutions/medical-centers`)
 
@@ -154,7 +154,7 @@ when asking for a change.
 | `site.solutions.medicalCenters.metaDescription` | مساحة عمل واحدة للمراكز الطبية متعددة التخصصات: تخصصات لكل فرع، وملف مريض مشترك، وصلاحيات حسب الدور. | One workspace for multi-specialty medical centers: specialties per branch, shared patient records and role-based access. |
 | `site.solutions.medicalCenters.audience` | المراكز والمجموعات الطبية التي تقدم عدة تخصصات، في موقع واحد أو عدة فروع. | Medical centers and groups that offer several specialties, at one location or several branches. |
 | `site.solutions.medicalCenters.needs` | • تخصصات مختلفة في فروع مختلفة<br>• ملف واحد للمريض في كل الفروع<br>• وصول كل عضو في الفريق إلى فروعه فقط | • Different specialties at different branches<br>• One patient record across the branches<br>• Each team member limited to their own branches |
-| `site.solutions.medicalCenters.planned` | • أدوات التخصصات السابقة عند إتاحة كل منها | • The specialty tools above, as each becomes available |
+| `site.solutions.medicalCenters.planned` | • أدوات التخصصات السابقة، حسب تخصص كل طبيب | • The specialty tools above, for each doctor’s specialty |
 
 ## Custom projects (`/custom-solutions`)
 

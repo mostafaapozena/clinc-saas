@@ -6,7 +6,8 @@ The sections and the finalization rule are provisional until practising clinicia
 ([CLINICIAN_REVIEW.md](../CLINICIAN_REVIEW.md)); nothing here is clinically validated or ready
 for production.**
 
-Out of scope: specialty charts and plans (milestone 2), prescriptions, attachments, AI or any
+Specialty templates (dentistry, physiotherapy, ENT) are part of the same record:
+[SPECIALTY_WORKSPACES.md](SPECIALTY_WORKSPACES.md). Out of scope: prescriptions, attachments, AI or any
 automated suggestion, billing, patient portal, sharing outside the organization, break-glass
 access, record import, production use. Milestone 1 added explicit coverage between doctors and a
 metadata-only clinical audit view (below).

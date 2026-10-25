@@ -55,3 +55,27 @@ since the same general record is used by all of them until the specialty workspa
 
 Changes requested by reviewers are implemented and tested before any real use; this document is
 updated with the outcome.
+
+## Specialty templates (milestone 2) — also not reviewed
+
+Design: [architecture/SPECIALTY_WORKSPACES.md](architecture/SPECIALTY_WORKSPACES.md).
+
+**Dentists**
+1. Is FDI two-digit notation right for clinics in Egypt and Saudi Arabia, and are the five surfaces
+   (M, O, D, B, L) and their Arabic names correct?
+2. Are free-text findings per tooth enough for a first version, or is a fixed list of conditions
+   needed (which, and in which terms)?
+3. Plan items with statuses planned / in progress / done / cancelled, changed at later visits — is
+   that how treatment plans are followed?
+
+**Physiotherapists**
+4. Initial assessment (limitations, goals, planned sessions, frequency), sessions (performed,
+   progress, notes per goal) and a discharge summary — missing or unnecessary parts?
+5. Should finalizing an assessment require the planned number of sessions?
+
+**ENT doctors**
+6. Are the regions (history: ear, nose, throat; examination: right ear, left ear, nose, throat,
+   neck) right? Anything essential missing (e.g. hearing tests as free text)?
+
+**All**
+7. Is anything on the screens misleading, or could it be read as a suggestion or a diagnosis?

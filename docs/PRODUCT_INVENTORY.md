@@ -64,9 +64,9 @@ development Codespace.
 | Clinical access rules distinct from administrative access | Implemented and tested _(phase 5, in review)_ | Treating doctor only; owners/admins see documentation status only; separate clinical audit log. |
 | Clinical coverage between doctors | Implemented and tested _(milestone 1, in review)_ | Treating doctor shares own records (one visit or one patient), read or addenda, ≤ 90 days, with reason; revoke/expiry/suspension immediate; audited. Clinical-lead path built but off pending decision Q17. No break-glass. |
 | Clinical audit view | Implemented and tested _(milestone 1, in review)_ | Metadata only; explicit owner-assigned capability; reads of the log are logged. |
-| Dentistry workspace (e.g. charting, treatment plans) | Planned | Requires clinician validation. Not implied by the specialty name in the catalog. |
-| Physiotherapy workspace (e.g. treatment plans, session tracking) | Planned | Requires clinician validation. |
-| ENT workspace | Planned | Requires clinician validation. |
+| Dentistry workspace | Implemented and tested — first version _(milestone 2, in review)_ | FDI chart, per-visit findings/procedures, plan items with status history; chart derived from finalized visits. Pending dentist review. |
+| Physiotherapy workspace | Implemented and tested — first version _(milestone 2, in review)_ | Assessment (goals, planned sessions), sessions linked to real appointments, discharge; course view. Pending physiotherapist review. |
+| ENT workspace | Implemented and tested — first version _(milestone 2, in review)_ | History and examination by region, follow-up. Pending ENT review. |
 | Prescriptions | Planned, decision required | Regulatory review required before design. |
 | Medical attachments / files | Planned, decision required | Needs storage, retention and hosting decisions. |
 | Radiology and other complex specialties | Not in the SaaS | Custom-project candidates only. |

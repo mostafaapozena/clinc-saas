@@ -302,7 +302,7 @@ describe('specialty context', () => {
     const overview = await screen.findByTestId('specialty-overview');
     expect(await within(overview).findByText('طب الأسنان')).toBeInTheDocument();
     expect(overview).toHaveTextContent('متاح في: North وSouth');
-    expect(overview).toHaveTextContent('أدوات التخصصات الطبية غير متاحة بعد');
+    expect(overview).toHaveTextContent('بانتظار مراجعة أطباء ممارسين');
     expect(screen.queryByTestId('specialty-setup-notice')).toBeNull();
   });
 
