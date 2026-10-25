@@ -20,7 +20,7 @@ import { createPlatformRouter } from './modules/platform/platform.routes.js';
 import { createWebhookRouter } from './modules/platform/subscription.routes.js';
 import { createAccountRouter } from './auth/account.routes.js';
 import { createMailer, type Mailer } from './modules/mail/mailer.js';
-import { createInvitationAcceptRouter } from './modules/memberships/invitation.routes.js';
+import { createInvitationAcceptRouter, createInvitationPreviewRouter } from './modules/memberships/invitation.routes.js';
 import { logErrorReporter, type ErrorReporter } from './modules/ops/monitoring.js';
 import { sessionsRouter } from './users/sessions.routes.js';
 
@@ -93,6 +93,7 @@ export function createApp({ logger, config: overrides, mailer: givenMailer, erro
   app.use('/api/v1/public', createPublicRouter(config));
   app.use('/api/v1/auth', createAuthRouter(config));
   app.use('/api/v1/auth', createAccountRouter(config, mailer));
+  app.use('/api/v1/invitations', createInvitationPreviewRouter());
   // Platform operator console: its own cookie, session and CSRF header; tenant sessions never
   // authenticate here and operator sessions never authenticate tenant routes.
   app.use('/api/v1/platform', loadOperator(config), createPlatformRouter(config, mailer));
