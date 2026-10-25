@@ -14,7 +14,7 @@ export function setOperatorCsrf(token: string | null) {
 
 export async function opApi<T>(
   path: string,
-  { method = 'GET', body, signal }: { method?: 'GET' | 'POST' | 'PATCH'; body?: unknown; signal?: AbortSignal } = {},
+  { method = 'GET', body, signal }: { method?: 'GET' | 'POST' | 'PATCH' | 'PUT'; body?: unknown; signal?: AbortSignal } = {},
 ): Promise<T> {
   const headers: Record<string, string> = { Accept: 'application/json' };
   if (body !== undefined) headers['Content-Type'] = 'application/json';
@@ -82,10 +82,13 @@ export type Plan = {
   limits: PlanLimits;
   note?: string;
   revision?: number;
+  /** Trial length offered with the plan; null = no trial. */
+  trialDays?: number | null;
 };
 
-export type SubscriptionStatus = 'active' | 'past_due' | 'restricted' | 'canceled';
-export type EffectiveStatus = SubscriptionStatus | 'expired' | 'none';
+export type SubscriptionStatus = 'trialing' | 'active' | 'past_due' | 'restricted' | 'canceled' | 'expired';
+export type EffectiveStatus = SubscriptionStatus | 'none';
+export type BillingPolicy = { graceDays: number | null; afterGrace: 'none' | 'restricted'; restrictedAccess: 'growth_only' | 'read_only'; revision?: number };
 export type Subscription = {
   id: string;
   kind: 'development_grant' | 'commercial';
@@ -97,6 +100,18 @@ export type Subscription = {
   price: PlanPrice | null;
   provider: 'simulator' | null;
   restriction: { reason: string; at: string } | null;
+  trialEndsAt?: string | null;
+  trialUsed?: boolean;
+  pastDueSince?: string | null;
+  /** Local intent; providerAcknowledged = the provider (today: the simulator) holds the same schedule. */
+  cancelRequest?: { requestedAt: string; reason: string; providerAcknowledged: boolean } | null;
+  pendingChange?: {
+    plan: { id: string; code: string; version: number };
+    price: PlanPrice;
+    effectiveAt: string;
+    requestedAt: string;
+    providerAcknowledged: boolean;
+  } | null;
   version: number;
   updatedAt: string;
 };

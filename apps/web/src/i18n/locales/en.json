@@ -413,7 +413,16 @@
     "USE_LOGOUT": "To end this session, sign out.",
     "SUPPORT_THREAD_FULL": "This conversation is full. Please open a new request.",
     "SUPPORT_CHANGED": "The request changed meanwhile. Reload and try again.",
-    "RATE_LIMIT_UNAVAILABLE": "The service is busy. Please try again in a moment."
+    "RATE_LIMIT_UNAVAILABLE": "The service is busy. Please try again in a moment.",
+    "TRIAL_NOT_OFFERED": "This plan does not offer a trial.",
+    "TRIAL_ALREADY_USED": "This organization has already had a trial.",
+    "PLAN_CHANGE_NOT_AVAILABLE": "A plan change is not available for this subscription.",
+    "SAME_PLAN": "This is already the current plan and price.",
+    "CANCELLATION_PENDING": "Withdraw the cancellation request first.",
+    "POLICY_CHANGED": "The policy changed meanwhile. Reload and try again.",
+    "SUBSCRIPTION_READ_ONLY": "The subscription is not active, so this change is not available now. Existing data stays readable.",
+    "CONCURRENT_UPDATE": "Someone changed this at the same moment. Please try again.",
+    "QUERY_TIMEOUT": "The service is busy. Please try again in a moment."
   },
   "validation": {
     "required": "This field is required.",
@@ -632,7 +641,8 @@
     "noAppointments": {
       "upcoming": "No upcoming appointments.",
       "past": "No past appointments."
-    }
+    },
+    "pageOfCapped": "Page {{page}} of {{pages}} — more than {{total}} patients; refine the search to see others"
   },
   "appointments": {
     "title": "Appointments",
@@ -1566,7 +1576,8 @@
       "restricted": "Restricted",
       "canceled": "Canceled",
       "expired": "Ended",
-      "none": "No subscription"
+      "none": "No subscription",
+      "trialing": "Trial"
     },
     "plan": "Plan",
     "endsAt": "Ends",
@@ -1622,7 +1633,38 @@
       "failed": "The simulated payment failed. The subscription did not change.",
       "expired": "This checkout expired."
     },
-    "backToSubscription": "Back to subscription"
+    "backToSubscription": "Back to subscription",
+    "trial": {
+      "offered": "{{count}}-day trial offered with this plan",
+      "start": "Start {{count}}-day trial",
+      "endsLabel": "Trial",
+      "ends": "Ends on {{date}}"
+    },
+    "intent": {
+      "acknowledged": "Recorded by the payment simulator — no real payment provider is involved.",
+      "local": "Recorded here only — not yet confirmed by a payment provider."
+    },
+    "change": {
+      "request": "Request this plan",
+      "requested": "Plan change requested. It takes effect at the end of the current period.",
+      "pendingLabel": "Requested plan change",
+      "pending": "To {{plan}} from {{date}}",
+      "withdraw": "Withdraw plan change"
+    },
+    "cancel": {
+      "open": "Cancel subscription…",
+      "title": "Cancel the subscription?",
+      "commercial": "The subscription ends at the end of the paid period ({{date}}). Until then everything keeps working.",
+      "free": "This free access ends now.",
+      "reason": "Reason (optional)",
+      "understand": "I understand what cancelling does.",
+      "confirm": "Yes, cancel",
+      "keep": "Keep the subscription",
+      "done": "Cancellation recorded.",
+      "pendingLabel": "Cancellation requested",
+      "pending": "Ends on {{date}}",
+      "withdraw": "Withdraw cancellation"
+    }
   },
   "operator": {
     "consoleLabel": "Operator console",
@@ -1712,7 +1754,11 @@
       "history": "Subscription history",
       "noHistory": "No history yet.",
       "events": "Payment-provider events",
-      "noEvents": "No provider events."
+      "noEvents": "No provider events.",
+      "startTrial": "Start trial until the end date",
+      "changePlanTitle": "Change plan of this free access",
+      "changePlanHint": "Applies now. Uses the reason field above.",
+      "changePlan": "Change plan"
     },
     "simulator": {
       "title": "Payment simulator",
@@ -1763,7 +1809,10 @@
         "draft": "Draft",
         "active": "Active",
         "retired": "Retired"
-      }
+      },
+      "trialDays": "Trial length (days)",
+      "trialHint": "Optional. Empty = no trial offered.",
+      "badTrial": "Trial length must be 1–365 whole days."
     },
     "inquiries": {
       "subtitle": "Custom-ownership requests from the public website. Contact details are masked until revealed.",
@@ -1824,6 +1873,41 @@
       "subtitle": "Messages the platform would have emailed. Development environment only.",
       "warning": "Development mail sink: nothing here was sent to anyone. Links contain live tokens; do not share them.",
       "none": "No messages."
+    },
+    "policy": {
+      "title": "Billing policy",
+      "hint": "All values start unset: grace length and access rules are commercial decisions. Changes are recorded in the platform audit; blocking needs enforcement on.",
+      "graceDays": "Grace period",
+      "graceHint": "Days a past-due subscription keeps full access. Empty = not set.",
+      "notSet": "Not set",
+      "days": "{{count}} days",
+      "afterGrace": "After the grace period",
+      "after": {
+        "none": "Nothing happens automatically",
+        "restricted": "Restrict the subscription"
+      },
+      "restrictedAccess": "Restricted or expired organizations",
+      "accessHint": "Read-only never blocks reading, support, the subscription page or clinical documentation.",
+      "access": {
+        "growth_only": "Cannot add branches, doctors or members",
+        "read_only": "Read-only (most changes blocked)"
+      },
+      "edit": "Edit policy"
+    },
+    "lifecycle": {
+      "title": "Subscription lifecycle",
+      "hint": "Ends trials and grants whose date has passed and applies the grace policy. Commercial subscriptions end only through the payment provider.",
+      "dryRun": "Check (dry run)",
+      "apply": "Apply",
+      "none": "Nothing is due.",
+      "providerDecides": "payment provider decides",
+      "conflict": "changed meanwhile, skipped",
+      "reason": {
+        "trial_ended": "Trial ended",
+        "grant_ended": "Grant ended",
+        "grace_ended": "Grace period ended",
+        "awaiting_provider": "Period ended"
+      }
     }
   },
   "account": {

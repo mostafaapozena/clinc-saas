@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useParams } from 'react-router';
 import { PageHeader } from '../components/PageHeader';
@@ -8,7 +9,7 @@ import { api } from '../lib/api';
 import { errorMessage } from '../lib/errors';
 import { formatMoney } from '../lib/finance';
 import { useFormatters } from '../lib/format';
-import { planName, type Checkout, type Plan, type Subscription, type Usage } from '../lib/operator';
+import { planName, type BillingPolicy, type Checkout, type Plan, type Subscription, type Usage } from '../lib/operator';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { useOrg } from '../org/context';
 
@@ -20,7 +21,67 @@ type SubscriptionView = {
   usage: Usage;
   enforcement: 'off' | 'log' | 'on';
   billingProvider: 'none' | 'simulator';
+  policy?: BillingPolicy;
 };
+const ENDED = ['canceled', 'expired'];
+
+/** Owner requests are local intent until a provider confirms; the label says which. */
+function IntentNote({ acknowledged }: { acknowledged: boolean }) {
+  const { t } = useTranslation();
+  return <p className="muted small">{acknowledged ? t('subscription.intent.acknowledged') : t('subscription.intent.local')}</p>;
+}
+
+function CancelPanel({ sub, onDone }: { sub: Subscription; onDone: () => void }) {
+  const { t } = useTranslation();
+  const { orgId } = useOrg();
+  const fmt = useFormatters();
+  const queryClient = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [understood, setUnderstood] = useState(false);
+  const [reason, setReason] = useState('');
+  const cancel = useMutation({
+    mutationFn: () => api<SubscriptionView>(`/orgs/${orgId}/subscription/cancel`, { method: 'POST', body: { version: sub.version, confirm: true, reason } }),
+    onSuccess: (data) => {
+      queryClient.setQueryData(subscriptionKey(orgId), data);
+      setOpen(false);
+      onDone();
+    },
+  });
+  if (!open) {
+    return (
+      <button type="button" className="button button--ghost" onClick={() => setOpen(true)}>
+        {t('subscription.cancel.open')}
+      </button>
+    );
+  }
+  return (
+    <div className="confirm-panel" role="group" aria-labelledby="cancel-title" data-testid="cancel-panel">
+      <h3 id="cancel-title">{t('subscription.cancel.title')}</h3>
+      <p>
+        {sub.kind === 'commercial'
+          ? t('subscription.cancel.commercial', { date: sub.currentPeriodEnd ? fmt.date(sub.currentPeriodEnd) : '—' })
+          : t('subscription.cancel.free')}
+      </p>
+      <p className="muted small">{t('subscription.dataSafe')}</p>
+      <label htmlFor="cancel-reason" className="block">
+        {t('subscription.cancel.reason')}
+      </label>
+      <input id="cancel-reason" value={reason} maxLength={200} onChange={(e) => setReason(e.target.value)} />
+      <label className="choice">
+        <input type="checkbox" checked={understood} onChange={(e) => setUnderstood(e.target.checked)} /> {t('subscription.cancel.understand')}
+      </label>
+      {cancel.isError && <Notice kind="error">{errorMessage(t, cancel.error)}</Notice>}
+      <div className="form-actions">
+        <button type="button" className="button button--danger" disabled={!understood || cancel.isPending} onClick={() => cancel.mutate()}>
+          {t('subscription.cancel.confirm')}
+        </button>
+        <button type="button" className="button button--secondary" onClick={() => setOpen(false)}>
+          {t('subscription.cancel.keep')}
+        </button>
+      </div>
+    </div>
+  );
+}
 const subscriptionKey = (orgId: string) => ['org', orgId, 'subscription'] as const;
 
 export function SubscriptionPage() {
@@ -42,16 +103,38 @@ export function SubscriptionPage() {
       api<{ checkout: Checkout }>(`/orgs/${orgId}/subscription/checkouts`, { method: 'POST', body: input }),
     onSuccess: ({ checkout: c }) => navigate(`/app/${orgId}/subscription/checkout/${c.id}`),
   });
+  const queryClient = useQueryClient();
+  const [notice, setNotice] = useState<string | null>(null);
+  const setView = (data: SubscriptionView) => queryClient.setQueryData(subscriptionKey(orgId), data);
+  const trial = useMutation({
+    mutationFn: (planId: string) => api<SubscriptionView>(`/orgs/${orgId}/subscription/trial`, { method: 'POST', body: { planId } }),
+    onSuccess: setView,
+  });
+  const change = useMutation({
+    mutationFn: (input: { planId: string; currency: string; interval: string; version: number }) =>
+      api<SubscriptionView>(`/orgs/${orgId}/subscription/plan-change`, { method: 'POST', body: input }),
+    onSuccess: (data) => {
+      setView(data);
+      setNotice(t('subscription.change.requested'));
+    },
+  });
+  const withdraw = useMutation({
+    mutationFn: (what: 'plan-change' | 'cancel') =>
+      api<SubscriptionView>(`/orgs/${orgId}/subscription/${what}/withdraw`, { method: 'POST', body: { version: view.data?.subscription?.version ?? 0 } }),
+    onSuccess: setView,
+  });
   const language = i18n.resolvedLanguage ?? 'ar';
 
   if (view.isPending) return <Loading />;
   if (view.isError) return <ErrorState message={errorMessage(t, view.error)} onRetry={() => void view.refetch()} />;
   const { subscription: sub, usage, enforcement, billingProvider } = view.data;
-  const canBuy =
-    can('subscription.manage') &&
-    billingProvider === 'simulator' &&
-    sub?.status !== 'restricted' &&
-    !(sub?.kind === 'commercial' && sub.status !== 'canceled');
+  const manage = can('subscription.manage');
+  const live = sub && !ENDED.includes(sub.status);
+  const commercialLive = sub?.kind === 'commercial' && live;
+  const canBuy = manage && billingProvider === 'simulator' && sub?.status !== 'restricted' && !commercialLive;
+  const canChange = manage && commercialLive && (sub.status === 'active' || sub.status === 'past_due') && !sub.cancelRequest;
+  const canTrial = manage && !sub?.trialUsed && !live;
+  const mutationError = trial.error ?? change.error ?? withdraw.error;
 
   return (
     <>
@@ -98,8 +181,45 @@ export function SubscriptionPage() {
                   <dd>{sub.restriction.reason}</dd>
                 </>
               )}
+              {sub.status === 'trialing' && sub.trialEndsAt && (
+                <>
+                  <dt>{t('subscription.trial.endsLabel')}</dt>
+                  <dd data-testid="trial-ends">{t('subscription.trial.ends', { date: fmt.date(sub.trialEndsAt) })}</dd>
+                </>
+              )}
+              {sub.pendingChange && (
+                <>
+                  <dt>{t('subscription.change.pendingLabel')}</dt>
+                  <dd data-testid="pending-change">
+                    {t('subscription.change.pending', { plan: sub.pendingChange.plan.code, date: fmt.date(sub.pendingChange.effectiveAt) })} · <PriceText price={sub.pendingChange.price} />
+                    <IntentNote acknowledged={sub.pendingChange.providerAcknowledged} />
+                    {manage && (
+                      <button type="button" className="button button--ghost" disabled={withdraw.isPending} onClick={() => withdraw.mutate('plan-change')}>
+                        {t('subscription.change.withdraw')}
+                      </button>
+                    )}
+                  </dd>
+                </>
+              )}
+              {sub.cancelRequest && (
+                <>
+                  <dt>{t('subscription.cancel.pendingLabel')}</dt>
+                  <dd data-testid="cancel-request">
+                    {t('subscription.cancel.pending', { date: sub.currentPeriodEnd ? fmt.date(sub.currentPeriodEnd) : '—' })}
+                    <IntentNote acknowledged={sub.cancelRequest.providerAcknowledged} />
+                    {manage && (
+                      <button type="button" className="button button--ghost" disabled={withdraw.isPending} onClick={() => withdraw.mutate('cancel')}>
+                        {t('subscription.cancel.withdraw')}
+                      </button>
+                    )}
+                  </dd>
+                </>
+              )}
             </dl>
           )}
+          {notice && <Notice kind="success">{notice}</Notice>}
+          {mutationError && <Notice kind="error">{errorMessage(t, mutationError)}</Notice>}
+          {manage && live && !sub.cancelRequest && <CancelPanel sub={sub} onDone={() => setNotice(t('subscription.cancel.done'))} />}
           <p className="muted small">{t('subscription.dataSafe')}</p>
         </section>
         <section className="card" aria-labelledby="subscription-usage-title">
@@ -139,8 +259,14 @@ export function SubscriptionPage() {
                       ? t('subscription.noPrice')
                       : t('subscription.limitsSummary', { summary: limitsSummary(t, plan) })}
                   </p>
+                  {plan.trialDays ? <p className="muted small">{t('subscription.trial.offered', { count: plan.trialDays })}</p> : null}
                 </div>
                 <div className="row-actions">
+                  {canTrial && plan.trialDays ? (
+                    <button type="button" className="button button--secondary" disabled={trial.isPending} onClick={() => trial.mutate(plan.id)}>
+                      {t('subscription.trial.start', { count: plan.trialDays })}
+                    </button>
+                  ) : null}
                   {plan.prices.map((price) => (
                     <span key={`${price.currency}-${price.interval}`} className="stack-sm">
                       <span>
@@ -154,6 +280,16 @@ export function SubscriptionPage() {
                           onClick={() => checkout.mutate({ planId: plan.id, currency: price.currency, interval: price.interval })}
                         >
                           {t('subscription.subscribeSimulated')}
+                        </button>
+                      )}
+                      {canChange && !(sub.plan.id === plan.id && sub.price?.currency === price.currency && sub.price.interval === price.interval) && (
+                        <button
+                          type="button"
+                          className="button button--secondary"
+                          disabled={change.isPending}
+                          onClick={() => change.mutate({ planId: plan.id, currency: price.currency, interval: price.interval, version: sub.version })}
+                        >
+                          {t('subscription.change.request')}
                         </button>
                       )}
                     </span>

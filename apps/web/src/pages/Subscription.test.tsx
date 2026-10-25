@@ -268,7 +268,7 @@ describe('platform operator console', () => {
           name: { ar: 'أساسية', en: 'Basic' },
           prices: [{ currency: 'EGP', interval: 'month', amountMinor: 15050 }],
           limits: { branches: 2, practitioners: null, members: null },
-          note: '',
+          note: '', trialDays: null,
         },
       ]),
     );
