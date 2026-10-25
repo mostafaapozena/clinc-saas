@@ -14,6 +14,8 @@ import '../modules/memberships/membership.model.js';
 import '../modules/organizations/organization.model.js';
 import '../modules/patients/counter.model.js';
 import '../modules/patients/patient.model.js';
+import '../modules/platform/billing.model.js';
+import '../modules/platform/operator.model.js';
 import '../modules/practitioners/practitioner.model.js';
 import '../modules/specialties/specialty.model.js';
 import '../users/user.model.js';

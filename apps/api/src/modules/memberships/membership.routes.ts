@@ -1,3 +1,4 @@
+import { assertEntitlement } from '../platform/subscription.service.js';
 import { Router } from 'express';
 import type { Types } from 'mongoose';
 import { z } from 'zod';
@@ -89,6 +90,7 @@ export function createMembersRouter(config: AppConfig) {
     const tenant = tenantOf(req);
     const input = parseInput(addMemberSchema, req.body);
     if (input.role === 'owner') throw roleNotAssignable();
+    await assertEntitlement(req, tenant, 'members');
 
     const user = await UserModel.findOne({ email: input.email }).select('displayName email');
     if (!user) {

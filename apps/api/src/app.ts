@@ -15,6 +15,9 @@ import { createOnboardingRouter } from './modules/onboarding/onboarding.routes.j
 import { createOrganizationsRouter } from './modules/organizations/organization.routes.js';
 import { specialtiesRouter } from './modules/specialties/specialty.routes.js';
 import { meRouter } from './users/me.routes.js';
+import { loadOperator } from './modules/platform/operator-auth.js';
+import { createPlatformRouter } from './modules/platform/platform.routes.js';
+import { createWebhookRouter } from './modules/platform/subscription.routes.js';
 
 export type AppOptions = {
   logger?: Logger;
@@ -35,6 +38,13 @@ export function createApp({ logger, config: overrides }: AppOptions = {}) {
   app.disable('x-powered-by');
   app.set('trust proxy', config.trustProxy ? 1 : false);
   app.use(helmet());
+  app.locals.subscriptionEnforcement = config.subscriptionEnforcement;
+  // Payment-provider webhooks: before the JSON parser (signatures cover the raw bytes) and outside
+  // cookies, sessions and CSRF — they are authenticated by their signature alone.
+  app.use('/api/v1/billing/webhooks', (_req, res, next) => {
+    res.set('X-Robots-Tag', 'noindex, nofollow');
+    next();
+  }, createWebhookRouter(config));
   app.use(express.json({ limit: '100kb' }));
   if (logger) {
     app.use(
@@ -68,6 +78,9 @@ export function createApp({ logger, config: overrides }: AppOptions = {}) {
   // applies, and each route has its own rate limit.
   app.use('/api/v1/public', createPublicRouter(config));
   app.use('/api/v1/auth', createAuthRouter(config));
+  // Platform operator console: its own cookie, session and CSRF header; tenant sessions never
+  // authenticate here and operator sessions never authenticate tenant routes.
+  app.use('/api/v1/platform', loadOperator(config), createPlatformRouter(config));
 
   // Everything below changes state only with a valid CSRF token for the session.
   app.use('/api/v1', csrfProtection);

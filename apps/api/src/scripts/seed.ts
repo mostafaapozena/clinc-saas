@@ -4,6 +4,7 @@ import { loadEnv } from '../config/env.js';
 import { connectDatabase, disconnectDatabase } from '../db/connection.js';
 import { ensureIndexes } from '../db/models.js';
 import { seedDemoData } from '../modules/demo/demo.seed.js';
+import { seedPlatformData } from '../modules/platform/platform.seed.js';
 import { seedSpecialties } from '../modules/specialties/specialty.seed.js';
 
 // Usage: npm run seed [-- --reset]   (development and tests only)
@@ -32,6 +33,7 @@ try {
   await ensureIndexes();
   const specialties = await seedSpecialties();
   const { accounts, skippedAppointments } = await seedDemoData(password);
+  const platform = await seedPlatformData(password);
 
   console.log(`Seeded ${specialties} specialties and demo data into "${dbName}".`);
   if (skippedAppointments.length > 0) {
@@ -39,6 +41,9 @@ try {
   }
   console.log('\nDemo accounts (synthetic, development only — refused when NODE_ENV=production):');
   for (const account of accounts) console.log(`  ${account.email.padEnd(26)} ${account.summary}`);
+  console.log('\nPlatform operators (synthetic, development only; sign in at /operator):');
+  for (const operator of platform.operators) console.log(`  ${operator.email.padEnd(26)} ${operator.role}`);
+  console.log(`Development grants created for ${platform.grants} demo organization(s).`);
   if (providedPassword) {
     console.log('\nPassword for all demo accounts: the DEMO_PASSWORD value from your environment.');
   } else {

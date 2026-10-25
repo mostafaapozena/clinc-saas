@@ -1,3 +1,4 @@
+import { randomBytes } from 'node:crypto';
 import type { Env } from './env.js';
 
 /** Runtime settings the HTTP app needs. Tests override individual values. */
@@ -18,6 +19,12 @@ export type AppConfig = {
    * doctor's records. Off until the owner decides who holds that authority (blocker B1).
    */
   clinicalLeadGrantsEnabled: boolean;
+  /** Platform subscription payments: 'none', or the clearly labelled simulator (never in production). */
+  billingProvider: 'none' | 'simulator';
+  /** HMAC secret of the simulator's webhooks; random per process unless configured. */
+  billingSimulatorSecret: string;
+  /** Entitlement enforcement: off (default), log (audit only) or on — on only after decision B4. */
+  subscriptionEnforcement: 'off' | 'log' | 'on';
 };
 
 export const defaultAppConfig: AppConfig = {
@@ -30,6 +37,9 @@ export const defaultAppConfig: AppConfig = {
   setupRateLimit: { max: 20, windowMs: 60 * 60_000 },
   inquiryRateLimit: { max: 5, windowMs: 60 * 60_000 },
   clinicalLeadGrantsEnabled: false,
+  billingProvider: 'none',
+  billingSimulatorSecret: randomBytes(32).toString('hex'),
+  subscriptionEnforcement: 'off',
 };
 
 export function appConfigFromEnv(env: Env): AppConfig {
@@ -46,5 +56,8 @@ export function appConfigFromEnv(env: Env): AppConfig {
     setupRateLimit: { max: env.SETUP_RATE_LIMIT_MAX, windowMs: 60 * 60_000 },
     inquiryRateLimit: { max: env.INQUIRY_RATE_LIMIT_MAX, windowMs: 60 * 60_000 },
     clinicalLeadGrantsEnabled: env.CLINICAL_LEAD_GRANTS_ENABLED,
+    billingProvider: env.BILLING_PROVIDER,
+    billingSimulatorSecret: env.BILLING_SIMULATOR_SECRET ?? randomBytes(32).toString('hex'),
+    subscriptionEnforcement: env.SUBSCRIPTION_ENFORCEMENT,
   };
 }

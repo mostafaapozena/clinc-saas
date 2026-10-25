@@ -1,3 +1,4 @@
+import { assertEntitlement } from '../platform/subscription.service.js';
 import { Router } from 'express';
 import mongoose, { Types, type ClientSession } from 'mongoose';
 import { z } from 'zod';
@@ -261,6 +262,7 @@ practitionersRouter.get('/:practitionerId/exceptions', requirePermission('practi
 practitionersRouter.post('/', requirePermission('practitioner.manage'), async (req, res) => {
   const tenant = tenantOf(req);
   const input = parseInput(createSchema, req.body);
+  await assertEntitlement(req, tenant, 'practitioners');
   const membershipId = new Types.ObjectId(input.membershipId);
   const membership = await requireEligibleMembership(tenant, membershipId);
   await requireSpecialty(input.specialtyCode);

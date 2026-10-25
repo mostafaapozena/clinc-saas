@@ -1,3 +1,4 @@
+import { assertEntitlement } from '../platform/subscription.service.js';
 import { Router } from 'express';
 import mongoose, { type Types } from 'mongoose';
 import { z } from 'zod';
@@ -82,6 +83,7 @@ branchesRouter.get('/:branchId', requirePermission('branch.read'), async (req, r
 branchesRouter.post('/', requirePermission('branch.create'), async (req, res) => {
   const tenant = tenantOf(req);
   const input = parseInput(createBranchSchema, req.body);
+  await assertEntitlement(req, tenant, 'branches');
   try {
     const branch = await mongoose.connection.transaction(async (session) => {
       const organization = await lockSpecialtyConfig(tenant.organizationId, session);

@@ -27,6 +27,7 @@ export const AUDIT_ACTIONS = [
   'appointment.rescheduled',
   'appointment.status_changed',
   'finance.settings_updated',
+  'subscription.checkout_started',
   'service.created',
   'service.updated',
   'charge.created',
