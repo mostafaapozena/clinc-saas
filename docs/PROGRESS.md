@@ -37,6 +37,16 @@ J7 (invitation → registration from the mail-sink link → membership with the 
 found and fixed: the read-only invitation preview sat behind session CSRF, so a signed-in browser
 opening a link before its token loaded got 403 (regression API test added).
 
+Private preview (headless check from inside the Codespace, 2026-10-25, branch
+`phase-11/acceptance`, ports private): 15/15 read-only checks passed — public home, API readiness,
+owner subscription page (development grant, simulator labelled), help page (FAQ labelled as not
+AI, no invented contact), finance and profile sessions, no tokens or clinical text in browser
+storage, English subscription page (LTR), operator console overview and organization list,
+operator session refused by tenant routes, development mail page, mobile help page without
+horizontal scroll. The development database was seeded without `--reset` (manually created
+records kept) with `BILLING_PROVIDER=simulator` and `MAIL_PROVIDER=dev_sink` in the Codespace
+`.env` only. This is not a check in the owner's own browser.
+
 ## Platform completion — milestone 5: support and operational readiness (in review)
 
 Branch `phase-10/support-operations` (PR [#11](https://github.com/mostafaapozena/clinc-saas/pull/11)), stacked on milestone 4. Design:
