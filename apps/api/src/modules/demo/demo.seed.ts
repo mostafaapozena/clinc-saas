@@ -8,6 +8,7 @@ import { OCCUPYING_STATUSES, type AppointmentStatus } from '../appointments/appo
 import { BranchModel } from '../branches/branch.model.js';
 import { AddendumModel, EncounterModel } from '../clinical/clinical.model.js';
 import { CoverageModel } from '../clinical/coverage.model.js';
+import { FinanceServiceModel } from '../finance/finance.model.js';
 import { latestTemplate, parseTemplateData } from '../clinical/templates.js';
 import { MembershipModel } from '../memberships/membership.model.js';
 import { OrganizationModel } from '../organizations/organization.model.js';
@@ -64,7 +65,7 @@ export async function seedDemoData(password: string, now = clock.now()) {
       await OrganizationModel.findOneAndUpdate(
         { seedKey: org.key },
         {
-          $set: { name: org.name, timeZone: org.timeZone, type: org.type, specialtyCodes: org.specialtyCodes },
+          $set: { name: org.name, timeZone: org.timeZone, type: org.type, specialtyCodes: org.specialtyCodes, currency: org.finance?.currency ?? null },
           $setOnInsert: { createdBy: ownerId },
         },
         UPSERT,
@@ -99,6 +100,17 @@ export async function seedDemoData(password: string, now = clock.now()) {
     }
 
     await seedFrontDesk(org, { organizationId, ownerId, userIds, membershipIds, branch, now, skipped });
+    // Synthetic catalog: upserted by code (prices are examples, not real tariffs).
+    for (const s of org.finance?.services ?? []) {
+      await FinanceServiceModel.updateOne(
+        { organizationId, code: s.code },
+        {
+          $set: { name: s.name, specialtyCode: s.specialtyCode, price: s.price, status: 'active', currency: org.finance?.currency, updatedBy: ownerId },
+          $setOnInsert: { branchPrices: [], version: 0, createdBy: ownerId },
+        },
+        { upsert: true },
+      );
+    }
   }
 
   return {

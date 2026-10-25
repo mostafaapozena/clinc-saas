@@ -26,10 +26,24 @@ export const AUDIT_ACTIONS = [
   'appointment.booked',
   'appointment.rescheduled',
   'appointment.status_changed',
+  'finance.settings_updated',
+  'service.created',
+  'service.updated',
+  'charge.created',
+  'charge.voided',
+  'invoice.created',
+  'invoice.discount_applied',
+  'invoice.issued',
+  'invoice.discarded',
+  'credit_note.issued',
+  'payment.recorded',
+  'payment.allocated',
+  'payment.reversed',
+  'refund.recorded',
 ] as const;
 export type AuditAction = (typeof AUDIT_ACTIONS)[number];
 
-export const AUDIT_TARGET_TYPES = ['organization', 'branch', 'membership', 'patient', 'practitioner', 'appointment'] as const;
+export const AUDIT_TARGET_TYPES = ['organization', 'branch', 'membership', 'patient', 'practitioner', 'appointment', 'service', 'charge', 'invoice', 'payment', 'adjustment'] as const;
 export type AuditTargetType = (typeof AUDIT_TARGET_TYPES)[number];
 
 /**

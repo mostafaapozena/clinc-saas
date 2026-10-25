@@ -32,6 +32,7 @@ import { assertCatalogSpecialties, specialtyListSchema } from '../specialties/sp
 import { createClinicalRouter } from '../clinical/clinical.routes.js';
 import { createCoverageRouter } from '../clinical/coverage.routes.js';
 import { createSpecialtyRouter } from '../clinical/specialty.routes.js';
+import { createFinanceRouter } from '../finance/finance.routes.js';
 import { ORGANIZATION_TYPES, OrganizationModel, specialtiesOf, type Organization } from './organization.model.js';
 import { createOrganizationWithOwner } from './organization.service.js';
 import {
@@ -253,6 +254,7 @@ export function createOrganizationsRouter(config: AppConfig) {
   // Clinical records first: they own /appointments/:id/encounter and /patients/:id/clinical-history.
   router.use('/:orgId', createCoverageRouter(config));
   router.use('/:orgId', createSpecialtyRouter());
+  router.use('/:orgId', createFinanceRouter());
   router.use('/:orgId', createClinicalRouter());
   router.use('/:orgId/branches', branchesRouter);
   router.use('/:orgId/members', createMembersRouter(config));
