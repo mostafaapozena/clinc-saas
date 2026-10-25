@@ -33,7 +33,7 @@ its diff re-checked and CI re-run.
 
 ## M1 — Existing-work stabilization and clinical continuity
 
-**Status: implemented and verified in the Codespace; PR _(to be opened)_ in review.**
+**Status: implemented and verified in the Codespace; PR [#7](https://github.com/mostafaapozena/clinc-saas/pull/7) in review.**
 
 - **Outcome:** a patient's records stay reachable for care when their doctor is unavailable,
   through explicit, time-bounded, audited coverage — never through owner/admin status.

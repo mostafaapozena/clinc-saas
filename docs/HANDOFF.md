@@ -21,7 +21,7 @@ devcontainer.
 
 Follow [PLATFORM_COMPLETION_PLAN.md](PLATFORM_COMPLETION_PLAN.md): six milestones, each a branch
 stacked on the previous one, each its own PR (never merged by the agent). Milestone 1
-(`phase-6/clinical-continuity`, PR _(to be opened)_) is in review; next is milestone 2 (specialty
+(`phase-6/clinical-continuity`, PR [#7](https://github.com/mostafaapozena/clinc-saas/pull/7)) is in review; next is milestone 2 (specialty
 workspaces) on `phase-7/specialty-workspaces` from milestone 1's head. Open owner decisions are in
 the plan's blocker register (B1 = clinical-lead authority, Q17).
 
