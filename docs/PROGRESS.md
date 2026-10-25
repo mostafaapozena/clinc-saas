@@ -15,12 +15,12 @@ Decisions: [DECISIONS.md](DECISIONS.md). Next phase: [NEXT_PHASE_BRIEF.md](NEXT_
 | Planning docs | [#4](https://github.com/mostafaapozena/clinc-saas/pull/4) | `d8b93b9` | Merged 2026-10-20 (docs only, CI green) |
 | 4 — public site & onboarding | [#5](https://github.com/mostafaapozena/clinc-saas/pull/5) | — | Open, `phase-4/public-onboarding` → `main`; awaiting owner review of the public copy and the raclinic identity; not merged |
 | 5 — clinical visit records | [#6](https://github.com/mostafaapozena/clinc-saas/pull/6) | — | Open, `phase-5/visit-records` → `phase-4/public-onboarding` (stacked); awaiting owner review and clinician review; not merged |
-| M2 — specialty workspaces | _(to be opened)_ | — | Open, `phase-7/specialty-workspaces` → `phase-6/clinical-continuity` (stacked); awaiting review and clinician review; not merged |
+| M2 — specialty workspaces | [#8](https://github.com/mostafaapozena/clinc-saas/pull/8) | — | Open, `phase-7/specialty-workspaces` → `phase-6/clinical-continuity` (stacked); awaiting review and clinician review; not merged |
 | M1 — clinical coverage & audit view | [#7](https://github.com/mostafaapozena/clinc-saas/pull/7) | — | Open, `phase-6/clinical-continuity` → `phase-5/visit-records` (stacked); awaiting review and decision Q17; not merged |
 
 ## Platform completion — milestone 2: specialty workspaces (in review)
 
-Branch `phase-7/specialty-workspaces` (PR _(to be opened)_), stacked on milestone 1. Design:
+Branch `phase-7/specialty-workspaces` (PR [#8](https://github.com/mostafaapozena/clinc-saas/pull/8)), stacked on milestone 1. Design:
 [architecture/SPECIALTY_WORKSPACES.md](architecture/SPECIALTY_WORKSPACES.md).
 
 Delivered: versioned templates stored with each record (dentistry, physiotherapy assessment /

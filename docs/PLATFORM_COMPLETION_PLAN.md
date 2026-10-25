@@ -57,7 +57,7 @@ its diff re-checked and CI re-run.
 
 ## M2 — Specialty workspaces (dentistry, physiotherapy, ENT)
 
-**Status: implemented and verified in the Codespace (first version, pending clinician review); PR _(to be opened)_ in review.**
+**Status: implemented and verified in the Codespace (first version, pending clinician review); PR [#8](https://github.com/mostafaapozena/clinc-saas/pull/8) in review.**
 
 - **Outcome:** each specialty documents its own work inside the shared encounter, with real,
   scoped dashboards.
