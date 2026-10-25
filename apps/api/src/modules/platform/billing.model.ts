@@ -26,6 +26,8 @@ export interface PlatformPlan {
   limits: PlanLimits;
   /** Internal note for operators (never shown to clinics). */
   note: string;
+  /** Free trial length offered with this plan; null = no trial (nothing is invented). */
+  trialDays: number | null;
   activatedAt: Date | null;
   retiredAt: Date | null;
   /** Optimistic concurrency for draft edits. */
@@ -63,6 +65,7 @@ const planSchema = new Schema<PlatformPlan>(
       default: () => ({ branches: null, practitioners: null, members: null }),
     },
     note: { type: String, default: '', maxlength: 500 },
+    trialDays: { type: Number, default: null, min: 1, max: 365, validate: (v: number | null) => v === null || Number.isInteger(v) },
     activatedAt: { type: Date, default: null },
     retiredAt: { type: Date, default: null },
     revision: { type: Number, required: true, default: 0 },
@@ -78,7 +81,8 @@ export const PlanModel = model<PlatformPlan>('PlatformPlan', planSchema);
 
 export const SUBSCRIPTION_KINDS = ['development_grant', 'commercial'] as const;
 export type SubscriptionKind = (typeof SUBSCRIPTION_KINDS)[number];
-export const SUBSCRIPTION_STATUSES = ['active', 'past_due', 'restricted', 'canceled'] as const;
+/** `trialing` and `expired` added in the scalability/subscriptions checkpoint (documents written before simply never use them). */
+export const SUBSCRIPTION_STATUSES = ['trialing', 'active', 'past_due', 'restricted', 'canceled', 'expired'] as const;
 export type SubscriptionStatus = (typeof SUBSCRIPTION_STATUSES)[number];
 export type HistoryActor = 'operator' | 'provider' | 'system';
 
@@ -115,6 +119,29 @@ export interface PlatformSubscription {
   providerEventAt: Date | null;
   restriction: { reason: string; at: Date } | null;
   note: string;
+  /** Trial end while `trialing`. */
+  trialEndsAt: Date | null;
+  /** One trial per organization, ever. */
+  trialUsed: boolean;
+  /** When the subscription became past_due (start of any grace period). */
+  pastDueSince: Date | null;
+  /**
+   * Owner's request to end a commercial subscription at the period end. LOCAL INTENT:
+   * `providerAcknowledged` is true only once the provider (today: the simulator) holds the same
+   * schedule; the subscription actually ends only through a provider event.
+   */
+  cancelRequest: { requestedAt: Date; requestedByUserId: Types.ObjectId; reason: string; providerAcknowledged: boolean } | null;
+  /** Owner's request to switch plan at the period end — local intent, same rule as cancelRequest. */
+  pendingChange: {
+    planId: Types.ObjectId;
+    planCode: string;
+    planVersion: number;
+    price: PlanPrice;
+    effectiveAt: Date;
+    requestedAt: Date;
+    requestedByUserId: Types.ObjectId;
+    providerAcknowledged: boolean;
+  } | null;
   version: number;
   history: SubscriptionHistoryEntry[];
   createdAt: Date;
@@ -153,6 +180,37 @@ const subscriptionSchema = new Schema<PlatformSubscription>(
       default: null,
     },
     note: { type: String, default: '', maxlength: 200 },
+    trialEndsAt: { type: Date, default: null },
+    trialUsed: { type: Boolean, default: false },
+    pastDueSince: { type: Date, default: null },
+    cancelRequest: {
+      type: new Schema(
+        {
+          requestedAt: { type: Date, required: true },
+          requestedByUserId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+          reason: { type: String, default: '', maxlength: 200 },
+          providerAcknowledged: { type: Boolean, required: true },
+        },
+        { _id: false },
+      ),
+      default: null,
+    },
+    pendingChange: {
+      type: new Schema(
+        {
+          planId: { type: Schema.Types.ObjectId, ref: 'PlatformPlan', required: true },
+          planCode: { type: String, required: true },
+          planVersion: { type: Number, required: true },
+          price: { type: priceSchema, required: true },
+          effectiveAt: { type: Date, required: true },
+          requestedAt: { type: Date, required: true },
+          requestedByUserId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+          providerAcknowledged: { type: Boolean, required: true },
+        },
+        { _id: false },
+      ),
+      default: null,
+    },
     version: { type: Number, required: true, default: 0 },
     history: { type: [historySchema], default: [] },
   },
@@ -164,6 +222,10 @@ subscriptionSchema.index(
   { unique: true, partialFilterExpression: { providerSubscriptionId: { $type: 'string' } } },
 );
 subscriptionSchema.index({ status: 1, kind: 1 });
+// Lifecycle processing scans by these dates.
+subscriptionSchema.index({ status: 1, trialEndsAt: 1 });
+subscriptionSchema.index({ status: 1, currentPeriodEnd: 1 });
+subscriptionSchema.index({ status: 1, pastDueSince: 1 });
 // Subscriptions are never deleted: history and audit must survive cancellation.
 subscriptionSchema.pre(['deleteOne', 'deleteMany', 'findOneAndDelete'], function () {
   if (this.getOptions().allowSeedCleanup !== true) throw new Error('Subscriptions are never deleted');
@@ -245,9 +307,22 @@ export interface SimulatorSubscription {
   status: 'active' | 'past_due' | 'canceled';
   currentPeriodEnd: Date;
   price: PlanPrice;
+  /** Provider-side schedule (what a real provider would hold after being told): cancel at period end. */
+  cancelAtPeriodEnd: boolean;
+  /** Provider-side schedule: switch to this plan/price at the next renewal. */
+  scheduledPlan: { planId: Types.ObjectId; planCode: string; planVersion: number; price: PlanPrice } | null;
   createdAt: Date;
   updatedAt: Date;
 }
+const scheduledPlanSchema = new Schema(
+  {
+    planId: { type: Schema.Types.ObjectId, ref: 'PlatformPlan', required: true },
+    planCode: { type: String, required: true },
+    planVersion: { type: Number, required: true },
+    price: { type: priceSchema, required: true },
+  },
+  { _id: false },
+);
 const simulatorSchema = new Schema<SimulatorSubscription>(
   {
     providerSubscriptionId: { type: String, required: true },
@@ -255,8 +330,43 @@ const simulatorSchema = new Schema<SimulatorSubscription>(
     status: { type: String, enum: ['active', 'past_due', 'canceled'], required: true },
     currentPeriodEnd: { type: Date, required: true },
     price: { type: priceSchema, required: true },
+    cancelAtPeriodEnd: { type: Boolean, default: false },
+    scheduledPlan: { type: scheduledPlanSchema, default: null },
   },
   { collection: 'billing_simulator_subscriptions', timestamps: true },
 );
 simulatorSchema.index({ providerSubscriptionId: 1 }, { unique: true });
 export const SimulatorSubscriptionModel = model<SimulatorSubscription>('SimulatorSubscription', simulatorSchema);
+
+/**
+ * The platform billing POLICY (one document, edited by platform administrators, versioned and
+ * audited). Every value starts unset: grace length and what happens after it, and how much a
+ * restricted organization may still change, are commercial decisions (B4). Nothing here is applied
+ * to anyone unless lifecycle processing is run and, for blocking, SUBSCRIPTION_ENFORCEMENT is on.
+ */
+export const AFTER_GRACE_ACTIONS = ['none', 'restricted'] as const;
+export const RESTRICTED_ACCESS_MODES = ['growth_only', 'read_only'] as const;
+export interface BillingPolicy {
+  _id: string;
+  /** Days a past_due subscription keeps full access before `afterGrace` applies; null = no automatic step. */
+  graceDays: number | null;
+  afterGrace: (typeof AFTER_GRACE_ACTIONS)[number];
+  /** With enforcement on: restricted/expired organizations stop growing only, or stop most changes. */
+  restrictedAccess: (typeof RESTRICTED_ACCESS_MODES)[number];
+  revision: number;
+  updatedByOperatorId: Types.ObjectId | null;
+  updatedAt: Date;
+}
+const policySchema = new Schema<BillingPolicy>(
+  {
+    _id: { type: String, required: true },
+    graceDays: { type: Number, default: null, min: 1, max: 365, validate: (v: number | null) => v === null || Number.isInteger(v) },
+    afterGrace: { type: String, enum: AFTER_GRACE_ACTIONS, required: true, default: 'none' },
+    restrictedAccess: { type: String, enum: RESTRICTED_ACCESS_MODES, required: true, default: 'growth_only' },
+    revision: { type: Number, required: true, default: 0 },
+    updatedByOperatorId: { type: Schema.Types.ObjectId, ref: 'PlatformOperator', default: null },
+  },
+  { collection: 'platform_billing_policy', timestamps: { createdAt: false, updatedAt: true } },
+);
+export const BillingPolicyModel = model<BillingPolicy>('BillingPolicy', policySchema);
+export const DEFAULT_POLICY = { graceDays: null, afterGrace: 'none', restrictedAccess: 'growth_only', revision: 0 } as const;

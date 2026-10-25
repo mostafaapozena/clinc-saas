@@ -9,7 +9,8 @@ import { parseObjectId, requirePermission, tenantOf } from '../../tenancy/tenant
 import { clock } from '../../time/clock.js';
 import { recordAudit } from '../audit/audit-event.model.js';
 import { BILLING_INTERVALS, CheckoutModel, PlanModel, SubscriptionModel, type PlatformPlan } from './billing.model.js';
-import { handleWebhook, simulateCheckout, type Simulator } from './billing.service.js';
+import { handleWebhook, simulateCheckout, simulatorScheduler, type Simulator } from './billing.service.js';
+import { getPolicy, requestCancellation, requestPlanChange, startTrial, trialEnd, withdrawCancellation, withdrawPlanChange } from './subscription.lifecycle.js';
 import { recordPlatformAudit } from './operator.model.js';
 import { SIMULATOR_SIGNATURE_HEADER, createSimulatorProvider } from './payment-provider.js';
 import { subscriptionDto, usageOf } from './subscription.service.js';
@@ -34,6 +35,7 @@ export const planDto = (p: PlatformPlan & { _id: Types.ObjectId }) => ({
   status: p.status,
   prices: p.prices,
   limits: p.limits,
+  trialDays: p.trialDays ?? null,
 });
 
 const checkoutSchema = z.object({ planId: objectIdSchema, currency: z.enum(CURRENCY_CODES), interval: z.enum(BILLING_INTERVALS) });
@@ -43,16 +45,75 @@ export function createSubscriptionRouter(config: AppConfig) {
   const router = Router();
   const simulator = simulatorFor(config);
 
-  router.get('/subscription', requirePermission('subscription.read'), async (req, res) => {
-    const tenant = tenantOf(req);
-    const sub = await SubscriptionModel.findOne({ organizationId: tenant.organizationId }).lean();
+  const scheduler = simulatorScheduler(simulator);
+  const view = async (organizationId: Types.ObjectId) => {
+    const sub = await SubscriptionModel.findOne({ organizationId }).lean();
     const plan = sub ? await PlanModel.findById(sub.planId).lean() : null;
-    res.json({
+    const policy = await getPolicy();
+    return {
       subscription: subscriptionDto(sub, plan?.limits ?? null, plan?.name ?? null),
-      usage: await usageOf(tenant.organizationId),
+      usage: await usageOf(organizationId),
       enforcement: config.subscriptionEnforcement,
       billingProvider: config.billingProvider,
-    });
+      policy: { graceDays: policy.graceDays, afterGrace: policy.afterGrace, restrictedAccess: policy.restrictedAccess },
+    };
+  };
+  const currentSub = async (organizationId: Types.ObjectId, version: number) => {
+    const sub = await SubscriptionModel.findOne({ organizationId }).lean();
+    if (!sub) throw notFound();
+    if (sub.version !== version) throw conflict('SUBSCRIPTION_CHANGED', 'The subscription changed meanwhile; reload and try again');
+    return sub;
+  };
+
+  router.get('/subscription', requirePermission('subscription.read'), async (req, res) => {
+    res.json(await view(tenantOf(req).organizationId));
+  });
+
+  /** Owner-started trial on a plan that offers one (plan.trialDays), once per organization. */
+  router.post('/subscription/trial', requirePermission('subscription.manage'), async (req, res) => {
+    const tenant = tenantOf(req);
+    const { planId } = parseInput(z.object({ planId: objectIdSchema }), req.body);
+    const plan = await PlanModel.findOne({ _id: new Types.ObjectId(planId), status: 'active' }).lean();
+    if (!plan) throw notFound();
+    if (!plan.trialDays) throw conflict('TRIAL_NOT_OFFERED', 'This plan does not offer a trial');
+    await startTrial(tenant.organizationId, plan, trialEnd(clock.now(), plan.trialDays), 'owner', tenant.userId);
+    res.status(201).json(await view(tenant.organizationId));
+  });
+
+  router.post('/subscription/plan-change', requirePermission('subscription.manage'), async (req, res) => {
+    const tenant = tenantOf(req);
+    const input = parseInput(checkoutSchema.extend({ version: z.number().int().min(0) }), req.body);
+    const sub = await currentSub(tenant.organizationId, input.version);
+    const plan = await PlanModel.findOne({ _id: new Types.ObjectId(input.planId), status: 'active' }).lean();
+    if (!plan) throw notFound();
+    // The price always comes from the plan, never from the browser.
+    const price = plan.prices.find((p) => p.currency === input.currency && p.interval === input.interval);
+    if (!price) throw conflict('PRICE_NOT_AVAILABLE', 'This plan has no price for that currency and interval');
+    const { replayed } = await requestPlanChange(sub, plan, price, tenant.userId, scheduler);
+    res.status(replayed ? 200 : 201).json({ ...(await view(tenant.organizationId)), replayed });
+  });
+
+  router.post('/subscription/plan-change/withdraw', requirePermission('subscription.manage'), async (req, res) => {
+    const tenant = tenantOf(req);
+    const { version } = parseInput(z.object({ version: z.number().int().min(0) }), req.body);
+    await withdrawPlanChange(await currentSub(tenant.organizationId, version), tenant.userId, scheduler);
+    res.json(await view(tenant.organizationId));
+  });
+
+  /** Owner cancellation: requires `confirm: true` (the UI asks explicitly). Data is never removed. */
+  router.post('/subscription/cancel', requirePermission('subscription.manage'), async (req, res) => {
+    const tenant = tenantOf(req);
+    const input = parseInput(z.object({ version: z.number().int().min(0), confirm: z.literal(true), reason: z.string().trim().max(200).default('') }), req.body);
+    const sub = await currentSub(tenant.organizationId, input.version);
+    const { replayed } = await requestCancellation(sub, tenant.userId, input.reason, scheduler);
+    res.status(replayed ? 200 : 201).json({ ...(await view(tenant.organizationId)), replayed });
+  });
+
+  router.post('/subscription/cancel/withdraw', requirePermission('subscription.manage'), async (req, res) => {
+    const tenant = tenantOf(req);
+    const { version } = parseInput(z.object({ version: z.number().int().min(0) }), req.body);
+    await withdrawCancellation(await currentSub(tenant.organizationId, version), tenant.userId, scheduler);
+    res.json(await view(tenant.organizationId));
   });
 
   router.get('/subscription/plans', requirePermission('subscription.read'), async (_req, res) => {
@@ -70,8 +131,9 @@ export function createSubscriptionRouter(config: AppConfig) {
     if (!price) throw conflict('PRICE_NOT_AVAILABLE', 'This plan has no price for that currency and interval');
     const current = await SubscriptionModel.findOne({ organizationId: tenant.organizationId }).lean();
     if (current?.status === 'restricted') throw conflict('SUBSCRIPTION_RESTRICTED', 'The subscription is restricted; contact support');
-    if (current?.kind === 'commercial' && current.status !== 'canceled')
-      throw conflict('ALREADY_SUBSCRIBED', 'Plan changes are not available yet');
+    // An existing commercial subscription changes plan through a plan-change request instead.
+    if (current?.kind === 'commercial' && current.status !== 'canceled' && current.status !== 'expired')
+      throw conflict('ALREADY_SUBSCRIBED', 'Use a plan change for an existing commercial subscription');
     const checkout = await CheckoutModel.create({
       organizationId: tenant.organizationId,
       createdByUserId: tenant.userId,

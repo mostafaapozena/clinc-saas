@@ -19,19 +19,33 @@ import { recordPlatformAudit } from './operator.model.js';
 
 // The subscription state machine and entitlement checks (docs/architecture/SUBSCRIPTIONS.md).
 
-/** Allowed status changes. A canceled subscription is replaced by a new grant or checkout, never revived. */
+/**
+ * Allowed status changes. Canceled and expired subscriptions are replaced by a new grant, trial or
+ * checkout, never revived. A trial becomes active only through a verified checkout.
+ */
 export const TRANSITIONS: Record<SubscriptionStatus, readonly SubscriptionStatus[]> = {
-  active: ['past_due', 'restricted', 'canceled'],
-  past_due: ['active', 'restricted', 'canceled'],
+  trialing: ['expired', 'restricted', 'canceled'],
+  active: ['past_due', 'restricted', 'canceled', 'expired'],
+  past_due: ['active', 'restricted', 'canceled', 'expired'],
   restricted: ['active', 'canceled'],
   canceled: [],
+  expired: [],
 };
 export const canTransition = (from: SubscriptionStatus, to: SubscriptionStatus) => from === to || TRANSITIONS[from].includes(to);
+/** Statuses that a new grant, trial or checkout may replace. */
+export const REPLACEABLE: readonly SubscriptionStatus[] = ['canceled', 'expired'];
 
-/** What the organization is entitled to right now. "expired" and "none" are derived, never stored. */
-export type EffectiveStatus = SubscriptionStatus | 'expired' | 'none';
-export function effectiveStatus(sub: Pick<PlatformSubscription, 'status' | 'currentPeriodEnd'> | null, now = clock.now()): EffectiveStatus {
+/**
+ * What the organization is entitled to right now. "none" is derived; "expired" is stored by
+ * lifecycle processing but also derived on read, so an unprocessed end date is never treated as active.
+ */
+export type EffectiveStatus = SubscriptionStatus | 'none';
+export function effectiveStatus(
+  sub: (Pick<PlatformSubscription, 'status' | 'currentPeriodEnd'> & { trialEndsAt?: Date | null }) | null,
+  now = clock.now(),
+): EffectiveStatus {
   if (!sub) return 'none';
+  if (sub.status === 'trialing' && sub.trialEndsAt && sub.trialEndsAt <= now) return 'expired';
   if ((sub.status === 'active' || sub.status === 'past_due') && sub.currentPeriodEnd && sub.currentPeriodEnd <= now) return 'expired';
   return sub.status;
 }
@@ -41,7 +55,7 @@ export function effectiveStatus(sub: Pick<PlatformSubscription, 'status' | 'curr
  * finances continue, and no data is removed. past_due is not blocking — any grace policy is a
  * commercial decision (B4).
  */
-const GROWTH_BLOCKED: readonly EffectiveStatus[] = ['restricted', 'canceled', 'expired', 'none'];
+export const GROWTH_BLOCKED: readonly EffectiveStatus[] = ['restricted', 'canceled', 'expired', 'none'];
 
 export type EnforcementMode = 'off' | 'log' | 'on';
 
@@ -59,7 +73,7 @@ export type EntitlementVerdict =
 
 /** Pure decision: may the organization add one more of `resource`? */
 export function decide(
-  sub: (Pick<PlatformSubscription, 'status' | 'currentPeriodEnd'> & { limits?: PlanLimits | null }) | null,
+  sub: (Pick<PlatformSubscription, 'status' | 'currentPeriodEnd'> & { trialEndsAt?: Date | null; limits?: PlanLimits | null }) | null,
   resource: LimitedResource,
   current: number,
   now = clock.now(),
@@ -111,7 +125,12 @@ export async function changeStatus(
   to: SubscriptionStatus,
   actor: HistoryActor,
   reason: string,
-  extra: Partial<Pick<PlatformSubscription, 'currentPeriodEnd' | 'restriction' | 'providerEventAt'>> = {},
+  extra: Partial<
+    Pick<
+      PlatformSubscription,
+      'currentPeriodEnd' | 'restriction' | 'providerEventAt' | 'pastDueSince' | 'cancelRequest' | 'pendingChange' | 'trialEndsAt' | 'planId' | 'planCode' | 'planVersion' | 'price'
+    >
+  > = {},
   session?: ClientSession,
 ) {
   if (!canTransition(sub.status, to))
@@ -152,6 +171,21 @@ export function subscriptionDto(
     price: sub.price,
     provider: sub.provider,
     restriction: sub.restriction ? { reason: sub.restriction.reason, at: sub.restriction.at.toISOString() } : null,
+    trialEndsAt: sub.trialEndsAt?.toISOString() ?? null,
+    trialUsed: sub.trialUsed ?? false,
+    pastDueSince: sub.pastDueSince?.toISOString() ?? null,
+    cancelRequest: sub.cancelRequest
+      ? { requestedAt: sub.cancelRequest.requestedAt.toISOString(), reason: sub.cancelRequest.reason, providerAcknowledged: sub.cancelRequest.providerAcknowledged }
+      : null,
+    pendingChange: sub.pendingChange
+      ? {
+          plan: { id: String(sub.pendingChange.planId), code: sub.pendingChange.planCode, version: sub.pendingChange.planVersion },
+          price: sub.pendingChange.price,
+          effectiveAt: sub.pendingChange.effectiveAt.toISOString(),
+          requestedAt: sub.pendingChange.requestedAt.toISOString(),
+          providerAcknowledged: sub.pendingChange.providerAcknowledged,
+        }
+      : null,
     version: sub.version,
     updatedAt: sub.updatedAt.toISOString(),
   };

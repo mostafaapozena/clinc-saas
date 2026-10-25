@@ -30,7 +30,9 @@ import { planDto, simulatorFor } from './subscription.routes.js';
 import { DevMailModel, type Mailer } from '../mail/mailer.js';
 import { createSupportQueueRouter } from '../support/support.routes.js';
 import { SupportRequestModel } from '../support/support.model.js';
-import { changeStatus, effectiveStatus, subscriptionDto, usageOf } from './subscription.service.js';
+import { REPLACEABLE, changeStatus, effectiveStatus, subscriptionDto, usageOf } from './subscription.service.js';
+import { getPolicy, processLifecycle, startTrial, updatePolicy } from './subscription.lifecycle.js';
+import { AFTER_GRACE_ACTIONS, RESTRICTED_ACCESS_MODES } from './billing.model.js';
 
 // The platform operator console API (docs/architecture/PLATFORM.md). Operators manage raclinic as a
 // business: organizations' METADATA, plans, subscriptions, inquiries, operators and the platform
@@ -54,6 +56,8 @@ const planInput = z.object({
     .refine((list) => new Set(list.map((p) => `${p.currency}/${p.interval}`)).size === list.length, 'duplicate_price'),
   limits: z.object({ branches: limitSchema, practitioners: limitSchema, members: limitSchema }),
   note: z.string().trim().max(500).default(''),
+  // Optional and unset by default: no trial length is invented.
+  trialDays: z.number().int().min(1).max(365).nullable().default(null),
 });
 const createPlanSchema = planInput.extend({
   code: z
@@ -261,6 +265,7 @@ export function createPlatformRouter(config: AppConfig, mailer?: Mailer) {
           prices: plan.prices,
           limits: plan.limits,
           note: plan.note,
+          trialDays: plan.trialDays ?? null,
           status: 'draft',
         });
         await audit(req, 'plan.version_created', { type: 'plan', id: String(draft._id) }, { code: draft.code, version: draft.version });
@@ -297,7 +302,7 @@ export function createPlatformRouter(config: AppConfig, mailer?: Mailer) {
     const endsAt = input.endsAt ? new Date(`${input.endsAt}T23:59:59.999Z`) : null;
     if (endsAt && endsAt <= clock.now()) throw conflict('END_IN_PAST', 'The grant must end in the future');
     const existing = await SubscriptionModel.findOne({ organizationId }).lean();
-    if (existing && existing.status !== 'canceled')
+    if (existing && !REPLACEABLE.includes(existing.status))
       throw conflict('SUBSCRIPTION_EXISTS', 'Cancel the current subscription before granting another');
     const entry = {
       at: clock.now(),
@@ -321,6 +326,10 @@ export function createPlatformRouter(config: AppConfig, mailer?: Mailer) {
       providerSubscriptionId: null,
       providerEventAt: null,
       restriction: null,
+      trialEndsAt: null,
+      pastDueSince: null,
+      cancelRequest: null,
+      pendingChange: null,
       note: input.note,
     };
     let sub;
@@ -351,8 +360,9 @@ export function createPlatformRouter(config: AppConfig, mailer?: Mailer) {
   router.post(
     '/organizations/:orgId/subscription/:action',
     requireOperatorPermission('platform.subscriptions.manage'),
-    async (req, res) => {
-      if (!['restrict', 'reinstate', 'cancel'].includes(String(req.params.action))) throw notFound();
+    async (req, res, next) => {
+      // Other subscription actions (trial, plan) have their own routes further down.
+      if (!['restrict', 'reinstate', 'cancel'].includes(String(req.params.action))) return next();
       const organizationId = await orgOr404(req.params.orgId);
       const input = parseInput(statusChangeSchema, req.body);
       const sub = await SubscriptionModel.findOne({ organizationId }).lean();
@@ -392,6 +402,59 @@ export function createPlatformRouter(config: AppConfig, mailer?: Mailer) {
         receivedAt: e.createdAt.toISOString(),
       })),
     });
+  });
+
+  // --- Billing policy and lifecycle processing (scalability/subscriptions checkpoint) -------------
+  router.get('/billing/policy', requireOperatorPermission('platform.plans.read'), async (_req, res) => {
+    res.json({ policy: await getPolicy() });
+  });
+
+  router.put('/billing/policy', requireOperatorPermission('platform.subscriptions.manage'), async (req, res) => {
+    const input = parseInput(
+      z.object({
+        graceDays: z.number().int().min(1).max(365).nullable(),
+        afterGrace: z.enum(AFTER_GRACE_ACTIONS),
+        restrictedAccess: z.enum(RESTRICTED_ACCESS_MODES),
+        revision: z.number().int().min(0),
+      }),
+      req.body,
+    );
+    const { revision, ...policy } = input;
+    await updatePolicy(policy, revision, operatorOf(req).operator._id);
+    res.json({ policy: await getPolicy() });
+  });
+
+  /** Runs (or previews) the lifecycle pass. Safe to repeat and safe if another replica runs it too. */
+  router.post('/billing/lifecycle', requireOperatorPermission('platform.subscriptions.manage'), async (req, res) => {
+    const { apply } = parseInput(z.object({ apply: z.boolean() }), req.body);
+    const actions = await processLifecycle(apply, clock.now(), operatorOf(req).operator._id);
+    if (apply) await audit(req, 'billing.lifecycle_run', { type: 'subscription', id: 'all' }, { actions: actions.length, applied: actions.filter((a) => a.applied).length });
+    res.json({ actions });
+  });
+
+  /** Operator-started trial with an explicit end date (no plan default is assumed). */
+  router.post('/organizations/:orgId/subscription/trial', requireOperatorPermission('platform.subscriptions.manage'), async (req, res) => {
+    const organizationId = await orgOr404(req.params.orgId);
+    const input = parseInput(z.object({ planId: objectIdSchema, endsAt: z.iso.date() }), req.body);
+    const plan = await PlanModel.findOne({ _id: new Types.ObjectId(input.planId), status: 'active' }).lean();
+    if (!plan) throw notFound();
+    const sub = await startTrial(organizationId, plan, new Date(`${input.endsAt}T23:59:59.999Z`), 'operator', operatorOf(req).operator._id);
+    res.status(201).json({ subscription: subscriptionDto(sub, plan.limits, plan.name) });
+  });
+
+  /** Changes the plan of a free grant or trial immediately (commercial plans change only through the provider). */
+  router.post('/organizations/:orgId/subscription/plan', requireOperatorPermission('platform.subscriptions.manage'), async (req, res) => {
+    const organizationId = await orgOr404(req.params.orgId);
+    const input = parseInput(z.object({ planId: objectIdSchema, version: z.number().int().min(0), reason: reasonSchema }), req.body);
+    const sub = await SubscriptionModel.findOne({ organizationId }).lean();
+    if (!sub) throw notFound();
+    if (sub.kind !== 'development_grant' || REPLACEABLE.includes(sub.status)) throw conflict('PLAN_CHANGE_NOT_AVAILABLE', 'Only a live grant or trial can change plan here');
+    if (sub.version !== input.version) throw conflict('SUBSCRIPTION_CHANGED', 'The subscription changed meanwhile; reload and try again');
+    const plan = await PlanModel.findOne({ _id: new Types.ObjectId(input.planId), status: 'active' }).lean();
+    if (!plan) throw notFound();
+    const updated = await changeStatus(sub, sub.status, 'operator', `plan changed: ${input.reason}`.slice(0, 200), { planId: plan._id, planCode: plan.code, planVersion: plan.version });
+    await audit(req, 'subscription.plan_changed', { type: 'organization', id: String(organizationId) }, { from: `${sub.planCode}@${sub.planVersion}`, to: `${plan.code}@${plan.version}` });
+    res.json({ subscription: subscriptionDto(updated, plan.limits, plan.name) });
   });
 
   router.post('/billing/reconcile', requireOperatorPermission('platform.subscriptions.manage'), async (req, res) => {
