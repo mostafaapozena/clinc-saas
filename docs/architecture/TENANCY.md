@@ -89,6 +89,9 @@ selected branches and only ever see those.
 | Today's queue                                        | `queue.read`                  |  ✓    |  ✓    |  ✓²    |      ✓       |        |
 | Write and read own visit records (clinical text)⁶    | `clinical.encounter.own`      |       |       |  ✓⁶    |              |        |
 | See whether a visit is documented (status only)⁶     | `clinical.documentation_status.read` |  ✓    |  ✓    |  ✓²    |              |        |
+| Share own records for coverage, revoke, list⁶        | `clinical.coverage.grant`     |       |       |  ✓⁶    |              |        |
+| Grant coverage for another doctor (clinical lead)⁷   | `clinical.coverage.lead`      |       |       |  ⁷     |              |        |
+| Read the clinical audit log (metadata only)⁷         | `clinical.audit.read`         |  ⁷    |  ⁷    |  ⁷     |              |        |
 
 ¹ Additional membership rules, checked in this order (`membership.routes.ts`):
 
@@ -118,7 +121,14 @@ that **only narrows** the authorized result; it never grants access to anything.
 with an active practitioner profile, on that profile's own appointments, as the record's author,
 within the current branch scope; re-checked on every request and inside every mutation. Owners
 and admins get **no** clinical text (status only); other doctors get the generic `404`. Details:
-[CLINICAL.md](CLINICAL.md).
+[CLINICAL.md](CLINICAL.md). A covering doctor (explicit, time-bounded coverage grant) reads — or with
+"author" coverage, adds addenda to — the covered records; see CLINICAL.md#clinical-coverage.
+
+⁷ **Capabilities**, not roles: granted per membership by an owner (`PATCH /members/:id
+{ capabilities }`, owners only, audited) and dropped automatically when the role can no longer hold
+them. `clinical_audit` (owner, admin or doctor) opens the metadata-only clinical audit log;
+`clinical_lead` (doctor) stays unassignable until `CLINICAL_LEAD_GRANTS_ENABLED` is turned on after
+the owner's decision (blocker B1). Checked with `tenantCan` / `requirePermission`, read fresh.
 
 Outside organizations (phase 4): creating a new organization — directly (`POST /orgs`) or by
 completing one's own onboarding draft — is open to every signed-in user, who becomes its owner;

@@ -23,7 +23,13 @@ export type Permission =
   | 'appointment.visit'
   | 'queue.read'
   | 'clinical.encounter.own'
-  | 'clinical.documentation_status.read';
+  | 'clinical.documentation_status.read'
+  | 'clinical.coverage.grant'
+  | 'clinical.coverage.lead'
+  | 'clinical.audit.read';
+
+/** Explicit per-membership grants on top of the role (assigned by owners). */
+export type Capability = 'clinical_audit' | 'clinical_lead';
 
 export const ASSIGNABLE_ROLES: Role[] = ['admin', 'doctor', 'receptionist', 'viewer'];
 export const ORG_WIDE_ROLES: Role[] = ['owner', 'admin'];
@@ -79,6 +85,7 @@ export type OrgDetail = {
     role: Role;
     branchScope: BranchScope;
     permissions: Permission[];
+    capabilities: Capability[];
     practitionerId: string | null;
   };
   stats: { accessibleBranches: number; activeMembers?: number };
@@ -121,6 +128,7 @@ export type Member = {
   role: Role;
   status: 'active' | 'suspended';
   branchScope: BranchScope;
+  capabilities: Capability[];
   isSelf: boolean;
   createdAt: string;
 };

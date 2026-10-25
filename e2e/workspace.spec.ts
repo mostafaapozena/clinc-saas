@@ -40,8 +40,9 @@ test('a branch-restricted doctor only sees permitted pages and branches', async 
   const orgId = orgIdFromUrl(page);
 
   const nav = page.getByRole('navigation');
-  // Phase 3: a doctor also gets their appointments, the queue and their own schedule — not the registry or team.
-  await expect(nav.getByRole('link')).toHaveText(['الرئيسية', 'المواعيد', 'قائمة الانتظار', 'جدولي', 'الفروع', 'الملف الشخصي']);
+  // Phase 3: a doctor also gets their appointments, the queue and their own schedule — not the registry or team;
+  // milestone 1 adds clinical coverage (records shared between doctors).
+  await expect(nav.getByRole('link')).toHaveText(['الرئيسية', 'المواعيد', 'قائمة الانتظار', 'جدولي', 'التغطية السريرية', 'الفروع', 'الملف الشخصي']);
   await expect(page.getByTestId('stat-members')).toHaveCount(0);
   await expect(page.locator('#branch-switcher option')).toHaveText(['فرع المعادي']);
 

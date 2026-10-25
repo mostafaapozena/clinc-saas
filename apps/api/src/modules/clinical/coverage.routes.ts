@@ -448,7 +448,8 @@ export function createCoverageRouter(config: AppConfig) {
         encounterId: e.encounterId ? String(e.encounterId) : null,
         appointmentId: e.appointmentId ? String(e.appointmentId) : null,
         patientNumber: e.patientId ? (patientNumber.get(String(e.patientId)) ?? null) : null,
-        metadata: e.metadata,
+        // Mongoose drops empty objects on save, so events without metadata have none stored.
+        metadata: e.metadata ?? {},
       })),
       next: events.length > query.limit && page.length > 0 ? `${page.at(-1)!.createdAt.toISOString()}|${String(page.at(-1)!._id)}` : null,
     });

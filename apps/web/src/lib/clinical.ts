@@ -12,7 +12,14 @@ export const SECTION_MAX = 4000;
 
 export type DocumentationStatus = 'none' | 'draft' | 'finalized';
 
-export type Addendum = { id: string; reason: string; content: string; createdAt: string };
+export type Addendum = {
+  id: string;
+  reason: string;
+  content: string;
+  /** A covering doctor adds addenda under their own name. */
+  author: { practitionerId: string; displayName: string };
+  createdAt: string;
+};
 
 export type Encounter = {
   id: string;
@@ -46,6 +53,8 @@ export type ClinicalHistoryItem = {
   lateEntry: boolean;
   finalizedAt: string | null;
   addendaCount: number;
+  /** Written by another doctor, visible through coverage. */
+  covered?: boolean;
 };
 
 /** For every clinical query: nothing kept once unused, no background refetch over an open editor. */
@@ -61,4 +70,50 @@ export function useIsTreating(appointment: Pick<Appointment, 'practitioner'>): b
   return can('clinical.encounter.own') && Boolean(own) && appointment.practitioner?.id === own;
 }
 
-export const sameSections =(a: Sections, b: Sections) => ENCOUNTER_SECTIONS.every((s) => a[s] === b[s]);
+export const sameSections = (a: Sections, b: Sections) => ENCOUNTER_SECTIONS.every((s) => a[s] === b[s]);
+
+// Clinical coverage (docs/architecture/CLINICAL.md#clinical-coverage).
+export type CoverageAccess = 'read' | 'author';
+export type CoverageStatus = 'active' | 'scheduled' | 'expired' | 'revoked';
+export type PatientRef = { id: string; fullName: string; patientNumber: number };
+
+export type Coverage = {
+  id: string;
+  source: { practitionerId: string; displayName: string };
+  grantee: { practitionerId: string; displayName: string };
+  scope: { type: 'patient' | 'encounter'; encounterId: string | null; patient: PatientRef | null };
+  access: CoverageAccess;
+  reason: string;
+  grantedVia: 'author' | 'clinical_lead';
+  grantedByMe: boolean;
+  status: CoverageStatus;
+  startsAt: string;
+  expiresAt: string;
+  revokedAt: string | null;
+  revokeReason: string | null;
+  createdAt: string;
+};
+
+/** A record opened by id: own, or through coverage (read-only unless addenda are allowed). */
+export type RecordView = {
+  encounter: Encounter;
+  access: 'own' | CoverageAccess;
+  canAddAddendum: boolean;
+  context: { patient: PatientRef | null; appointment: { id: string; startAt: string; status: AppointmentStatus } | null };
+};
+
+export type CoveredRecord = Omit<ClinicalHistoryItem, 'appointmentId'>;
+
+export type ClinicalAuditEntry = {
+  id: string;
+  action: string;
+  actor: { displayName: string; role: string };
+  createdAt: string;
+  encounterId: string | null;
+  appointmentId: string | null;
+  patientNumber: number | null;
+  metadata: Record<string, unknown>;
+};
+
+/** Longest coverage the API accepts (days). */
+export const MAX_COVERAGE_DAYS = 90;

@@ -33,6 +33,8 @@ its diff re-checked and CI re-run.
 
 ## M1 — Existing-work stabilization and clinical continuity
 
+**Status: implemented and verified in the Codespace; PR _(to be opened)_ in review.**
+
 - **Outcome:** a patient's records stay reachable for care when their doctor is unavailable,
   through explicit, time-bounded, audited coverage — never through owner/admin status.
 - **Scope:** coverage grants (grantor, grantee practitioner, scope = one patient or one encounter,
@@ -133,7 +135,7 @@ its diff re-checked and CI re-run.
 
 | # | Blocks | Needed from | Status |
 | - | ------ | ----------- | ------ |
-| B1 | Enabling the clinical-lead authority (who may grant coverage when the treating doctor is unavailable) | Owner decision | Open — implemented switched off |
+| B1 | Enabling the clinical-lead authority (who may grant coverage when the treating doctor is unavailable) — Q17 | Owner decision | Open — implemented switched off |
 | B2 | Real clinical use of any template | Practising clinicians per specialty (Q6, E5) | Open |
 | B3 | Currency model (one per organization?), tax/VAT, e-invoicing | Owner + tax advice (P9, Q9) | Open — development uses one currency per organization |
 | B4 | Access behavior in restricted/expired subscription states; trial length; prices | Owner (Q10, P10) | Open — nothing enforced commercially |

@@ -52,6 +52,8 @@ Status after phase 4 in brackets.
 | P8 | Clinical access (phase 5) is a separate permission dimension granted per membership; owners/admins need explicit grant. | C12. |
 | P9 | Money stored in integer minor units; one currency per organization at first (EGP or SAR). | Avoids rounding errors; simplest model. Needs owner confirmation. |
 | P10 | Subscription states never delete tenant data automatically; expired subscriptions become read-only after a grace period to be defined. | Data safety. |
+| P12 | Explicit per-membership **capabilities** on top of roles, assigned only by owners and audited: `clinical_audit` (metadata-only clinical audit log) and `clinical_lead` (switched off, see Q17). [Implemented in milestone 1.] | Keeps clinical oversight separate from administration (C12). |
+| P13 | Clinical coverage grants last at most **90 days**, need a reason, and can be scoped to one patient or one encounter. [Implemented; the 90-day bound is an engineering default.] | Bounded, reviewable access. |
 
 ## 3. Unanswered product questions
 
@@ -70,6 +72,7 @@ the brand source of truth (C23).
 | Q5 | Clinical access policy. | **Answered by the owner (phase 5 brief, 2026-10-24):** the treating doctor only (active doctor membership + active practitioner relationship, authorized branch); other doctors denied; owners/admins see documentation status only, no clinical text; receptionists/viewers nothing clinical; membership changes apply immediately; no sharing or break-glass in this phase. Corrections are append-only addenda with a reason. Implemented: [CLINICAL.md](architecture/CLINICAL.md). |
 | Q6 | Which clinicians validate the visit-record content? **Still open.** | At least one practicing doctor per launch specialty completes [CLINICIAN_REVIEW.md](CLINICIAN_REVIEW.md) before any real use. |
 | Q7 | Are prescriptions and attachments in scope, and when? **Needs authoritative validation.** | Not in phase 5. |
+| Q17 | **Who may authorize clinical coverage when the treating doctor is unavailable** (left, on leave without having shared)? (Blocker B1.) | Proposal: a designated **clinical lead** — a doctor membership given the `clinical_lead` capability by an owner — may grant time-bounded coverage of that doctor's records to another doctor, never to themselves; every grant audited. Implemented but **switched off** (`CLINICAL_LEAD_GRANTS_ENABLED=false`, capability unassignable) until the owner decides. |
 
 ### Blocking public launch (not development)
 

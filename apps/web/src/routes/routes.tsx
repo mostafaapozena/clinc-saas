@@ -39,6 +39,10 @@ const BookAppointmentPage = named(workspace, 'BookAppointmentPage');
 const AppointmentDetailPage = named(workspace, 'AppointmentDetailPage');
 const RescheduleAppointmentPage = named(workspace, 'RescheduleAppointmentPage');
 const EncounterPage = named(workspace, 'EncounterPage');
+const RecordPage = named(workspace, 'RecordPage');
+const CoveragePage = named(workspace, 'CoveragePage');
+const CoverageRecordsPage = named(workspace, 'CoverageRecordsPage');
+const ClinicalAuditPage = named(workspace, 'ClinicalAuditPage');
 const QueuePage = named(workspace, 'QueuePage');
 const PatientsPage = named(workspace, 'PatientsPage');
 const PatientDetailPage = named(workspace, 'PatientDetailPage');
@@ -95,6 +99,10 @@ export const routes: RouteObject[] = [
           guarded('appointments/:appointmentId', 'appointment.read', <AppointmentDetailPage />),
           guarded('appointments/:appointmentId/reschedule', 'appointment.book', <RescheduleAppointmentPage />),
           guarded('appointments/:appointmentId/record', 'clinical.encounter.own', <EncounterPage />),
+          guarded('records/:encounterId', 'clinical.encounter.own', <RecordPage />),
+          guarded('coverage', 'clinical.encounter.own', <CoveragePage />),
+          guarded('coverage/:coverageId', 'clinical.encounter.own', <CoverageRecordsPage />),
+          guarded('clinical-audit', 'clinical.audit.read', <ClinicalAuditPage />),
           guarded('queue', 'queue.read', <QueuePage />),
           guarded('patients', 'patient.list', <PatientsPage />),
           guarded('patients/:patientId', 'patient.read', <PatientDetailPage />),

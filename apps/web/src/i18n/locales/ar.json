@@ -61,7 +61,9 @@
     "queue": "قائمة الانتظار",
     "patients": "المرضى",
     "practitioners": "الأطباء وجداولهم",
-    "mySchedule": "جدولي"
+    "mySchedule": "جدولي",
+    "coverage": "التغطية السريرية",
+    "clinicalAudit": "سجل التدقيق السريري"
   },
   "shell": {
     "skipToContent": "تخطَّ إلى المحتوى الرئيسي",
@@ -251,7 +253,17 @@
     "reactivateLabel": "إعادة تفعيل عضوية {{name}}",
     "suspendedNotice": "تم إيقاف عضوية {{name}}. لن يتمكن من الوصول إلى المنشأة.",
     "reactivatedNotice": "تمت إعادة تفعيل عضوية {{name}}.",
-    "editLabel": "تعديل عضوية {{name}}"
+    "editLabel": "تعديل عضوية {{name}}",
+    "capabilities": {
+      "clinical_audit": "صلاحية التدقيق السريري",
+      "clinical_lead": "مسؤول سريري"
+    },
+    "auditGrant": "منح صلاحية التدقيق السريري",
+    "auditRevoke": "سحب صلاحية التدقيق السريري",
+    "auditGrantLabel": "منح {{name}} صلاحية التدقيق السريري",
+    "auditRevokeLabel": "سحب صلاحية التدقيق السريري من {{name}}",
+    "auditGrantedNotice": "يستطيع {{name}} الآن قراءة سجل التدقيق السريري (من فتح أي سجل، دون المحتوى).",
+    "auditRevokedNotice": "لم يعد {{name}} يستطيع قراءة سجل التدقيق السريري."
   },
   "settings": {
     "title": "إعدادات المنشأة",
@@ -352,7 +364,13 @@
     "ENCOUNTER_FINALIZED": "هذا السجل معتمد ولا يمكن تغييره. أضف ملحقًا بدلًا من ذلك.",
     "ENCOUNTER_NOT_FINALIZED": "الملاحق للسجلات المعتمدة فقط؛ عدّل المسودة مباشرة.",
     "ENCOUNTER_INCOMPLETE": "لا يمكن اعتماد السجل بعد: اكتب سبب الزيارة، وواحدًا على الأقل من نتائج الفحص أو التقييم أو الخطة.",
-    "LATE_ENTRY_REASON_REQUIRED": "اكتب سبب التوثيق المتأخر."
+    "LATE_ENTRY_REASON_REQUIRED": "اكتب سبب التوثيق المتأخر.",
+    "COVERAGE_GRANTEE_INVALID": "اختر طبيبًا آخر نشطًا في هذه المنشأة.",
+    "COVERAGE_LEAD_NOT_ENABLED": "مشاركة سجلات طبيب آخر غير مفعّلة.",
+    "COVERAGE_REVOKED": "سُحبت هذه المشاركة بالفعل.",
+    "CAPABILITY_OWNER_ONLY": "المالك وحده يستطيع تغيير هذه الصلاحية.",
+    "CAPABILITY_NOT_ENABLED": "هذه الصلاحية غير مفعّلة على المنصة.",
+    "CAPABILITY_NOT_ELIGIBLE": "هذا الدور لا يمكنه حمل هذه الصلاحية."
   },
   "validation": {
     "required": "هذا الحقل مطلوب.",
@@ -453,6 +471,21 @@
         "required": "سبب الزيارة مطلوب للاعتماد."
       },
       "needs_findings_assessment_or_plan": "اكتب واحدًا على الأقل من نتائج الفحص أو التقييم أو الخطة قبل الاعتماد."
+    },
+    "expiresAt": {
+      "out_of_range": "اختر مدة لا تزيد على 90 يومًا."
+    },
+    "coverageReason": {
+      "too_short": "اكتب سببًا من 5 أحرف على الأقل.",
+      "required": "اكتب سبب المشاركة."
+    },
+    "revokeReason": {
+      "too_short": "اكتب سببًا من 3 أحرف على الأقل.",
+      "required": "اكتب سبب السحب."
+    },
+    "granteePractitionerId": {
+      "invalid_choice": "اختر طبيبًا آخر نشطًا في هذه المنشأة.",
+      "required": "اختر زميلًا."
     }
   },
   "countries": {
@@ -1082,6 +1115,94 @@
     "addendaCount": "الملاحق: {{n}}",
     "patientHistory": "سجلات زياراتي لهذا المريض",
     "patientHistoryNote": "تظهر هنا السجلات التي كتبتها أنت فقط.",
-    "noHistory": "لم تكتب أي سجل زيارة لهذا المريض."
+    "noHistory": "لم تكتب أي سجل زيارة لهذا المريض.",
+    "draftReadOnlyTitle": "مسودة (للقراءة فقط — لم يعتمدها كاتبها)"
+  },
+  "coverage": {
+    "title": "التغطية السريرية",
+    "subtitle": "السجلات التي شاركها معك زملاؤك، والسجلات التي شاركتها أنت.",
+    "rules": "تتيح التغطية لزميل قراءة سجلاتك (أو إضافة ملاحق إليها أيضًا) لمدة محددة، لزيارة واحدة أو لمريض واحد. لا تتغير سجلاتك الأصلية ولا اسم كاتبها، ولا يحصل المالك أو المدير على أي وصول سريري عبر التغطية.",
+    "received": "مُشارَكة معي",
+    "granted": "شاركتُها",
+    "grantedHint": "يمكنك سحب المشاركة في أي وقت، ويتوقف أثرها فورًا.",
+    "noneReceived": "لم يشارك أحد سجلات معك.",
+    "noneGranted": "لم تشارك أي سجلات.",
+    "shareTitle": "المشاركة للتغطية",
+    "shareHint": "لاستمرارية الرعاية: يستطيع زميل قراءة هذا السجل — أو كل سجلاتك لهذا المريض — حتى الموعد الذي تختاره.",
+    "share": "مشاركة…",
+    "shared": "تمت المشاركة. يستطيع الزميل فتحها من صفحة التغطية السريرية.",
+    "manage": "إدارة المشاركات",
+    "colleague": "الزميل",
+    "scopeLabel": "ما الذي تشاركه",
+    "scope": {
+      "encounter": "سجل هذه الزيارة",
+      "patient": "كل سجلاتي لهذا المريض"
+    },
+    "accessLabel": "نوع الوصول",
+    "access": {
+      "read": "قراءة فقط",
+      "author": "قراءة وإضافة ملاحق"
+    },
+    "duration": "المدة",
+    "days": "{{n}} يوم",
+    "reason": "السبب (يظهر للزميل ويُحفظ في سجل التدقيق)",
+    "grant": "مشاركة",
+    "until": "حتى {{time}}",
+    "viaLead": "منحها مسؤول سريري",
+    "status": {
+      "active": "سارية",
+      "scheduled": "لم تبدأ",
+      "expired": "منتهية",
+      "revoked": "مسحوبة"
+    },
+    "openRecords": "فتح السجلات",
+    "revoke": "سحب",
+    "revokeReason": "سبب السحب",
+    "confirmRevoke": "اسحب الآن",
+    "records": "السجلات المُشارَكة",
+    "recordsSubtitle": "شاركها {{name}} حتى {{time}}",
+    "noRecords": "لا توجد سجلات من هذه المشاركة ضمن فروعك.",
+    "unavailable": "هذا السجل أو هذه المشاركة غير متاحين لك (ربما انتهت المدة أو سُحبت المشاركة).",
+    "backToCoverage": "العودة إلى التغطية السريرية",
+    "viewingRead": "أنت تقرأ سجلًا كتبه {{name}} عبر التغطية (قراءة فقط).",
+    "viewingAuthor": "أنت تقرأ سجلًا كتبه {{name}} عبر التغطية. يمكنك إضافة ملاحق باسمك، ويبقى الأصل كما هو.",
+    "openOwnRecord": "فتح في صفحة الزيارة",
+    "viaCoverageBadge": "مُشارَك معي"
+  },
+  "clinicalAudit": {
+    "title": "سجل التدقيق السريري",
+    "subtitle": "من فتح السجلات السريرية أو كتبها أو شاركها أو رُفض وصوله، ومتى.",
+    "metadataOnly": "يحتوي هذا السجل على المراجع ورموز الأسباب فقط — دون أي محتوى سريري. وفتحه يُسجَّل أيضًا.",
+    "action": "الإجراء",
+    "allActions": "كل الإجراءات",
+    "time": "الوقت",
+    "actor": "العضو",
+    "patient": "رقم المريض",
+    "details": "التفاصيل",
+    "empty": "لا توجد أحداث.",
+    "more": "عرض المزيد",
+    "viaCoverage": "عبر التغطية",
+    "actions": {
+      "encounter.created": "بدء سجل",
+      "encounter.viewed": "فتح سجل",
+      "encounter.draft_saved": "حفظ مسودة",
+      "encounter.finalized": "اعتماد سجل",
+      "encounter.addendum_added": "إضافة ملحق",
+      "clinical_history.viewed": "عرض سجلات مريض",
+      "clinical.access_denied": "رفض وصول",
+      "coverage.granted": "منح تغطية",
+      "coverage.revoked": "سحب تغطية",
+      "clinical_audit.viewed": "فتح سجل التدقيق السريري"
+    },
+    "reasons": {
+      "no_clinical_permission": "دور بلا وصول سريري",
+      "not_treating": "ليس الطبيب المعالج",
+      "not_author": "ليس كاتب السجل",
+      "not_found": "سجل غير موجود",
+      "coverage_revoked": "تغطية مسحوبة",
+      "coverage_expired": "تغطية منتهية",
+      "coverage_not_started": "تغطية لم تبدأ",
+      "coverage_out_of_scope": "خارج نطاق التغطية أو الفرع"
+    }
   }
 }

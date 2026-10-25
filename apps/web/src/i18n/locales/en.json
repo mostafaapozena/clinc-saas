@@ -61,7 +61,9 @@
     "queue": "Queue",
     "patients": "Patients",
     "practitioners": "Doctors & schedules",
-    "mySchedule": "My schedule"
+    "mySchedule": "My schedule",
+    "coverage": "Clinical coverage",
+    "clinicalAudit": "Clinical audit"
   },
   "shell": {
     "skipToContent": "Skip to main content",
@@ -251,7 +253,17 @@
     "reactivateLabel": "Reactivate {{name}}'s membership",
     "suspendedNotice": "{{name}}'s membership was suspended. They can no longer access the organization.",
     "reactivatedNotice": "{{name}}'s membership was reactivated.",
-    "editLabel": "Edit {{name}}'s membership"
+    "editLabel": "Edit {{name}}'s membership",
+    "capabilities": {
+      "clinical_audit": "Clinical audit access",
+      "clinical_lead": "Clinical lead"
+    },
+    "auditGrant": "Give clinical audit access",
+    "auditRevoke": "Remove clinical audit access",
+    "auditGrantLabel": "Give {{name}} clinical audit access",
+    "auditRevokeLabel": "Remove clinical audit access from {{name}}",
+    "auditGrantedNotice": "{{name}} can now read the clinical audit log (who accessed which record, never the content).",
+    "auditRevokedNotice": "{{name}} can no longer read the clinical audit log."
   },
   "settings": {
     "title": "Organization settings",
@@ -352,7 +364,13 @@
     "ENCOUNTER_FINALIZED": "This record is finalized and cannot be changed. Add an addendum instead.",
     "ENCOUNTER_NOT_FINALIZED": "Addenda are for finalized records; edit the draft directly.",
     "ENCOUNTER_INCOMPLETE": "The record cannot be finalized yet: fill in the reason for the visit, and at least one of examination findings, assessment or plan.",
-    "LATE_ENTRY_REASON_REQUIRED": "Give the reason for the late entry."
+    "LATE_ENTRY_REASON_REQUIRED": "Give the reason for the late entry.",
+    "COVERAGE_GRANTEE_INVALID": "Choose another active doctor of this organization.",
+    "COVERAGE_LEAD_NOT_ENABLED": "Sharing another doctor’s records is not enabled.",
+    "COVERAGE_REVOKED": "This share was already revoked.",
+    "CAPABILITY_OWNER_ONLY": "Only owners can change this access.",
+    "CAPABILITY_NOT_ENABLED": "This access is not enabled on this platform.",
+    "CAPABILITY_NOT_ELIGIBLE": "This role cannot hold this access."
   },
   "validation": {
     "required": "This field is required.",
@@ -453,6 +471,21 @@
         "required": "The reason for the visit is required to finalize."
       },
       "needs_findings_assessment_or_plan": "Fill in at least one of examination findings, assessment or plan before finalizing."
+    },
+    "expiresAt": {
+      "out_of_range": "Choose a duration of at most 90 days."
+    },
+    "coverageReason": {
+      "too_short": "Write a reason of at least 5 characters.",
+      "required": "Write the reason for sharing."
+    },
+    "revokeReason": {
+      "too_short": "Write a reason of at least 3 characters.",
+      "required": "Write the reason for revoking."
+    },
+    "granteePractitionerId": {
+      "invalid_choice": "Choose another active doctor of this organization.",
+      "required": "Choose a colleague."
     }
   },
   "countries": {
@@ -1082,6 +1115,94 @@
     "addendaCount": "Addenda: {{n}}",
     "patientHistory": "My visit records for this patient",
     "patientHistoryNote": "Only records you wrote are shown here.",
-    "noHistory": "You have not written any visit records for this patient."
+    "noHistory": "You have not written any visit records for this patient.",
+    "draftReadOnlyTitle": "Draft (read-only — not finalized by its author)"
+  },
+  "coverage": {
+    "title": "Clinical coverage",
+    "subtitle": "Records shared with you, and records you shared with colleagues.",
+    "rules": "Coverage lets a colleague read your records (or also add addenda) for a limited time, for one visit or for one patient. Your original records and their authorship never change. Owners and administrators never get clinical access through coverage.",
+    "received": "Shared with me",
+    "granted": "Shared by me",
+    "grantedHint": "You can revoke a share at any time; it stops working immediately.",
+    "noneReceived": "Nobody has shared records with you.",
+    "noneGranted": "You have not shared any records.",
+    "shareTitle": "Share for coverage",
+    "shareHint": "For continuity of care: a colleague can read this record — or all your records for this patient — until the date you choose.",
+    "share": "Share…",
+    "shared": "Shared. The colleague can open it from their Clinical coverage page.",
+    "manage": "Manage shares",
+    "colleague": "Colleague",
+    "scopeLabel": "What to share",
+    "scope": {
+      "encounter": "This visit record",
+      "patient": "All my records for this patient"
+    },
+    "accessLabel": "Access",
+    "access": {
+      "read": "Read only",
+      "author": "Read and add addenda"
+    },
+    "duration": "For",
+    "days": "{{n}} days",
+    "reason": "Reason (shown to the colleague and kept in the audit)",
+    "grant": "Share",
+    "until": "Until {{time}}",
+    "viaLead": "granted by a clinical lead",
+    "status": {
+      "active": "Active",
+      "scheduled": "Not started",
+      "expired": "Expired",
+      "revoked": "Revoked"
+    },
+    "openRecords": "Open records",
+    "revoke": "Revoke",
+    "revokeReason": "Reason for revoking",
+    "confirmRevoke": "Revoke now",
+    "records": "Shared records",
+    "recordsSubtitle": "Shared by {{name}} until {{time}}",
+    "noRecords": "No records in this share are in your branches.",
+    "unavailable": "This record or share is not available to you (it may have expired or been revoked).",
+    "backToCoverage": "Back to clinical coverage",
+    "viewingRead": "You are reading a record by {{name}} through coverage (read only).",
+    "viewingAuthor": "You are reading a record by {{name}} through coverage. You can add addenda under your own name; the original stays unchanged.",
+    "openOwnRecord": "Open in the visit view",
+    "viaCoverageBadge": "Shared with me"
+  },
+  "clinicalAudit": {
+    "title": "Clinical audit",
+    "subtitle": "Who opened, wrote, shared or was refused clinical records, and when.",
+    "metadataOnly": "This log holds references and reason codes only — never clinical content. Opening it is recorded too.",
+    "action": "Action",
+    "allActions": "All actions",
+    "time": "Time",
+    "actor": "Member",
+    "patient": "Patient no.",
+    "details": "Details",
+    "empty": "No events.",
+    "more": "Load more",
+    "viaCoverage": "through coverage",
+    "actions": {
+      "encounter.created": "Record started",
+      "encounter.viewed": "Record opened",
+      "encounter.draft_saved": "Draft saved",
+      "encounter.finalized": "Record finalized",
+      "encounter.addendum_added": "Addendum added",
+      "clinical_history.viewed": "Patient records listed",
+      "clinical.access_denied": "Access refused",
+      "coverage.granted": "Coverage granted",
+      "coverage.revoked": "Coverage revoked",
+      "clinical_audit.viewed": "Clinical audit opened"
+    },
+    "reasons": {
+      "no_clinical_permission": "role without clinical access",
+      "not_treating": "not the treating doctor",
+      "not_author": "not the author",
+      "not_found": "no such record",
+      "coverage_revoked": "coverage revoked",
+      "coverage_expired": "coverage expired",
+      "coverage_not_started": "coverage not started",
+      "coverage_out_of_scope": "outside the coverage or branch scope"
+    }
   }
 }

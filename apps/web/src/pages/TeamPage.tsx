@@ -97,6 +97,21 @@ function MemberRow({
     },
   });
 
+  // Clinical audit access is an explicit capability that only owners assign (metadata only).
+  const auditEligible = ['owner', 'admin', 'doctor'].includes(member.role);
+  const hasAudit = member.capabilities.includes('clinical_audit');
+  const setAudit = useMutation({
+    mutationFn: (on: boolean) =>
+      api<{ member: Member }>(`/orgs/${orgId}/members/${member.id}`, {
+        method: 'PATCH',
+        body: { capabilities: on ? [...member.capabilities, 'clinical_audit'] : member.capabilities.filter((c) => c !== 'clinical_audit') },
+      }),
+    onSuccess: async ({ member: saved }) => {
+      await queryClient.invalidateQueries({ queryKey: orgKeys.all(orgId) });
+      onNotice(t(saved.capabilities.includes('clinical_audit') ? 'team.auditGrantedNotice' : 'team.auditRevokedNotice', { name }));
+    },
+  });
+
   return (
     <li className="data-row" data-testid="member-row">
       <div className="data-main">
@@ -113,8 +128,10 @@ function MemberRow({
           {t(`team.status.${member.status}`)}
         </span>
         <span className="muted small">{describeScope(member.branchScope)}</span>
+        {hasAudit && <span className="badge badge--capability">{t('team.capabilities.clinical_audit')}</span>}
       </div>
       {setStatus.isError && <Notice kind="error">{errorMessage(t, setStatus.error)}</Notice>}
+      {setAudit.isError && <Notice kind="error">{errorMessage(t, setAudit.error)}</Notice>}
       {manageable && (
         <div className="row-actions">
           {roleEditable && (
@@ -131,6 +148,18 @@ function MemberRow({
           >
             {member.status === 'active' ? t('team.suspend') : t('team.reactivate')}
           </button>
+          {actorIsOwner && auditEligible && (
+            <button
+              type="button"
+              className="button button--secondary"
+              disabled={setAudit.isPending}
+              aria-pressed={hasAudit}
+              onClick={() => setAudit.mutate(!hasAudit)}
+              aria-label={t(hasAudit ? 'team.auditRevokeLabel' : 'team.auditGrantLabel', { name })}
+            >
+              {hasAudit ? t('team.auditRevoke') : t('team.auditGrant')}
+            </button>
+          )}
         </div>
       )}
     </li>

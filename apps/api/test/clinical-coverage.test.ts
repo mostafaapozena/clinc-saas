@@ -450,6 +450,8 @@ describe('clinical audit view', () => {
     expect(page.status).toBe(200);
     expect(page.headers['cache-control']).toBe('no-store');
     expect(page.body.data.length).toBe(20);
+    // Every row has a metadata object, even events recorded without any (stored without the field).
+    expect(page.body.data.every((e: { metadata: unknown }) => typeof e.metadata === 'object' && e.metadata !== null)).toBe(true);
     expect(page.body.next).toEqual(expect.any(String));
     expect(JSON.stringify(page.body)).not.toContain(MARK);
     const next = await c.admin.agent.get(orgUrl('/clinical/audit')).query({ limit: 20, before: page.body.next });
