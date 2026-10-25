@@ -1,0 +1,342 @@
+{
+  "at": "2026-10-25T15:11:56.414Z",
+  "config": {
+    "stages": [
+      20,
+      40,
+      80,
+      120,
+      160,
+      200
+    ],
+    "stageSeconds": 60,
+    "warmupSeconds": 15,
+    "replicas": 1,
+    "largePatients": 50000,
+    "smallOrgs": 19,
+    "smallPatients": 1000,
+    "pastAppointments": 40000,
+    "maxInFlight": 400,
+    "timeoutMs": 10000,
+    "stopP95Ms": 1500,
+    "stopServerErrorRate": 0.01,
+    "stopEventLoopP99Ms": 500,
+    "stopRssMb": 1500,
+    "stopFreeMemMb": 700
+  },
+  "environment": {
+    "node": "v24.21.0",
+    "cpus": 2,
+    "cpuModel": "Intel(R) Xeon(R) Platinum 8370C CPU @ 2.80GHz",
+    "totalMemMb": 7941,
+    "platform": "Linux 6.8.0-1064-azure",
+    "mongo": "8.2.12",
+    "replicas": 1,
+    "loadGenerator": "same host as the API (shares CPU)"
+  },
+  "dataset": {
+    "users": 88,
+    "sessions": 88,
+    "patients": 69000,
+    "appointments": 59500,
+    "clinical_encounters": 125,
+    "organizations": 20,
+    "largeOrg": {
+      "patients": 50000,
+      "branches": 3,
+      "doctors": 6,
+      "receptionists": 4
+    },
+    "smallOrgs": {
+      "count": 19,
+      "patientsEach": 1000,
+      "doctorsEach": 1
+    },
+    "trafficSplit": "50% large organization, 50% spread over small ones"
+  },
+  "results": [
+    {
+      "label": "20 rps",
+      "targetRps": 20,
+      "seconds": 60,
+      "sent": 1199,
+      "completed": 1199,
+      "dropped": 0,
+      "achievedRps": 20,
+      "p50": 10000,
+      "p95": 10002,
+      "p99": 10004,
+      "totals": {
+        "ok": 563,
+        "expected": 0,
+        "clientError": 4,
+        "serverError": 0,
+        "timeout": 632,
+        "network": 0
+      },
+      "failureRate": 0.5271059216013344,
+      "scenarios": {
+        "patient_search_name": {
+          "n": 156,
+          "p50": 10000,
+          "p95": 10002,
+          "p99": 10004,
+          "ok": 49,
+          "expected": 0,
+          "clientError": 0,
+          "serverError": 0,
+          "timeout": 107,
+          "codes": {
+            "200": 49
+          }
+        },
+        "patient_search_phone": {
+          "n": 71,
+          "p50": 10000,
+          "p95": 10002,
+          "p99": 10002,
+          "ok": 24,
+          "expected": 0,
+          "clientError": 0,
+          "serverError": 0,
+          "timeout": 47,
+          "codes": {
+            "200": 24
+          }
+        },
+        "patient_list": {
+          "n": 62,
+          "p50": 10000,
+          "p95": 10002,
+          "p99": 10005,
+          "ok": 23,
+          "expected": 0,
+          "clientError": 0,
+          "serverError": 0,
+          "timeout": 39,
+          "codes": {
+            "200": 23
+          }
+        },
+        "patient_detail": {
+          "n": 127,
+          "p50": 1335,
+          "p95": 10002,
+          "p99": 10002,
+          "ok": 87,
+          "expected": 0,
+          "clientError": 0,
+          "serverError": 0,
+          "timeout": 40,
+          "codes": {
+            "200": 87
+          }
+        },
+        "appointments_today": {
+          "n": 122,
+          "p50": 9002,
+          "p95": 10003,
+          "p99": 10005,
+          "ok": 63,
+          "expected": 0,
+          "clientError": 0,
+          "serverError": 0,
+          "timeout": 59,
+          "codes": {
+            "200": 63
+          }
+        },
+        "availability": {
+          "n": 69,
+          "p50": 10001,
+          "p95": 10003,
+          "p99": 10007,
+          "ok": 24,
+          "expected": 0,
+          "clientError": 0,
+          "serverError": 0,
+          "timeout": 45,
+          "codes": {
+            "200": 24
+          }
+        },
+        "booking": {
+          "n": 52,
+          "p50": 10001,
+          "p95": 10003,
+          "p99": 10004,
+          "ok": 16,
+          "expected": 0,
+          "clientError": 0,
+          "serverError": 0,
+          "timeout": 36,
+          "codes": {
+            "201": 16
+          }
+        },
+        "check_in": {
+          "n": 41,
+          "p50": 7870,
+          "p95": 10002,
+          "p99": 10002,
+          "ok": 23,
+          "expected": 0,
+          "clientError": 0,
+          "serverError": 0,
+          "timeout": 18,
+          "codes": {
+            "200": 23
+          }
+        },
+        "queue": {
+          "n": 122,
+          "p50": 10000,
+          "p95": 10003,
+          "p99": 10004,
+          "ok": 51,
+          "expected": 0,
+          "clientError": 0,
+          "serverError": 0,
+          "timeout": 71,
+          "codes": {
+            "200": 51
+          }
+        },
+        "dashboard": {
+          "n": 101,
+          "p50": 6216,
+          "p95": 10001,
+          "p99": 10003,
+          "ok": 62,
+          "expected": 0,
+          "clientError": 0,
+          "serverError": 0,
+          "timeout": 39,
+          "codes": {
+            "200": 62
+          }
+        },
+        "clinical_read": {
+          "n": 69,
+          "p50": 7030,
+          "p95": 10002,
+          "p99": 10004,
+          "ok": 35,
+          "expected": 0,
+          "clientError": 0,
+          "serverError": 0,
+          "timeout": 34,
+          "codes": {
+            "200": 35
+          }
+        },
+        "clinical_save": {
+          "n": 47,
+          "p50": 10000,
+          "p95": 10002,
+          "p99": 10002,
+          "ok": 18,
+          "expected": 0,
+          "clientError": 0,
+          "serverError": 0,
+          "timeout": 29,
+          "codes": {
+            "200": 18
+          }
+        },
+        "finance_account": {
+          "n": 55,
+          "p50": 6517,
+          "p95": 10002,
+          "p99": 10004,
+          "ok": 31,
+          "expected": 0,
+          "clientError": 0,
+          "serverError": 0,
+          "timeout": 24,
+          "codes": {
+            "200": 31
+          }
+        },
+        "finance_charge": {
+          "n": 29,
+          "p50": 10000,
+          "p95": 10003,
+          "p99": 10004,
+          "ok": 9,
+          "expected": 0,
+          "clientError": 4,
+          "serverError": 0,
+          "timeout": 16,
+          "codes": {
+            "201": 9,
+            "NOT_FOUND": 4
+          }
+        },
+        "support_list": {
+          "n": 24,
+          "p50": 3258,
+          "p95": 10001,
+          "p99": 10002,
+          "ok": 18,
+          "expected": 0,
+          "clientError": 0,
+          "serverError": 0,
+          "timeout": 6,
+          "codes": {
+            "200": 18
+          }
+        },
+        "operator_orgs": {
+          "n": 28,
+          "p50": 10000,
+          "p95": 10001,
+          "p99": 10002,
+          "ok": 14,
+          "expected": 0,
+          "clientError": 0,
+          "serverError": 0,
+          "timeout": 14,
+          "codes": {
+            "200": 14
+          }
+        },
+        "operator_support": {
+          "n": 24,
+          "p50": 5865,
+          "p95": 10003,
+          "p99": 10004,
+          "ok": 16,
+          "expected": 0,
+          "clientError": 0,
+          "serverError": 0,
+          "timeout": 8,
+          "codes": {
+            "200": 16
+          }
+        }
+      },
+      "server": {
+        "apiCpuPercentAvg": 13.6,
+        "apiCpuPercentMax": 20.7,
+        "eventLoopP99MsMax": 26.48,
+        "eventLoopMaxMs": 40.11,
+        "apiRssMbMax": 392,
+        "apiHeapUsedMbMax": 198,
+        "hostFreeMemMbMin": 4827,
+        "hostLoad1Max": 17.78,
+        "mongoConnectionsMax": 133,
+        "mongoResidentMbMax": 703,
+        "mongoWriteConflicts": 8,
+        "mongoTxAborted": 7,
+        "mongoTxCommitted": 69,
+        "mongoReadLatencyUsAvg": 458387,
+        "mongoWriteLatencyUsAvg": 81269
+      },
+      "stoppedBecause": [
+        "p95 10002 > 1500 ms",
+        "failures 52.71%"
+      ]
+    }
+  ]
+}

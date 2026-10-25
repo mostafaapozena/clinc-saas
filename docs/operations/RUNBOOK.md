@@ -52,8 +52,9 @@ On SIGTERM or SIGINT, the API shuts down gracefully:
 Authentication, password reset, registration and onboarding, inquiries, support requests,
 invitations and operator login all have per-IP limits.
 
-The limiter store is **in memory, per instance**. Running several API instances needs a shared
-store (production gate).
+Counters are **shared by all replicas** in MongoDB (`rate_limit_counters`, TTL). If MongoDB is
+unreachable, limited routes answer 503 rather than run unprotected
+([SCALABILITY_REVIEW.md](../architecture/SCALABILITY_REVIEW.md#findings-and-corrections), M1).
 
 ## Logging, redaction and monitoring
 
@@ -80,6 +81,11 @@ store (production gate).
   5. Remove the fallback in a later release.
 - **Never drop or rename a field in the same release that stops writing it.**
 - Unique-index changes need a duplicate check first. The build fails loudly if one is violated.
+- **Scalability checkpoint.** Build the new indexes before deploying on large data: patients
+  `{organizationId, nameTokens}`, `{organizationId, nameKey, _id}` and
+  `{organizationId, createdAt:-1, _id:-1}`; subscriptions by status and dates; the rate-limit
+  TTL index. Then run `npm run ops:backfill-patient-search -w @clinc/api`. It is idempotent, and
+  until it has run, older patients are found by number and phone but not by name.
 
 ## Backups and restore
 
