@@ -27,6 +27,9 @@ import {
 } from './operator-auth.js';
 import { OperatorModel, PlatformAuditModel, recordPlatformAudit } from './operator.model.js';
 import { planDto, simulatorFor } from './subscription.routes.js';
+import { DevMailModel, type Mailer } from '../mail/mailer.js';
+import { createSupportQueueRouter } from '../support/support.routes.js';
+import { SupportRequestModel } from '../support/support.model.js';
 import { changeStatus, effectiveStatus, subscriptionDto, usageOf } from './subscription.service.js';
 
 // The platform operator console API (docs/architecture/PLATFORM.md). Operators manage raclinic as a
@@ -66,7 +69,7 @@ const grantSchema = z.object({
 });
 const statusChangeSchema = z.object({ reason: reasonSchema, version: z.number().int().min(0) });
 
-export function createPlatformRouter(config: AppConfig) {
+export function createPlatformRouter(config: AppConfig, mailer?: Mailer) {
   const router = Router();
   const simulator = simulatorFor(config);
   router.use('/auth', createOperatorAuthRouter(config));
@@ -85,11 +88,12 @@ export function createPlatformRouter(config: AppConfig) {
 
   // --- Overview and health ------------------------------------------------------------------
   router.get('/overview', requireOperatorPermission('platform.overview.read'), async (_req, res) => {
-    const [organizations, subs, newInquiries, database] = await Promise.all([
+    const [organizations, subs, newInquiries, database, openSupport] = await Promise.all([
       OrganizationModel.estimatedDocumentCount(),
       SubscriptionModel.find().select('status kind currentPeriodEnd').lean(),
       OwnershipInquiryModel.countDocuments({ status: 'new' }),
       checkDatabase(),
+      SupportRequestModel.countDocuments({ status: 'open' }),
     ]);
     const byStatus: Record<string, number> = {};
     const byKind: Record<string, number> = {};
@@ -103,11 +107,14 @@ export function createPlatformRouter(config: AppConfig) {
       organizations,
       subscriptions: { byStatus, byKind },
       inquiries: { new: newInquiries },
+      support: { open: openSupport },
       health: { database, uptimeSeconds: Math.round(process.uptime()) },
       config: {
         billingProvider: config.billingProvider,
         subscriptionEnforcement: config.subscriptionEnforcement,
         operatorIdleMinutes: OPERATOR_IDLE_MINUTES,
+        mailProvider: mailer?.name ?? config.mailProvider,
+        sessionIdleMinutes: config.sessionIdleMinutes,
       },
     });
   });
@@ -507,6 +514,16 @@ export function createPlatformRouter(config: AppConfig) {
     if (status === 'suspended') await revokeOperatorSessions(operator._id);
     await audit(req, 'operator.status_changed', { type: 'operator', id: String(operator._id) }, { from, to: status });
     res.json({ operator: { id: String(operator._id), status: operator.status } });
+  });
+
+  // --- Support queue (milestone 5) ------------------------------------------------------------
+  router.use('/support', createSupportQueueRouter());
+
+  // --- Development mail sink (development only; never in production) ----------------------------
+  router.get('/dev-mail', requireOperatorPermission('platform.audit.read'), async (_req, res) => {
+    if ((mailer?.name ?? config.mailProvider) !== 'dev_sink' || config.production) throw notFound();
+    const rows = await DevMailModel.find().sort({ createdAt: -1 }).limit(50).lean();
+    res.json({ data: rows.map((m) => ({ id: String(m._id), to: m.to, template: m.template, subject: m.subject, text: m.text, createdAt: m.createdAt.toISOString() })) });
   });
 
   // --- Platform audit -------------------------------------------------------------------------

@@ -4,6 +4,7 @@ import { loadEnv } from './config/env.js';
 import { connectDatabase, disconnectDatabase } from './db/connection.js';
 import { ensureIndexes } from './db/models.js';
 import { createLogger } from './logger.js';
+import { lifecycle } from './modules/health/lifecycle.js';
 
 const env = loadEnv();
 const logger = createLogger(env);
@@ -21,8 +22,20 @@ const server = createApp({ logger, config: appConfigFromEnv(env) }).listen(env.P
   logger.info(`API listening on http://localhost:${env.PORT}`);
 });
 
+const SHUTDOWN_GRACE_MS = 10_000;
+let stopping = false;
+
 function shutdown(signal: NodeJS.Signals) {
+  if (stopping) return;
+  stopping = true;
+  // Readiness turns 503 at once; in-flight requests finish; idle keep-alive sockets close now.
+  lifecycle.shuttingDown = true;
   logger.info({ signal }, 'Shutting down');
+  setTimeout(() => {
+    logger.error('Graceful shutdown timed out; exiting');
+    process.exit(1);
+  }, SHUTDOWN_GRACE_MS).unref();
+  server.closeIdleConnections();
   server.close(() => {
     disconnectDatabase()
       .then(() => process.exit(0))

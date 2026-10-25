@@ -1,6 +1,7 @@
 // Registers every model so index builds (unique email, one membership per user and
 // organization, slot reservations, …) can be awaited before the app serves requests or tests run.
 import mongoose from 'mongoose';
+import { lifecycle } from '../modules/health/lifecycle.js';
 import '../auth/session.model.js';
 import '../modules/appointments/appointment.model.js';
 import '../modules/audit/audit-event.model.js';
@@ -15,6 +16,9 @@ import '../modules/organizations/organization.model.js';
 import '../modules/patients/counter.model.js';
 import '../modules/patients/patient.model.js';
 import '../modules/platform/billing.model.js';
+import '../auth/token.model.js';
+import '../modules/mail/mailer.js';
+import '../modules/support/support.model.js';
 import '../modules/platform/operator.model.js';
 import '../modules/practitioners/practitioner.model.js';
 import '../modules/specialties/specialty.model.js';
@@ -22,4 +26,5 @@ import '../users/user.model.js';
 
 export async function ensureIndexes(): Promise<void> {
   await Promise.all(Object.values(mongoose.models).map((model) => model.init()));
+  lifecycle.indexesReady = true;
 }

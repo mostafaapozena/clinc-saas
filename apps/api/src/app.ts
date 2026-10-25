@@ -18,10 +18,19 @@ import { meRouter } from './users/me.routes.js';
 import { loadOperator } from './modules/platform/operator-auth.js';
 import { createPlatformRouter } from './modules/platform/platform.routes.js';
 import { createWebhookRouter } from './modules/platform/subscription.routes.js';
+import { createAccountRouter } from './auth/account.routes.js';
+import { createMailer, type Mailer } from './modules/mail/mailer.js';
+import { createInvitationAcceptRouter } from './modules/memberships/invitation.routes.js';
+import { logErrorReporter, type ErrorReporter } from './modules/ops/monitoring.js';
+import { sessionsRouter } from './users/sessions.routes.js';
 
 export type AppOptions = {
   logger?: Logger;
   config?: Partial<AppConfig>;
+  /** Defaults to the configured mail provider (none or the development sink). */
+  mailer?: Mailer;
+  /** Defaults to the structured log. */
+  errorReporter?: ErrorReporter;
 };
 
 function bodyParserStatus(err: unknown): number | undefined {
@@ -31,8 +40,10 @@ function bodyParserStatus(err: unknown): number | undefined {
     : undefined;
 }
 
-export function createApp({ logger, config: overrides }: AppOptions = {}) {
+export function createApp({ logger, config: overrides, mailer: givenMailer, errorReporter }: AppOptions = {}) {
   const config: AppConfig = { ...defaultAppConfig, ...overrides };
+  const mailer = givenMailer ?? createMailer(config);
+  const reporter = errorReporter ?? logErrorReporter(logger);
   const app = express();
 
   app.disable('x-powered-by');
@@ -76,23 +87,29 @@ export function createApp({ logger, config: overrides }: AppOptions = {}) {
   app.use('/api/v1/specialties', specialtiesRouter); // public platform catalog (not tenant data)
   // Anonymous website forms: no session involved, so no CSRF token; the origin check still
   // applies, and each route has its own rate limit.
+  app.get('/api/v1/public/support-contact', (_req, res) => {
+    res.json({ contact: config.supportContact });
+  });
   app.use('/api/v1/public', createPublicRouter(config));
   app.use('/api/v1/auth', createAuthRouter(config));
+  app.use('/api/v1/auth', createAccountRouter(config, mailer));
   // Platform operator console: its own cookie, session and CSRF header; tenant sessions never
   // authenticate here and operator sessions never authenticate tenant routes.
-  app.use('/api/v1/platform', loadOperator(config), createPlatformRouter(config));
+  app.use('/api/v1/platform', loadOperator(config), createPlatformRouter(config, mailer));
 
   // Everything below changes state only with a valid CSRF token for the session.
   app.use('/api/v1', csrfProtection);
+  app.use('/api/v1/me/sessions', sessionsRouter);
   app.use('/api/v1/me', meRouter);
+  app.use('/api/v1/invitations', createInvitationAcceptRouter());
   app.use('/api/v1/onboarding', createOnboardingRouter(config));
-  app.use('/api/v1/orgs', createOrganizationsRouter(config));
+  app.use('/api/v1/orgs', createOrganizationsRouter(config, mailer));
 
   app.use('/api', (_req, res) => {
     res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Route not found' } });
   });
 
-  const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
+  const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
     if (err instanceof HttpError) {
       res.status(err.status).json({
         error: {
@@ -109,7 +126,7 @@ export function createApp({ logger, config: overrides }: AppOptions = {}) {
       res.status(parserStatus).json({ error: { code: 'VALIDATION_ERROR', message: 'Malformed request body' } });
       return;
     }
-    logger?.error({ err }, 'Unhandled request error');
+    reporter.report(err, { method: req.method, path: req.path, requestId: typeof req.id === 'string' || typeof req.id === 'number' ? String(req.id) : undefined });
     res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: 'Internal server error' } });
   };
   app.use(errorHandler);

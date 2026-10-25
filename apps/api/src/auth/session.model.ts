@@ -7,6 +7,10 @@ export interface Session {
   /** Synchronizer token required on state-changing requests made with this session. */
   csrfToken: string;
   expiresAt: Date;
+  /** Last request seen (updated at most once a minute); drives the idle timeout. */
+  lastSeenAt?: Date;
+  /** Truncated User-Agent, shown to the user as a device hint in their session list. */
+  userAgent?: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -17,6 +21,8 @@ const sessionSchema = new Schema<Session>(
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     csrfToken: { type: String, required: true },
     expiresAt: { type: Date, required: true },
+    lastSeenAt: { type: Date },
+    userAgent: { type: String, default: null, maxlength: 160 },
   },
   { collection: 'sessions', timestamps: true },
 );

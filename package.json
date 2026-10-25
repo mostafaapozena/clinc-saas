@@ -20,7 +20,8 @@
     "test:e2e": "playwright test",
     "seed": "npm run seed -w @clinc/api",
     "db:check": "npm run db:check -w @clinc/api",
-    "verify": "npm run lint && npm run typecheck && npm run test && npm run build && npm run test:e2e"
+    "verify": "npm run lint && npm run typecheck && npm run test && npm run build && npm run test:e2e",
+    "audit:deps": "npm audit --omit=dev"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
