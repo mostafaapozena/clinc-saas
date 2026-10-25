@@ -13,7 +13,7 @@ import { latestTemplate, parseTemplateData } from '../clinical/templates.js';
 import { MembershipModel } from '../memberships/membership.model.js';
 import { OrganizationModel } from '../organizations/organization.model.js';
 import { nextPatientNumber } from '../patients/counter.model.js';
-import { nameKey, normalizePhone } from '../patients/normalize.js';
+import { nameKey, nameTokens, normalizePhone } from '../patients/normalize.js';
 import { PatientModel } from '../patients/patient.model.js';
 import { PractitionerModel, ScheduleExceptionModel } from '../practitioners/practitioner.model.js';
 import { DEMO_ORGANIZATIONS, DEMO_USERS, type DemoAppointment, type DemoEncounter, type DemoOrganization } from './demo.data.js';
@@ -191,6 +191,7 @@ async function seedFrontDesk(
     const fields = {
       fullName: p.fullName,
       nameKey: nameKey(p.fullName),
+      nameTokens: nameTokens(nameKey(p.fullName)),
       phone,
       secondaryPhone: null,
       email: null,

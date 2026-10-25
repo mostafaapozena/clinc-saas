@@ -130,7 +130,9 @@ export function PatientsPage() {
                 {t('common.previous')}
               </button>
               <span className="muted" aria-live="polite">
-                {t('common.pageOf', { page: fmt.number(page), pages: fmt.number(pages), total: fmt.number(list.data.total) })}
+                {list.data.totalCapped
+                  ? t('patients.pageOfCapped', { page: fmt.number(page), pages: fmt.number(pages), total: fmt.number(list.data.total) })
+                  : t('common.pageOf', { page: fmt.number(page), pages: fmt.number(pages), total: fmt.number(list.data.total) })}
               </span>
               <button type="button" className="button button--secondary" disabled={page >= pages} onClick={() => setPage((n) => n + 1)}>
                 {t('common.next')}

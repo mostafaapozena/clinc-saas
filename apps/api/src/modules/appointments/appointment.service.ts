@@ -1,5 +1,6 @@
+import { runTransaction } from '../../db/transaction.js';
 import { createHash } from 'node:crypto';
-import mongoose, { type ClientSession, type Types } from 'mongoose';
+import { type ClientSession, type Types } from 'mongoose';
 import { HttpError, conflict, isDuplicateKeyError, notFound } from '../../http/errors.js';
 import { canAccessBranch } from '../../tenancy/scope.js';
 import type { TenantContext } from '../../tenancy/tenant-context.js';
@@ -163,7 +164,7 @@ const keyReused = () => conflict('IDEMPOTENCY_KEY_REUSED', 'This request key was
  * The same key with a different request is refused.
  */
 async function findReplay(tenant: TenantContext, idempotencyKey: string, requestHash: string) {
-  const filter = await visibleAppointmentsFilter(tenant, { createdBy: tenant.userId, idempotencyKey });
+  const filter = await visibleAppointmentsFilter(tenant, { createdBy: tenant.userId, idempotencyKey: { $eq: idempotencyKey, $type: 'string' } });
   const existing = filter ? await AppointmentModel.findOne(filter).lean() : null;
   if (existing && existing.requestHash !== requestHash) throw keyReused();
   return existing;
@@ -205,7 +206,7 @@ export async function bookAppointment(tenant: TenantContext, input: BookInput, z
   const startAt = resolveStart(input.start, zone);
 
   try {
-    const appointment = await mongoose.connection.transaction(async (session) => {
+    const appointment = await runTransaction(async (session) => {
       const { endAt, durationMinutes } = await validateTarget(
         tenant,
         { ...input, startAt, durationMinutes: input.durationMinutes },
@@ -280,7 +281,7 @@ export async function rescheduleAppointment(
   zone: string,
 ) {
   const startAt = resolveStart(input.start, zone);
-  return mongoose.connection.transaction(async (session) => {
+  return runTransaction(async (session) => {
     const current = await loadForChange(tenant, id, session);
     if (current.version !== input.version) throw versionConflict();
     if (current.status !== 'scheduled') {
@@ -338,7 +339,7 @@ export async function changeStatus(
   input: { action: StatusAction; reason?: string; version: number },
   zone: string,
 ) {
-  return mongoose.connection.transaction(async (session) => {
+  return runTransaction(async (session) => {
     const current = await loadForChange(tenant, id, session);
     if (current.version !== input.version) throw versionConflict();
     const now = clock.now();

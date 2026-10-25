@@ -1,6 +1,7 @@
+import { runTransaction } from '../../db/transaction.js';
 import { assertEntitlement } from '../platform/subscription.service.js';
 import { Router } from 'express';
-import mongoose, { type Types } from 'mongoose';
+import { type Types } from 'mongoose';
 import { z } from 'zod';
 import { conflict, isDuplicateKeyError, notFound, validationError } from '../../http/errors.js';
 import { branchNameSchema, citySchema, escapeRegex } from '../../http/schemas.js';
@@ -85,7 +86,7 @@ branchesRouter.post('/', requirePermission('branch.create'), async (req, res) =>
   const input = parseInput(createBranchSchema, req.body);
   await assertEntitlement(req, tenant, 'branches');
   try {
-    const branch = await mongoose.connection.transaction(async (session) => {
+    const branch = await runTransaction(async (session) => {
       const organization = await lockSpecialtyConfig(tenant.organizationId, session);
       checkBranchSpecialties(organization, input.specialtyCodes, true);
       const [created] = await BranchModel.create(
@@ -126,7 +127,7 @@ branchesRouter.patch('/:branchId', requirePermission('branch.update'), async (re
   if (!branchId || !canAccessBranch(tenant, branchId)) throw notFound();
 
   try {
-    const saved = await mongoose.connection.transaction(async (session) => {
+    const saved = await runTransaction(async (session) => {
       const organization = await lockSpecialtyConfig(tenant.organizationId, session);
       const branch = await BranchModel.findOne(orgScope(tenant, { _id: branchId })).session(session);
       if (!branch) throw notFound();

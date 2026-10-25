@@ -1,5 +1,6 @@
+import { runTransaction } from '../../db/transaction.js';
 import { Router } from 'express';
-import mongoose, { type Types } from 'mongoose';
+import { type Types } from 'mongoose';
 import { z } from 'zod';
 import { createRateLimiter } from '../../auth/rate-limit.js';
 import { authOf, requireAuth } from '../../auth/session.middleware.js';
@@ -171,7 +172,7 @@ export function createOnboardingRouter(config: AppConfig) {
     const draftId = parseObjectId(req.params.draftId);
     if (!draftId) throw notFound();
 
-    const result = await mongoose.connection.transaction(async (session) => {
+    const result = await runTransaction(async (session) => {
       const draft = await OnboardingDraftModel.findOneAndUpdate(
         { _id: draftId, userId },
         { $inc: { version: 1 } },

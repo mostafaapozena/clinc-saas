@@ -14,7 +14,8 @@
     "ops:backup": "tsx src/scripts/backup.ts",
     "ops:restore-drill": "tsx src/scripts/restore-drill.ts",
     "ops:retention-report": "tsx src/scripts/retention-report.ts",
-    "ops:subscriptions": "tsx src/scripts/subscription-lifecycle.ts"
+    "ops:subscriptions": "tsx src/scripts/subscription-lifecycle.ts",
+    "ops:backfill-patient-search": "tsx src/scripts/backfill-patient-search.ts"
   },
   "dependencies": {
     "@node-rs/argon2": "^2.2.2",

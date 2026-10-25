@@ -1,4 +1,5 @@
-import mongoose, { type ClientSession, type Types } from 'mongoose';
+import { runTransaction } from '../../db/transaction.js';
+import { type ClientSession, type Types } from 'mongoose';
 import { validationError } from '../../http/errors.js';
 import { recordAudit } from '../audit/audit-event.model.js';
 import { BranchModel } from '../branches/branch.model.js';
@@ -107,5 +108,5 @@ export async function createOrganizationInSession(input: NewOrganization, sessio
  * need a replica set (the devcontainer and CI run a single-node one).
  */
 export async function createOrganizationWithOwner(input: NewOrganization) {
-  return mongoose.connection.transaction((session) => createOrganizationInSession(input, session));
+  return runTransaction((session) => createOrganizationInSession(input, session));
 }

@@ -1,5 +1,6 @@
+import { runTransaction } from '../../db/transaction.js';
 import { Router } from 'express';
-import mongoose, { Types } from 'mongoose';
+import { Types } from 'mongoose';
 import { z } from 'zod';
 import { createRateLimiter } from '../../auth/rate-limit.js';
 import { requireAuth, authOf } from '../../auth/session.middleware.js';
@@ -207,7 +208,7 @@ export function createOrganizationsRouter(config: AppConfig, mailer: Mailer = { 
     await assertCatalogSpecialties(input.specialtyCodes, 'specialtyCodes');
     await assertCatalogSpecialties(input.branches.flatMap((b) => b.specialtyCodes), 'branches');
 
-    const result = await mongoose.connection.transaction(async (session) => {
+    const result = await runTransaction(async (session) => {
       const before = await lockSpecialtyConfig(tenant.organizationId, session);
       if ((before.configVersion ?? 0) !== input.configVersion) {
         throw conflict('VERSION_CONFLICT', 'The specialty setup was changed by someone else. Reload and try again.');

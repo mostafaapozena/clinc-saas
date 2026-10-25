@@ -31,6 +31,8 @@ export interface Patient {
   fullName: string;
   /** Normalized form of fullName used for search and duplicate warnings. */
   nameKey: string;
+  /** Words of nameKey for indexed word-prefix search (see nameTokens). */
+  nameTokens: string[];
   phone: StoredPhone;
   secondaryPhone: StoredPhone | null;
   email: string | null;
@@ -75,6 +77,7 @@ const patientSchema = new Schema<Patient>(
     patientNumber: { type: Number, required: true, min: 1 },
     fullName: { type: String, required: true, trim: true, minlength: 2, maxlength: 120 },
     nameKey: { type: String, required: true },
+    nameTokens: { type: [String], default: [] },
     phone: { type: phoneSchema, required: true },
     secondaryPhone: { type: phoneSchema, default: null },
     email: { type: String, default: null, maxlength: 254 },
@@ -101,6 +104,11 @@ patientSchema.index({ organizationId: 1, 'registrations.branchId': 1, nameKey: 1
 patientSchema.index({ organizationId: 1, 'phone.e164': 1 });
 patientSchema.index({ organizationId: 1, 'secondaryPhone.e164': 1 });
 patientSchema.index({ organizationId: 1, createdAt: -1 });
+// Scalability review: indexed name search (word prefixes) and the name sort of the patient list.
+patientSchema.index({ organizationId: 1, nameTokens: 1 });
+patientSchema.index({ organizationId: 1, nameKey: 1, _id: 1 });
+// The "recent" sort is { createdAt: -1, _id: -1 }; without _id in the index the sort was blocking.
+patientSchema.index({ organizationId: 1, createdAt: -1, _id: -1 });
 patientSchema.index({ organizationId: 1, seedKey: 1 }, { unique: true, partialFilterExpression: { seedKey: { $type: 'string' } } });
 patientSchema.plugin(tenantGuardPlugin);
 

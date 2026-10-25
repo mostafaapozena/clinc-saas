@@ -1,6 +1,7 @@
+import { runTransaction } from '../../db/transaction.js';
 import { createHash } from 'node:crypto';
 import { Router, type Request, type RequestHandler, type Response } from 'express';
-import mongoose, { type ClientSession, type Types } from 'mongoose';
+import { type ClientSession, type Types } from 'mongoose';
 import { z } from 'zod';
 import { HttpError, conflict, forbidden, isDuplicateKeyError, notFound, validationError } from '../../http/errors.js';
 import { parseInput } from '../../http/validate.js';
@@ -204,7 +205,7 @@ export function inClinicalTransaction<T>(
   tenant: TenantContext,
   work: (actor: ClinicalActor, session: ClientSession) => Promise<T>,
 ): Promise<T> {
-  return mongoose.connection.transaction(async (session) => {
+  return runTransaction(async (session) => {
     const actor = await resolveClinicalActor(tenant, { session, lock: true });
     if (!actor) throw notFound();
     return work(actor, session);

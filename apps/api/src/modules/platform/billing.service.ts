@@ -1,6 +1,7 @@
+import { runTransaction } from '../../db/transaction.js';
 import { createHash } from 'node:crypto';
 import { DateTime } from 'luxon';
-import mongoose, { Types, type ClientSession } from 'mongoose';
+import { Types, type ClientSession } from 'mongoose';
 import { conflict, isDuplicateKeyError } from '../../http/errors.js';
 import { clock } from '../../time/clock.js';
 import {
@@ -44,7 +45,7 @@ export async function handleWebhook(provider: PaymentProvider, rawBody: Buffer, 
     return { eventId: event.id, duplicate: true, outcome: null, detail: 'already processed' };
   }
   try {
-    return await mongoose.connection.transaction(async (session) => {
+    return await runTransaction(async (session) => {
       const { outcome, detail, organizationId, providerSubscriptionId } = await applyEvent(event, session);
       await BillingEventModel.create(
         [
@@ -104,7 +105,7 @@ async function applyEvent(event: ProviderEvent, session: ClientSession): Promise
   if (!['subscription.renewed', 'subscription.payment_failed', 'subscription.canceled'].includes(event.type)) {
     return result('ignored_unknown', 'event type not handled');
   }
-  const sub = subId ? await SubscriptionModel.findOne({ providerSubscriptionId: subId }).session(session).lean() : null;
+  const sub = subId ? await SubscriptionModel.findOne({ providerSubscriptionId: { $eq: subId, $type: 'string' } }).session(session).lean() : null;
   if (!sub) return result('ignored_unknown', 'unknown subscription');
   if (sub.providerEventAt && event.occurredAt <= sub.providerEventAt)
     return result('ignored_stale', 'older than the last applied event', sub.organizationId);

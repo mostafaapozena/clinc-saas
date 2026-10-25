@@ -1,5 +1,6 @@
+import { runTransaction } from '../../db/transaction.js';
 import { Router } from 'express';
-import mongoose, { Types } from 'mongoose';
+import { Types } from 'mongoose';
 import { z } from 'zod';
 import { HttpError, conflict, notFound, validationError } from '../../http/errors.js';
 import { emailSchema, escapeRegex, objectIdSchema } from '../../http/schemas.js';
@@ -19,6 +20,7 @@ import { nextPatientNumber } from './counter.model.js';
 import {
   PHONE_COUNTRIES,
   nameKey,
+  nameTokens,
   normalizePhone,
   phoneSearchCandidates,
   toAsciiDigits,
@@ -63,6 +65,21 @@ const updateSchema = z
     address: demographicsShape.address,
     version: z.number().int().min(0),
   });
+
+/** Largest exact total the patient list reports; beyond it the total is shown as "more than". */
+export const COUNT_CAP = 1000;
+
+/**
+ * Index per sort, given explicitly: tenants differ in size by orders of magnitude, and MongoDB's
+ * plan cache otherwise reused a plan won on a small organization for a 50,000-patient one (S3).
+ */
+const SORT_HINTS = {
+  recent: { organizationId: 1, createdAt: -1, _id: -1 },
+  name: { organizationId: 1, nameKey: 1, _id: 1 },
+  number: { organizationId: 1, patientNumber: 1 },
+} as const;
+/** Patient list/search queries stop after this long (503 QUERY_TIMEOUT) instead of running on. */
+const LIST_MAX_TIME_MS = 5_000;
 
 const SORTS = {
   recent: { createdAt: -1, _id: -1 },
@@ -142,30 +159,41 @@ patientsRouter.get('/', requirePermission('patient.list'), async (req, res) => {
       },
     });
   }
+  let nameOnly = false;
   if (query.q) {
     const term = toAsciiDigits(query.q);
     const or: Record<string, unknown>[] = [];
     if (/^\d{1,9}$/.test(term)) or.push({ patientNumber: Number(term) });
     const phones = phoneSearchCandidates(term);
     if (phones.length > 0) or.push({ 'phone.e164': { $in: phones } }, { 'secondaryPhone.e164': { $in: phones } });
-    const key = nameKey(query.q);
-    if (key) or.push({ nameKey: { $regex: escapeRegex(key) } });
+    // Every word typed must start a word of the name (index range on nameTokens). A substring
+    // regex on nameKey read every patient of the organization (scalability review, finding S2).
+    const words = nameTokens(nameKey(query.q)).slice(0, 5);
+    if (words.length > 0) or.push({ $and: words.map((w) => ({ nameTokens: { $regex: `^${escapeRegex(w)}` } })) });
     conditions.push({ $or: or });
+    nameOnly = or.length === 1 && words.length > 0;
   }
   const filter = patientScopeFilter(tenant, conditions.length > 0 ? { $and: conditions } : {});
+  // Name-only searches use the token index; plain lists the index of their sort. A search that
+  // mixes number/phone/name branches is an $or the planner combines per branch.
+  const hint = nameOnly ? { organizationId: 1, nameTokens: 1 } : query.q ? undefined : SORT_HINTS[query.sort];
   const [items, total] = await Promise.all([
-    PatientModel.find(filter)
+    PatientModel.find(filter, null, hint ? { hint } : {})
       .sort(SORTS[query.sort])
       .skip((query.page - 1) * query.pageSize)
       .limit(query.pageSize)
+      .maxTimeMS(LIST_MAX_TIME_MS)
       .lean(),
-    PatientModel.countDocuments(filter),
+    // Counting stops after COUNT_CAP matches: an exact total read every matching patient on every
+    // page view (finding S1). Beyond the cap the list says "more than …" and asks to refine.
+    PatientModel.countDocuments(filter, { limit: COUNT_CAP + 1, maxTimeMS: LIST_MAX_TIME_MS, ...(hint ? { hint } : {}) }),
   ]);
   res.json({
     data: items.map((p) => toPatientSummaryDto(p, tenant)),
     page: query.page,
     pageSize: query.pageSize,
-    total,
+    total: Math.min(total, COUNT_CAP),
+    totalCapped: total > COUNT_CAP,
   });
 });
 
@@ -199,6 +227,7 @@ patientsRouter.post('/', requirePermission('patient.create'), async (req, res) =
     patientNumber: await nextPatientNumber(tenant.organizationId),
     fullName: input.fullName,
     nameKey: key,
+    nameTokens: nameTokens(key),
     phone,
     secondaryPhone,
     email: input.email ?? null,
@@ -235,6 +264,7 @@ patientsRouter.patch('/:patientId', requirePermission('patient.update'), async (
   if (input.fullName !== undefined) {
     set.fullName = input.fullName;
     set.nameKey = nameKey(input.fullName);
+    set.nameTokens = nameTokens(set.nameKey);
   }
   if (input.phone !== undefined) set.phone = parsePhone(input.phone, 'phone');
   if (input.secondaryPhone !== undefined) {
@@ -249,7 +279,7 @@ patientsRouter.patch('/:patientId', requirePermission('patient.update'), async (
   if (input.address !== undefined) {
     set.address = input.address && (input.address.line || input.address.city) ? input.address : null;
   }
-  const changedFields = Object.keys(set).filter((key) => key !== 'nameKey' && JSON.stringify(set[key as keyof Patient]) !== JSON.stringify(current[key as keyof Patient]));
+  const changedFields = Object.keys(set).filter((key) => key !== 'nameKey' && key !== 'nameTokens' && JSON.stringify(set[key as keyof Patient]) !== JSON.stringify(current[key as keyof Patient]));
 
   const saved = await PatientModel.findOneAndUpdate(
     { organizationId: tenant.organizationId, _id: current._id, version: input.version },
@@ -310,7 +340,7 @@ patientsRouter.patch(
       return;
     }
 
-    const saved = await mongoose.connection.transaction(async (session) => {
+    const saved = await runTransaction(async (session) => {
       // Writing the patient first serializes this with bookings for the same patient.
       const touched = await PatientModel.findOneAndUpdate(
         { organizationId: tenant.organizationId, _id: patient._id },
