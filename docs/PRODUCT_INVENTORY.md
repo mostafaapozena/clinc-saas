@@ -84,9 +84,9 @@ development Codespace.
 
 | Capability | Status | Notes |
 | ---------- | ------ | ----- |
-| Plans, entitlements, trial lifecycle, subscription states | Planned | Prices, plans and trial length are undecided. |
-| Payment provider and webhooks | Blocked | Provider not chosen. |
-| Platform operator console (isolated from tenant roles) | Planned | No platform-level roles exist; all roles are tenant roles. Custom-project requests are reviewed with a server-side script until then. |
+| Plans, entitlements, subscription states | Implemented and tested _(milestone 4, in review)_ | Versioned plans (draft/active/retired) with optional prices and limits — none invented; development grants vs commercial subscriptions; state machine with history; customer subscription page; enforcement **off** by default (B4). Trials/grace not built (terms undecided). [SUBSCRIPTIONS.md](architecture/SUBSCRIPTIONS.md) |
+| Payment provider and webhooks | Simulated _(milestone 4, in review)_ | Provider boundary + clearly labelled **simulator** (refused in production): signed webhooks, replay protection, dedupe, out-of-order handling, reconciliation. Real provider awaits decision and sandbox credentials (B5). |
+| Platform operator console (isolated from tenant roles) | Implemented and tested _(milestone 4, in review)_ | Separate operator accounts, sessions, CSRF and audit; CLI provisioning only; platform_admin / support roles; organization metadata, plans, subscriptions, inquiries (masked, audited reveal), operators, platform audit. No patient/clinical access, no impersonation. MFA not implemented (B6). [PLATFORM.md](architecture/PLATFORM.md) |
 | Support intake | Planned | Support hours and channel undecided. |
 | Chatbot | Not planned yet | Scope must be defined before it is considered. |
 

@@ -100,6 +100,8 @@ its diff re-checked and CI re-run.
 
 ## M4 — SaaS subscriptions and platform administration
 
+**Status: implemented and verified in the Codespace; PR _(to be opened)_ in review. Payments simulated only (B5); enforcement off (B4); trial/grace states not built (terms undecided).**
+
 - **Outcome:** platform operators configure offerings; organizations see their plan, trial and
   billing status; entitlements are enforced consistently.
 - **Scope:** offerings with versioned entitlements (draft/active/retired); subscription state

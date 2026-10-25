@@ -33,6 +33,12 @@ lists or reads inquiries (tested: anonymous and signed-in owners get `404`/`401`
 - The form tells visitors not to include patient names, medical records or patient information.
   Attachments are not accepted.
 
+## Operator console (milestone 4)
+
+Day-to-day review happens in the platform operator console (`/operator/inquiries`, see
+[PLATFORM.md](PLATFORM.md)): masked contact details, an explicit and audited "reveal contact"
+action, and audited status changes. The script below remains for server-side use.
+
 ## Review script (operators only)
 
 Runs with server-side database access (`MONGODB_URI` from `.env` or the environment) — the

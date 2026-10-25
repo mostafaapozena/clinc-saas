@@ -134,6 +134,10 @@ Clinic finances (milestone 3) have their own permissions and the **accountant** 
 [FINANCE.md](FINANCE.md#permissions-separate-from-clinical-permissions). Accountants read patient identity and
 appointments within their branches (like receptionists) and nothing clinical.
 
+Platform subscriptions (milestone 4): `subscription.read` (owner, admin) and `subscription.manage`
+(owner — starting a checkout). Platform operators are not tenant users at all — see
+[PLATFORM.md](PLATFORM.md).
+
 Outside organizations (phase 4): creating a new organization — directly (`POST /orgs`) or by
 completing one's own onboarding draft — is open to every signed-in user, who becomes its owner;
 it never touches existing organizations. Custom-ownership inquiries are platform records with no
