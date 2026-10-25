@@ -109,9 +109,10 @@ const loginSchema = z.object({ email: z.string().trim().toLowerCase().email().ma
 
 export function createOperatorAuthRouter(config: AppConfig) {
   const router = Router();
-  const limiter = createRateLimiter({ ...config.authRateLimit, max: Math.max(1, Math.floor(config.authRateLimit.max / 2)) });
+  const limiter = createRateLimiter({ ...config.authRateLimit, max: Math.max(1, Math.floor(config.authRateLimit.max / 2)) }, 'operator-login');
+  const accountLimiter = createRateLimiter(config.authRateLimit, 'operator-login-account', 'account');
 
-  router.post('/login', limiter, async (req, res: Response) => {
+  router.post('/login', limiter, accountLimiter, async (req, res: Response) => {
     const input = parseInput(loginSchema, req.body);
     const operator = await OperatorModel.findOne({ email: input.email });
     const ok = await verifyPassword(operator?.passwordHash, input.password);

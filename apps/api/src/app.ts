@@ -5,6 +5,7 @@ import type { Logger } from 'pino';
 import { pinoHttp } from 'pino-http';
 import { createAuthRouter } from './auth/auth.routes.js';
 import { csrfProtection, originCheck } from './auth/csrf.js';
+import { configureRateLimitStore } from './auth/rate-limit.js';
 import { loadSession } from './auth/session.middleware.js';
 import { defaultAppConfig, type AppConfig } from './config/app-config.js';
 import './db/models.js';
@@ -44,6 +45,8 @@ export function createApp({ logger, config: overrides, mailer: givenMailer, erro
   const config: AppConfig = { ...defaultAppConfig, ...overrides };
   const mailer = givenMailer ?? createMailer(config);
   const reporter = errorReporter ?? logErrorReporter(logger);
+  // Before any router is built: every limiter picks up the shared store.
+  configureRateLimitStore(config.rateLimitStore);
   const app = express();
 
   app.disable('x-powered-by');

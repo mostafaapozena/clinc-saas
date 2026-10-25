@@ -62,7 +62,7 @@ async function append(r: Lean, message: SupportRequest['messages'][number], stat
 
 export function createSupportRouter(config: AppConfig) {
   const router = Router({ mergeParams: true });
-  const createLimiter = createRateLimiter({ max: Math.max(5, config.inquiryRateLimit.max * 2), windowMs: 60 * 60_000 });
+  const createLimiter = createRateLimiter({ max: Math.max(5, config.inquiryRateLimit.max * 2), windowMs: 60 * 60_000 }, 'support-create');
 
   /** Own requests, or the whole organization's for owners/admins. */
   const visible = (req: Request) => {

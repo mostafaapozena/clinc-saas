@@ -37,8 +37,10 @@ const emailUnavailable = () =>
 
 export function createAuthRouter(config: AppConfig) {
   const router = Router();
-  const registerLimiter = createRateLimiter(config.authRateLimit);
-  const loginLimiter = createRateLimiter(config.authRateLimit);
+  const registerLimiter = createRateLimiter(config.authRateLimit, 'register');
+  const loginLimiter = createRateLimiter(config.authRateLimit, 'login');
+  // Attempts against one account from many addresses; looser so a victim is not easily locked out.
+  const loginAccountLimiter = createRateLimiter({ ...config.authRateLimit, max: config.authRateLimit.max * 2 }, 'login-account', 'account');
 
   /** Issues a brand-new session (rotation): any session the request arrived with is destroyed. */
   async function signIn(req: Request, res: Response, user: UserDocument) {
@@ -73,7 +75,7 @@ export function createAuthRouter(config: AppConfig) {
     res.status(201).json({ user: toUserDto(user), csrfToken, memberships: [] });
   });
 
-  router.post('/login', loginLimiter, async (req, res) => {
+  router.post('/login', loginLimiter, loginAccountLimiter, async (req, res) => {
     const input = parseInput(loginSchema, req.body);
     const user = await UserModel.findOne({ email: input.email }).select('+passwordHash');
     const valid = await verifyPassword(user?.passwordHash, input.password);

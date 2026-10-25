@@ -412,7 +412,8 @@
     "INVITATION_EMAIL_MISMATCH": "This invitation was sent to another email address. Sign in with that address to accept it.",
     "USE_LOGOUT": "To end this session, sign out.",
     "SUPPORT_THREAD_FULL": "This conversation is full. Please open a new request.",
-    "SUPPORT_CHANGED": "The request changed meanwhile. Reload and try again."
+    "SUPPORT_CHANGED": "The request changed meanwhile. Reload and try again.",
+    "RATE_LIMIT_UNAVAILABLE": "The service is busy. Please try again in a moment."
   },
   "validation": {
     "required": "This field is required.",

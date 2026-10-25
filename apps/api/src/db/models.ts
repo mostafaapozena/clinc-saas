@@ -17,6 +17,7 @@ import '../modules/patients/counter.model.js';
 import '../modules/patients/patient.model.js';
 import '../modules/platform/billing.model.js';
 import '../auth/token.model.js';
+import '../auth/rate-limit.js';
 import '../modules/mail/mailer.js';
 import '../modules/support/support.model.js';
 import '../modules/platform/operator.model.js';

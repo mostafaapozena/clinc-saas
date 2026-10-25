@@ -6,7 +6,7 @@ import { MembershipModel } from '../src/modules/memberships/membership.model.js'
 import { OnboardingDraftModel } from '../src/modules/onboarding/onboarding.model.js';
 import { OrganizationModel } from '../src/modules/organizations/organization.model.js';
 import { seedSpecialties } from '../src/modules/specialties/specialty.seed.js';
-import { addMember, createOrg, register, send, testApp, type Client } from './helpers/api.js';
+import { addMember, createOrg, register, send, testApp, type Client, resetRateLimits } from './helpers/api.js';
 import { connectTestDatabase, dropTestDatabase } from './helpers/test-database.js';
 
 const app = testApp();
@@ -205,6 +205,7 @@ describe('scope and access', () => {
   });
 
   it('limits organization creation per client', async () => {
+    await resetRateLimits();
     const limited = testApp({ setupRateLimit: { max: 2, windowMs: 60_000 } });
     const user = await register(limited, 'onb-limited');
     const attempt = () =>

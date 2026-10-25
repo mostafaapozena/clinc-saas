@@ -2,7 +2,7 @@ import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { SessionModel } from '../src/auth/session.model.js';
 import { UserModel } from '../src/users/user.model.js';
-import { TEST_PASSWORD, register, send, sessionCookie, testApp } from './helpers/api.js';
+import { TEST_PASSWORD, register, send, sessionCookie, testApp, resetRateLimits } from './helpers/api.js';
 import { connectTestDatabase, dropTestDatabase } from './helpers/test-database.js';
 
 const app = testApp();
@@ -170,6 +170,7 @@ describe('CSRF protection', () => {
 
 describe('rate limiting', () => {
   it('limits repeated login attempts per client', async () => {
+    await resetRateLimits();
     const limitedApp = testApp({ authRateLimit: { max: 3, windowMs: 60_000 } });
     const attempt = () =>
       request(limitedApp).post('/api/v1/auth/login').send({ email: 'brute@example.test', password: 'guess-guess' });
@@ -183,6 +184,7 @@ describe('rate limiting', () => {
   });
 
   it('limits registration separately', async () => {
+    await resetRateLimits();
     const limitedApp = testApp({ authRateLimit: { max: 2, windowMs: 60_000 } });
     const attempt = (n: number) =>
       request(limitedApp)

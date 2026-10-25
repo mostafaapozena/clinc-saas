@@ -102,7 +102,7 @@ const draftConflict = () => conflict('VERSION_CONFLICT', 'The setup was changed 
  */
 export function createOnboardingRouter(config: AppConfig) {
   const router = Router();
-  const setupLimiter = createRateLimiter(config.setupRateLimit);
+  const setupLimiter = createRateLimiter(config.setupRateLimit, 'onboarding-setup');
   router.use(requireAuth);
 
   router.get('/', async (req, res) => {
