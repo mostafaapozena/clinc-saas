@@ -811,6 +811,10 @@ when asking for a change.
 | `auth.submittingRegister` | جارٍ إنشاء الحساب… | Creating account… |
 | `auth.haveAccount` | لديك حساب بالفعل؟ | Already have an account? |
 | `auth.loginLink` | تسجيل الدخول | Sign in |
+| `auth.panel.title` | مساحة عمل واحدة للمواعيد والسجل والفواتير | One workspace for appointments, records and billing |
+| `auth.panel.points` | • مواعيد وقائمة اليوم لكل فرع وطبيب<br>• سجل سريري حسب التخصص: الأسنان والعلاج الطبيعي والأنف والأذن والحنجرة<br>• فواتير ومدفوعات مرتبطة بالزيارة<br>• صلاحيات لكل دور، وسجل لما يُعدَّل<br>• بالعربية والإنجليزية | • Appointments and the day's list for every branch and practitioner<br>• Clinical records by specialty: dentistry, physiotherapy and ENT<br>• Invoices and payments linked to the visit<br>• Permissions per role, and a log of changes<br>• In Arabic and English |
+| `auth.panel.shotAlt` | لقطة من شاشة المواعيد في raclinic ببيانات تجريبية | The raclinic appointments screen with synthetic data |
+| `auth.panel.note` | اللقطة من raclinic نفسه ببيانات تجريبية. | Screenshot of raclinic itself, with synthetic data. |
 
 ## Organization setup (onboarding)
 

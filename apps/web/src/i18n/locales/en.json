@@ -108,7 +108,19 @@
     "submitRegister": "Create account",
     "submittingRegister": "Creating account…",
     "haveAccount": "Already have an account?",
-    "loginLink": "Sign in"
+    "loginLink": "Sign in",
+    "panel": {
+      "title": "One workspace for appointments, records and billing",
+      "points": [
+        "Appointments and the day's list for every branch and practitioner",
+        "Clinical records by specialty: dentistry, physiotherapy and ENT",
+        "Invoices and payments linked to the visit",
+        "Permissions per role, and a log of changes",
+        "In Arabic and English"
+      ],
+      "shotAlt": "The raclinic appointments screen with synthetic data",
+      "note": "Screenshot of raclinic itself, with synthetic data."
+    }
   },
   "onboarding": {
     "title": "Set up your organization",
