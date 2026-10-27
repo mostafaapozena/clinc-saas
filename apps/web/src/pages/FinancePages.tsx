@@ -24,6 +24,7 @@ import {
   type Adjustment,
 } from '../lib/finance';
 import { useFormatters } from '../lib/format';
+import { todayIn } from '../lib/time';
 import type { Page, PatientSummary } from '../lib/types';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { orgKeys, useOrg } from '../org/context';
@@ -154,9 +155,10 @@ const isEmptyReport = (r: FinanceReport) =>
 
 function FinanceReportCard() {
   const { t } = useTranslation();
-  const { orgId } = useOrg();
+  const { orgId, timeZone } = useOrg();
   const money = useMoney();
-  const today = new Date().toISOString().slice(0, 10);
+  // The organization's calendar day, not UTC's: just after midnight in Cairo it is already the next day.
+  const today = timeZone ? todayIn(timeZone) : new Date().toISOString().slice(0, 10);
   const [from, setFrom] = useState(`${today.slice(0, 8)}01`);
   const [to, setTo] = useState(today);
   const params = { from, to };

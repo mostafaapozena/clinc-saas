@@ -227,6 +227,9 @@ function Shell({ orgId, detail, branches }: { orgId: string; detail: OrgDetail; 
             >
               <Icon name="menu" />
             </button>
+            <Link to={`/app/${orgId}`} className="topbar-brand">
+              <BrandLogo variant="symbol" />
+            </Link>
             <OrgSwitcher orgId={orgId} currentName={detail.organization.name} />
             <BranchSwitcher />
             <SpecialtySwitcher />

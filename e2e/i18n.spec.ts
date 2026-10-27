@@ -63,6 +63,38 @@ test('the language preference is saved to the account and localized formatting f
   await fresh.close();
 });
 
+test('English from the public site carries through sign-up and onboarding; ?lang= works on any page', async ({ page, browser }) => {
+  const errors = watchBrowserErrors(page);
+  await page.goto('/solutions/dentistry?lang=en');
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+  await page.getByTestId('solution-create').click();
+  await expect(page).toHaveURL(/\/register\?/);
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Create an account');
+  await expect(page.locator('html')).toHaveAttribute('dir', 'ltr');
+  await page.locator('#register-name').fill('English owner');
+  await page.locator('#register-email').fill(`lang.${Date.now()}@example.test`);
+  await page.locator('#register-password').fill('e2e-only-password-1');
+  await page.getByRole('button', { name: 'Create account' }).click();
+  await expect(page).toHaveURL(/\/onboarding/);
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Set up your organization');
+  // The account was created with English as its saved preference: a reload keeps it.
+  await page.reload();
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Set up your organization');
+  errors.expectNone();
+
+  // A direct link in a browser with no saved choice; the choice then persists without the parameter.
+  const context = await browser.newContext();
+  const fresh = await context.newPage();
+  await fresh.goto('/register?lang=en');
+  await expect(fresh.getByRole('heading', { level: 1 })).toHaveText('Create an account');
+  await fresh.goto('/login');
+  await expect(fresh.getByRole('heading', { level: 1 })).toHaveText('Sign in');
+  await fresh.goto('/login?lang=ar');
+  await expect(fresh.getByRole('heading', { level: 1 })).toHaveText('تسجيل الدخول');
+  await expect(fresh.locator('html')).toHaveAttribute('dir', 'rtl');
+  await context.close();
+});
+
 test('mobile layout works in both languages @mobile', async ({ page }) => {
   const browser = watchBrowserErrors(page);
   await login(page, 'reception.nour@demo.test');

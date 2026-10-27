@@ -8,6 +8,7 @@ import { createQueryClient } from './auth/session';
 import './i18n';
 import { routes } from './routes/routes';
 import './styles.css';
+import './workspace.css';
 
 const root = document.getElementById('root');
 if (!root) throw new Error('Missing #root element');
