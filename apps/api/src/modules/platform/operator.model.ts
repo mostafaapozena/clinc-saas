@@ -66,7 +66,7 @@ export interface PlatformAuditEvent {
   /** 'operator' | 'provider' | 'system' | 'owner' (tenant owner actions such as checkout). */
   actor: 'operator' | 'provider' | 'system' | 'owner';
   action: string;
-  target: { type: 'organization' | 'plan' | 'subscription' | 'inquiry' | 'operator' | 'support_request'; id: string };
+  target: { type: 'organization' | 'plan' | 'subscription' | 'inquiry' | 'contact_message' | 'operator' | 'support_request'; id: string };
   changes: Record<string, unknown>;
   createdAt: Date;
 }

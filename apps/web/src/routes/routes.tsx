@@ -27,6 +27,12 @@ const SolutionDetailPage = named(publicSite, 'SolutionDetailPage');
 const CustomSolutionsPage = named(publicSite, 'CustomSolutionsPage');
 const InquiryPage = named(publicSite, 'InquiryPage');
 const PublicNotFound = named(publicSite, 'PublicNotFound');
+const TourPage = named(publicSite, 'TourPage');
+const AboutPage = named(publicSite, 'AboutPage');
+const ContactPage = named(publicSite, 'ContactPage');
+const FaqPage = named(publicSite, 'FaqPage');
+const SecurityPage = named(publicSite, 'SecurityPage');
+const PrivacyPage = named(publicSite, 'PrivacyPage');
 
 const StartPage = named(account, 'StartPage');
 const LoginPage = named(account, 'LoginPage');
@@ -71,6 +77,8 @@ const OperatorOrganizationPage = named(operatorConsole, 'OperatorOrganizationPag
 const OperatorPlansPage = named(operatorConsole, 'OperatorPlansPage');
 const OperatorInquiriesPage = named(operatorConsole, 'OperatorInquiriesPage');
 const OperatorInquiryPage = named(operatorConsole, 'OperatorInquiryPage');
+const OperatorContactMessagesPage = named(operatorConsole, 'OperatorContactMessagesPage');
+const OperatorContactMessagePage = named(operatorConsole, 'OperatorContactMessagePage');
 const OperatorOperatorsPage = named(operatorConsole, 'OperatorOperatorsPage');
 const OperatorAuditPage = named(operatorConsole, 'OperatorAuditPage');
 const OperatorSupportPage = named(operatorConsole, 'OperatorSupportPage');
@@ -100,6 +108,12 @@ export const routes: RouteObject[] = [
       { path: '/solutions/:slug', element: load(<SolutionDetailPage />) },
       { path: '/custom-solutions', element: load(<CustomSolutionsPage />) },
       { path: '/custom-solutions/request', element: load(<InquiryPage />) },
+      { path: '/tour', element: load(<TourPage />) },
+      { path: '/about', element: load(<AboutPage />) },
+      { path: '/contact', element: load(<ContactPage />) },
+      { path: '/faq', element: load(<FaqPage />) },
+      { path: '/security', element: load(<SecurityPage />) },
+      { path: '/privacy', element: load(<PrivacyPage />) },
       { path: '/solutions/*', element: load(<PublicNotFound />) },
     ],
   },
@@ -171,6 +185,8 @@ export const routes: RouteObject[] = [
       { path: 'plans', element: load(<OperatorPlansPage />) },
       { path: 'inquiries', element: load(<OperatorInquiriesPage />) },
       { path: 'inquiries/:reference', element: load(<OperatorInquiryPage />) },
+      { path: 'contact-messages', element: load(<OperatorContactMessagesPage />) },
+      { path: 'contact-messages/:reference', element: load(<OperatorContactMessagePage />) },
       { path: 'operators', element: load(<OperatorOperatorsPage />) },
       { path: 'audit', element: load(<OperatorAuditPage />) },
       { path: 'support', element: load(<OperatorSupportPage />) },

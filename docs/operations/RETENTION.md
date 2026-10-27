@@ -10,6 +10,7 @@ How long to keep inquiries, support requests, audit logs and billing events is a
 | Data class | Variable | Date used |
 | ---------- | -------- | --------- |
 | Ownership inquiries | `RETENTION_INQUIRIES_DAYS` | last update |
+| Contact messages (public contact page) | `RETENTION_CONTACT_DAYS` | last update |
 | Support requests | `RETENTION_SUPPORT_DAYS` | last activity |
 | Administrative audit | `RETENTION_AUDIT_DAYS` | creation |
 | Platform audit | `RETENTION_PLATFORM_AUDIT_DAYS` | creation |

@@ -10,6 +10,7 @@ import { parseObjectId } from '../../tenancy/tenant-context.js';
 import { clock } from '../../time/clock.js';
 import { BranchModel } from '../branches/branch.model.js';
 import { CURRENCY_CODES, MAX_AMOUNT } from '../finance/finance.model.js';
+import { ContactMessageModel, type ContactMessage } from '../inquiries/contact.model.js';
 import { INQUIRY_STATUSES, OwnershipInquiryModel, type InquiryStatus, type OwnershipInquiry } from '../inquiries/inquiry.model.js';
 import { maskEmail, maskName, maskPhone } from '../inquiries/inquiry.review.js';
 import { MembershipModel } from '../memberships/membership.model.js';
@@ -92,10 +93,11 @@ export function createPlatformRouter(config: AppConfig, mailer?: Mailer) {
 
   // --- Overview and health ------------------------------------------------------------------
   router.get('/overview', requireOperatorPermission('platform.overview.read'), async (_req, res) => {
-    const [organizations, subs, newInquiries, database, openSupport] = await Promise.all([
+    const [organizations, subs, newInquiries, newContact, database, openSupport] = await Promise.all([
       OrganizationModel.estimatedDocumentCount(),
       SubscriptionModel.find().select('status kind currentPeriodEnd').lean(),
       OwnershipInquiryModel.countDocuments({ status: 'new' }),
+      ContactMessageModel.countDocuments({ status: 'new' }),
       checkDatabase(),
       SupportRequestModel.countDocuments({ status: 'open' }),
     ]);
@@ -111,6 +113,7 @@ export function createPlatformRouter(config: AppConfig, mailer?: Mailer) {
       organizations,
       subscriptions: { byStatus, byKind },
       inquiries: { new: newInquiries },
+      contactMessages: { new: newContact },
       support: { open: openSupport },
       health: { database, uptimeSeconds: Math.round(process.uptime()) },
       config: {
@@ -541,6 +544,64 @@ export function createPlatformRouter(config: AppConfig, mailer?: Mailer) {
     ).lean();
     await audit(req, 'inquiry.status_changed', { type: 'inquiry', id: inquiry.reference }, { from: inquiry.status, to: status });
     res.json({ inquiry: inquiryRow(updated!) });
+  });
+
+  // --- Contact messages from the public contact page (same review flow as inquiries) ---------------
+  const contactRow = (m: ContactMessage) => ({
+    reference: m.reference,
+    createdAt: m.createdAt.toISOString(),
+    status: m.status,
+    intent: m.intent,
+    organizationName: m.organizationName,
+    specialty: m.specialty,
+    language: m.language,
+    contactName: maskName(m.contactName),
+    phone: m.phone ? maskPhone(m.phone.e164) : null,
+    email: m.email ? maskEmail(m.email) : null,
+    reviewedAt: m.reviewedAt?.toISOString() ?? null,
+  });
+  const findContact = (reference: unknown) =>
+    typeof reference === 'string' && /^C-[A-Z0-9]{8}$/.test(reference)
+      ? ContactMessageModel.findOne({ reference }).lean()
+      : Promise.resolve(null);
+
+  router.get('/contact-messages', requireOperatorPermission('platform.inquiries.read'), async (req, res) => {
+    const status =
+      typeof req.query.status === 'string' && (INQUIRY_STATUSES as readonly string[]).includes(req.query.status)
+        ? req.query.status
+        : undefined;
+    const rows = await ContactMessageModel.find(status ? { status: status as InquiryStatus } : {})
+      .sort({ createdAt: -1 })
+      .limit(100)
+      .lean();
+    res.json({ data: rows.map(contactRow) });
+  });
+
+  router.get('/contact-messages/:reference', requireOperatorPermission('platform.inquiries.read'), async (req, res) => {
+    const message = await findContact(req.params.reference);
+    if (!message) throw notFound();
+    res.json({ message: { ...contactRow(message), message: message.message } });
+  });
+
+  /** Unmasked contact details: explicit, per message, audited. */
+  router.post('/contact-messages/:reference/reveal-contact', requireOperatorPermission('platform.inquiries.manage'), async (req, res) => {
+    const message = await findContact(req.params.reference);
+    if (!message) throw notFound();
+    await audit(req, 'contact.contact_revealed', { type: 'contact_message', id: message.reference });
+    res.json({ contact: { name: message.contactName, phone: message.phone?.e164 ?? null, email: message.email } });
+  });
+
+  router.patch('/contact-messages/:reference', requireOperatorPermission('platform.inquiries.manage'), async (req, res) => {
+    const { status } = parseInput(z.object({ status: z.enum(INQUIRY_STATUSES) }), req.body);
+    const message = await findContact(req.params.reference);
+    if (!message) throw notFound();
+    const updated = await ContactMessageModel.findOneAndUpdate(
+      { _id: message._id },
+      { $set: { status, reviewedAt: status === 'new' ? null : (message.reviewedAt ?? clock.now()) } },
+      { returnDocument: 'after' },
+    ).lean();
+    await audit(req, 'contact.status_changed', { type: 'contact_message', id: message.reference }, { from: message.status, to: status });
+    res.json({ message: contactRow(updated!) });
   });
 
   // --- Operators (provisioned by CLI; the console can only suspend or reactivate) ----------------

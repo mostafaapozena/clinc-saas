@@ -16,13 +16,18 @@ export type Solution = {
   start: { specialty?: string; type?: 'medical_center' };
   /** The interest pre-selected on the custom-ownership request form. */
   inquiryInterest: string;
+  /** Icon name (components/Icon.tsx) and accent class (public.css `tone-*`). */
+  icon: 'tooth' | 'activity' | 'ear' | 'layers';
+  tone: 'dentistry' | 'physiotherapy' | 'ent' | 'centers';
+  /** Real workspace screenshot (synthetic data) under /product/<lang>/<shot>.jpg. */
+  shot: string;
 };
 
 export const SOLUTIONS: readonly Solution[] = [
-  { slug: 'dentistry', key: 'dentistry', specialtyCode: 'dentistry', start: { specialty: 'dentistry' }, inquiryInterest: 'dentistry' },
-  { slug: 'physiotherapy', key: 'physiotherapy', specialtyCode: 'physiotherapy', start: { specialty: 'physiotherapy' }, inquiryInterest: 'physiotherapy' },
-  { slug: 'ent', key: 'ent', specialtyCode: 'ent', start: { specialty: 'ent' }, inquiryInterest: 'ent' },
-  { slug: 'medical-centers', key: 'medicalCenters', specialtyCode: null, start: { type: 'medical_center' }, inquiryInterest: 'multi_specialty' },
+  { slug: 'dentistry', key: 'dentistry', specialtyCode: 'dentistry', start: { specialty: 'dentistry' }, inquiryInterest: 'dentistry', icon: 'tooth', tone: 'dentistry', shot: 'dental' },
+  { slug: 'physiotherapy', key: 'physiotherapy', specialtyCode: 'physiotherapy', start: { specialty: 'physiotherapy' }, inquiryInterest: 'physiotherapy', icon: 'activity', tone: 'physiotherapy', shot: 'physio' },
+  { slug: 'ent', key: 'ent', specialtyCode: 'ent', start: { specialty: 'ent' }, inquiryInterest: 'ent', icon: 'ear', tone: 'ent', shot: 'ent' },
+  { slug: 'medical-centers', key: 'medicalCenters', specialtyCode: null, start: { type: 'medical_center' }, inquiryInterest: 'multi_specialty', icon: 'layers', tone: 'centers', shot: 'week' },
 ];
 
 export const SPECIALTY_SOLUTION_CODES = SOLUTIONS.flatMap((s) => (s.specialtyCode ? [s.specialtyCode] : []));
@@ -50,4 +55,13 @@ export const PUBLIC_PATHS: readonly string[] = [
   ...SOLUTIONS.map((s) => `/solutions/${s.slug}`),
   '/custom-solutions',
   '/custom-solutions/request',
+  '/tour',
+  '/about',
+  '/contact',
+  '/faq',
+  '/security',
+  '/privacy',
 ];
+
+/** A real workspace screenshot (synthetic demo data) in the page language. */
+export const productShot = (name: string, language: string) => `/product/${language === 'en' ? 'en' : 'ar'}/${name}.jpg`;
