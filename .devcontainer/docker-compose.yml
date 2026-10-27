@@ -7,6 +7,12 @@ services:
     # Own network identity on purpose. With network_mode: service:mongo the private
     # Codespaces preview (https://<codespace>-5173.app.github.dev) returned 502 when no
     # VS Code session was attached; with this setup it reaches the dev server.
+    # The Codespaces port forwarder connects to these ports on the Codespace host, not inside this
+    # container: without them the preview returned 502 again after a restart (2026-10-28). Bound to
+    # the host's loopback only; visibility stays private (GitHub sign-in) in the Ports settings.
+    ports:
+      - '127.0.0.1:5173:5173'
+      - '127.0.0.1:4000:4000'
     environment:
       # These override the localhost defaults in .env (dotenv never overrides real env vars).
       MONGODB_URI: mongodb://mongo:27017/?directConnection=true
