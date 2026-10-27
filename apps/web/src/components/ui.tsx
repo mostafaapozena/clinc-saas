@@ -6,17 +6,22 @@ export function Field({
   label,
   error,
   hint,
+  required,
   children,
 }: {
   id: string;
   label: string;
   error?: string;
   hint?: string;
+  required?: boolean;
   children: ReactNode;
 }) {
   return (
     <div className="field">
-      <label htmlFor={id}>{label}</label>
+      {/* The asterisk is CSS-only: the input's required/aria-required already announces it. */}
+      <label htmlFor={id} className={required ? 'label--required' : undefined}>
+        {label}
+      </label>
       {children}
       {hint && !error && (
         <p className="field-hint" id={`${id}-hint`}>

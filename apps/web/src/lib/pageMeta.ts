@@ -63,7 +63,7 @@ export function usePageMeta({ title, description, path, structuredData }: PageMe
     setMeta('property', 'og:site_name', siteName);
     setMeta('property', 'og:title', title);
     setMeta('property', 'og:description', description);
-    setMeta('property', 'og:locale', language === 'ar' ? 'ar_AR' : 'en_US');
+    setMeta('property', 'og:locale', language === 'ar' ? 'ar_EG' : 'en_US');
     if (SITE_URL) {
       const canonical = publicUrl(path, language);
       addLink('canonical', canonical);

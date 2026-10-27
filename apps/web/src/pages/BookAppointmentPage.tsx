@@ -8,8 +8,8 @@ import { useInvalidateOrg } from '../lib/scheduling';
 import { ErrorState, Field, Loading, Notice } from '../components/ui';
 import { api, query } from '../lib/api';
 import { errorMessage, isApiError } from '../lib/errors';
-import { useFormatters } from '../lib/format';
-import { isValidDateInput, newIdempotencyKey, todayIn } from '../lib/time';
+import { useFormatters, zoneLabel } from '../lib/format';
+import { isValidDateInput, localDateOf, newIdempotencyKey, todayIn } from '../lib/time';
 import type { Appointment, AppointmentType, Patient, PatientSummary, Practitioner, Slot } from '../lib/types';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { orgKeys, useOrg } from '../org/context';
@@ -107,7 +107,7 @@ export function BookAppointmentPage() {
 
   return (
     <>
-      <PageHeader title={t('booking.title')} subtitle={t('appointments.timeZoneNote', { zone: timeZone })} />
+      <PageHeader title={t('booking.title')} subtitle={t('appointments.timeZoneNote', { zone: zoneLabel(t, timeZone) })} />
       <form className="card booking-form" onSubmit={onSubmit} noValidate aria-label={t('booking.title')}>
         {book.isError && <Notice kind="error">{errorMessage(t, book.error)}</Notice>}
         <PatientPicker
@@ -226,7 +226,8 @@ export function RescheduleAppointmentPage() {
     queryKey: orgKeys.appointment(orgId, appointmentId),
     queryFn: ({ signal }) => api<{ appointment: Appointment }>(`/orgs/${orgId}/appointments/${appointmentId}`, { signal }).then((r) => r.appointment),
   });
-  const [date, setDate] = useState(() => (timeZone ? todayIn(timeZone) : ''));
+  // Until a date is picked, offer the appointment's own day (or today, if that has passed).
+  const [chosenDate, setDate] = useState('');
   const [slot, setSlot] = useState<Slot | null>(null);
   const save = useMutation({
     mutationFn: (current: Appointment) =>
@@ -253,6 +254,9 @@ export function RescheduleAppointmentPage() {
   const a = appointment.data;
   if (a.status !== 'scheduled') return <Notice kind="info">{t('errors.INVALID_TRANSITION')}</Notice>;
   const branchName = branches.find((b) => b.id === a.branchId)?.name ?? '—';
+  const today = todayIn(timeZone);
+  const appointmentDate = localDateOf(a.startAt, timeZone);
+  const date = chosenDate || (appointmentDate > today ? appointmentDate : today);
 
   return (
     <>

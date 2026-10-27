@@ -125,15 +125,16 @@ export function FinancePage() {
         {can('finance.account.read') && (
           <section className="card" aria-labelledby="finance-patients-title">
             <h2 id="finance-patients-title">{t('finance.patientAccounts')}</h2>
-            <Field id="finance-search" label={t('patients.search')}>
+            <Field id="finance-search" label={t('patients.search')} hint={t('finance.searchHint')}>
               <input id="finance-search" type="search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('patients.searchPlaceholder')} />
             </Field>
-            {patients.isSuccess && (
+            {patients.isSuccess && patients.data.data.length === 0 && <EmptyState>{t('patients.noMatches')}</EmptyState>}
+            {patients.isSuccess && patients.data.data.length > 0 && (
               <ul className="data-list" data-testid="finance-patient-results">
                 {patients.data.data.map((p) => (
                   <li key={p.id} className="data-row">
                     <Link to={`/app/${orgId}/finance/patients/${p.id}`}>
-                      {p.fullName} (#{p.patientNumber})
+                      {p.fullName} (<bdi dir="ltr">#{p.patientNumber}</bdi>)
                     </Link>
                   </li>
                 ))}
@@ -146,6 +147,10 @@ export function FinancePage() {
     </>
   );
 }
+
+/** No invoices, payments, adjustments or balances in the period: say so instead of an empty card. */
+const isEmptyReport = (r: FinanceReport) =>
+  r.invoiced.length + r.collected.length + r.adjustments.length + r.outstanding.length + r.byService.length === 0;
 
 function FinanceReportCard() {
   const { t } = useTranslation();
@@ -172,7 +177,8 @@ function FinanceReportCard() {
       </div>
       {report.isPending && <Loading />}
       {report.isError && <ErrorState message={errorMessage(t, report.error)} />}
-      {report.isSuccess && (
+      {report.isSuccess && isEmptyReport(report.data) && <EmptyState>{t('finance.reportEmpty')}</EmptyState>}
+      {report.isSuccess && !isEmptyReport(report.data) && (
         <dl className="details">
           {report.data.invoiced.map((g) => (
             <div key={`inv-${g.currency}`}>
@@ -1063,7 +1069,7 @@ function PrintFrame({ title, number, context, date, children }: { title: string;
           <div>
             <dt>{t('finance.billedTo')}</dt>
             <dd>
-              {context.patient.fullName} (#{fmt.number(context.patient.patientNumber)})
+              {context.patient.fullName} (<bdi dir="ltr">#{fmt.number(context.patient.patientNumber)}</bdi>)
             </dd>
           </div>
         )}

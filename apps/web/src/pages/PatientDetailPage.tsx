@@ -30,7 +30,8 @@ export function PatientDetailPage() {
     queryKey: orgKeys.patient(orgId, patientId),
     queryFn: ({ signal }) => api<{ patient: Patient }>(`/orgs/${orgId}/patients/${patientId}`, { signal }).then((r) => r.patient),
   });
-  useDocumentTitle(patient.data?.fullName ?? t('patients.title'));
+  // The file number, never the name: titles end up in history, synced tabs and shared screens.
+  useDocumentTitle(patient.data ? t('patients.fileTitle', { number: patient.data.patientNumber }) : t('patients.title'));
 
   if (patient.isPending) return <Loading />;
   if (patient.isError) {

@@ -1,9 +1,10 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { useDeferredValue, useState, type FormEvent } from 'react';
+import { useDeferredValue, useRef, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router';
 import { PageHeader } from '../components/PageHeader';
 import { PatientFields } from '../components/PatientForm';
+import { useFocusOnError } from '../lib/a11y';
 import { emptyPatientForm, patientBody, type PatientFormValue } from '../lib/patient-form';
 import { useInvalidateOrg } from '../lib/scheduling';
 import { EmptyState, ErrorState, Field, Loading, Notice } from '../components/ui';
@@ -173,6 +174,8 @@ function CreatePatient({ onCancel }: { onCancel: () => void }) {
     ? ((create.error as ApiError).details.matches as DuplicateMatch[] | undefined) ?? []
     : [];
   const fields = fieldErrors(create.error);
+  const sectionRef = useRef<HTMLElement>(null);
+  useFocusOnError(sectionRef, create.error);
 
   const onSubmit = (event: FormEvent) => {
     event.preventDefault();
@@ -180,7 +183,7 @@ function CreatePatient({ onCancel }: { onCancel: () => void }) {
   };
 
   return (
-    <section className="card" aria-labelledby="new-patient-title">
+    <section className="card" aria-labelledby="new-patient-title" ref={sectionRef}>
       <h2 id="new-patient-title">{t('patients.newTitle')}</h2>
       <p className="muted small">{t('patients.newHint')}</p>
       {create.isError && duplicates.length === 0 && (
@@ -193,7 +196,7 @@ function CreatePatient({ onCancel }: { onCancel: () => void }) {
             {duplicates.map((d) => (
               <li key={d.id}>
                 <Link to={`/app/${orgId}/patients/${d.id}`}>
-                  #{d.patientNumber} — {d.fullName}
+                  <bdi dir="ltr">#{d.patientNumber}</bdi> — {d.fullName}
                 </Link>
               </li>
             ))}

@@ -54,6 +54,7 @@ export function createApp({ logger, config: overrides, mailer: givenMailer, erro
   app.set('trust proxy', config.trustProxy ? 1 : false);
   app.use(helmet());
   app.locals.subscriptionEnforcement = config.subscriptionEnforcement;
+  app.locals.sessionIdleMinutes = config.sessionIdleMinutes;
   // Payment-provider webhooks: before the JSON parser (signatures cover the raw bytes) and outside
   // cookies, sessions and CSRF — they are authenticated by their signature alone.
   app.use('/api/v1/billing/webhooks', (_req, res, next) => {

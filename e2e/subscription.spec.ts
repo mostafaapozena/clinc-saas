@@ -62,8 +62,8 @@ test('operator grant → owner subscribes through the simulator → signed webho
   await expect(opSub).toContainText('Payment overdue');
 
   await page.getByRole('link', { name: 'Platform audit' }).click();
-  await expect(page.getByText('subscription.commercial_started').first()).toBeVisible();
-  await expect(page.getByText('subscription.reconciled').first()).toBeVisible();
+  await expect(page.getByText('Commercial subscription started').first()).toBeVisible();
+  await expect(page.getByText('Subscription reconciled').first()).toBeVisible();
   errors.expectNone();
 });
 

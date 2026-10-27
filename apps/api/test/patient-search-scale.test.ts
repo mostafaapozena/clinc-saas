@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { backfillPatientNameTokens } from '../src/modules/patients/name-tokens.backfill.js';
+import { backfillPatientNameTokens, backfillPatientPhoneTails } from '../src/modules/patients/name-tokens.backfill.js';
 import { nameKey, nameTokens } from '../src/modules/patients/normalize.js';
 import { PatientModel } from '../src/modules/patients/patient.model.js';
 import { COUNT_CAP } from '../src/modules/patients/patient.routes.js';
@@ -98,6 +98,43 @@ describe('patient list at scale', () => {
     expect(await backfillPatientNameTokens(3)).toBe(10);
     expect(await backfillPatientNameTokens()).toBe(0);
     expect((await owner.agent.get(`/api/v1/orgs/${orgId}/patients?q=${encodeURIComponent('محمد')}`)).body.total).toBe(1);
+  });
+
+  it('finds a patient by the last digits of either phone number and by "#file number"', async () => {
+    const created = await send(owner, 'post', `/api/v1/orgs/${orgId}/patients`, {
+      fullName: 'سارة يوسف',
+      phone: { country: 'EG', number: '01001234509' },
+      secondaryPhone: { country: 'EG', number: '01112223334' },
+      branchId,
+    });
+    expect(created.status, JSON.stringify(created.body)).toBe(201);
+    const { id, patientNumber, version } = created.body.patient;
+    const names = async (q: string) =>
+      (await owner.agent.get(`/api/v1/orgs/${orgId}/patients?q=${encodeURIComponent(q)}`)).body.data.map((p: { fullName: string }) => p.fullName);
+    expect(await names('1234509')).toEqual(['سارة يوسف']);
+    expect(await names('٤٥٠٩')).toEqual(['سارة يوسف']); // Arabic-Indic digits
+    expect(await names('2223334')).toEqual(['سارة يوسف']); // secondary number
+    expect(await names('509')).not.toContain('سارة يوسف'); // under 4 digits it is a file number only
+    expect(await names(`#${patientNumber}`)).toEqual(['سارة يوسف']);
+
+    // A changed number replaces its endings.
+    const changed = await send(owner, 'patch', `/api/v1/orgs/${orgId}/patients/${id}`, { phone: { country: 'EG', number: '01009876543' }, version });
+    expect(changed.status, JSON.stringify(changed.body)).toBe(200);
+    expect(await names('1234509')).toEqual([]);
+    expect(await names('9876543')).toEqual(['سارة يوسف']);
+    expect(await names('2223334')).toEqual(['سارة يوسف']);
+  });
+
+  it('backfills phone endings for older patients idempotently, and the lookup uses its index', async () => {
+    // The bulk-inserted patients were written without endings, as before this change.
+    expect(await backfillPatientPhoneTails(200)).toBeGreaterThanOrEqual(COUNT_CAP);
+    expect(await backfillPatientPhoneTails()).toBe(0);
+    const res = await owner.agent.get(`/api/v1/orgs/${orgId}/patients?q=010000007`);
+    expect(res.body.data.map((p: { fullName: string }) => p.fullName)).toEqual(['Synthetic Patient 7']);
+    const explain = (await PatientModel.find({ organizationId: new mongoose.Types.ObjectId(orgId), phoneTails: '010000007' }).explain(
+      'executionStats',
+    )) as unknown as { executionStats: { totalDocsExamined: number } };
+    expect(explain.executionStats.totalDocsExamined).toBeLessThan(5);
   });
 
   it('uses indexes for the name search and the capped count (no organization-wide scan)', async () => {

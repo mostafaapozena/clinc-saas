@@ -268,6 +268,20 @@ describe('sessions', () => {
     expect((await user.agent.get('/api/v1/auth/session')).body.user).toBeNull();
     expect(await SessionModel.countDocuments({ userId: user.userId })).toBe(0);
   });
+
+  it('does not list sessions that are idle past the timeout as signed-in devices', async () => {
+    const idleApp = testApp({ sessionIdleMinutes: 30 });
+    const user = await register(idleApp, 'idle-list-user');
+    const other = request.agent(idleApp);
+    expect((await other.post('/api/v1/auth/login').send({ email: user.email, password: TEST_PASSWORD })).status).toBe(200);
+    expect((await user.agent.get('/api/v1/me/sessions')).body.data).toHaveLength(2);
+    // The other device has been idle longer than the timeout; the current one is in use.
+    const sessions = await SessionModel.find({ userId: user.userId }).sort({ createdAt: 1 }).lean();
+    await SessionModel.updateOne({ _id: sessions[1]!._id }, { $set: { lastSeenAt: new Date(Date.now() - 31 * 60_000) } });
+    const list = (await user.agent.get('/api/v1/me/sessions')).body.data;
+    expect(list).toHaveLength(1);
+    expect(list[0].current).toBe(true);
+  });
 });
 
 describe('operational endpoints and configuration', () => {

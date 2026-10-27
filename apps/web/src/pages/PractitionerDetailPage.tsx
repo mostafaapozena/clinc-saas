@@ -8,7 +8,7 @@ import { useInvalidateOrg } from '../lib/scheduling';
 import { EmptyState, ErrorState, Field, Loading, Notice } from '../components/ui';
 import { api } from '../lib/api';
 import { conflictAppointments, errorMessage } from '../lib/errors';
-import { useFormatters } from '../lib/format';
+import { useFormatters, zoneLabel } from '../lib/format';
 import { useSpecialtyNames } from '../lib/specialties';
 import { todayIn } from '../lib/time';
 import type { Practitioner, ScheduleException, WeeklyInterval } from '../lib/types';
@@ -35,7 +35,7 @@ export function PractitionerDetailPage() {
 
   return (
     <>
-      <PageHeader title={p.displayName} subtitle={`${specialties.name(p.specialtyCode)} · ${t('appointments.timeZoneNote', { zone: timeZone })}`}>
+      <PageHeader title={p.displayName} subtitle={`${specialties.name(p.specialtyCode)} · ${t('appointments.timeZoneNote', { zone: zoneLabel(t, timeZone) })}`}>
         <span className={`badge badge--${p.status}`}>{t(`practitioners.status.${p.status}`)}</span>
       </PageHeader>
       {manage && <ProfileEditor practitioner={p} />}

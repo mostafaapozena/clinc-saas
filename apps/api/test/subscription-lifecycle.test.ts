@@ -3,7 +3,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest
 import { hashPassword } from '../src/auth/password.js';
 import { PatientModel } from '../src/modules/patients/patient.model.js';
 import { PlanModel, SimulatorSubscriptionModel, SubscriptionModel } from '../src/modules/platform/billing.model.js';
-import { OperatorModel } from '../src/modules/platform/operator.model.js';
+import { OperatorModel, PlatformAuditModel } from '../src/modules/platform/operator.model.js';
 import { simulatorDelivery, SIMULATOR_SIGNATURE_HEADER } from '../src/modules/platform/payment-provider.js';
 import { processLifecycle, requestPlanChange } from '../src/modules/platform/subscription.lifecycle.js';
 import { seedSpecialties } from '../src/modules/specialties/specialty.seed.js';
@@ -122,6 +122,15 @@ describe('trials', () => {
     await send(owner, 'post', `/api/v1/orgs/${orgId}/subscription/trial`, { planId: trialPlan });
     const s = await subscribe(owner, orgId, paidA);
     expect(s).toMatchObject({ kind: 'commercial', status: 'active', trialEndsAt: null, trialUsed: true, provider: 'simulator' });
+  });
+
+  it('records every lifecycle run in the platform audit, previews marked as such', async () => {
+    const runs = () => PlatformAuditModel.find({ action: 'billing.lifecycle_run' }).sort({ createdAt: 1 }).lean();
+    const before = (await runs()).length;
+    expect((await op(admin, 'post', '/billing/lifecycle', { apply: false })).status).toBe(200);
+    expect((await op(admin, 'post', '/billing/lifecycle', { apply: true })).status).toBe(200);
+    const recorded = (await runs()).slice(before);
+    expect(recorded.map((r) => (r.changes as { apply: boolean }).apply)).toEqual([false, true]);
   });
 
   it('operators can start a trial with an explicit end date', async () => {

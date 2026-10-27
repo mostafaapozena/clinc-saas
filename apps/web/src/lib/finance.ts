@@ -5,12 +5,12 @@ export type Currency = 'EGP' | 'SAR';
 export const MINOR_UNITS: Record<Currency, number> = { EGP: 100, SAR: 100 };
 
 /** Arabic-Indic and Persian digits → ASCII digits. */
-const toLatin = (s: string) =>
+export const toLatinDigits = (s: string) =>
   s.replace(/[٠-٩]/g, (d) => String(d.charCodeAt(0) - 0x0660)).replace(/[۰-۹]/g, (d) => String(d.charCodeAt(0) - 0x06f0));
 
 /** "750.5" / "٧٥٠٫٥٠" → 75050; null for anything that is not a non-negative amount with ≤ 2 decimals. */
 export function parseMoney(text: string): number | null {
-  const s = toLatin(text.trim()).replace('٫', '.').replace(/,/g, '');
+  const s = toLatinDigits(text.trim()).replace('٫', '.').replace(/,/g, '');
   const m = /^(\d{1,8})(?:\.(\d{1,2}))?$/.exec(s);
   if (!m) return null;
   const major = Number(m[1]);
@@ -26,7 +26,8 @@ export function moneyInput(minor: number): string {
 /** Localized currency text for display. */
 export function formatMoney(minor: number, currency: string, language: string): string {
   // Division by 100 is exact enough for display of integers up to 10^9 at two decimals.
-  return new Intl.NumberFormat(language === 'ar' ? 'ar-EG' : 'en', { style: 'currency', currency, minimumFractionDigits: 2 }).format(minor / 100);
+  // Latin digits in Arabic too ("ar-EG" alone gives Arabic-Indic digits), like every other number in the UI.
+  return new Intl.NumberFormat(language === 'ar' ? 'ar-EG-u-nu-latn' : 'en', { style: 'currency', currency, minimumFractionDigits: 2 }).format(minor / 100);
 }
 
 export type FinanceService = {

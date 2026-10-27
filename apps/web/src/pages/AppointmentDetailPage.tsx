@@ -66,7 +66,7 @@ export function AppointmentDetailPage() {
               <dd>
                 {a.patient ? (
                   <Link to={`/app/${orgId}/patients/${a.patient.id}`}>
-                    {a.patient.fullName} (#{fmt.number(a.patient.patientNumber)})
+                    {a.patient.fullName} (<bdi dir="ltr">#{fmt.number(a.patient.patientNumber)}</bdi>)
                   </Link>
                 ) : (
                   '—'

@@ -133,7 +133,9 @@ function QueueSection({
                   </Link>
                   <span className="muted small">
                     {t(`queue.timeLabel.${timeLabel}`, { time: when ? fmt.time(when, zone) : '—' })} ·{' '}
-                    {t('queue.appointmentAt', { time: fmt.time(a.startAt, zone) })} · {a.practitioner?.displayName} ·{' '}
+                    {/* For booked visits the label above already is the appointment time. */}
+                    {timeLabel !== 'scheduled' && <>{t('queue.appointmentAt', { time: fmt.time(a.startAt, zone) })} · </>}
+                    {a.practitioner?.displayName} ·{' '}
                     {branchName.get(a.branchId) ?? '—'}
                   </span>
                   <StatusBadge status={a.status} />

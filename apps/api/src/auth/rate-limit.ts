@@ -3,6 +3,7 @@ import type { Request } from 'express';
 import { MemoryStore, ipKeyGenerator, rateLimit, type ClientRateLimitInfo, type Options, type Store } from 'express-rate-limit';
 import { Schema, model } from 'mongoose';
 import { HttpError, isDuplicateKeyError } from '../http/errors.js';
+import { clock } from '../time/clock.js';
 
 // Rate limiting shared by every API replica (docs/architecture/SCALABILITY_REVIEW.md#rate-limits).
 // Counters live in MongoDB — the infrastructure the API already depends on — as fixed windows:
@@ -38,7 +39,8 @@ export class MongoRateLimitStore implements Store {
   init(options: Options) {
     this.windowMs = options.windowMs;
   }
-  private bucket(key: string, now = Date.now()) {
+  // clock.now(), like every time-dependent rule, so tests can pin the window.
+  private bucket(key: string, now = clock.now().getTime()) {
     const windowStart = Math.floor(now / this.windowMs) * this.windowMs;
     return { id: `${this.prefix}:${hash(key)}:${windowStart}`, resetTime: new Date(windowStart + this.windowMs) };
   }

@@ -1,14 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { createContext, useContext, useState, type FormEvent, type ReactNode } from 'react';
+import { createContext, useContext, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, NavLink, Outlet, useParams, useSearchParams } from 'react-router';
 import { BrandLogo } from '../components/BrandLogo';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
 import { PageHeader } from '../components/PageHeader';
 import { EmptyState, ErrorState, Field, Loading, Notice } from '../components/ui';
+import { useFocusOnError } from '../lib/a11y';
 import { errorMessage } from '../lib/errors';
-import { moneyInput, parseMoney } from '../lib/finance';
-import { useFormatters } from '../lib/format';
+import { moneyInput, parseMoney, toLatinDigits } from '../lib/finance';
+import { useFormatters, zoneLabel } from '../lib/format';
 import {
   OPERATOR_SESSION_KEY,
   opApi,
@@ -23,6 +24,7 @@ import {
   type Subscription,
   type Usage,
 } from '../lib/operator';
+import { useSpecialtyNames } from '../lib/specialties';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { PriceText, SubscriptionStatusBadge } from '../components/subscription';
 import { SupportConversation, SupportStatusBadge, type SupportDetail } from '../components/support';
@@ -37,6 +39,12 @@ const useOperator = () => {
   if (!value) throw new Error('OperatorContext missing');
   return { ...value, can: (permission: string) => value.permissions.includes(permission) };
 };
+
+/** "from → to" pointing the reading direction: ← in Arabic (right to left), → in English. */
+function useArrow() {
+  const { i18n } = useTranslation();
+  return i18n.dir(i18n.resolvedLanguage) === 'rtl' ? '←' : '→';
+}
 
 async function fetchOperatorSession(): Promise<OperatorSession | null> {
   const res = await opApi<{ operator: OperatorSession | null; csrfToken?: string }>('/auth/session');
@@ -63,17 +71,20 @@ function OperatorShellFrame({ children, actions }: { children: ReactNode; action
   const { t } = useTranslation();
   return (
     <div className="public-layout operator-layout">
-      <header className="public-header">
+      <a className="skip-link" href="#main-content">
+        {t('shell.skipToContent')}
+      </a>
+      <header className="public-header operator-header">
         <span className="operator-brand">
           <BrandLogo variant="wordmark" />
           <span className="badge badge--operator">{t('operator.consoleLabel')}</span>
         </span>
-        <div className="public-header-actions">
+        <div className="public-header-actions operator-header-actions">
           {actions}
           <LanguageSwitcher />
         </div>
       </header>
-      <main id="main-content" className="public-main operator-main">
+      <main id="main-content" className="public-main operator-main" tabIndex={-1}>
         {children}
       </main>
       <footer className="app-footer">{t('operator.footer')}</footer>
@@ -153,6 +164,8 @@ function OperatorLayout({ children }: { children: ReactNode }) {
   const overview = useQuery({
     queryKey: opKeys.overview,
     queryFn: ({ signal }) => opApi<Overview>('/overview', { signal }),
+    // Shared with the overview page: one request, not one per component that mounts.
+    staleTime: 30_000,
     enabled: operator.can('platform.audit.read'),
   });
   const devMail = overview.data?.config.mailProvider === 'dev_sink';
@@ -170,7 +183,7 @@ function OperatorLayout({ children }: { children: ReactNode }) {
     <OperatorShellFrame
       actions={
         <>
-          <span className="small">
+          <span className="small operator-user">
             {operator.displayName} · {t(`operator.roles.${operator.role}`)}
           </span>
           <button type="button" className="button button--ghost" onClick={() => logout.mutate()} disabled={logout.isPending}>
@@ -215,7 +228,8 @@ export function OperatorOverviewPage() {
   const operator = useOperator();
   const fmt = useFormatters();
   useDocumentTitle(t('operator.nav.overview'));
-  const overview = useQuery({ queryKey: opKeys.overview, queryFn: ({ signal }) => opApi<Overview>('/overview', { signal }) });
+  const overview = useQuery({ queryKey: opKeys.overview, queryFn: ({ signal }) => opApi<Overview>('/overview', { signal }), staleTime: 30_000 });
+  const arrow = useArrow();
   const [drifts, setDrifts] = useState<Drift[] | null>(null);
   const reconcile = useMutation({
     mutationFn: (apply: boolean) => opApi<{ drifts: Drift[] }>('/billing/reconcile', { method: 'POST', body: { apply } }),
@@ -252,7 +266,9 @@ export function OperatorOverviewPage() {
               <span className={`badge badge--${o.health.database.status === 'up' ? 'connected' : 'unreachable'}`}>
                 {t(`operator.overview.db.${o.health.database.status}`)}
               </span>
-              {o.health.database.latencyMs !== null && <span className="muted small"> {o.health.database.latencyMs} ms</span>}
+              {o.health.database.latencyMs !== null && (
+                <span className="muted small"> {t('operator.overview.latency', { ms: fmt.number(o.health.database.latencyMs) })}</span>
+              )}
             </dd>
             <dt>{t('operator.overview.billingProvider')}</dt>
             <dd>{t(`operator.overview.provider.${o.config.billingProvider}`)}</dd>
@@ -270,7 +286,7 @@ export function OperatorOverviewPage() {
             <div className="form-actions">
               <button
                 type="button"
-                className="button button--secondary"
+                className="button button--primary"
                 disabled={reconcile.isPending}
                 onClick={() => reconcile.mutate(false)}
               >
@@ -278,7 +294,7 @@ export function OperatorOverviewPage() {
               </button>
               <button
                 type="button"
-                className="button button--primary"
+                className="button button--secondary"
                 disabled={reconcile.isPending || !drifts?.length}
                 onClick={() => reconcile.mutate(true)}
               >
@@ -294,7 +310,7 @@ export function OperatorOverviewPage() {
                     <li key={d.organizationId} className="data-row">
                       <Link to={`/operator/organizations/${d.organizationId}`}>{d.organizationId.slice(-6)}</Link>
                       <span className="data-meta">
-                        {t(`operator.reconcile.action.${d.action}`)}: {d.local.status} → {d.provider?.status ?? '—'} ·{' '}
+                        {t(`operator.reconcile.action.${d.action}`)}: {d.local.status} {arrow} {d.provider?.status ?? '—'} ·{' '}
                         {d.applied ? t('operator.reconcile.applied') : t('operator.reconcile.notApplied')}
                       </span>
                     </li>
@@ -389,6 +405,7 @@ type LifecycleAction = { organizationId: string; from: string; to: string | null
 function LifecycleCard() {
   const { t } = useTranslation();
   const [actions, setActions] = useState<LifecycleAction[] | null>(null);
+  const arrow = useArrow();
   const run = useMutation({
     mutationFn: (apply: boolean) => opApi<{ actions: LifecycleAction[] }>('/billing/lifecycle', { method: 'POST', body: { apply } }),
     onSuccess: (r) => setActions(r.actions),
@@ -399,10 +416,10 @@ function LifecycleCard() {
       <p className="muted small">{t('operator.lifecycle.hint')}</p>
       {run.isError && <Notice kind="error">{errorMessage(t, run.error)}</Notice>}
       <div className="form-actions">
-        <button type="button" className="button button--secondary" disabled={run.isPending} onClick={() => run.mutate(false)}>
+        <button type="button" className="button button--primary" disabled={run.isPending} onClick={() => run.mutate(false)}>
           {t('operator.lifecycle.dryRun')}
         </button>
-        <button type="button" className="button button--primary" disabled={run.isPending || !actions?.some((a) => a.to)} onClick={() => run.mutate(true)}>
+        <button type="button" className="button button--secondary" disabled={run.isPending || !actions?.some((a) => a.to)} onClick={() => run.mutate(true)}>
           {t('operator.lifecycle.apply')}
         </button>
       </div>
@@ -415,7 +432,7 @@ function LifecycleCard() {
               <li key={`${a.organizationId}-${a.reason}`} className="data-row">
                 <Link to={`/operator/organizations/${a.organizationId}`}>{a.organizationId.slice(-6)}</Link>
                 <span className="data-meta">
-                  {t(`operator.lifecycle.reason.${a.reason}`)}: {t(`subscription.status.${a.from}`)} → {a.to ? t(`subscription.status.${a.to}`) : t('operator.lifecycle.providerDecides')} ·{' '}
+                  {t(`operator.lifecycle.reason.${a.reason}`)}: {t(`subscription.status.${a.from}`)} {arrow} {a.to ? t(`subscription.status.${a.to}`) : t('operator.lifecycle.providerDecides')} ·{' '}
                   {a.applied ? t('operator.reconcile.applied') : a.conflict ? t('operator.lifecycle.conflict') : t('operator.reconcile.notApplied')}
                 </span>
               </li>
@@ -451,7 +468,7 @@ export function OperatorOrganizationsPage() {
     <>
       <PageHeader title={t('operator.nav.organizations')} subtitle={t('operator.organizations.subtitle')} />
       <form
-        className="toolbar"
+        className="search-row"
         role="search"
         onSubmit={(e) => {
           e.preventDefault();
@@ -464,6 +481,7 @@ export function OperatorOrganizationsPage() {
         <input
           id="op-org-search"
           type="search"
+          dir="auto"
           value={text}
           placeholder={t('operator.organizations.search')}
           onChange={(e) => setText(e.target.value)}
@@ -474,7 +492,27 @@ export function OperatorOrganizationsPage() {
       </form>
       {list.isPending && <Loading />}
       {list.isError && <ErrorState message={errorMessage(t, list.error)} onRetry={() => void list.refetch()} />}
-      {list.isSuccess && list.data.data.length === 0 && <EmptyState>{t('operator.organizations.none')}</EmptyState>}
+      {list.isSuccess && list.data.data.length === 0 && (
+        <EmptyState>
+          {q ? (
+            <>
+              {t('operator.organizations.noMatches', { q })}{' '}
+              <button
+                type="button"
+                className="button button--ghost"
+                onClick={() => {
+                  setText('');
+                  setParams({});
+                }}
+              >
+                {t('operator.organizations.clearSearch')}
+              </button>
+            </>
+          ) : (
+            t('operator.organizations.none')
+          )}
+        </EmptyState>
+      )}
       {list.isSuccess && list.data.data.length > 0 && (
         <div className="table-wrap">
           <table className="data-table">
@@ -482,19 +520,27 @@ export function OperatorOrganizationsPage() {
               <tr>
                 <th>{t('operator.organizations.name')}</th>
                 <th>{t('operator.organizations.created')}</th>
-                <th>{t('subscription.kindLabel')}</th>
+                <th>{t('operator.organizations.type')}</th>
+                <th>{t('operator.organizations.subscriptionKind')}</th>
                 <th>{t('subscription.statusLabel')}</th>
               </tr>
             </thead>
             <tbody>
               {list.data.data.map((o) => (
                 <tr key={o.id}>
-                  <td>
-                    <Link to={`/operator/organizations/${o.id}`}>{o.name}</Link>
+                  <td data-label={t('operator.organizations.name')}>
+                    <span>
+                      <Link to={`/operator/organizations/${o.id}`}>{o.name}</Link>{' '}
+                      {/* Same-named organizations are told apart by the end of their id. */}
+                      <bdi className="muted small" title={o.id}>
+                        {o.id.slice(-6)}
+                      </bdi>
+                    </span>
                   </td>
-                  <td>{fmt.date(o.createdAt)}</td>
-                  <td>{o.subscription ? t(`subscription.kind.${o.subscription.kind}`) : '—'}</td>
-                  <td>
+                  <td data-label={t('operator.organizations.created')}>{fmt.date(o.createdAt)}</td>
+                  <td data-label={t('operator.organizations.type')}>{o.type ? t(`onboarding.types.${o.type}.title`, { defaultValue: o.type }) : '—'}</td>
+                  <td data-label={t('operator.organizations.subscriptionKind')}>{o.subscription ? t(`subscription.kind.${o.subscription.kind}`) : '—'}</td>
+                  <td data-label={t('subscription.statusLabel')}>
                     <SubscriptionStatusBadge status={o.subscription?.effectiveStatus ?? 'none'} />
                   </td>
                 </tr>
@@ -539,6 +585,8 @@ export function OperatorOrganizationPage() {
   const { orgId = '' } = useParams();
   const operator = useOperator();
   const fmt = useFormatters();
+  const specialtyNames = useSpecialtyNames();
+  const arrow = useArrow();
   const queryClient = useQueryClient();
   const detail = useQuery({
     queryKey: opKeys.organization(orgId),
@@ -567,6 +615,11 @@ export function OperatorOrganizationPage() {
   const { organization: org, usage, subscription: sub, history, billingEvents } = detail.data;
   const manage = operator.can('platform.subscriptions.manage');
   const activePlans = plans.data?.data.filter((p) => p.status === 'active') ?? [];
+  /** A history entry's plan by name when the plan list is available, otherwise by code. */
+  const historyPlan = (code: string, version: number) => {
+    const plan = plans.data?.data.find((p) => p.code === code && p.version === version);
+    return plan ? `${planName(plan, i18n.resolvedLanguage ?? 'ar')} v${version}` : `${code} v${version}`;
+  };
   const statusAction = (name: 'restrict' | 'reinstate' | 'cancel') =>
     action.mutate({ path: `/organizations/${orgId}/subscription/${name}`, body: { reason, version: sub?.version ?? 0 } });
   return (
@@ -583,10 +636,10 @@ export function OperatorOrganizationPage() {
             <dt>{t('operator.organizations.created')}</dt>
             <dd>{fmt.date(org.createdAt)}</dd>
             <dt>{t('operator.organization.timeZone')}</dt>
-            <dd dir="ltr">{org.timeZone ?? '—'}</dd>
+            <dd>{org.timeZone ? zoneLabel(t, org.timeZone) : '—'}</dd>
             <dt>{t('operator.organization.specialties')}</dt>
             <dd>
-              {org.specialtyCodes.length ? org.specialtyCodes.map((c) => t(`specialties.${c}`, { defaultValue: c })).join('، ') : '—'}
+              {org.specialtyCodes.length ? fmt.list(org.specialtyCodes.map((c) => specialtyNames.name(c))) : '—'}
             </dd>
             <dt>{t('operator.organization.branches')}</dt>
             <dd>{org.branches.map((b) => b.name).join('، ') || '—'}</dd>
@@ -605,7 +658,7 @@ export function OperatorOrganizationPage() {
             <dd>
               {(['branches', 'practitioners', 'members'] as const)
                 .map((r) => `${t(`subscription.resource.${r}`)}: ${fmt.number(usage[r])}`)
-                .join(' · ')}
+                .join(t('common.separator'))}
             </dd>
           </dl>
         </section>
@@ -638,9 +691,17 @@ export function OperatorOrganizationPage() {
             </dl>
           )}
           {manage && sub && sub.status !== 'canceled' && (
-            <div className="stack-sm">
-              <Field id="op-reason" label={t('operator.organization.reason')} hint={t('operator.organization.reasonHint')}>
-                <input id="op-reason" value={reason} maxLength={200} onChange={(e) => setReason(e.target.value)} />
+            <div className="stack-sm operator-actions">
+              <h3>{t('operator.organization.actionsTitle')}</h3>
+              <Field id="op-reason" label={t('operator.organization.reason')} hint={t('operator.organization.reasonHint')} required>
+                <input
+                  id="op-reason"
+                  value={reason}
+                  maxLength={200}
+                  aria-required="true"
+                  aria-describedby="op-reason-hint"
+                  onChange={(e) => setReason(e.target.value)}
+                />
               </Field>
               <div className="form-actions">
                 {sub.status !== 'restricted' && (
@@ -826,10 +887,14 @@ export function OperatorOrganizationPage() {
                     <span className="muted small">{t(`operator.actor.${h.actor}`)}</span>
                   </div>
                   <p className="small">
-                    {h.from ? t(`subscription.status.${h.from}`) : '—'} → {t(`subscription.status.${h.to}`)} ·{' '}
-                    {t(`subscription.kind.${h.kind}`)} · {h.planCode} v{h.planVersion}
+                    {h.from ? t(`subscription.status.${h.from}`) : '—'} {arrow} {t(`subscription.status.${h.to}`)} ·{' '}
+                    {t(`subscription.kind.${h.kind}`)} · <bdi>{historyPlan(h.planCode, h.planVersion)}</bdi>
                   </p>
-                  {h.reason && <p className="muted small">{h.reason}</p>}
+                  {h.reason && (
+                    <p className="muted small" dir="auto">
+                      {h.reason}
+                    </p>
+                  )}
                 </li>
               ))}
             </ol>
@@ -898,6 +963,7 @@ function PlanForm({ initial, plan, onDone }: { initial: PlanDraft; plan?: Plan; 
   const queryClient = useQueryClient();
   const [d, setD] = useState(initial);
   const [localError, setLocalError] = useState<string | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
   const save = useMutation({
     mutationFn: (body: object) =>
       plan
@@ -916,28 +982,30 @@ function PlanForm({ initial, plan, onDone }: { initial: PlanDraft; plan?: Plan; 
       if (amountMinor === null) return setLocalError(t('operator.plans.badAmount'));
       prices.push({ currency: p.currency, interval: p.interval, amountMinor });
     }
-    const limit = (v: string) => (v.trim() === '' ? null : Number(v));
+    // Arabic-Indic digits are accepted ("٣٥" → 35), as in money amounts.
+    const limit = (v: string) => (v.trim() === '' ? null : Number(toLatinDigits(v.trim())));
     const limits = { branches: limit(d.limits.branches), practitioners: limit(d.limits.practitioners), members: limit(d.limits.members) };
     if (Object.values(limits).some((v) => v !== null && (!Number.isInteger(v) || v < 0)))
       return setLocalError(t('operator.plans.badLimit'));
-    const trialDays = d.trialDays.trim() === '' ? null : Number(d.trialDays);
+    const trialDays = d.trialDays.trim() === '' ? null : Number(toLatinDigits(d.trialDays.trim()));
     if (trialDays !== null && (!Number.isInteger(trialDays) || trialDays < 1 || trialDays > 365)) return setLocalError(t('operator.plans.badTrial'));
     setLocalError(null);
     save.mutate({ name: { ar: d.nameAr, en: d.nameEn }, prices, limits, note: d.note, trialDays });
   };
+  useFocusOnError(formRef, localError ?? save.error);
   return (
-    <form className="stack-sm" onSubmit={submit} data-testid="plan-form">
+    <form className="stack-sm" onSubmit={submit} data-testid="plan-form" ref={formRef}>
       {(localError || save.isError) && <Notice kind="error">{localError ?? errorMessage(t, save.error)}</Notice>}
       <div className="form-grid">
         {!plan && (
-          <Field id="plan-code" label={t('operator.plans.code')} hint={t('operator.plans.codeHint')}>
+          <Field id="plan-code" label={t('operator.plans.code')} hint={t('operator.plans.codeHint')} required>
             <input id="plan-code" dir="ltr" value={d.code} onChange={(e) => setD({ ...d, code: e.target.value })} required />
           </Field>
         )}
-        <Field id="plan-name-ar" label={t('operator.plans.nameAr')}>
+        <Field id="plan-name-ar" label={t('operator.plans.nameAr')} required>
           <input id="plan-name-ar" value={d.nameAr} onChange={(e) => setD({ ...d, nameAr: e.target.value })} required />
         </Field>
-        <Field id="plan-name-en" label={t('operator.plans.nameEn')}>
+        <Field id="plan-name-en" label={t('operator.plans.nameEn')} required>
           <input id="plan-name-en" dir="ltr" value={d.nameEn} onChange={(e) => setD({ ...d, nameEn: e.target.value })} required />
         </Field>
       </div>
@@ -1067,14 +1135,21 @@ export function OperatorPlansPage() {
                   {p.code} v{p.version}
                 </span>{' '}
                 <span className={`badge badge--plan-status-${p.status}`}>{t(`operator.plans.status.${p.status}`)}</span>
+                {/* One price per line: a "·" between two Arabic amounts read as part of the numbers. */}
                 <p className="muted small">
                   {p.prices.length === 0
                     ? t('subscription.noPrice')
-                    : p.prices
-                        .map((x) => <PriceText key={`${x.currency}${x.interval}`} price={x} />)
-                        .reduce<ReactNode[]>((acc, el, i) => (i ? [...acc, ' · ', el] : [el]), [])}
+                    : p.prices.map((x) => (
+                        <span key={`${x.currency}${x.interval}`} className="block">
+                          <PriceText price={x} />
+                        </span>
+                      ))}
                 </p>
-                {p.note && <p className="muted small">{p.note}</p>}
+                {p.note && (
+                  <p className="muted small">
+                    {t('operator.plans.noteLabel')}: <span dir="auto">{p.note}</span>
+                  </p>
+                )}
                 {editing === p.id && <PlanForm initial={toDraft(p)} plan={p} onDone={() => setEditing(null)} />}
               </div>
               {manage && editing !== p.id && (
@@ -1140,10 +1215,19 @@ type InquiryRow = {
   email: string | null;
 };
 
+/** A list filter read from the URL: one of `allowed`, "" for "all", or the default. */
+function statusFilter(raw: string | null, allowed: string[], fallback: string) {
+  if (raw === 'all') return '';
+  return raw && allowed.includes(raw) ? raw : fallback;
+}
+
 export function OperatorInquiriesPage() {
   const { t } = useTranslation();
   const fmt = useFormatters();
-  const [status, setStatus] = useState('new');
+  // The filter lives in the URL, so Back and refresh keep it ("all" = every status).
+  const [params, setParams] = useSearchParams();
+  const status = statusFilter(params.get('status'), ['new', 'reviewed', 'closed'], 'new');
+  const setStatus = (s: string) => setParams(s === 'new' ? {} : { status: s || 'all' }, { replace: true });
   useDocumentTitle(t('operator.nav.inquiries'));
   const list = useQuery({
     queryKey: opKeys.inquiries(status),
@@ -1226,7 +1310,7 @@ export function OperatorInquiryPage() {
           <dt>{t('operator.inquiries.country')}</dt>
           <dd>{t(`countries.${i.country}`, { defaultValue: i.country })}</dd>
           <dt>{t('operator.inquiries.interest')}</dt>
-          <dd dir="ltr">{i.interest}</dd>
+          <dd>{t(`site.inquiry.interests.${i.interest}`, { defaultValue: i.interest })}</dd>
           <dt>{t('operator.inquiries.description')}</dt>
           <dd className="record-text">{i.description}</dd>
           <dt>{t('operator.inquiries.contact')}</dt>
@@ -1323,7 +1407,8 @@ export function OperatorOperatorsPage() {
                   {o.email}
                 </span>
                 <p className="muted small">
-                  {t(`operator.roles.${o.role}`)} · {o.lastLoginAt ? fmt.date(o.lastLoginAt) : t('operator.operators.neverSignedIn')}
+                  {t(`operator.roles.${o.role}`)} ·{' '}
+                  {o.lastLoginAt ? t('operator.operators.lastSignIn', { date: fmt.date(o.lastLoginAt) }) : t('operator.operators.neverSignedIn')}
                 </p>
               </div>
               <span className={`badge badge--${o.status === 'active' ? 'active' : 'suspended'}`}>
@@ -1393,11 +1478,24 @@ export function OperatorAuditPage() {
               <tbody>
                 {audit.data.data.map((e) => (
                   <tr key={e.id}>
-                    <td>{fmt.dateTime(e.at, Intl.DateTimeFormat().resolvedOptions().timeZone)}</td>
-                    <td>{e.operator ?? t(`operator.actor.${e.actor}`)}</td>
-                    <td dir="ltr">{e.action}</td>
-                    <td dir="ltr">
-                      {e.target.type}:{e.target.id.slice(-8)}
+                    <td data-label={t('operator.audit.time')}>{fmt.dateTime(e.at, Intl.DateTimeFormat().resolvedOptions().timeZone)}</td>
+                    <td data-label={t('operator.audit.actor')}>{e.operator ?? t(`operator.actor.${e.actor}`)}</td>
+                    <td data-label={t('operator.audit.action')}>
+                      {/* The code stays available as a tooltip for support staff. */}
+                      <span title={e.action}>{t(`operator.audit.actions.${e.action}`, { defaultValue: e.action })}</span>
+                      {e.changes.apply === false && <span className="muted small"> ({t('operator.audit.dryRun')})</span>}
+                    </td>
+                    <td data-label={t('operator.audit.target')}>
+                      {e.target.id === 'all' ? (
+                        t(`operator.audit.allTargets.${e.target.type}`, { defaultValue: t('operator.audit.all') })
+                      ) : (
+                        <>
+                          {t(`operator.audit.targets.${e.target.type}`, { defaultValue: e.target.type })}{' '}
+                          <bdi className="muted small" title={e.target.id}>
+                            {e.target.id.slice(-6)}
+                          </bdi>
+                        </>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -1431,7 +1529,9 @@ type QueueRow = {
 export function OperatorSupportPage() {
   const { t } = useTranslation();
   const fmt = useFormatters();
-  const [status, setStatus] = useState('open');
+  const [params, setParams] = useSearchParams();
+  const status = statusFilter(params.get('status'), ['open', 'answered', 'closed'], 'open');
+  const setStatus = (s: string) => setParams(s === 'open' ? {} : { status: s || 'all' }, { replace: true });
   useDocumentTitle(t('operator.nav.support'));
   const list = useQuery({
     queryKey: ['operator', 'support', status],

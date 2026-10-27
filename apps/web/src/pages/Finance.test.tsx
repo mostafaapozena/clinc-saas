@@ -140,7 +140,7 @@ describe('invoices', () => {
     const doc = await screen.findByTestId('print-document');
     expect(within(doc).getByText('ليست فاتورة ضريبية ولا فاتورة إلكترونية.')).toBeInTheDocument();
     expect(within(doc).getByRole('img', { name: 'raclinic' })).toBeInTheDocument();
-    expect(within(doc).getByTestId('invoice-balance')).toHaveTextContent('١٥٠');
+    expect(within(doc).getByTestId('invoice-balance')).toHaveTextContent('150');
   });
 });
 

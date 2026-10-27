@@ -1,12 +1,13 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, NavLink, Outlet, useNavigate, useParams } from 'react-router';
+import { Link, NavLink, Outlet, useLocation, useNavigate, useParams } from 'react-router';
 import { SESSION_KEY, useAuthActions, useSession } from '../auth/session';
 import { BrandLogo } from '../components/BrandLogo';
 import { Icon, type IconName } from '../components/Icon';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
 import { ErrorState, Loading } from '../components/ui';
+import { useRouteFocus } from '../lib/a11y';
 import { ApiError, api } from '../lib/api';
 import { errorMessage } from '../lib/errors';
 import { useSpecialtyNames } from '../lib/specialties';
@@ -104,6 +105,21 @@ function Shell({ orgId, detail, branches }: { orgId: string; detail: OrgDetail; 
     return () => document.removeEventListener('keydown', onKey);
   }, [navOpen]);
 
+  // The mobile drawer behaves as a dialog: focus moves into it, the page behind is inert while it
+  // is open, and focus returns to the menu button when it closes.
+  const menuButton = useRef<HTMLButtonElement>(null);
+  const closeButton = useRef<HTMLButtonElement>(null);
+  const wasOpen = useRef(false);
+  useEffect(() => {
+    if (navOpen) closeButton.current?.focus();
+    else if (wasOpen.current) menuButton.current?.focus();
+    wasOpen.current = navOpen;
+  }, [navOpen]);
+
+  const location = useLocation();
+  const mainRef = useRef<HTMLElement>(null);
+  useRouteFocus(mainRef, location.pathname);
+
   // A doctor sees only their own schedule there; front desk and admins see every practitioner.
   const ownScheduleOnly = !value.can('appointment.book') && !value.can('practitioner.manage');
   const nav: { to: string; icon: IconName; label: string; end?: boolean }[] = [
@@ -122,8 +138,8 @@ function Shell({ orgId, detail, branches }: { orgId: string; detail: OrgDetail; 
     ...(value.can('organization.update')
       ? [{ to: `/app/${orgId}/settings`, icon: 'settings' as const, label: t('nav.settings') }]
       : []),
-    ...(value.can('subscription.read') ? [{ to: `/app/${orgId}/subscription`, icon: 'check' as const, label: t('nav.subscription') }] : []),
-    ...(value.can('support.request') ? [{ to: `/app/${orgId}/support`, icon: 'globe' as const, label: t('nav.support') }] : []),
+    ...(value.can('subscription.read') ? [{ to: `/app/${orgId}/subscription`, icon: 'card' as const, label: t('nav.subscription') }] : []),
+    ...(value.can('support.request') ? [{ to: `/app/${orgId}/support`, icon: 'help' as const, label: t('nav.support') }] : []),
     { to: `/app/${orgId}/profile`, icon: 'user', label: t('nav.profile') },
   ];
 
@@ -133,12 +149,22 @@ function Shell({ orgId, detail, branches }: { orgId: string; detail: OrgDetail; 
         <a className="skip-link" href="#main-content">
           {t('shell.skipToContent')}
         </a>
-        <aside className="sidebar" id="app-sidebar">
+        <aside
+          className="sidebar"
+          id="app-sidebar"
+          {...(navOpen ? { role: 'dialog', 'aria-modal': true, 'aria-label': t('shell.navigation') } : {})}
+        >
           <div className="sidebar-brand">
             <Link to={`/app/${orgId}`} className="sidebar-brand-link" onClick={() => setNavOpen(false)}>
               <BrandLogo variant="wordmark" />
             </Link>
-            <button type="button" className="icon-button sidebar-close" onClick={() => setNavOpen(false)} aria-label={t('shell.closeMenu')}>
+            <button
+              ref={closeButton}
+              type="button"
+              className="icon-button sidebar-close"
+              onClick={() => setNavOpen(false)}
+              aria-label={t('shell.closeMenu')}
+            >
               <Icon name="close" />
             </button>
           </div>
@@ -157,9 +183,10 @@ function Shell({ orgId, detail, branches }: { orgId: string; detail: OrgDetail; 
         </aside>
         <div className="sidebar-backdrop" onClick={() => setNavOpen(false)} aria-hidden="true" />
 
-        <div className="shell-main">
+        <div className="shell-main" inert={navOpen}>
           <header className="topbar">
             <button
+              ref={menuButton}
               type="button"
               className="icon-button menu-button"
               aria-controls="app-sidebar"
@@ -177,7 +204,7 @@ function Shell({ orgId, detail, branches }: { orgId: string; detail: OrgDetail; 
               <UserMenu orgId={orgId} />
             </div>
           </header>
-          <main id="main-content" className="content" tabIndex={-1}>
+          <main id="main-content" className="content" tabIndex={-1} ref={mainRef}>
             <Outlet />
           </main>
         </div>
@@ -198,7 +225,7 @@ function OrgSwitcher({ orgId, currentName }: { orgId: string; currentName: strin
       <label htmlFor="org-switcher" className="switcher-label">
         {t('shell.organization')}
       </label>
-      <select id="org-switcher" value={orgId} onChange={(e) => navigate(`/app/${e.target.value}`)}>
+      <select id="org-switcher" dir="auto" value={orgId} onChange={(e) => navigate(`/app/${e.target.value}`)}>
         {options.map((m) => (
           <option key={m.organization.id} value={m.organization.id}>
             {m.organization.name}

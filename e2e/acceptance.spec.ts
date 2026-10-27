@@ -171,7 +171,8 @@ test('J6: an operator handles a public inquiry with masked contact, audited reve
   await page.context().clearCookies();
   await operatorLogin(page, 'operator.admin@demo.test');
   await page.getByRole('link', { name: 'سجل المنصة' }).click();
-  await expect(page.getByText('inquiry.contact_revealed').first()).toBeVisible();
+  // Audit actions are shown in words (the code stays as the tooltip).
+  await expect(page.getByText('كشف بيانات التواصل لطلب').first()).toBeVisible();
 });
 
 test('J7: an owner invites by email; the invitee registers from the dev-mail link and joins with the invited role', async ({

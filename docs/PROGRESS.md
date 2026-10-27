@@ -1,6 +1,20 @@
 # Progress
 
-_Last updated: 2026-10-26 (phases 4–5 in review; platform completion milestone 1 in review)._
+_Last updated: 2026-10-27 (front-end audit fixes in review, stacked on the scalability checkpoint)._
+
+## Front-end audit fixes (in review)
+
+Branch `phase-13/ui-audit-fixes`, stacked on `phase-12/scalability-subscriptions`. Every audit finding and its status: [UI_AUDIT_2026-10-27.md](operations/UI_AUDIT_2026-10-27.md).
+
+- **Run the backfill on existing data:** `npm run ops:backfill-patient-search -w @clinc/api`. It fills the stored phone endings (`phoneTails`) that "last digits" search uses.
+- **Behavior changes:**
+  - The Arabic UI uses Latin digits everywhere, including money.
+  - Date-and-time uses a 24-hour clock.
+  - Sessions idle past the timeout are not listed as signed-in devices.
+  - Lifecycle previews are recorded in the platform audit.
+- **Owner decisions:**
+  - the public tagline "مساعدك الذكي" (P-006);
+  - the first day of the week for the appointments view (C-018).
 
 Product state: [PRODUCT_INVENTORY.md](PRODUCT_INVENTORY.md). Plan: [ROADMAP.md](ROADMAP.md).
 Decisions: [DECISIONS.md](DECISIONS.md). Next phase: [NEXT_PHASE_BRIEF.md](NEXT_PHASE_BRIEF.md).

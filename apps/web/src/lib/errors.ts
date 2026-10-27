@@ -8,9 +8,14 @@ export function errorMessage(t: TFunction, error: unknown): string {
   return t([`errors.${code}`, 'errors.UNKNOWN']);
 }
 
-/** Translated message for a field error code, preferring a field-specific wording. */
-export function fieldMessage(t: TFunction, field: string, code: string | undefined): string | undefined {
+/**
+ * Translated message for a field error code, preferring a field-specific wording. When the field's
+ * current value is passed and blank, the message asks for the value: the API reports a blank field
+ * as "too_short" or "invalid_choice", which reads wrong ("the value is too short") on an empty field.
+ */
+export function fieldMessage(t: TFunction, field: string, code: string | undefined, value?: string): string | undefined {
   if (!code) return undefined;
+  if (value !== undefined && value.trim() === '') return t([`validation.${field}.empty`, 'validation.required']);
   return t([`validation.${field}.${code}`, `validation.${code}`, 'validation.invalid']);
 }
 

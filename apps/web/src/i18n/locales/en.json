@@ -19,7 +19,8 @@
     "dbDown": "Unavailable",
     "dbUnknown": "Unknown",
     "latency": "Response time: {{ms}} ms",
-    "retry": "Check again"
+    "retry": "Check again",
+    "services": "Services"
   },
   "specialties": {
     "title": "Initial specialties",
@@ -49,7 +50,8 @@
     "previous": "Previous",
     "next": "Next",
     "pagination": "Pagination",
-    "pageOf": "Page {{page}} of {{pages}} ({{total}} results)"
+    "pageOf": "Page {{page}} of {{pages}} ({{total}} results)",
+    "separator": ", "
   },
   "nav": {
     "home": "Home",
@@ -110,7 +112,7 @@
   },
   "onboarding": {
     "title": "Set up your organization",
-    "subtitle": "Welcome {{name}}. A few steps and your workspace is ready. You will be its owner.",
+    "subtitle": "Welcome {{name}}. A few steps and your workspace is ready; your account will own it.",
     "orgName": "Organization name",
     "branchName": "First branch name",
     "branchHint": "You can add more branches later.",
@@ -247,7 +249,7 @@
     "selectBranches": "Choose branches",
     "orgWideNote": "Owners and admins always have access to all branches.",
     "addTitle": "Add a registered member",
-    "addHint": "Enter the full email of someone who already has an account. No email invitations are sent in this phase; if they have no account, ask them to register first.",
+    "addHint": "Enter the full email of someone who already has an account to add them directly, or send them an email invitation below.",
     "add": "Add member",
     "added": "{{name}} was added to the team.",
     "updated": "{{name}}'s membership was updated.",
@@ -296,7 +298,7 @@
     "details": "Your details",
     "emailStatus": "Email status",
     "emailVerified": "Verified",
-    "emailUnverified": "Not verified (verification is not available yet)",
+    "emailUnverified": "Not verified",
     "language": "Preferred interface language",
     "saved": "Your profile was saved."
   },
@@ -465,11 +467,13 @@
     "end_before_start": "The end time must be after the start.",
     "hours_need_branch_and_intervals": "Replacement hours need a branch and at least one interval.",
     "fullName": {
-      "too_short": "The name must be at least 2 characters."
+      "too_short": "The name must be at least 2 characters.",
+      "empty": "Enter the patient's name."
     },
     "phone": {
       "required": "Choose the country for a local number, or type the international number with +.",
-      "invalid_phone": "This phone number is not valid for that country."
+      "invalid_phone": "This phone number is not valid for that country.",
+      "empty": "Enter a phone number."
     },
     "dateOfBirth": {
       "out_of_range": "The date of birth cannot be in the future.",
@@ -494,7 +498,8 @@
     "inquiry": {
       "description": {
         "too_short": "Please write at least 10 characters.",
-        "too_long": "Please keep it under 1,500 characters."
+        "too_long": "Please keep it under 1,500 characters.",
+        "empty": "Describe what you need in a few words (at least 10 characters)."
       },
       "contact": {
         "contact_required": "Give a phone number or an email address."
@@ -503,7 +508,20 @@
         "invalid_phone": "This phone number is not valid for the chosen country."
       },
       "interest": {
-        "invalid_choice": "Choose one of the options."
+        "invalid_choice": "Choose one of the options.",
+        "empty": "Choose what you are interested in."
+      },
+      "contactName": {
+        "empty": "Enter your name."
+      },
+      "organizationName": {
+        "empty": "Enter the organization's name."
+      },
+      "country": {
+        "empty": "Choose the country."
+      },
+      "organizationType": {
+        "empty": "Choose the type of organization."
       }
     },
     "lateEntryReason": {
@@ -642,7 +660,8 @@
       "upcoming": "No upcoming appointments.",
       "past": "No past appointments."
     },
-    "pageOfCapped": "Page {{page}} of {{pages}} — more than {{total}} patients; refine the search to see others"
+    "pageOfCapped": "Page {{page}} of {{pages}} — more than {{total}} patients; refine the search to see others",
+    "fileTitle": "Patient file {{number}}"
   },
   "appointments": {
     "title": "Appointments",
@@ -652,7 +671,7 @@
     "view": "View",
     "views": {
       "day": "Day",
-      "week": "Week"
+      "week": "7 days"
     },
     "previous": "Previous period",
     "next": "Next period",
@@ -745,7 +764,7 @@
     "timeLabel": {
       "arrival": "Arrived {{time}}",
       "started": "Started {{time}}",
-      "scheduled": "Booked {{time}}"
+      "scheduled": "Appointment {{time}}"
     },
     "appointmentAt": "Appointment {{time}}"
   },
@@ -1382,7 +1401,7 @@
       "orgTitle": "Documentation across the organization (last 30 days)",
       "hint": "Counts only — no clinical content.",
       "empty": "No records in this period.",
-      "counts": "{{finalized}} finalized · {{draft}} drafts",
+      "counts": "Finalized: {{finalized}}, drafts: {{draft}}",
       "own": "Open plan items: {{plan}} · Active physiotherapy courses: {{courses}}"
     }
   },
@@ -1551,7 +1570,9 @@
       "charged": "Charged: {{service}}",
       "confirm": "I confirm this should be charged.",
       "create": "Create charge"
-    }
+    },
+    "searchHint": "Type at least two characters of a name, or a file or phone number, to open a patient's account.",
+    "reportEmpty": "No financial activity in this period."
   },
   "subscription": {
     "title": "Subscription",
@@ -1593,7 +1614,7 @@
       "practitioners": "Active doctors",
       "members": "Active members"
     },
-    "usageUnlimited": "{{count}} · not limited by the plan",
+    "usageUnlimited": "{{count}} (not limited by the plan)",
     "usageOf": "{{count}} of {{limit}}",
     "enforcement": {
       "off": "Plan limits and statuses are not enforced in this environment (the policy is still to be decided).",
@@ -1689,8 +1710,8 @@
     },
     "privacyRule": "This console shows organizations' metadata only. Patients, appointments, clinical records and clinic finances are not accessible here, and operators cannot act as clinic users.",
     "overview": {
-      "organizations": "organizations",
-      "newInquiries": "new inquiries",
+      "organizations": "Organizations",
+      "newInquiries": "New inquiries",
       "health": "Health and configuration",
       "database": "Database",
       "db": {
@@ -1705,7 +1726,8 @@
       "enforcement": "Enforcement",
       "idle": "Operator idle sign-out",
       "idleMinutes": "after {{count}} minutes",
-      "openSupport": "open support requests"
+      "openSupport": "Open support requests",
+      "latency": "{{ms}} ms"
     },
     "reconcile": {
       "title": "Reconciliation",
@@ -1727,7 +1749,11 @@
       "searchButton": "Search",
       "none": "No organizations found.",
       "name": "Organization",
-      "created": "Created"
+      "created": "Created",
+      "noMatches": "No organizations match “{{q}}”.",
+      "clearSearch": "Clear search",
+      "type": "Organization type",
+      "subscriptionKind": "Subscription type"
     },
     "organization": {
       "metadataOnly": "Organization metadata — no patient or clinical data.",
@@ -1739,7 +1765,7 @@
       "owners": "Owners (contact masked)",
       "noSubscription": "No subscription.",
       "reason": "Reason",
-      "reasonHint": "Required, recorded in the history and the platform audit.",
+      "reasonHint": "Required, at least 3 characters. Recorded in the history and the platform audit.",
       "restrict": "Restrict",
       "reinstate": "Reinstate",
       "cancel": "Cancel subscription",
@@ -1758,7 +1784,8 @@
       "startTrial": "Start trial until the end date",
       "changePlanTitle": "Change plan of this free access",
       "changePlanHint": "Applies now. Uses the reason field above.",
-      "changePlan": "Change plan"
+      "changePlan": "Change plan",
+      "actionsTitle": "Subscription actions"
     },
     "simulator": {
       "title": "Payment simulator",
@@ -1812,7 +1839,8 @@
       },
       "trialDays": "Trial length (days)",
       "trialHint": "Optional. Empty = no trial offered.",
-      "badTrial": "Trial length must be 1–365 whole days."
+      "badTrial": "Trial length must be 1–365 whole days.",
+      "noteLabel": "Internal note"
     },
     "inquiries": {
       "subtitle": "Custom-ownership requests from the public website. Contact details are masked until revealed.",
@@ -1827,7 +1855,7 @@
       "markAs": {
         "new": "Mark as new",
         "reviewed": "Mark as reviewed",
-        "closed": "Close"
+        "closed": "Close inquiry"
       },
       "back": "Back to inquiries",
       "received": "Received",
@@ -1840,14 +1868,15 @@
       "revealHint": "Revealing contact details is recorded in the platform audit."
     },
     "operators": {
-      "subtitle": "Operator accounts are created with the operators command, never here.",
-      "neverSignedIn": "never signed in",
+      "subtitle": "Operator accounts are created only by raclinic's technical administrators, never from this page.",
+      "neverSignedIn": "Never signed in",
       "status": {
         "active": "Active",
         "suspended": "Suspended"
       },
       "suspend": "Suspend",
-      "reactivate": "Reactivate"
+      "reactivate": "Reactivate",
+      "lastSignIn": "Last sign-in: {{date}}"
     },
     "audit": {
       "subtitle": "Every operator action and subscription change. Read-only.",
@@ -1855,7 +1884,77 @@
       "actor": "By",
       "action": "Action",
       "target": "Target",
-      "more": "Load more"
+      "more": "Load more",
+      "dryRun": "dry run",
+      "all": "All",
+      "allTargets": {
+        "subscription": "All subscriptions"
+      },
+      "targets": {
+        "organization": "Organization",
+        "subscription": "Subscription",
+        "operator": "Operator",
+        "plan": "Plan",
+        "inquiry": "Inquiry",
+        "support_request": "Support request"
+      },
+      "actions": {
+        "billing": {
+          "lifecycle_run": "Subscription lifecycle run",
+          "policy_updated": "Billing policy updated",
+          "reconciliation_run": "Reconciliation with the payment provider",
+          "simulator_action": "Payment simulator action"
+        },
+        "checkout": {
+          "completed": "Checkout completed",
+          "failed": "Checkout failed"
+        },
+        "entitlement": {
+          "would_block": "Action the plan limits would block"
+        },
+        "inquiry": {
+          "contact_revealed": "Inquiry contact revealed",
+          "status_changed": "Inquiry status changed"
+        },
+        "operator": {
+          "password_reset": "Operator password reset",
+          "provisioned": "Operator account created",
+          "signed_in": "Operator signed in",
+          "status_changed": "Operator status changed"
+        },
+        "plan": {
+          "created": "Plan created",
+          "retired": "Plan retired",
+          "updated": "Plan updated",
+          "version_created": "New plan version"
+        },
+        "subscription": {
+          "canceled_by_owner": "Subscription canceled by the owner",
+          "cancellation_requested": "Cancellation requested",
+          "cancellation_withdrawn": "Cancellation withdrawn",
+          "checkout_failed": "Subscription checkout failed",
+          "checkout_started": "Subscription checkout started",
+          "commercial_started": "Commercial subscription started",
+          "granted": "Subscription granted",
+          "payment_failed": "Subscription payment failed",
+          "plan_change_requested": "Plan change requested",
+          "plan_change_withdrawn": "Plan change withdrawn",
+          "plan_changed": "Plan changed",
+          "reconciled": "Subscription reconciled",
+          "renewed": "Subscription renewed",
+          "trial_started": "Trial started",
+          "trial_ended": "Trial ended",
+          "grant_ended": "Grant ended",
+          "grace_ended": "Grace period ended",
+          "awaiting_provider": "Period ended (awaiting the provider)"
+        },
+        "support": {
+          "replied": "Support reply",
+          "request_closed": "Support request closed",
+          "request_created": "Support request created",
+          "status_changed": "Support request status changed"
+        }
+      }
     },
     "support": {
       "subtitle": "Requests from clinics. Requester contact is masked; reply in the conversation.",
@@ -1866,7 +1965,7 @@
       "markAs": {
         "open": "Reopen",
         "answered": "Mark as answered",
-        "closed": "Close"
+        "closed": "Close request"
       }
     },
     "devMail": {
