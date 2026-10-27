@@ -15,7 +15,12 @@ Branch `phase-14/public-redesign`, PR [#15](https://github.com/mostafaapozena/cl
   - reviewed in the operator console, with masked details and an audited reveal;
   - retention through `RETENTION_CONTACT_DAYS`.
 - **Accounts:** sign-in and registration sit beside a navy panel on wide screens.
-- **Workspace:** the sidebar is grouped by area.
+- **Workspace and operator console:**
+  - the sidebar is grouped by area;
+  - a shared design layer (`apps/web/src/workspace.css`) covers headings, cards, fields, filters, tables, status labels, empty states and notices;
+  - the operator console has a scrolling tab bar and stat tiles.
+- **Language links:** `?lang=en|ar` works on every page and is remembered; signing in applies the account's language.
+- **Finance:** the summary's default period ends on the organization's day, not UTC's.
 - **Product screenshots:** produced by `scripts/brand/product-shots.cjs` (synthetic data); rerun it after UI changes.
 - **Waiting on the owner:**
   - pricing and trial terms;

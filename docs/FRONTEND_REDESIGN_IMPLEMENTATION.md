@@ -55,8 +55,14 @@ Status: **done** (in this phase's PRs), **next** (planned in this phase), **E** 
 | Target            | Change                                                                      | Depends on          | Acceptance                                             | Class | Status |
 | ----------------- | --------------------------------------------------------------------------- | ------------------- | ------------------------------------------------------ | ----- | ------ |
 | Workspace sidebar | Group navigation by area (daily work, records and billing, administration, account); same permissions decide what shows.              | —                   | Role separation unchanged; tests pass                  | B     | done   |
-| Workspace pages   | Shared tokens and components from the public site (cards, chips, headings). | —                   | No layout overflow at 390px                            | B     | next   |
-| Operator console  | Contact messages list and detail (masked, audited reveal, status).          | Contact message API | Tested in `OperatorConsole.test.tsx` and the API tests | C     | done   |
+| Workspace pages   | Design layer `apps/web/src/workspace.css` on the shared classes: page headings, raised cards, button and field states, text areas, filter labels, segmented filters, table headers and row hover, status dots, empty states with a mark, info notices, FAQ rows, confirmation panels; brand mark in the compact header. | — | No layout overflow at 390px; existing unit and e2e tests unchanged and passing | B | done |
+| Operator console  | Tab bar that scrolls instead of wrapping, stat tiles, header surface; contact messages list and detail (masked, audited reveal, status). | Contact message API | Tested in `OperatorConsole.test.tsx` and the API tests; no overflow at 390px | C | done |
+| Language links    | `?lang=ar|en` is read on load on every page and remembered; before, only the public site read it, so `/register?lang=en` opened in Arabic in a new browser. Signing in still applies the account's saved language. | — | `e2e/i18n.spec.ts`: English from a solution page through sign-up and onboarding; direct links; persistence | B | done |
+| Finance summary   | The default period ends on the organization's calendar day (it used UTC, one day behind just after midnight in Cairo). | — | Seen on 2026-10-28 shortly after midnight Cairo time, while UTC was still 10/27: the period ends on 10/28, the appointments page's day | — | done |
+
+Not changed on purpose: page structure and the order of actions on each screen (the e2e journeys
+and role restrictions depend on them), the workspace's dark scheme (kept, with its own tokens),
+and the sidebar's light surface (a navy sidebar would need the logo on a white tile).
 
 ## Anti-patterns checked (class D)
 
@@ -82,4 +88,6 @@ Status: **done** (in this phase's PRs), **next** (planned in this phase), **E** 
 
 - Unit: `apps/web/src/public/Site.test.tsx`, `Public.test.tsx`, `OperatorConsole.test.tsx`, `apps/api/test/contact-messages.test.ts`.
 - Copy: `docs/PUBLIC_COPY.md` regenerated; forbidden-word check.
-- Screenshots: before and after captures at the reference sizes (1150×631 desktop, 390 mobile), Arabic and English, kept outside the repository.
+- Screenshots: kept outside the repository (they show demo data); the review folder has an
+  `INDEX.md`. To capture a language, open the page with `?lang=en` or `?lang=ar`, or set
+  `localStorage['clinc.language']` before loading; signing in switches to the account's language.
