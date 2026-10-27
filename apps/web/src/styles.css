@@ -785,6 +785,26 @@ input[aria-invalid='true'] {
   gap: 4px;
 }
 
+.nav-group + .nav-group {
+  margin-block-start: 14px;
+}
+
+.nav-group-title {
+  margin: 0 0 6px;
+  padding-inline: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.nav-link.active {
+  box-shadow: inset 3px 0 0 var(--brand-turquoise);
+}
+
+[dir='rtl'] .nav-link.active {
+  box-shadow: inset -3px 0 0 var(--brand-turquoise);
+}
+
 .nav-link {
   display: flex;
   align-items: center;

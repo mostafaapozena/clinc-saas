@@ -122,25 +122,45 @@ function Shell({ orgId, detail, branches }: { orgId: string; detail: OrgDetail; 
 
   // A doctor sees only their own schedule there; front desk and admins see every practitioner.
   const ownScheduleOnly = !value.can('appointment.book') && !value.can('practitioner.manage');
-  const nav: { to: string; icon: IconName; label: string; end?: boolean }[] = [
-    { to: `/app/${orgId}`, icon: 'home', label: t('nav.home'), end: true },
-    ...(value.can('appointment.read') ? [{ to: `/app/${orgId}/appointments`, icon: 'calendar' as const, label: t('nav.appointments') }] : []),
-    ...(value.can('queue.read') ? [{ to: `/app/${orgId}/queue`, icon: 'queue' as const, label: t('nav.queue') }] : []),
-    ...(value.can('patient.list') ? [{ to: `/app/${orgId}/patients`, icon: 'patients' as const, label: t('nav.patients') }] : []),
-    ...(value.can('practitioner.read')
-      ? [{ to: `/app/${orgId}/practitioners`, icon: 'stethoscope' as const, label: ownScheduleOnly ? t('nav.mySchedule') : t('nav.practitioners') }]
-      : []),
-    ...(value.can('finance.account.read') ? [{ to: `/app/${orgId}/finance`, icon: 'wallet' as const, label: t('nav.finance') }] : []),
-    ...(value.can('clinical.encounter.own') ? [{ to: `/app/${orgId}/coverage`, icon: 'share' as const, label: t('nav.coverage') }] : []),
-    ...(value.can('clinical.audit.read') ? [{ to: `/app/${orgId}/clinical-audit`, icon: 'shield' as const, label: t('nav.clinicalAudit') }] : []),
-    { to: `/app/${orgId}/branches`, icon: 'building', label: t('nav.branches') },
-    ...(value.can('member.read') ? [{ to: `/app/${orgId}/team`, icon: 'users' as const, label: t('nav.team') }] : []),
-    ...(value.can('organization.update')
-      ? [{ to: `/app/${orgId}/settings`, icon: 'settings' as const, label: t('nav.settings') }]
-      : []),
-    ...(value.can('subscription.read') ? [{ to: `/app/${orgId}/subscription`, icon: 'card' as const, label: t('nav.subscription') }] : []),
-    ...(value.can('support.request') ? [{ to: `/app/${orgId}/support`, icon: 'help' as const, label: t('nav.support') }] : []),
-    { to: `/app/${orgId}/profile`, icon: 'user', label: t('nav.profile') },
+  type NavItem = { to: string; icon: IconName; label: string; end?: boolean };
+  // Grouped by area; permissions alone decide which items appear, and empty groups are dropped.
+  const navGroups: { key: string; items: NavItem[] }[] = [
+    { key: 'start', items: [{ to: `/app/${orgId}`, icon: 'home', label: t('nav.home'), end: true }] },
+    {
+      key: 'daily',
+      items: [
+        ...(value.can('appointment.read') ? [{ to: `/app/${orgId}/appointments`, icon: 'calendar' as const, label: t('nav.appointments') }] : []),
+        ...(value.can('queue.read') ? [{ to: `/app/${orgId}/queue`, icon: 'queue' as const, label: t('nav.queue') }] : []),
+        ...(value.can('patient.list') ? [{ to: `/app/${orgId}/patients`, icon: 'patients' as const, label: t('nav.patients') }] : []),
+        ...(value.can('practitioner.read')
+          ? [{ to: `/app/${orgId}/practitioners`, icon: 'stethoscope' as const, label: ownScheduleOnly ? t('nav.mySchedule') : t('nav.practitioners') }]
+          : []),
+      ],
+    },
+    {
+      key: 'records',
+      items: [
+        ...(value.can('finance.account.read') ? [{ to: `/app/${orgId}/finance`, icon: 'wallet' as const, label: t('nav.finance') }] : []),
+        ...(value.can('clinical.encounter.own') ? [{ to: `/app/${orgId}/coverage`, icon: 'share' as const, label: t('nav.coverage') }] : []),
+        ...(value.can('clinical.audit.read') ? [{ to: `/app/${orgId}/clinical-audit`, icon: 'shield' as const, label: t('nav.clinicalAudit') }] : []),
+      ],
+    },
+    {
+      key: 'organization',
+      items: [
+        { to: `/app/${orgId}/branches`, icon: 'building', label: t('nav.branches') },
+        ...(value.can('member.read') ? [{ to: `/app/${orgId}/team`, icon: 'users' as const, label: t('nav.team') }] : []),
+        ...(value.can('organization.update') ? [{ to: `/app/${orgId}/settings`, icon: 'settings' as const, label: t('nav.settings') }] : []),
+        ...(value.can('subscription.read') ? [{ to: `/app/${orgId}/subscription`, icon: 'card' as const, label: t('nav.subscription') }] : []),
+      ],
+    },
+    {
+      key: 'account',
+      items: [
+        ...(value.can('support.request') ? [{ to: `/app/${orgId}/support`, icon: 'help' as const, label: t('nav.support') }] : []),
+        { to: `/app/${orgId}/profile`, icon: 'user', label: t('nav.profile') },
+      ],
+    },
   ];
 
   return (
@@ -169,16 +189,27 @@ function Shell({ orgId, detail, branches }: { orgId: string; detail: OrgDetail; 
             </button>
           </div>
           <nav aria-label={t('shell.navigation')}>
-            <ul className="nav-list">
-              {nav.map((item) => (
-                <li key={item.to}>
-                  <NavLink to={item.to} end={item.end} className="nav-link" onClick={() => setNavOpen(false)}>
-                    <Icon name={item.icon} />
-                    <span>{item.label}</span>
-                  </NavLink>
-                </li>
+            {navGroups
+              .filter((group) => group.items.length > 0)
+              .map((group) => (
+                <div key={group.key} className="nav-group">
+                  {group.key !== 'start' && (
+                    <p className="nav-group-title" id={`nav-group-${group.key}`}>
+                      {t(`nav.groups.${group.key}`)}
+                    </p>
+                  )}
+                  <ul className="nav-list" {...(group.key !== 'start' ? { 'aria-labelledby': `nav-group-${group.key}` } : {})}>
+                    {group.items.map((item) => (
+                      <li key={item.to}>
+                        <NavLink to={item.to} end={item.end} className="nav-link" onClick={() => setNavOpen(false)}>
+                          <Icon name={item.icon} />
+                          <span>{item.label}</span>
+                        </NavLink>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               ))}
-            </ul>
           </nav>
         </aside>
         <div className="sidebar-backdrop" onClick={() => setNavOpen(false)} aria-hidden="true" />

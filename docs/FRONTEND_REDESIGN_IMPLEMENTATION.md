@@ -46,15 +46,15 @@ Status: **done** (in this phase's PRs), **next** (planned in this phase), **E** 
 
 | Ref                    | Target     | Change                                                                                                                                          | Depends on        | Acceptance                              | Class | Status |
 | ---------------------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- | --------------------------------------- | ----- | ------ |
-| REF-037, REF-038 (P37) | Sign-up    | Split screen: form beside a navy value panel; specialty tiles kept from the existing start flow. No subdomain or logo upload (not implemented). | —                 | Same fields and validation as today     | B     | next   |
-| REF-039 (P38)          | Sign-in    | Split screen matching sign-up; existing single-step email and password.                                                                         | —                 | Auth, CSRF and safe redirects unchanged | B     | next   |
+| REF-037, REF-038 (P37) | Sign-up    | Split screen: form beside a navy value panel; the panel lists what the workspace includes, with a real screenshot. No subdomain or logo upload (not implemented). | —                 | Same fields and validation as today     | B     | done   |
+| REF-039 (P38)          | Sign-in    | Split screen matching sign-up; existing single-step email and password.                                                                         | —                 | Auth, CSRF and safe redirects unchanged | B     | done   |
 | REF-040 (P39)          | PIN unlock | Not built.                                                                                                                                      | Security decision | —                                       | E     | E      |
 
 ## Workspace and operator console
 
 | Target            | Change                                                                      | Depends on          | Acceptance                                             | Class | Status |
 | ----------------- | --------------------------------------------------------------------------- | ------------------- | ------------------------------------------------------ | ----- | ------ |
-| Workspace sidebar | Group navigation by area; same permissions decide what shows.               | —                   | Role separation unchanged; tests pass                  | B     | next   |
+| Workspace sidebar | Group navigation by area (daily work, records and billing, administration, account); same permissions decide what shows.              | —                   | Role separation unchanged; tests pass                  | B     | done   |
 | Workspace pages   | Shared tokens and components from the public site (cards, chips, headings). | —                   | No layout overflow at 390px                            | B     | next   |
 | Operator console  | Contact messages list and detail (masked, audited reveal, status).          | Contact message API | Tested in `OperatorConsole.test.tsx` and the API tests | C     | done   |
 

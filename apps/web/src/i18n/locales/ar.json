@@ -68,7 +68,13 @@
     "clinicalAudit": "سجل التدقيق السريري",
     "finance": "الحسابات",
     "subscription": "الاشتراك",
-    "support": "المساعدة والدعم"
+    "support": "المساعدة والدعم",
+    "groups": {
+      "daily": "العمل اليومي",
+      "records": "السجلات والحسابات",
+      "organization": "إدارة المنشأة",
+      "account": "الحساب"
+    }
   },
   "shell": {
     "skipToContent": "تخطَّ إلى المحتوى الرئيسي",

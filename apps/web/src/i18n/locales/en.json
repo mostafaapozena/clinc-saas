@@ -68,7 +68,13 @@
     "clinicalAudit": "Clinical audit",
     "finance": "Finance",
     "subscription": "Subscription",
-    "support": "Help & support"
+    "support": "Help & support",
+    "groups": {
+      "daily": "Daily work",
+      "records": "Records and billing",
+      "organization": "Administration",
+      "account": "Account"
+    }
   },
   "shell": {
     "skipToContent": "Skip to main content",
