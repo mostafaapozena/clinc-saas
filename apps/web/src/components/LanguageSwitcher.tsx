@@ -7,13 +7,14 @@ import type { SessionData, User } from '../lib/types';
 import { Icon } from './Icon';
 
 /** Visible on every page. Remembers the choice in the browser and, when signed in, the profile. */
-export function LanguageSwitcher() {
+export function LanguageSwitcher({ onSwitched }: { onSwitched?: (language: 'ar' | 'en') => void }) {
   const { t, i18n } = useTranslation();
   const queryClient = useQueryClient();
   const next = i18n.resolvedLanguage === 'en' ? 'ar' : 'en';
 
   const switchLanguage = async () => {
     await setLanguage(next);
+    onSwitched?.(next);
     const session = queryClient.getQueryData<SessionData | null>(SESSION_KEY);
     if (!session) return;
     try {

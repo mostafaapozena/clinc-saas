@@ -3,12 +3,14 @@ import { useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SESSION_KEY } from '../auth/session';
 import { PageHeader } from '../components/PageHeader';
+import { SpecialtyCheckboxes } from '../components/SpecialtyCheckboxes';
 import { Field, Notice } from '../components/ui';
 import { describedBy } from '../lib/a11y';
-import { api } from '../lib/api';
+import { ApiError, api } from '../lib/api';
 import { errorMessage, fieldErrors, fieldMessage } from '../lib/errors';
 import { useFormatters } from '../lib/format';
-import { DEFAULT_TIME_ZONE, TIME_ZONES } from '../lib/types';
+import { useSpecialtyNames } from '../lib/specialties';
+import { DEFAULT_TIME_ZONE, ORGANIZATION_TYPES, TIME_ZONES, type OrganizationType } from '../lib/types';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { orgKeys, useOrg } from '../org/context';
 
@@ -59,7 +61,143 @@ export function SettingsPage() {
         </form>
       </section>
       <TimeZoneSettings />
+      <SpecialtySettings />
     </>
+  );
+}
+
+/**
+ * Organization type and specialties, with the specialties of every branch, saved together.
+ * For organizations created before phase 4 this is their explicit setup.
+ */
+function SpecialtySettings() {
+  const { t } = useTranslation();
+  const { orgId, detail, branches } = useOrg();
+  const queryClient = useQueryClient();
+  const specialtyNames = useSpecialtyNames();
+  const organization = detail.organization;
+  const [type, setType] = useState<OrganizationType | ''>(organization.type ?? '');
+  const [codes, setCodes] = useState<string[]>(organization.specialtyCodes);
+  // Branches the owner changed; the others keep what they offer now. A branch without specialties
+  // (not set up yet) starts with all ticked — visible and editable before anything is saved.
+  const [perBranch, setPerBranch] = useState<Record<string, string[]>>({});
+  const offeredAt = (branch: { id: string; specialtyCodes: string[] }) =>
+    (perBranch[branch.id] ?? (branch.specialtyCodes.length > 0 ? branch.specialtyCodes : codes)).filter((c) => codes.includes(c));
+
+  const refresh = () => queryClient.invalidateQueries({ queryKey: orgKeys.all(orgId) });
+  const saveType = useMutation({
+    mutationFn: () => api(`/orgs/${orgId}`, { method: 'PATCH', body: { type } }),
+    onSuccess: refresh,
+  });
+  const save = useMutation({
+    mutationFn: () =>
+      api(`/orgs/${orgId}/specialties`, {
+        method: 'PUT',
+        body: {
+          specialtyCodes: codes,
+          branches: branches.map((b) => ({ branchId: b.id, specialtyCodes: offeredAt(b) })),
+          configVersion: organization.configVersion,
+        },
+      }),
+    onSuccess: refresh,
+  });
+
+  const branchName = new Map(branches.map((b) => [b.id, b.name]));
+  const details = save.error instanceof ApiError ? save.error.details : {};
+  const blockingPractitioners = Array.isArray(details.practitioners)
+    ? (details.practitioners as { id: string; displayName: string; specialtyCode: string }[])
+    : [];
+  const blockingBranches = Array.isArray(details.branchIds) ? (details.branchIds as string[]) : [];
+
+  return (
+    <section className="card" aria-labelledby="specialty-settings-title" data-testid="specialty-settings">
+      <h2 id="specialty-settings-title">{t('settings.specialtiesTitle')}</h2>
+      <p className="muted small">{t('settings.specialtiesIntro')}</p>
+      {organization.specialtyCodes.length === 0 && <Notice kind="info">{t('settings.specialtiesLegacy')}</Notice>}
+
+      <form
+        className="inline-form"
+        onSubmit={(e) => {
+          e.preventDefault();
+          saveType.mutate();
+        }}
+        noValidate
+      >
+        {saveType.isSuccess && <Notice kind="success">{t('settings.typeSaved')}</Notice>}
+        {saveType.isError && <Notice kind="error">{errorMessage(t, saveType.error)}</Notice>}
+        <Field id="settings-org-type" label={t('settings.orgType')}>
+          <select id="settings-org-type" value={type} onChange={(e) => setType(e.target.value as OrganizationType)}>
+            <option value="">{t('common.choose')}</option>
+            {ORGANIZATION_TYPES.map((value) => (
+              <option key={value} value={value}>
+                {t(`onboarding.types.${value}.title`)}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <button type="submit" className="button button--secondary" disabled={!type || type === organization.type || saveType.isPending}>
+          {saveType.isPending ? t('common.saving') : t('settings.saveType')}
+        </button>
+      </form>
+
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          save.mutate();
+        }}
+        noValidate
+      >
+        {save.isSuccess && <Notice kind="success">{t('settings.specialtiesSaved')}</Notice>}
+        {save.isError && (
+          <Notice kind="error">
+            <p>{errorMessage(t, save.error)}</p>
+            {blockingPractitioners.length > 0 && (
+              <ul data-testid="blocking-practitioners">
+                {blockingPractitioners.map((p) => (
+                  <li key={p.id}>
+                    {p.displayName} — {specialtyNames.name(p.specialtyCode)}
+                  </li>
+                ))}
+              </ul>
+            )}
+            {blockingBranches.length > 0 && (
+              <ul>
+                {blockingBranches.map((id) => (
+                  <li key={id}>{branchName.get(id) ?? id}</li>
+                ))}
+              </ul>
+            )}
+          </Notice>
+        )}
+        <SpecialtyCheckboxes
+          id="settings-specialties"
+          legend={t('settings.orgSpecialties')}
+          hint={t('settings.orgSpecialtiesHint')}
+          value={codes}
+          onChange={setCodes}
+        />
+        {codes.length > 0 && (
+          <div className="branch-specialties">
+            <h3>{t('settings.branchSpecialties')}</h3>
+            {branches.map((branch) => (
+              <SpecialtyCheckboxes
+                key={branch.id}
+                id={`settings-branch-${branch.id}`}
+                legend={branch.status === 'active' ? branch.name : `${branch.name} (${t('branches.status.inactive')})`}
+                value={offeredAt(branch)}
+                options={codes}
+                onChange={(next) => setPerBranch((current) => ({ ...current, [branch.id]: next }))}
+              />
+            ))}
+          </div>
+        )}
+        <div className="form-actions">
+          <button type="submit" className="button button--primary" disabled={codes.length === 0 || save.isPending}>
+            {save.isPending ? t('common.saving') : t('settings.saveSpecialties')}
+          </button>
+        </div>
+      </form>
+    </section>
   );
 }
 

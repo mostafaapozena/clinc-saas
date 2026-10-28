@@ -7,8 +7,8 @@ Read [AGENTS.md](../AGENTS.md) (rules) and [PROGRESS.md](PROGRESS.md) (state, ga
 | Item              | Value                                                                       |
 | ----------------- | --------------------------------------------------------------------------- |
 | Repository        | https://github.com/mostafaapozena/clinc-saas (private)                      |
-| Merged            | #1, #2, #3 (phases 1–3) — `main` at `ab0551a` or later                      |
-| Planning PR       | `docs/roadmap-checkpoint` → `main`: inventory, roadmap, decisions, next-phase brief (review, then merge) |
+| Merged            | #1–#3 (phases 1–3) and #4 (planning docs) — `main` at `d8b93b9` or later     |
+| Open PR           | #5 `phase-4/public-onboarding` → `main` (phase 4); waits on the owner's copy review; do not merge without it |
 | Codespace         | display name `clinc-saas-dev` (`gh codespace list`), 2-core, 30-min idle timeout, 7-day retention after stopping |
 | Repo in Codespace | `/workspaces/clinc-saas`                                                    |
 | CI                | Workflow `CI`, job `verify` (required on `main`)                            |
@@ -17,13 +17,21 @@ Read [AGENTS.md](../AGENTS.md) (rules) and [PROGRESS.md](PROGRESS.md) (state, ga
 Everything important is in Git; a new Codespace from any branch sets itself up via the
 devcontainer.
 
-## Continuing with phase 4
+## Continuing
 
-1. Read [NEXT_PHASE_BRIEF.md](NEXT_PHASE_BRIEF.md) and the phase 4 questions (Q1–Q3) in
-   [DECISIONS.md](DECISIONS.md); use the proposed defaults unless the owner has answered.
-2. In the Codespace: `git fetch && git checkout main && git pull --ff-only`, then
-   `git checkout -b phase-4/public-onboarding`. If the planning PR is still open, still branch
-   from `main` (that PR only touches docs) and mention it in the phase 4 PR.
+**Phase 4 review changes** (owner feedback on PR #5): work on `phase-4/public-onboarding`. Public
+copy lives in `apps/web/src/i18n/locales/{ar,en}.json` under `site.*` (both files, same keys).
+After edits: `npm run verify`, push, check CI on the new head.
+
+**Phase 5** (after #5 merges): read [NEXT_PHASE_BRIEF.md](NEXT_PHASE_BRIEF.md) and confirm Q5/Q6
+in [DECISIONS.md](DECISIONS.md) with the owner first.
+
+1. In the Codespace: `git fetch && git checkout main && git pull --ff-only`, then
+   `git checkout -b phase-5/visit-records`. If #5 is still open, stack on its branch and say so.
+2. After `npm run seed`, the demo data includes the specialty setup and a legacy organization
+   (`owner.legacy@demo.test`). The preview check script used for phase 4 was a throwaway; note
+   that `context.clearCookies()` also drops GitHub's port-forwarding cookie — use a new browser
+   context per user instead.
 3. `npm ci` after pulling (dependencies may have changed) — and restart dev servers afterwards: a
    running `tsx watch` API died when `node_modules` was replaced.
 4. Phases now target `main` directly; stacking is only needed while a previous phase PR is open.

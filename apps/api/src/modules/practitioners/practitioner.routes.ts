@@ -20,6 +20,8 @@ import { UserModel } from '../../users/user.model.js';
 import { recordAudit } from '../audit/audit-event.model.js';
 import { BranchModel } from '../branches/branch.model.js';
 import { MembershipModel } from '../memberships/membership.model.js';
+import { assertPractitionerFits, lockSpecialtyConfig } from '../organizations/specialty-config.js';
+import { specialtyCodeSchema } from '../specialties/specialty.service.js';
 import {
   dateHasCrossBranchOverlap,
   fitsSchedule,
@@ -87,6 +89,8 @@ const exceptionSchema = z
 const listQuerySchema = z.object({
   branchId: objectIdSchema.optional(),
   status: z.enum(PRACTITIONER_STATUSES).optional(),
+  /** Narrows the visible list; never widens it. */
+  specialty: specialtyCodeSchema.optional(),
 });
 
 type PractitionerLean = Practitioner & { _id: Types.ObjectId };
@@ -212,6 +216,7 @@ practitionersRouter.get('/', requirePermission('practitioner.read'), async (req,
   if (branchId && !canAccessBranch(tenant, branchId)) throw notFound();
   const filter = await visiblePractitionersFilter(tenant, branchId);
   if (query.status) filter.status = query.status;
+  if (query.specialty) filter.specialtyCode = query.specialty;
   const practitioners = await PractitionerModel.find(filter).sort({ displayName: 1 }).limit(500).lean();
   res.json({ data: practitioners.map((p) => toPractitionerDto(p, tenant)) });
 });
@@ -262,25 +267,40 @@ practitionersRouter.post('/', requirePermission('practitioner.manage'), async (r
   const branchIds = await validateBranches(tenant, input.branchIds.map((id) => new Types.ObjectId(id)), membershipId);
   const user = await UserModel.findById(membership.userId).select('displayName').lean();
   try {
-    const practitioner = await PractitionerModel.create({
-      organizationId: tenant.organizationId,
-      membershipId,
-      userId: membership.userId,
-      displayName: input.displayName ?? user?.displayName ?? 'Doctor',
-      specialtyCode: input.specialtyCode,
-      status: 'active',
-      branchIds,
-      defaultDurationMinutes: input.defaultDurationMinutes,
-      weeklySchedule: [],
-      createdBy: tenant.userId,
-      updatedBy: tenant.userId,
-    });
-    await recordAudit({
-      organizationId: tenant.organizationId,
-      actorUserId: tenant.userId,
-      action: 'practitioner.created',
-      target: { type: 'practitioner', id: practitioner._id },
-      changes: { branchCount: branchIds.length, specialtyCode: input.specialtyCode },
+    const practitioner = await mongoose.connection.transaction(async (session) => {
+      // The specialty must be enabled and offered at every chosen branch (once configured).
+      const organization = await lockSpecialtyConfig(tenant.organizationId, session);
+      await assertPractitionerFits(organization, input.specialtyCode, branchIds, session);
+      const [created] = await PractitionerModel.create(
+        [
+          {
+            organizationId: tenant.organizationId,
+            membershipId,
+            userId: membership.userId,
+            displayName: input.displayName ?? user?.displayName ?? 'Doctor',
+            specialtyCode: input.specialtyCode,
+            status: 'active',
+            branchIds,
+            defaultDurationMinutes: input.defaultDurationMinutes,
+            weeklySchedule: [],
+            createdBy: tenant.userId,
+            updatedBy: tenant.userId,
+          },
+        ],
+        { session },
+      );
+      if (!created) throw new Error('Expected a created practitioner');
+      await recordAudit(
+        {
+          organizationId: tenant.organizationId,
+          actorUserId: tenant.userId,
+          action: 'practitioner.created',
+          target: { type: 'practitioner', id: created._id },
+          changes: { branchCount: branchIds.length, specialtyCode: input.specialtyCode },
+        },
+        session,
+      );
+      return created;
     });
     res.status(201).json({ practitioner: toPractitionerDto(practitioner.toObject(), tenant) });
   } catch (err) {
@@ -331,6 +351,10 @@ practitionersRouter.patch('/:practitionerId', requirePermission('practitioner.ma
       // Working hours of a removed branch no longer apply.
       set.weeklySchedule = current.weeklySchedule.filter((i) => next.some((n) => n.equals(i.branchId)));
       changes.branchCount = { from: current.branchIds.length, to: next.length };
+    }
+    if (input.branchIds || (input.specialtyCode && input.specialtyCode !== current.specialtyCode)) {
+      const organization = await lockSpecialtyConfig(tenant.organizationId, session);
+      await assertPractitionerFits(organization, input.specialtyCode ?? current.specialtyCode, set.branchIds ?? current.branchIds, session);
     }
     for (const key of ['displayName', 'specialtyCode', 'status', 'defaultDurationMinutes'] as const) {
       const value = input[key];

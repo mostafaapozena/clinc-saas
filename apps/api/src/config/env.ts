@@ -40,6 +40,9 @@ const envSchema = z
       }),
     AUTH_RATE_LIMIT_MAX: z.coerce.number().int().min(1).max(10_000).default(10),
     AUTH_RATE_LIMIT_WINDOW_MINUTES: z.coerce.number().int().min(1).max(1_440).default(15),
+    // Per IP and hour.
+    SETUP_RATE_LIMIT_MAX: z.coerce.number().int().min(1).max(10_000).default(20),
+    INQUIRY_RATE_LIMIT_MAX: z.coerce.number().int().min(1).max(10_000).default(5),
   })
   .superRefine((env, ctx) => {
     if (env.NODE_ENV === 'production' && !env.SESSION_COOKIE_SECURE) {

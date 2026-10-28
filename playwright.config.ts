@@ -40,6 +40,8 @@ export default defineConfig({
         MONGODB_DB_NAME: E2E_DB_NAME,
         DEMO_PASSWORD: process.env.E2E_DEMO_PASSWORD,
         AUTH_RATE_LIMIT_MAX: '1000',
+        SETUP_RATE_LIMIT_MAX: '1000',
+        INQUIRY_RATE_LIMIT_MAX: '1000',
       },
       reuseExistingServer: false,
       timeout: 90_000,

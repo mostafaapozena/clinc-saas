@@ -1,8 +1,7 @@
 {
   "app": {
-    "name": "Clinics Platform",
-    "tempName": "temporary name",
-    "tagline": "Cloud management for clinics and medical centers in Egypt and Saudi Arabia"
+    "name": "raclinic",
+    "tagline": "Smart clinic management"
   },
   "phase": {
     "title": "System status",
@@ -105,14 +104,61 @@
   },
   "onboarding": {
     "title": "Set up your organization",
-    "subtitle": "Welcome {{name}}. Add your clinic or medical center and its first branch. You will be the owner.",
+    "subtitle": "Welcome {{name}}. A few steps and your workspace is ready. You will be its owner.",
     "orgName": "Organization name",
     "branchName": "First branch name",
     "branchHint": "You can add more branches later.",
     "city": "City",
-    "submit": "Create organization",
+    "submit": "Create workspace",
     "submitting": "Creating…",
-    "backToWorkspace": "Back to workspace"
+    "backToWorkspace": "Back to workspace",
+    "progress": "Setup steps",
+    "stepLabel": "Step {{current}} of {{total}}",
+    "steps": {
+      "organization": "Organization",
+      "specialties": "Specialties",
+      "branch": "First branch",
+      "review": "Review"
+    },
+    "resumed": "You are continuing a setup you started earlier.",
+    "saved": "Progress saved. You can leave and continue later.",
+    "conflict": "This setup was changed in another tab. The latest saved version is shown.",
+    "type": "Type of organization",
+    "types": {
+      "clinic": {
+        "title": "Individual clinic",
+        "body": "One clinic, with one or more doctors."
+      },
+      "medical_center": {
+        "title": "Medical center",
+        "body": "Several specialties under one organization."
+      },
+      "multi_branch": {
+        "title": "Organization with several branches",
+        "body": "One organization running more than one location."
+      }
+    },
+    "timeZone": "Time zone",
+    "timeZoneHint": "Appointments and working hours use this time zone. It is not taken from your language or browser.",
+    "chooseTimeZone": "— Choose a time zone —",
+    "specialtiesTitle": "Which specialties does your organization practice?",
+    "specialtiesHint": "Choose all that apply. You can change them later in settings.",
+    "preselected": "Pre-selected from the solution you chose: {{name}}.",
+    "otherSpecialtiesNote": "Other specialties, such as radiology, are not available in the hosted workspace; they can be requested as a custom project.",
+    "branchSpecialties": "Specialties offered at this branch",
+    "branchSpecialtiesHint": "Only the specialties chosen for the organization.",
+    "moreBranchesHint": "After setup, owners and admins can add the other branches from Branches in the workspace and choose their specialties.",
+    "reviewTitle": "Check before creating",
+    "reviewOwner": "You will be the owner of this organization.",
+    "reviewTerms": "No payment details are needed. Commercial plans have not been announced yet.",
+    "edit": "Edit",
+    "back": "Back",
+    "next": "Next",
+    "saving": "Saving…",
+    "existingTitle": "You already have a workspace",
+    "existingBody": "Open one of your organizations, or set up a new one. A new organization is separate from the ones you already belong to.",
+    "openWorkspace": "Open {{name}}",
+    "createAnother": "Set up a new organization"
   },
   "access": {
     "deniedTitle": "You can't open this page",
@@ -145,7 +191,13 @@
       "noShow": "No-show",
       "cancelled": "Cancelled"
     },
-    "countsDefinition": "Actual counts of appointments starting today, by their current status, within the branches you can access."
+    "countsDefinition": "Actual counts of appointments starting today, by their current status, within the branches you can access.",
+    "specialtySetupTitle": "Choose your organization's specialties",
+    "specialtySetupBody": "This organization was created before specialties were introduced. Choose them in settings; until then everything keeps working as before.",
+    "specialtySetupLink": "Open settings",
+    "specialtiesTitle": "Specialties",
+    "offeredAt": "Offered at: {{branches}}",
+    "notOfferedHere": "Not offered at your branches"
   },
   "branches": {
     "title": "Branches",
@@ -167,7 +219,9 @@
     "add": "Add branch",
     "created": "Branch “{{name}}” was added.",
     "updated": "Changes to “{{name}}” were saved.",
-    "editLabel": "Edit branch {{name}}"
+    "editLabel": "Edit branch {{name}}",
+    "specialties": "Specialties",
+    "offeredSpecialties": "Specialties offered at this branch"
   },
   "team": {
     "title": "Team",
@@ -208,7 +262,18 @@
     "timeZone": "Organization time zone",
     "timeZoneHint": "Working hours and appointments are interpreted in this zone. It cannot change while future appointments exist.",
     "timeZoneMissing": "No time zone is set yet. Choose one to enable schedules and appointments.",
-    "timeZoneSaved": "The time zone was saved."
+    "timeZoneSaved": "The time zone was saved.",
+    "specialtiesTitle": "Type and specialties",
+    "specialtiesIntro": "Specialties decide which branches offer which services, and where each doctor can be scheduled.",
+    "specialtiesLegacy": "Not set up yet: choose the organization's specialties and the specialties of each branch, then save.",
+    "orgType": "Type of organization",
+    "saveType": "Save type",
+    "typeSaved": "Organization type saved.",
+    "orgSpecialties": "Organization specialties",
+    "orgSpecialtiesHint": "Removing a specialty is refused while doctors still work in it.",
+    "branchSpecialties": "Specialties of each branch",
+    "saveSpecialties": "Save specialties",
+    "specialtiesSaved": "Specialties saved."
   },
   "profile": {
     "title": "Profile",
@@ -274,7 +339,14 @@
     "MEMBERSHIP_NOT_ELIGIBLE": "A scheduling profile needs an active member with the doctor role.",
     "INVALID_SPECIALTY": "Unknown specialty.",
     "BRANCH_OUTSIDE_MEMBERSHIP": "A branch is outside the doctor's membership scope.",
-    "PRACTITIONER_EXISTS": "This member already has a scheduling profile."
+    "PRACTITIONER_EXISTS": "This member already has a scheduling profile.",
+    "SPECIALTY_NOT_ENABLED": "This specialty is not enabled for the organization.",
+    "SPECIALTY_NOT_OFFERED_AT_BRANCH": "A selected branch does not offer this specialty.",
+    "SPECIALTY_IN_USE": "Doctors still work in this specialty there. Change their specialty or branches first.",
+    "BRANCH_SPECIALTIES_INVALID": "Each branch needs at least one of the organization's specialties.",
+    "SPECIALTIES_NOT_CONFIGURED": "Choose the organization's specialties in settings first.",
+    "SPECIALTY_NOT_OFFERED": "This branch does not offer the doctor's specialty.",
+    "ONBOARDING_INCOMPLETE": "Some setup details are missing. Check the highlighted step."
   },
   "validation": {
     "required": "This field is required.",
@@ -300,6 +372,9 @@
     "branch": {
       "name": {
         "too_short": "Branch name must be at least 2 characters."
+      },
+      "specialtyCodes": {
+        "too_short": "Choose at least one specialty for this branch."
       }
     },
     "branchScope": {
@@ -325,7 +400,35 @@
       "invalid_format": "Invalid date."
     },
     "timeZone": {
-      "invalid_choice": "Choose a time zone from the list."
+      "invalid_choice": "Choose a time zone from the list.",
+      "required": "Choose a time zone."
+    },
+    "unsupported_specialty": "This specialty is not supported.",
+    "not_in_organization": "Choose only the organization's specialties.",
+    "requires_organization_specialties": "Choose the organization's specialties first.",
+    "not_enabled": "This specialty is not enabled.",
+    "contact_required": "Give a phone number or an email address.",
+    "duplicate_branch": "A branch is listed twice.",
+    "specialtyCodes": {
+      "too_short": "Choose at least one specialty."
+    },
+    "organizationType": {
+      "required": "Choose the type of organization."
+    },
+    "inquiry": {
+      "description": {
+        "too_short": "Please write at least 10 characters.",
+        "too_long": "Please keep it under 1,500 characters."
+      },
+      "contact": {
+        "contact_required": "Give a phone number or an email address."
+      },
+      "phone": {
+        "invalid_phone": "This phone number is not valid for the chosen country."
+      },
+      "interest": {
+        "invalid_choice": "Choose one of the options."
+      }
     }
   },
   "countries": {
@@ -582,5 +685,294 @@
     "kindLabel": "Type",
     "addException": "Add change",
     "removeException": "Remove the change on {{date}}"
+  },
+  "site": {
+    "nav": {
+      "main": "Main",
+      "home": "Home",
+      "solutions": "Solutions",
+      "custom": "Custom projects",
+      "signIn": "Sign in",
+      "createWorkspace": "Create your clinic workspace",
+      "goToWorkspace": "Go to my workspace",
+      "openMenu": "Open menu",
+      "closeMenu": "Close menu"
+    },
+    "cta": {
+      "create": "Create your clinic workspace",
+      "custom": "Request a custom project"
+    },
+    "notice": "raclinic is in development: use test data only. Prices and subscription terms have not been announced yet.",
+    "footer": {
+      "about": "raclinic — a cloud workspace for clinics and medical centers in Egypt and Saudi Arabia.",
+      "devNotice": "Development version: use test data only and do not enter real patient information.",
+      "status": "System status"
+    },
+    "shared": [
+      "Patient registry with search by name, phone number or patient number",
+      "Each doctor's weekly working hours and date-specific changes",
+      "Booking, rescheduling and cancellation without double booking",
+      "Check-in on arrival and the daily waiting queue",
+      "Today's appointment counts by status",
+      "Several branches, with access by role and branch",
+      "Full Arabic and English interface"
+    ],
+    "home": {
+      "metaTitle": "Appointments, front desk and patient records for clinics",
+      "metaDescription": "raclinic is a bilingual cloud workspace for clinics and medical centers in Egypt and Saudi Arabia: patient registry, doctors' schedules, conflict-free booking, check-in and the daily queue.",
+      "eyebrow": "Smart clinic management",
+      "title": "Your clinic, organized from the first booking to the last visit",
+      "lead": "raclinic is a cloud workspace for clinics and medical centers in Egypt and Saudi Arabia. Register patients, set each doctor's working hours, book without clashes, and follow arrivals and the waiting queue — in Arabic or English, for one clinic or several branches.",
+      "signInHint": "Already have a workspace?",
+      "problemsTitle": "What changes in your day",
+      "problems": {
+        "booking": {
+          "title": "No double bookings",
+          "body": "Free times come from the doctor's working hours and existing bookings, and are checked again the moment a booking is confirmed."
+        },
+        "queue": {
+          "title": "An orderly waiting room",
+          "body": "Reception checks patients in as they arrive; doctors see who is waiting in order of arrival, then start and finish each visit."
+        },
+        "records": {
+          "title": "One record per patient",
+          "body": "Contact details are entered once and shared by the branches where the patient is registered, instead of scattered notebooks and spreadsheets."
+        },
+        "branches": {
+          "title": "Several branches, clear access",
+          "body": "Each team member sees only the branches and actions their role allows; doctors see their own appointments."
+        }
+      },
+      "pathsTitle": "Solutions",
+      "pathsLead": "Start from the solution closest to your clinic; all of them run on the same operational workspace today.",
+      "availableTitle": "Available today",
+      "availableLead": "These features work now in the shared workspace:",
+      "plannedTitle": "Not available yet",
+      "plannedBody": "Clinical records, specialty tools such as dental charts, physiotherapy treatment plans and ENT examination records, billing, reminders and online booking for patients are planned for later stages. They are not part of the workspace today.",
+      "stepsTitle": "How to get started",
+      "steps": {
+        "account": {
+          "title": "Create your account",
+          "body": "Your name, email address and a password."
+        },
+        "organization": {
+          "title": "Describe your organization",
+          "body": "A clinic, a medical center or several branches — its name and time zone."
+        },
+        "specialties": {
+          "title": "Choose specialties and the first branch",
+          "body": "The specialties you offer, and which of them the first branch provides."
+        },
+        "workspace": {
+          "title": "Review and start",
+          "body": "Check the details, create the workspace, then add your team, doctors and further branches."
+        }
+      },
+      "faqTitle": "Frequently asked questions",
+      "faq": {
+        "price": {
+          "q": "How much does it cost?",
+          "a": "Prices and subscription plans have not been announced yet. They will be published before raclinic is offered commercially."
+        },
+        "clinical": {
+          "q": "Can I keep clinical notes and medical records?",
+          "a": "Not yet. The current workspace covers administration: patient contact details, schedules, appointments and the daily queue. Clinical records are planned for a later stage."
+        },
+        "specialties": {
+          "q": "Are there tools specific to dentistry, physiotherapy or ENT?",
+          "a": "Not yet. These specialties use the shared operational workspace today. Specialty tools will be designed with practising clinicians and added later."
+        },
+        "ai": {
+          "q": "Does raclinic include AI or diagnosis?",
+          "a": "No. Our line “Smart clinic management” is about organizing the clinic's daily work. raclinic does not diagnose, recommend treatments or write medical notes automatically."
+        },
+        "branches": {
+          "q": "Does it suit a center with several specialties or branches?",
+          "a": "Yes. You can enable several specialties, choose which branches offer each one, and give every team member access to their own branches only."
+        },
+        "ownership": {
+          "q": "Can I have a system of my own instead of a subscription?",
+          "a": "You can request a custom project. Its scope, schedule, support and price are agreed separately for each project after a review of your needs."
+        },
+        "data": {
+          "q": "Can I enter real patient data now?",
+          "a": "No. This is a development version: please use test data only."
+        },
+        "languages": {
+          "q": "Which languages are supported?",
+          "a": "Arabic and English, with right-to-left and left-to-right layouts. Each user chooses their language."
+        }
+      }
+    },
+    "compare": {
+      "title": "Two ways to work with raclinic",
+      "saas": {
+        "title": "Hosted workspace (subscription)",
+        "body": "Use raclinic online. Your organization gets its own workspace on the shared platform.",
+        "points": [
+          "Ready to use: set up your organization in a few steps",
+          "The same features for every organization, improved over time",
+          "Commercial plans will be announced before commercial availability"
+        ]
+      },
+      "ownership": {
+        "title": "Custom project",
+        "body": "For needs the hosted workspace does not cover, such as radiology centers or a separately run system.",
+        "points": [
+          "Scoped for your organization after a review of your needs",
+          "Scope, schedule, support terms and price agreed per project",
+          "Nothing is promised before that agreement"
+        ]
+      }
+    },
+    "solutions": {
+      "metaTitle": "Solutions for clinics and medical centers",
+      "metaDescription": "raclinic solutions for dental clinics, physiotherapy centers, ENT clinics and multi-specialty medical centers, on a shared operational workspace.",
+      "title": "Solutions",
+      "lead": "Every solution starts from the same operational workspace. Specialty clinical tools are planned and will be added after review with practising clinicians.",
+      "labels": {
+        "audience": "Who it is for",
+        "needs": "Everyday needs it covers today",
+        "available": "Available today in the shared workspace",
+        "planned": "Specialty tools being planned",
+        "plannedNote": "Not available yet. These tools need review with practising clinicians and have no release date.",
+        "back": "All solutions",
+        "sharedBadge": "Shared workspace"
+      },
+      "dentistry": {
+        "name": "Dental clinics",
+        "summary": "Organize each dentist's appointments, patient arrivals and contact details for dental clinics and centers.",
+        "metaDescription": "Appointments by dentist, check-in, the daily queue and patient records for dental clinics in Egypt and Saudi Arabia.",
+        "audience": "Dental clinics with one or more dentists, and dental departments of medical centers.",
+        "needs": [
+          "Appointments of different lengths for each dentist",
+          "Follow-up visits booked without clashes",
+          "Patients checked in and seen in order of arrival"
+        ],
+        "planned": [
+          "Dental chart",
+          "Treatment plans over several sessions"
+        ]
+      },
+      "physiotherapy": {
+        "name": "Physiotherapy centers",
+        "summary": "Plan recurring sessions per therapist, across branches, with a clear daily schedule.",
+        "metaDescription": "Session booking per therapist, several branches, check-in and the daily queue for physiotherapy centers.",
+        "audience": "Physiotherapy centers and rehabilitation departments with one or more therapists.",
+        "needs": [
+          "Repeated sessions with the same therapist",
+          "Therapists working at more than one branch",
+          "A clear schedule for each therapist and day"
+        ],
+        "planned": [
+          "Treatment plans with session tracking",
+          "Progress records"
+        ]
+      },
+      "ent": {
+        "name": "ENT clinics",
+        "summary": "Short consultations, busy waiting rooms and follow-up visits, organized in one place.",
+        "metaDescription": "Appointments, check-in, the waiting queue and patient records for ear, nose and throat clinics.",
+        "audience": "Ear, nose and throat clinics and ENT departments of medical centers.",
+        "needs": [
+          "Short consultation slots",
+          "A busy waiting room handled in order of arrival",
+          "Patients returning for follow-up"
+        ],
+        "planned": [
+          "Structured examination records"
+        ]
+      },
+      "medicalCenters": {
+        "name": "Multi-specialty medical centers",
+        "summary": "Run several specialties and branches in one organization; each branch offers the specialties you choose.",
+        "metaDescription": "One workspace for multi-specialty medical centers: specialties per branch, shared patient records and role-based access.",
+        "audience": "Medical centers and groups that offer several specialties, at one location or several branches.",
+        "needs": [
+          "Different specialties at different branches",
+          "One patient record across the branches",
+          "Each team member limited to their own branches"
+        ],
+        "planned": [
+          "The specialty tools above, as each becomes available"
+        ]
+      },
+      "customCard": {
+        "title": "Need something different?",
+        "body": "Complex specialties such as radiology, or a system you run yourselves, are handled as separately scoped custom projects.",
+        "badge": "Custom project"
+      }
+    },
+    "custom": {
+      "metaTitle": "Custom clinic system projects",
+      "metaDescription": "Request a separately scoped custom project from raclinic — for example for a radiology center — when the hosted workspace does not fit.",
+      "title": "Custom projects",
+      "lead": "When the hosted workspace does not fit — for example a radiology center, or an organization that wants a separately run system — you can request a custom project.",
+      "differenceTitle": "How it differs from the hosted workspace",
+      "processTitle": "What happens after you send a request",
+      "process": [
+        "Your request is saved with a reference number.",
+        "The raclinic team reviews it.",
+        "If a custom project can be discussed, you are contacted through the details you gave."
+      ],
+      "noPromise": "Sending a request does not create an agreement. No delivery date, source-code transfer, support terms or price is promised on this site."
+    },
+    "inquiry": {
+      "metaTitle": "Request a custom project",
+      "metaDescription": "Tell raclinic about your organization and what you need from a custom clinic system project.",
+      "title": "Request a custom project",
+      "lead": "Tell us about your organization and what you need. Fields are required unless marked optional.",
+      "privacy": "Do not include patient names, medical records or any other patient information in this form.",
+      "contactName": "Your name",
+      "organizationName": "Organization name",
+      "country": "Country",
+      "countries": {
+        "EG": "Egypt",
+        "SA": "Saudi Arabia",
+        "other": "Another country"
+      },
+      "organizationType": "Type of organization",
+      "types": {
+        "clinic": "A single clinic",
+        "medical_center": "A medical center with several specialties",
+        "multi_branch": "An organization with several branches",
+        "other": "Other"
+      },
+      "contactTitle": "How to contact you",
+      "contactHint": "Give a phone number, an email address, or both.",
+      "phoneCountry": "Phone country",
+      "phone": "Phone number",
+      "email": "Email",
+      "interest": "What are you interested in?",
+      "interests": {
+        "dentistry": "Dentistry",
+        "physiotherapy": "Physiotherapy",
+        "ent": "Ear, nose and throat",
+        "multi_specialty": "Several specialties together",
+        "custom": "A custom system (for example radiology)"
+      },
+      "description": "Describe what you need",
+      "descriptionHint": "10 to 1,500 characters. No patient information.",
+      "submit": "Send request",
+      "submitting": "Sending…",
+      "successTitle": "Request received",
+      "successBody": "Your request was saved with reference {{reference}}. Keep this reference if you contact us about it.",
+      "another": "Send another request",
+      "backHome": "Back to the home page"
+    },
+    "start": {
+      "title": "Create your clinic workspace",
+      "loading": "Preparing your workspace setup…"
+    },
+    "notFound": {
+      "title": "Page not found",
+      "body": "This page does not exist. Browse the available solutions instead.",
+      "solutions": "View solutions"
+    }
+  },
+  "specialtyContext": {
+    "label": "Specialty",
+    "all": "All specialties",
+    "sharedNote": "Appointments, the queue and patient records are shared by all specialties. Specialty clinical tools are not available yet."
   }
 }

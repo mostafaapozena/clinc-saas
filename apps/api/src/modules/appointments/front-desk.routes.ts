@@ -7,12 +7,19 @@ import { parseInput } from '../../http/validate.js';
 import { canAccessBranch } from '../../tenancy/scope.js';
 import { requirePermission, tenantOf, type TenantContext } from '../../tenancy/tenant-context.js';
 import { dayRange, todayIn } from '../../time/local-time.js';
-import { countableAppointmentsFilter, requireTimeZone, visibleAppointmentsFilter } from '../scheduling/scheduling-context.js';
+import {
+  countableAppointmentsFilter,
+  narrowToSpecialty,
+  requireTimeZone,
+  visibleAppointmentsFilter,
+} from '../scheduling/scheduling-context.js';
+import { specialtyCodeSchema } from '../specialties/specialty.service.js';
 import { toAppointmentDtos } from './appointment.dto.js';
 import { AppointmentModel } from './appointment.model.js';
 import type { AppointmentStatus } from './appointment.state.js';
 
-const branchQuerySchema = z.object({ branchId: objectIdSchema.optional() });
+// `specialty` narrows to that specialty's practitioners within the caller's scope; never widens.
+const branchQuerySchema = z.object({ branchId: objectIdSchema.optional(), specialty: specialtyCodeSchema.optional() });
 const queueQuerySchema = branchQuerySchema.extend({ practitionerId: objectIdSchema.optional() });
 
 function branchFilter(tenant: TenantContext, raw: string | undefined) {
@@ -43,7 +50,8 @@ queueRouter.get('/', requirePermission('queue.read'), async (req, res) => {
   const filter = await visibleAppointmentsFilter(tenant, extra);
   // A doctor's own-practitioner restriction replaces any other practitioner they ask for.
   const overridden = query.practitionerId && String(filter?.practitionerId) !== query.practitionerId;
-  const items = filter && !overridden ? await AppointmentModel.find(filter).limit(500).lean() : [];
+  const narrowed = overridden ? null : await narrowToSpecialty(tenant, filter, query.specialty);
+  const items = narrowed ? await AppointmentModel.find(narrowed).limit(500).lean() : [];
   const waiting = items
     .filter((a) => a.status === 'checked_in')
     .sort(
@@ -85,10 +93,14 @@ dashboardRouter.get('/', requirePermission('dashboard.read'), async (req, res) =
   const today = todayIn(zone);
   const { start, end } = dayRange(today, zone);
   const counts = { scheduled: 0, waiting: 0, inProgress: 0, completed: 0, noShow: 0, cancelled: 0 };
-  const filter = await countableAppointmentsFilter(tenant, {
-    ...branchFilter(tenant, query.branchId),
-    startAt: { $gte: start, $lt: end },
-  });
+  const filter = await narrowToSpecialty(
+    tenant,
+    await countableAppointmentsFilter(tenant, {
+      ...branchFilter(tenant, query.branchId),
+      startAt: { $gte: start, $lt: end },
+    }),
+    query.specialty,
+  );
   if (filter) {
     const rows = await AppointmentModel.aggregate<{ _id: AppointmentStatus; n: number }>([
       { $match: filter },

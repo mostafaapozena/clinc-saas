@@ -10,6 +10,8 @@ import { defaultAppConfig, type AppConfig } from './config/app-config.js';
 import './db/models.js';
 import { HttpError } from './http/errors.js';
 import { healthRouter } from './modules/health/health.routes.js';
+import { createPublicRouter } from './modules/inquiries/inquiry.routes.js';
+import { createOnboardingRouter } from './modules/onboarding/onboarding.routes.js';
 import { createOrganizationsRouter } from './modules/organizations/organization.routes.js';
 import { specialtiesRouter } from './modules/specialties/specialty.routes.js';
 import { meRouter } from './users/me.routes.js';
@@ -53,15 +55,24 @@ export function createApp({ logger, config: overrides }: AppOptions = {}) {
 
   // No CORS middleware on purpose: the web app reaches the API same-origin (via the proxy),
   // so browsers block cross-origin reads, and originCheck blocks cross-site writes.
+  // API responses are never meant for search engines, whatever the environment.
+  app.use('/api', (_req, res, next) => {
+    res.set('X-Robots-Tag', 'noindex, nofollow');
+    next();
+  });
   app.use('/api', cookieParser(), loadSession(config), originCheck(config));
 
   app.use('/api/health', healthRouter);
   app.use('/api/v1/specialties', specialtiesRouter); // public platform catalog (not tenant data)
+  // Anonymous website forms: no session involved, so no CSRF token; the origin check still
+  // applies, and each route has its own rate limit.
+  app.use('/api/v1/public', createPublicRouter(config));
   app.use('/api/v1/auth', createAuthRouter(config));
 
   // Everything below changes state only with a valid CSRF token for the session.
   app.use('/api/v1', csrfProtection);
   app.use('/api/v1/me', meRouter);
+  app.use('/api/v1/onboarding', createOnboardingRouter(config));
   app.use('/api/v1/orgs', createOrganizationsRouter(config));
 
   app.use('/api', (_req, res) => {

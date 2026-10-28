@@ -1,53 +1,94 @@
-import type { ReactNode } from 'react';
-import { Navigate, type RouteObject } from 'react-router';
-import { AppShell } from '../layouts/AppShell';
+import { lazy, type ComponentType, type ReactNode } from 'react';
+import type { RouteObject } from 'react-router';
 import type { Permission } from '../lib/types';
-import { AppointmentDetailPage } from '../pages/AppointmentDetailPage';
-import { AppointmentsPage } from '../pages/AppointmentsPage';
-import { BookAppointmentPage, RescheduleAppointmentPage } from '../pages/BookAppointmentPage';
-import { BranchesPage } from '../pages/BranchesPage';
-import { HomePage } from '../pages/HomePage';
-import { LoginPage } from '../pages/LoginPage';
-import { NotFoundInShell, NotFoundPage } from '../pages/NotFoundPage';
-import { OnboardingPage } from '../pages/OnboardingPage';
-import { PatientDetailPage } from '../pages/PatientDetailPage';
-import { PatientsPage } from '../pages/PatientsPage';
-import { PractitionerDetailPage } from '../pages/PractitionerDetailPage';
-import { PractitionersPage } from '../pages/PractitionersPage';
-import { ProfilePage } from '../pages/ProfilePage';
-import { QueuePage } from '../pages/QueuePage';
-import { RegisterPage } from '../pages/RegisterPage';
-import { SettingsPage } from '../pages/SettingsPage';
-import { StatusPage } from '../pages/StatusPage';
-import { TeamPage } from '../pages/TeamPage';
+import { NotFoundPage } from '../pages/NotFoundPage';
 import { PublicOnly, RequireAuth, RequirePermission, WorkspaceRedirect } from './guards';
+import { Loadable } from './Loadable';
+
+// Three lazily loaded chunks, so each audience downloads only its own code:
+// - public website (home, solutions, custom projects) — no workspace code;
+// - account (sign-in, registration, onboarding, status);
+// - clinic workspace (everything under /app/:orgId).
+// The router, session handling, translations and fonts are shared by all of them.
+const publicSite = () => import('../public');
+const account = () => import('../account');
+const workspace = () => import('../workspace');
+
+function named<M extends Record<string, unknown>>(load: () => Promise<M>, name: keyof M) {
+  return lazy(async () => ({ default: (await load())[name] as ComponentType }));
+}
+
+const PublicSiteLayout = named(publicSite, 'PublicSiteLayout');
+const PublicHomePage = named(publicSite, 'PublicHomePage');
+const SolutionsPage = named(publicSite, 'SolutionsPage');
+const SolutionDetailPage = named(publicSite, 'SolutionDetailPage');
+const CustomSolutionsPage = named(publicSite, 'CustomSolutionsPage');
+const InquiryPage = named(publicSite, 'InquiryPage');
+const PublicNotFound = named(publicSite, 'PublicNotFound');
+
+const StartPage = named(account, 'StartPage');
+const LoginPage = named(account, 'LoginPage');
+const RegisterPage = named(account, 'RegisterPage');
+const OnboardingPage = named(account, 'OnboardingPage');
+const StatusPage = named(account, 'StatusPage');
+
+const AppShell = named(workspace, 'AppShell');
+const HomePage = named(workspace, 'HomePage');
+const AppointmentsPage = named(workspace, 'AppointmentsPage');
+const BookAppointmentPage = named(workspace, 'BookAppointmentPage');
+const AppointmentDetailPage = named(workspace, 'AppointmentDetailPage');
+const RescheduleAppointmentPage = named(workspace, 'RescheduleAppointmentPage');
+const QueuePage = named(workspace, 'QueuePage');
+const PatientsPage = named(workspace, 'PatientsPage');
+const PatientDetailPage = named(workspace, 'PatientDetailPage');
+const PractitionersPage = named(workspace, 'PractitionersPage');
+const PractitionerDetailPage = named(workspace, 'PractitionerDetailPage');
+const BranchesPage = named(workspace, 'BranchesPage');
+const TeamPage = named(workspace, 'TeamPage');
+const SettingsPage = named(workspace, 'SettingsPage');
+const ProfilePage = named(workspace, 'ProfilePage');
+const NotFoundInShell = named(workspace, 'NotFoundInShell');
+
+const load = (element: ReactNode) => <Loadable>{element}</Loadable>;
 
 const guarded = (path: string, permission: Permission, element: ReactNode): RouteObject => ({
   path,
-  element: <RequirePermission permission={permission}>{element}</RequirePermission>,
+  element: <RequirePermission permission={permission}>{load(element)}</RequirePermission>,
 });
 
 // Only implemented pages are routable; there are no placeholders for future modules.
 export const routes: RouteObject[] = [
-  { path: '/', element: <Navigate to="/app" replace /> },
-  { path: '/status', element: <StatusPage /> },
+  {
+    element: load(<PublicSiteLayout />),
+    children: [
+      { path: '/', element: load(<PublicHomePage />) },
+      { path: '/solutions', element: load(<SolutionsPage />) },
+      { path: '/solutions/:slug', element: load(<SolutionDetailPage />) },
+      { path: '/custom-solutions', element: load(<CustomSolutionsPage />) },
+      { path: '/custom-solutions/request', element: load(<InquiryPage />) },
+      { path: '/solutions/*', element: load(<PublicNotFound />) },
+    ],
+  },
+  // "Create your clinic workspace": registration (or straight to onboarding when signed in).
+  { path: '/start', element: load(<StartPage />) },
+  { path: '/status', element: load(<StatusPage />) },
   {
     element: <PublicOnly />,
     children: [
-      { path: '/login', element: <LoginPage /> },
-      { path: '/register', element: <RegisterPage /> },
+      { path: '/login', element: load(<LoginPage />) },
+      { path: '/register', element: load(<RegisterPage />) },
     ],
   },
   {
     element: <RequireAuth />,
     children: [
-      { path: '/onboarding', element: <OnboardingPage /> },
+      { path: '/onboarding', element: load(<OnboardingPage />) },
       { path: '/app', element: <WorkspaceRedirect /> },
       {
         path: '/app/:orgId',
-        element: <AppShell />,
+        element: load(<AppShell />),
         children: [
-          { index: true, element: <HomePage /> },
+          { index: true, element: load(<HomePage />) },
           guarded('appointments', 'appointment.read', <AppointmentsPage />),
           guarded('appointments/new', 'appointment.book', <BookAppointmentPage />),
           guarded('appointments/:appointmentId', 'appointment.read', <AppointmentDetailPage />),
@@ -57,11 +98,11 @@ export const routes: RouteObject[] = [
           guarded('patients/:patientId', 'patient.read', <PatientDetailPage />),
           guarded('practitioners', 'practitioner.read', <PractitionersPage />),
           guarded('practitioners/:practitionerId', 'practitioner.read', <PractitionerDetailPage />),
-          { path: 'branches', element: <BranchesPage /> },
+          { path: 'branches', element: load(<BranchesPage />) },
           guarded('team', 'member.read', <TeamPage />),
           guarded('settings', 'organization.update', <SettingsPage />),
-          { path: 'profile', element: <ProfilePage /> },
-          { path: '*', element: <NotFoundInShell /> },
+          { path: 'profile', element: load(<ProfilePage />) },
+          { path: '*', element: load(<NotFoundInShell />) },
         ],
       },
     ],

@@ -11,7 +11,7 @@ import { useFormatters } from '../lib/format';
 import { todayIn } from '../lib/time';
 import type { Appointment, Practitioner } from '../lib/types';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
-import { orgKeys, useBranchFilter, useOrg } from '../org/context';
+import { orgKeys, useBranchFilter, useOrg, useSpecialtyFilter } from '../org/context';
 
 const REFRESH_MS = 30_000;
 
@@ -23,15 +23,18 @@ export function QueuePage() {
   const { t } = useTranslation();
   const { orgId, can, timeZone } = useOrg();
   const branchId = useBranchFilter();
+  const specialty = useSpecialtyFilter();
   const [practitionerId, setPractitionerId] = useState('');
   useDocumentTitle(t('nav.queue'));
 
+  const practitionerParams = { branchId, specialty };
   const practitioners = useQuery({
-    queryKey: orgKeys.practitioners(orgId, { branchId }),
-    queryFn: ({ signal }) => api<{ data: Practitioner[] }>(`/orgs/${orgId}/practitioners${query({ branchId })}`, { signal }).then((r) => r.data),
+    queryKey: orgKeys.practitioners(orgId, practitionerParams),
+    queryFn: ({ signal }) =>
+      api<{ data: Practitioner[] }>(`/orgs/${orgId}/practitioners${query(practitionerParams)}`, { signal }).then((r) => r.data),
     enabled: can('practitioner.read'),
   });
-  const params = { branchId, practitionerId: practitionerId || undefined };
+  const params = { branchId, specialty, practitionerId: practitionerId || undefined };
   const queue = useQuery({
     queryKey: orgKeys.queue(orgId, params),
     queryFn: ({ signal }) =>
@@ -40,7 +43,7 @@ export function QueuePage() {
     enabled: Boolean(timeZone),
   });
   const today = timeZone ? todayIn(timeZone) : '';
-  const expectedParams = { from: today, to: today, branchId, practitionerId: practitionerId || undefined, status: 'scheduled' };
+  const expectedParams = { from: today, to: today, branchId, specialty, practitionerId: practitionerId || undefined, status: 'scheduled' };
   const expected = useQuery({
     queryKey: orgKeys.appointments(orgId, expectedParams),
     queryFn: ({ signal }) => api<{ data: Appointment[] }>(`/orgs/${orgId}/appointments${query(expectedParams)}`, { signal }).then((r) => r.data),

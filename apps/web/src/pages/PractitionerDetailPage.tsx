@@ -47,8 +47,12 @@ export function PractitionerDetailPage() {
 
 function ProfileEditor({ practitioner }: { practitioner: Practitioner }) {
   const { t } = useTranslation();
-  const { orgId, branches } = useOrg();
+  const { orgId, branches, specialties: enabled } = useOrg();
   const specialties = useSpecialtyNames();
+  // Once configured, only the organization's specialties (plus the current one, so it shows).
+  const offered = enabled.length
+    ? specialties.list.filter((s) => enabled.includes(s.code) || s.code === practitioner.specialtyCode)
+    : specialties.list;
   const invalidate = useInvalidateOrg();
   const [form, setForm] = useState({
     displayName: practitioner.displayName,
@@ -77,7 +81,7 @@ function ProfileEditor({ practitioner }: { practitioner: Practitioner }) {
           </Field>
           <Field id="profile-specialty" label={t('practitioners.specialty')}>
             <select id="profile-specialty" value={form.specialtyCode} onChange={(e) => setForm((f) => ({ ...f, specialtyCode: e.target.value }))}>
-              {specialties.list.map((s) => (
+              {offered.map((s) => (
                 <option key={s.code} value={s.code}>
                   {s.name[specialties.lang]}
                 </option>

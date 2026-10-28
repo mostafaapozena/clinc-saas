@@ -8,12 +8,12 @@ const user = { id: 'u1', email: 'reem@example.test', displayName: 'Reem', prefer
 
 function orgDetail(id: string, name: string, role: string, permissions: string[], scope = { type: 'all', branchIds: [] as string[] }) {
   return {
-    organization: { id, name, createdAt: '2026-01-01T00:00:00.000Z' },
+    organization: { id, name, type: null, specialtyCodes: [], configVersion: 0, createdAt: '2026-01-01T00:00:00.000Z' },
     membership: { id: `m-${id}`, role, branchScope: scope, permissions },
     stats: { accessibleBranches: 1 },
   };
 }
-const branch = (id: string, name: string) => ({ id, name, city: '', status: 'active', createdAt: '2026-01-01T00:00:00.000Z' });
+const branch = (id: string, name: string) => ({ id, name, city: '', status: 'active', specialtyCodes: [], createdAt: '2026-01-01T00:00:00.000Z' });
 
 describe('application shell', () => {
   it('shows a restricted role only its pages and denies the rest', async () => {

@@ -1,25 +1,39 @@
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
+import { BrandLogo } from '../components/BrandLogo';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
 
-export function PublicLayout({ children, actions }: { children: ReactNode; actions?: ReactNode }) {
+/**
+ * Layout of sign-in, registration, onboarding and simple standalone pages. With `brand`, the
+ * stacked raclinic lockup and tagline introduce the page instead of the header wordmark.
+ */
+export function PublicLayout({ children, actions, brand = false }: { children: ReactNode; actions?: ReactNode; brand?: boolean }) {
   const { t } = useTranslation();
   return (
     <div className="public-layout">
       <header className="public-header">
-        <Link to="/" className="public-brand">
-          <span className="brand-mark" aria-hidden="true">+</span>
-          <span>
-            {t('app.name')} <small className="temp-name">({t('app.tempName')})</small>
-          </span>
-        </Link>
+        {brand ? (
+          <span />
+        ) : (
+          <Link to="/" className="public-brand">
+            <BrandLogo variant="wordmark" />
+          </Link>
+        )}
         <div className="public-header-actions">
           {actions}
           <LanguageSwitcher />
         </div>
       </header>
       <main id="main-content" className="public-main">
+        {brand && (
+          <div className="auth-brand">
+            <Link to="/" className="auth-brand-link">
+              <BrandLogo variant="lockup" />
+            </Link>
+            <p className="brand-tagline">{t('app.tagline')}</p>
+          </div>
+        )}
         {children}
       </main>
       <footer className="app-footer">

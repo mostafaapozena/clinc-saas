@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { AuditEventModel } from '../src/modules/audit/audit-event.model.js';
 import { MembershipModel } from '../src/modules/memberships/membership.model.js';
 import { ROLES, permissionsFor, type Role } from '../src/tenancy/permissions.js';
-import { addBranch, addMember, createOrg, register, send, testApp, type Client } from './helpers/api.js';
+import { addBranch, addMember, configureSpecialties, createOrg, register, send, testApp, type Client } from './helpers/api.js';
 import { TODAY, TOMORROW, act, bookOk, createPatient, createPractitioner, nextPhone, pinClock } from './helpers/clinic.js';
 import { connectTestDatabase, dropTestDatabase } from './helpers/test-database.js';
 import { seedSpecialties } from '../src/modules/specialties/specialty.seed.js';
@@ -28,6 +28,8 @@ beforeAll(async () => {
   owner = await register(app, 'owner');
   ({ orgId, branchId: branchA } = await createOrg(owner, 'Authz Clinic', 'Branch A'));
   branchB = await addBranch(owner, orgId, 'Branch B');
+  // A configured organization (phase 4): every helper practitioner is a dentist.
+  await configureSpecialties(owner, orgId, ['dentistry'], [branchA, branchB]);
   clients.owner = owner;
   for (const role of ['admin', 'doctor', 'receptionist', 'viewer'] as const) {
     clients[role] = await register(app, role);
@@ -74,8 +76,30 @@ const ACTIONS: Action[] = [
   { name: 'rename organization', allowed: ['owner'], run: (c) => send(c, 'patch', `/api/v1/orgs/${orgId}`, { name: `Authz Clinic ${++seq}` }) },
   { name: 'list branches', allowed: ROLES, run: (c) => c.agent.get(`/api/v1/orgs/${orgId}/branches`) },
   { name: 'read an assigned branch', allowed: ROLES, run: (c) => c.agent.get(`/api/v1/orgs/${orgId}/branches/${branchA}`) },
-  { name: 'create branch', allowed: ['owner', 'admin'], run: (c) => send(c, 'post', `/api/v1/orgs/${orgId}/branches`, { name: `New branch ${++seq}` }) },
+  {
+    name: 'create branch',
+    allowed: ['owner', 'admin'],
+    run: (c) => send(c, 'post', `/api/v1/orgs/${orgId}/branches`, { name: `New branch ${++seq}`, specialtyCodes: ['dentistry'] }),
+  },
   { name: 'update branch', allowed: ['owner', 'admin'], run: (c) => send(c, 'patch', `/api/v1/orgs/${orgId}/branches/${branchA}`, { city: `City ${++seq}` }) },
+  {
+    name: "change a branch's specialties",
+    allowed: ['owner', 'admin'],
+    run: (c) => send(c, 'patch', `/api/v1/orgs/${orgId}/branches/${branchB}`, { specialtyCodes: ['dentistry'] }),
+  },
+  // Phase 4 — organization setup
+  { name: 'change the organization type', allowed: ['owner'], run: (c) => send(c, 'patch', `/api/v1/orgs/${orgId}`, { type: 'multi_branch' }) },
+  {
+    name: "change the organization's specialties",
+    allowed: ['owner'],
+    run: async (c) => {
+      const current = await owner.agent.get(`/api/v1/orgs/${orgId}`);
+      return send(c, 'put', `/api/v1/orgs/${orgId}/specialties`, {
+        specialtyCodes: ['dentistry', 'ent'],
+        configVersion: current.body.organization.configVersion,
+      });
+    },
+  },
   { name: 'list team', allowed: ['owner', 'admin'], run: (c) => c.agent.get(`/api/v1/orgs/${orgId}/members`) },
   {
     name: 'add member',
@@ -126,7 +150,7 @@ const ACTIONS: Action[] = [
     run: async (c) => {
       const person = await register(app, 'profile-target');
       const membership = await addMember(owner, orgId, person, 'doctor', [branchA]);
-      return send(c, 'post', `/api/v1/orgs/${orgId}/practitioners`, { membershipId: membership, specialtyCode: 'ent', branchIds: [branchA], defaultDurationMinutes: 20 });
+      return send(c, 'post', `/api/v1/orgs/${orgId}/practitioners`, { membershipId: membership, specialtyCode: 'dentistry', branchIds: [branchA], defaultDurationMinutes: 20 });
     },
   },
   {

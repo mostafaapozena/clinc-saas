@@ -1,9 +1,11 @@
 import { Router } from 'express';
+import mongoose, { Types } from 'mongoose';
 import { z } from 'zod';
+import { createRateLimiter } from '../../auth/rate-limit.js';
 import { requireAuth, authOf } from '../../auth/session.middleware.js';
 import type { AppConfig } from '../../config/app-config.js';
-import { conflict, notFound } from '../../http/errors.js';
-import { branchNameSchema, citySchema, organizationNameSchema } from '../../http/schemas.js';
+import { HttpError, conflict, notFound } from '../../http/errors.js';
+import { branchNameSchema, citySchema, objectIdSchema, organizationNameSchema } from '../../http/schemas.js';
 import { parseInput } from '../../http/validate.js';
 import { hasPermission, permissionsFor } from '../../tenancy/permissions.js';
 import { accessibleBranchesFilter, orgScope } from '../../tenancy/scope.js';
@@ -26,26 +28,54 @@ import { patientsRouter } from '../patients/patient.routes.js';
 import { practitionersRouter } from '../practitioners/practitioner.routes.js';
 import { futureActiveAppointments } from '../scheduling/schedule.service.js';
 import { ownPractitionerId } from '../scheduling/scheduling-context.js';
-import { OrganizationModel, type Organization } from './organization.model.js';
+import { assertCatalogSpecialties, specialtyListSchema } from '../specialties/specialty.service.js';
+import { ORGANIZATION_TYPES, OrganizationModel, specialtiesOf, type Organization } from './organization.model.js';
 import { createOrganizationWithOwner } from './organization.service.js';
+import {
+  branchSpecialtiesInvalid,
+  lockSpecialtyConfig,
+  practitionersOutsideConfig,
+  sameCodes,
+  specialtyInUse,
+} from './specialty-config.js';
 
-const timeZoneSchema = z.enum(SUPPORTED_TIME_ZONES);
+export const timeZoneSchema = z.enum(SUPPORTED_TIME_ZONES);
 
 const createOrganizationSchema = z.object({
   name: organizationNameSchema,
   // Chosen explicitly during onboarding (the form shows the default); never inferred from language.
   timeZone: timeZoneSchema,
-  branch: z.object({ name: branchNameSchema, city: citySchema.optional() }),
+  type: z.enum(ORGANIZATION_TYPES).optional(),
+  specialtyCodes: specialtyListSchema.optional(),
+  branch: z.object({ name: branchNameSchema, city: citySchema.optional(), specialtyCodes: specialtyListSchema.optional() }),
 });
 const updateOrganizationSchema = z
-  .object({ name: organizationNameSchema.optional(), timeZone: timeZoneSchema.optional() })
-  .refine((v) => v.name !== undefined || v.timeZone !== undefined, { message: 'empty_update' });
+  .object({
+    name: organizationNameSchema.optional(),
+    timeZone: timeZoneSchema.optional(),
+    type: z.enum(ORGANIZATION_TYPES).optional(),
+  })
+  .refine((v) => v.name !== undefined || v.timeZone !== undefined || v.type !== undefined, { message: 'empty_update' });
+
+const specialtySetupSchema = z.object({
+  specialtyCodes: specialtyListSchema,
+  /** Branches not listed keep their current specialties (which must still fit). */
+  branches: z
+    .array(z.object({ branchId: objectIdSchema, specialtyCodes: specialtyListSchema }))
+    .max(200)
+    .default([])
+    .refine((list) => new Set(list.map((b) => b.branchId)).size === list.length, 'duplicate_branch'),
+  configVersion: z.number().int().min(0),
+});
 
 function toOrganizationDto(org: Organization & { _id: unknown }) {
   return {
     id: String(org._id),
     name: org.name,
     timeZone: org.timeZone ?? null,
+    type: org.type ?? null,
+    specialtyCodes: [...specialtiesOf(org)],
+    configVersion: org.configVersion ?? 0,
     createdAt: org.createdAt.toISOString(),
   };
 }
@@ -66,6 +96,7 @@ async function membershipView(tenant: TenantContext) {
 
 export function createOrganizationsRouter(config: AppConfig) {
   const router = Router();
+  const setupLimiter = createRateLimiter(config.setupRateLimit);
   router.use(requireAuth);
 
   // Organizations the caller belongs to (never anyone else's).
@@ -73,14 +104,17 @@ export function createOrganizationsRouter(config: AppConfig) {
     res.json({ data: await listActiveMembershipsForUser(authOf(req).user._id) });
   });
 
-  // Onboarding: any signed-in user may create an organization and becomes its owner.
-  router.post('/', async (req, res) => {
+  // Any signed-in user may create an organization and becomes its owner. The web app uses the
+  // resumable onboarding flow (/api/v1/onboarding); this direct form remains for API clients.
+  router.post('/', setupLimiter, async (req, res) => {
     const { user } = authOf(req);
     const input = parseInput(createOrganizationSchema, req.body);
     const { organization, branch } = await createOrganizationWithOwner({
       userId: user._id,
       name: input.name,
       timeZone: input.timeZone,
+      type: input.type,
+      specialtyCodes: input.specialtyCodes,
       branch: input.branch,
     });
     res.status(201).json({
@@ -132,6 +166,10 @@ export function createOrganizationsRouter(config: AppConfig) {
       changes.name = { from: organization.name, to: input.name };
       organization.name = input.name;
     }
+    if (input.type !== undefined && input.type !== organization.type) {
+      changes.type = { from: organization.type ?? null, to: input.type };
+      organization.type = input.type;
+    }
     await organization.save();
     if (Object.keys(changes).length > 0) {
       await recordAudit({
@@ -143,6 +181,69 @@ export function createOrganizationsRouter(config: AppConfig) {
       });
     }
     res.json({ organization: toOrganizationDto(organization) });
+  });
+
+  /**
+   * Sets the organization's specialties and, in the same transaction, the branches' specialties.
+   * Also the explicit setup for organizations created before phase 4. Nothing is inferred or
+   * dropped: a configuration that would leave a branch without specialties, or a practitioner
+   * outside them, is refused with the records to fix.
+   */
+  router.put('/:orgId/specialties', requirePermission('organization.update'), async (req, res) => {
+    const tenant = tenantOf(req);
+    const input = parseInput(specialtySetupSchema, req.body);
+    await assertCatalogSpecialties(input.specialtyCodes, 'specialtyCodes');
+    await assertCatalogSpecialties(input.branches.flatMap((b) => b.specialtyCodes), 'branches');
+
+    const result = await mongoose.connection.transaction(async (session) => {
+      const before = await lockSpecialtyConfig(tenant.organizationId, session);
+      if ((before.configVersion ?? 0) !== input.configVersion) {
+        throw conflict('VERSION_CONFLICT', 'The specialty setup was changed by someone else. Reload and try again.');
+      }
+      const branches = await BranchModel.find({ organizationId: tenant.organizationId }).session(session).lean();
+      const current = new Map(branches.map((b) => [String(b._id), [...(b.specialtyCodes ?? [])]]));
+      const next = new Map(current);
+      for (const entry of input.branches) {
+        if (!current.has(entry.branchId)) {
+          throw new HttpError(400, 'INVALID_BRANCH', 'One or more branches are not available');
+        }
+        next.set(entry.branchId, entry.specialtyCodes);
+      }
+      const invalid = [...next]
+        .filter(([, codes]) => codes.length === 0 || codes.some((code) => !input.specialtyCodes.includes(code)))
+        .map(([id]) => id);
+      if (invalid.length > 0) throw branchSpecialtiesInvalid(invalid);
+      const outside = await practitionersOutsideConfig(tenant.organizationId, input.specialtyCodes, next, session);
+      if (outside.length > 0) throw specialtyInUse(outside);
+
+      const changed = [...next].filter(([id, codes]) => !sameCodes(codes, current.get(id) ?? []));
+      for (const [id, codes] of changed) {
+        await BranchModel.updateOne(
+          { organizationId: tenant.organizationId, _id: new Types.ObjectId(id) },
+          { $set: { specialtyCodes: codes } },
+          { session },
+        );
+      }
+      const saved = await OrganizationModel.findOneAndUpdate(
+        { _id: tenant.organizationId },
+        { $set: { specialtyCodes: input.specialtyCodes } },
+        { session, returnDocument: 'after' },
+      ).lean();
+      if (!saved) throw notFound();
+      await recordAudit(
+        {
+          organizationId: tenant.organizationId,
+          actorUserId: tenant.userId,
+          action: 'organization.specialties_updated',
+          target: { type: 'organization', id: tenant.organizationId },
+          changes: { from: specialtiesOf(before), to: input.specialtyCodes, branchesChanged: changed.length },
+        },
+        session,
+      );
+      const after = await BranchModel.find({ organizationId: tenant.organizationId }).sort({ name: 1 }).session(session).lean();
+      return { saved, branches: after };
+    });
+    res.json({ organization: toOrganizationDto(result.saved), branches: result.branches.map(toBranchDto) });
   });
 
   router.use('/:orgId/branches', branchesRouter);

@@ -10,7 +10,9 @@ test('status page shows a live API and database connection in Arabic RTL', async
   const html = page.locator('html');
   await expect(html).toHaveAttribute('lang', 'ar');
   await expect(html).toHaveAttribute('dir', 'rtl');
-  await expect(page.locator('.public-brand')).toContainText('منصة العيادات');
+  const logo = page.locator('.public-brand img.brand-logo');
+  await expect(logo).toHaveAttribute('alt', 'raclinic');
+  expect(await logo.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
 
   // The browser itself called the API through the web server's /api proxy.
   expect((await healthResponse).status()).toBe(200);

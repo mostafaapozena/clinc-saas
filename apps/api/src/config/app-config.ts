@@ -9,6 +9,10 @@ export type AppConfig = {
   /** Extra origins allowed to send state-changing requests besides the request's own host. */
   allowedOrigins: string[];
   authRateLimit: { max: number; windowMs: number };
+  /** Organization creation and onboarding completion, per IP. */
+  setupRateLimit: { max: number; windowMs: number };
+  /** Anonymous custom-ownership inquiries, per IP. */
+  inquiryRateLimit: { max: number; windowMs: number };
 };
 
 export const defaultAppConfig: AppConfig = {
@@ -18,6 +22,8 @@ export const defaultAppConfig: AppConfig = {
   trustProxy: false,
   allowedOrigins: [],
   authRateLimit: { max: 10, windowMs: 15 * 60_000 },
+  setupRateLimit: { max: 20, windowMs: 60 * 60_000 },
+  inquiryRateLimit: { max: 5, windowMs: 60 * 60_000 },
 };
 
 export function appConfigFromEnv(env: Env): AppConfig {
@@ -31,5 +37,7 @@ export function appConfigFromEnv(env: Env): AppConfig {
       max: env.AUTH_RATE_LIMIT_MAX,
       windowMs: env.AUTH_RATE_LIMIT_WINDOW_MINUTES * 60_000,
     },
+    setupRateLimit: { max: env.SETUP_RATE_LIMIT_MAX, windowMs: 60 * 60_000 },
+    inquiryRateLimit: { max: env.INQUIRY_RATE_LIMIT_MAX, windowMs: 60 * 60_000 },
   };
 }
