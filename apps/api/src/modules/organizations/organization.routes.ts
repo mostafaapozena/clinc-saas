@@ -31,6 +31,7 @@ import { futureActiveAppointments } from '../scheduling/schedule.service.js';
 import { ownPractitionerId } from '../scheduling/scheduling-context.js';
 import { PractitionerModel } from '../practitioners/practitioner.model.js';
 import { createFocusRouter } from '../workspace/focus.routes.js';
+import { createAssetsRouter } from '../assets/assets.routes.js';
 import { assertCatalogSpecialties, specialtyListSchema } from '../specialties/specialty.service.js';
 import { createClinicalRouter } from '../clinical/clinical.routes.js';
 import { createCoverageRouter } from '../clinical/coverage.routes.js';
@@ -280,6 +281,7 @@ export function createOrganizationsRouter(config: AppConfig, mailer: Mailer = { 
   router.use('/:orgId', createPurchasingRouter());
   router.use('/:orgId', createCompensationRouter());
   router.use('/:orgId', createFocusRouter());
+  router.use('/:orgId', createAssetsRouter());
   router.use('/:orgId', createSubscriptionRouter(config));
   router.use('/:orgId', createClinicalRouter());
   router.use('/:orgId/branches', branchesRouter);

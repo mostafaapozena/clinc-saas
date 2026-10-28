@@ -17,6 +17,7 @@ import { StockBalanceModel, StockItemModel } from '../inventory/inventory.model.
 import { PatientModel } from '../patients/patient.model.js';
 import { PractitionerModel } from '../practitioners/practitioner.model.js';
 import { PurchaseRequestModel, SupplierBillModel } from '../purchasing/purchasing.model.js';
+import { AssetModel } from '../assets/assets.model.js';
 
 // "Today's focus" (docs/architecture/SPECIALTY_WORKSPACES.md, "Role and specialty workspaces"):
 // each section appears only for the permissions that allow it, and nothing widens access —
@@ -313,6 +314,20 @@ export function createFocusRouter() {
         }),
       ]);
       body.stock = { reorder, expiring };
+    }
+    // Equipment whose maintenance is due within 14 days (or overdue), and equipment out of service.
+    if (tenantCan(tenant, 'asset.manage') && today) {
+      const scope = tenant.branchScope.type === 'selected' ? { branchId: { $in: tenant.branchScope.branchIds } } : {};
+      const [due, outOfService] = await Promise.all([
+        AssetModel.countDocuments({
+          organizationId: tenant.organizationId,
+          ...scope,
+          status: { $in: ['active', 'out_of_service'] },
+          nextMaintenanceDue: { $type: 'string', $lte: addDays(today, 14) },
+        }),
+        AssetModel.countDocuments({ organizationId: tenant.organizationId, ...scope, status: 'out_of_service' }),
+      ]);
+      body.equipment = { maintenanceDue: due, outOfService };
     }
     res.json(body);
   });

@@ -85,7 +85,9 @@
       "dentistry": "Treatment plans",
       "physiotherapy": "Treatment courses",
       "ent": "Follow-ups"
-    }
+    },
+    "assets": "Equipment",
+    "reports": "Reports"
   },
   "shell": {
     "skipToContent": "Skip to main content",
@@ -540,7 +542,9 @@
     "PERIOD_SETTLED": "Settled periods cannot be re-priced.",
     "AGREEMENT_OVERLAP": "Another agreement starts on or after this date.",
     "SETTLEMENT_NOT_DRAFT": "Approved settlements are never recomputed or changed.",
-    "ITEMS_ALREADY_SETTLED": "Some items were settled meanwhile; recompute this draft."
+    "ITEMS_ALREADY_SETTLED": "Some items were settled meanwhile; recompute this draft.",
+    "ASSET_CODE_TAKEN": "Another asset has this code.",
+    "ASSET_RETIRED": "This equipment is retired."
   },
   "validation": {
     "required": "This field is required.",
@@ -4112,6 +4116,126 @@
     "settlementsToApprove": "{{count}} practitioner settlements in draft",
     "itemsToReorder": "{{count}} items to reorder",
     "lotsExpiring": "{{count}} lots expiring within 30 days",
-    "nothingWaiting": "Nothing is waiting for you."
+    "nothingWaiting": "Nothing is waiting for you.",
+    "maintenanceDue": "{{count}} devices due for maintenance",
+    "outOfService": "{{count}} devices out of service"
+  },
+  "assets": {
+    "title": "Equipment and maintenance",
+    "subtitle": "The equipment register with location and maintenance schedule",
+    "noDepreciation": "No depreciation is computed until the clinic accountant defines a method. Costs are recorded once, from the supplier bill or cash voucher.",
+    "dueNotice": "{{count}} devices are due for maintenance within 14 days.",
+    "register": "Equipment register",
+    "none": "No equipment registered.",
+    "nextDue": "Next maintenance {{date}}",
+    "maintenanceDue": "Maintenance due",
+    "status": {
+      "active": "In service",
+      "out_of_service": "Out of service",
+      "retired": "Retired",
+      "disposed": "Disposed"
+    },
+    "add": "Add equipment",
+    "addHint": "To link the purchase bill, record it to the medical equipment account first.",
+    "code": "Code",
+    "name": "Name",
+    "category": "Category",
+    "serial": "Serial number",
+    "branch": "Branch",
+    "location": "Location",
+    "purchaseDate": "Purchase date",
+    "cost": "Cost",
+    "costHint": "For the record only; the entry comes from the purchase bill.",
+    "interval": "Maintenance every (days)",
+    "added": "The equipment was added.",
+    "back": "Back to equipment",
+    "details": "Details",
+    "capitalized": "Capitalized",
+    "nextDueLabel": "Next maintenance",
+    "retiredOn": "Retired",
+    "logMaintenance": "Log maintenance",
+    "logHint": "Maintenance costs are recorded in the supplier bill or cash voucher, not here.",
+    "date": "Date",
+    "kind": "Kind",
+    "kinds": {
+      "preventive": "Preventive",
+      "corrective": "Corrective",
+      "inspection": "Inspection"
+    },
+    "workDone": "Work done",
+    "performedBy": "Performed by",
+    "markOutOfService": "The equipment is out of service",
+    "save": "Save",
+    "logged": "Maintenance logged.",
+    "history": "Maintenance history",
+    "noHistory": "No maintenance recorded.",
+    "retireTitle": "Retire the equipment",
+    "disposeHint": "Retiring stops maintenance; disposal means the equipment is gone.",
+    "disposeHintCapitalized": "On disposal its capitalized cost is written off to other expenses.",
+    "reason": "Reason",
+    "retire": "Retire (kept on record)",
+    "dispose": "Dispose"
+  },
+  "reportsHub": {
+    "title": "Reports",
+    "subtitle": "Every report you may open, computed from posted and authorized data only",
+    "none": "No reports are available for your role.",
+    "note": "Revenue and collections are reported separately. \"Result per ledger\" is not a certified net profit. There are no tax reports.",
+    "downloadCsv": "Download CSV",
+    "groups": {
+      "financial": "Financial statements",
+      "cash": "Cash and obligations",
+      "operations": "Operations"
+    },
+    "reports": {
+      "statements": {
+        "title": "Trial balance and statements",
+        "body": "Trial balance, income and expenses by branch, balance sheet, general ledger, receivables aging"
+      },
+      "reconciliation": {
+        "title": "Sub-ledger reconciliation",
+        "body": "Open invoices against receivables, unallocated receipts against advances"
+      },
+      "periods": {
+        "title": "Accounting periods",
+        "body": "Closed and open months and the closing history"
+      },
+      "financeSummary": {
+        "title": "Billing and collections summary",
+        "body": "Invoiced, discounts, collected by method, and outstanding now"
+      },
+      "cashSessions": {
+        "title": "Cashier sessions",
+        "body": "Counts and differences per session, and vouchers"
+      },
+      "payables": {
+        "title": "Payables aging",
+        "body": "What each supplier is owed by due date"
+      },
+      "settlements": {
+        "title": "Practitioner settlements",
+        "body": "Fees computed, approved and paid"
+      },
+      "stock": {
+        "title": "Stock and expiry",
+        "body": "Stock by warehouse and lot, reorder and expiry alerts"
+      },
+      "stockLedger": {
+        "title": "Stock ledger",
+        "body": "Every movement in and out with the balance after it"
+      },
+      "procurement": {
+        "title": "Procurement",
+        "body": "Purchase orders, receipts and billing"
+      },
+      "equipment": {
+        "title": "Equipment and maintenance",
+        "body": "Equipment due for maintenance and out of service"
+      },
+      "appointments": {
+        "title": "Appointments and activity",
+        "body": "Today's and the week's appointments by doctor and status"
+      }
+    }
   }
 }

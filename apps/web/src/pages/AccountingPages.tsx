@@ -24,6 +24,7 @@ import { showToast } from '../lib/toast';
 import type { Page } from '../lib/types';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { useOrg } from '../org/context';
+import { csvMoney, downloadCsv } from '../lib/csv';
 import { useAccountingSettings, useMoney } from '../lib/useAccounting';
 
 // General ledger (docs/architecture/ACCOUNTING.md): setup, journal, chart of accounts, statements
@@ -1154,7 +1155,35 @@ function ReportView({ name, data }: { name: ReportName; data: Record<string, unk
     };
     return (
       <section className="card" aria-labelledby="tb-title">
-        <h2 id="tb-title">{t('accounting.reports.trialBalance')}</h2>
+        <div className="section-header">
+          <h2 id="tb-title">{t('accounting.reports.trialBalance')}</h2>
+          <button
+            type="button"
+            className="button button--secondary"
+            onClick={() =>
+              downloadCsv(`trial-balance-${String(data.from)}-${String(data.to)}.csv`, [
+                [
+                  t('accounting.code'),
+                  t('accounting.account'),
+                  t('accounting.opening'),
+                  t('accounting.debit'),
+                  t('accounting.credit'),
+                  t('accounting.closing'),
+                ],
+                ...rows.map((r) => [
+                  r.code,
+                  accountName(t, r),
+                  csvMoney(r.opening ?? 0),
+                  csvMoney(r.debit ?? 0),
+                  csvMoney(r.credit ?? 0),
+                  csvMoney(r.closing ?? 0),
+                ]),
+              ])
+            }
+          >
+            {t('reportsHub.downloadCsv')}
+          </button>
+        </div>
         <span className={data.balanced ? 'badge badge--active' : 'badge badge--inactive'}>
           {data.balanced ? t('accounting.balanced') : t('accounting.notBalanced')}
         </span>
@@ -1314,7 +1343,23 @@ function ReportView({ name, data }: { name: ReportName; data: Record<string, unk
   const buckets = ['d0_30', 'd31_60', 'd61_90', 'd90plus'];
   return (
     <section className="card" aria-labelledby="aging-title">
-      <h2 id="aging-title">{t('accounting.reports.aging')}</h2>
+      <div className="section-header">
+        <h2 id="aging-title">{t('accounting.reports.aging')}</h2>
+        {rows.length > 0 && (
+          <button
+            type="button"
+            className="button button--secondary"
+            onClick={() =>
+              downloadCsv('receivables-aging.csv', [
+                [t('accounting.patient'), ...buckets.map((b) => t(`accounting.buckets.${b}`)), t('accounting.total')],
+                ...rows.map((r) => [`${r.fullName} #${r.patientNumber}`, ...buckets.map((b) => csvMoney(r.buckets[b] ?? 0)), csvMoney(r.total)]),
+              ])
+            }
+          >
+            {t('reportsHub.downloadCsv')}
+          </button>
+        )}
+      </div>
       {rows.length === 0 ? (
         <EmptyState icon="check">{t('accounting.noOpenInvoices')}</EmptyState>
       ) : (

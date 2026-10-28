@@ -17,6 +17,28 @@ Read [AGENTS.md](../AGENTS.md) (rules) and [PROGRESS.md](PROGRESS.md) (state, ga
 Everything important is in Git; a new Codespace from any branch sets itself up via the
 devcontainer.
 
+## Medical ERP programme (from 2026-10-28)
+
+Owner brief: `review-inputs/erp-brief-2026-10-28/BRIEF.md` next to the checkout on drive D:. The
+owner authorized merging verified milestone PRs once `verify` passes in CI. Plan and state:
+[ERP_EXECUTION_PLAN.md](ERP_EXECUTION_PLAN.md), [ERP_MODULE_MATRIX.md](ERP_MODULE_MATRIX.md),
+[ERP_DECISIONS.md](ERP_DECISIONS.md), research [ERP_REFERENCE_RESEARCH.md](ERP_REFERENCE_RESEARCH.md).
+
+| Milestone | Design | PR |
+| --- | --- | --- |
+| A. General ledger, cash and banks | [ACCOUNTING.md](architecture/ACCOUNTING.md) | #17 (merged) |
+| B. Inventory and medical consumables | [INVENTORY.md](architecture/INVENTORY.md) | #18 (merged) |
+| C. Suppliers, purchasing and payables | [PURCHASING.md](architecture/PURCHASING.md) | #19 (merged) |
+| D. Practitioner compensation; E. Role and specialty workspaces | [COMPENSATION.md](architecture/COMPENSATION.md), [SPECIALTY_WORKSPACES.md](architecture/SPECIALTY_WORKSPACES.md) | #20 (merged) |
+| F. Equipment and maintenance; G. Reports hub and end-to-end journeys | [ASSETS.md](architecture/ASSETS.md), `e2e/erp.spec.ts` | branch `phase-16/erp-assets` |
+
+Conventions that matter when continuing:
+
+- Every financial or stock document posts through `postEntry` (`modules/accounting/accounting.posting.ts`), in the same transaction, with a unique source key.
+- New tenant endpoints need isolation tests and role-matrix rows; ledger-wide views need organization-wide scope.
+- The repository has no Prettier configuration. Format only new files, with `--single-quote --print-width 150`.
+- Demo data: the seed sets up the demo organizations' ledger (cutover on the first day of the seed month), a store per branch with synthetic stock, branch cashboxes and suppliers. Run it once; reruns leave all of that in place.
+
 ## Platform completion (from 2026-10-25)
 
 Follow [PLATFORM_COMPLETION_PLAN.md](PLATFORM_COMPLETION_PLAN.md): six milestones, each a branch
