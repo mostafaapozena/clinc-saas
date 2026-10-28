@@ -30,6 +30,9 @@ export function useRouteFocus(main: RefObject<HTMLElement | null>, routeKey: str
     }
     const root = main.current;
     if (!root) return;
+    // The new page already put focus in a field on purpose (e.g. the payment amount): keep it.
+    const active = document.activeElement;
+    if (active && root.contains(active) && active.matches('input, select, textarea')) return;
     const heading = root.querySelector<HTMLElement>('h1');
     if (heading && !heading.hasAttribute('tabindex')) heading.setAttribute('tabindex', '-1');
     (heading ?? root).focus({ preventScroll: true });
@@ -42,4 +45,16 @@ export function describedBy(id: string, error?: string, hint?: string) {
     'aria-invalid': error ? true : undefined,
     'aria-describedby': error ? `${id}-error` : hint ? `${id}-hint` : undefined,
   } as const;
+}
+
+/**
+ * Brings an element that just appeared (a confirmation, the first field to fix) into view and
+ * focuses it, so keyboard and screen-reader users land on it. Smooth only without reduced motion.
+ */
+export function revealAndFocus(element: HTMLElement | null) {
+  if (!element) return;
+  if (!element.matches('input, select, textarea, button, a[href]') && !element.hasAttribute('tabindex')) element.setAttribute('tabindex', '-1');
+  const reduce = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  element.scrollIntoView?.({ block: 'nearest', behavior: reduce ? 'auto' : 'smooth' });
+  element.focus({ preventScroll: true });
 }

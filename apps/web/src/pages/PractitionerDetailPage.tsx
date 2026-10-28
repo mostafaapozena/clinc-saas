@@ -169,7 +169,7 @@ function WeeklySchedule({ practitioner, editable }: { practitioner: Practitioner
       {conflictAppointments(save.error).length > 0 ? <ConflictList error={save.error} /> : save.isError && <Notice kind="error">{errorMessage(t, save.error)}</Notice>}
       {!editing ? (
         sorted.length === 0 ? (
-          <EmptyState>{t('schedule.noHours')}</EmptyState>
+          <EmptyState icon="clock">{t('schedule.noHours')}</EmptyState>
         ) : (
           <table className="data-table" aria-label={t('schedule.weeklyTitle')}>
             <thead>
@@ -290,7 +290,7 @@ function Exceptions({ practitioner, editable }: { practitioner: Practitioner; ed
       <p className="muted small">{t('schedule.exceptionsHint')}</p>
       {conflictAppointments(error).length > 0 ? <ConflictList error={error} /> : error ? <Notice kind="error">{errorMessage(t, error)}</Notice> : null}
       {list.isPending && <Loading />}
-      {list.isSuccess && list.data.length === 0 && <EmptyState>{t('schedule.noExceptions')}</EmptyState>}
+      {list.isSuccess && list.data.length === 0 && <EmptyState icon="calendar">{t('schedule.noExceptions')}</EmptyState>}
       {list.isSuccess && list.data.length > 0 && (
         <ul className="data-list">
           {list.data.map((e) => (

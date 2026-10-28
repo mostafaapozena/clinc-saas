@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, useBlocker, useParams } from 'react-router';
+import { Link, useBlocker, useLocation, useParams } from 'react-router';
 import { PageHeader } from '../components/PageHeader';
 import { DocumentationBadge } from '../components/clinical';
 import { ShareRecord } from '../components/coverage';
@@ -10,6 +10,7 @@ import { SpecialtyEditor, SpecialtyView } from '../components/specialty';
 import { isEditable } from '../lib/templates';
 import { TimeZoneRequired } from '../components/scheduling';
 import { ErrorState, Field, Loading, Notice } from '../components/ui';
+import { revealAndFocus } from '../lib/a11y';
 import { ApiError, api } from '../lib/api';
 import {
   CLINICAL_QUERY,
@@ -183,6 +184,7 @@ function useRecordUpdater(appointmentId: string) {
 function StartRecord({ view, appointmentId }: { view: EncounterView; appointmentId: string }) {
   const { t } = useTranslation();
   const { orgId } = useOrg();
+  const location = useLocation();
   const update = useRecordUpdater(appointmentId);
   const [reason, setReason] = useState('');
   // Specialty template (only offered when the practitioner's specialty has several).
@@ -197,7 +199,18 @@ function StartRecord({ view, appointmentId }: { view: EncounterView; appointment
       }),
     onSuccess: (r) => update(r.encounter),
   });
+  // "Open the visit record" from the queue or the appointment: no second "start" click when nothing
+  // needs choosing (no late-entry reason, at most one template). The idempotency key makes a
+  // repeated request harmless.
+  const autoStart = Boolean((location.state as { startRecord?: boolean } | null)?.startRecord) && view.canStart && !view.lateEntryRequired && (view.templates?.length ?? 0) <= 1;
+  const started = useRef(false);
+  useEffect(() => {
+    if (!autoStart || started.current) return;
+    started.current = true;
+    start.mutate();
+  }, [autoStart, start]);
 
+  if (autoStart && !start.isError) return <Loading label={t('clinical.starting')} />;
   if (!view.canStart) {
     const closed = view.appointmentStatus === 'cancelled' || view.appointmentStatus === 'no_show';
     return (
@@ -269,6 +282,16 @@ function StartRecord({ view, appointmentId }: { view: EncounterView; appointment
 
 type Conflict = null | { kind: 'version'; currentVersion: number | null } | { kind: 'finalized' };
 
+const AUTOSAVE_MS = 5000;
+
+/** The API's minimum for finalizing (clinical.routes.ts): a reason, plus examination, assessment or plan. */
+function finalizationProblems(sections: Sections): Record<string, string> | null {
+  const problems: Record<string, string> = {};
+  if (!sections.reason.trim()) problems['sections.reason'] = 'required';
+  if (!sections.examination.trim() && !sections.assessment.trim() && !sections.plan.trim()) problems.sections = 'needs_findings_assessment_or_plan';
+  return Object.keys(problems).length > 0 ? problems : null;
+}
+
 function DraftEditor({ encounter, reload }: { encounter: Encounter; reload: () => Promise<Encounter | null> }) {
   const { t } = useTranslation();
   const { orgId, timeZone } = useOrg();
@@ -283,6 +306,8 @@ function DraftEditor({ encounter, reload }: { encounter: Encounter; reload: () =
   const [conflict, setConflict] = useState<Conflict>(null);
   const [savedAt, setSavedAt] = useState<string | null>(null);
   const [confirming, setConfirming] = useState(false);
+  // What the API will refuse at finalizing, checked first so the confirmation only opens when it can succeed.
+  const [precheck, setPrecheck] = useState<Record<string, string> | null>(null);
   const finalizeKey = useRef(newRequestKey());
   const confirmRef = useRef<HTMLHeadingElement>(null);
   const specialtyDirty = Boolean(editableSpecialty) && JSON.stringify(specialtyData) !== JSON.stringify(base.specialty?.data ?? {});
@@ -339,8 +364,27 @@ function DraftEditor({ encounter, reload }: { encounter: Encounter; reload: () =
     return () => window.removeEventListener('beforeunload', warn);
   }, [dirty]);
   useEffect(() => {
-    if (confirming) confirmRef.current?.focus();
+    if (confirming) revealAndFocus(confirmRef.current);
   }, [confirming]);
+
+  // UX-033: a draft with changes saves itself after a short pause, through the same versioned save
+  // (a conflicting edit elsewhere still stops it and shows the conflict choices).
+  useEffect(() => {
+    if (!dirty || conflict || save.isPending || confirming) return;
+    const timer = window.setTimeout(() => save.mutate(base.version), AUTOSAVE_MS);
+    return () => window.clearTimeout(timer);
+  }, [dirty, conflict, save, confirming, base.version, sections, specialtyData]);
+
+  const requestFinalize = () => {
+    const problems = finalizationProblems(sections);
+    setPrecheck(problems);
+    if (!problems) {
+      setConfirming(true);
+      return;
+    }
+    const first = problems['sections.reason'] ? 'section-reason' : 'section-examination';
+    revealAndFocus(document.getElementById(first));
+  };
 
   const loadLatest = async () => {
     const latest = await reload();
@@ -351,7 +395,9 @@ function DraftEditor({ encounter, reload }: { encounter: Encounter; reload: () =
       setSpecialtyData(latest.specialty?.data ?? {});
     }
   };
-  const fields = { ...fieldErrors(save.error), ...fieldErrors(finalize.error) };
+  const fields = { ...fieldErrors(save.error), ...fieldErrors(finalize.error), ...(precheck ? (finalizationProblems(sections) ?? {}) : {}) };
+  // The rule "one of examination, assessment or plan" is shown on the examination field.
+  if (fields.sections && !fields['sections.examination']) fields['sections.examination'] = fields.sections;
   const incomplete = isApiError(finalize.error, 'ENCOUNTER_INCOMPLETE');
 
   return (
@@ -428,9 +474,16 @@ function DraftEditor({ encounter, reload }: { encounter: Encounter; reload: () =
           />
         )}
         <p className="muted small">{t('clinical.finalizeRule')}</p>
-        {incomplete && (
+        {(incomplete || (precheck && finalizationProblems(sections))) && (
           <Notice kind="error">
-            {fields.sections ? fieldMessage(t, 'sections', fields.sections) : errorMessage(t, finalize.error)}
+            {fields.sections || fields['sections.reason'] ? (
+              <>
+                {fields['sections.reason'] && <span className="block">{fieldMessage(t, 'sections.reason', fields['sections.reason'])}</span>}
+                {fields.sections && <span className="block">{fieldMessage(t, 'sections', fields.sections)}</span>}
+              </>
+            ) : (
+              errorMessage(t, finalize.error)
+            )}
             {Object.keys(fields)
               .filter((k) => k.startsWith('specialty.'))
               .map((k) => (
@@ -441,25 +494,31 @@ function DraftEditor({ encounter, reload }: { encounter: Encounter; reload: () =
           </Notice>
         )}
         {finalize.isError && !incomplete && !conflict && <Notice kind="error">{errorMessage(t, finalize.error)}</Notice>}
-        <div className="form-actions">
-          <button type="submit" className="button button--primary" disabled={!dirty || save.isPending}>
-            {save.isPending ? t('common.saving') : t('clinical.saveDraft')}
-          </button>
-          <button
-            type="button"
-            className="button button--secondary"
-            disabled={dirty || save.isPending || finalize.isPending || confirming}
-            aria-describedby={dirty ? 'finalize-blocked' : undefined}
-            onClick={() => setConfirming(true)}
-          >
-            {t('clinical.finalize')}
-          </button>
+        {/* Kept in view at the bottom of the screen while the record is long (UX-033). */}
+        <div className="draft-actions">
+          <span className="muted small draft-actions-state" aria-hidden="true">
+            {dirty ? t('clinical.unsaved') : savedAt ? t('clinical.savedAt', { time: fmt.time(savedAt, timeZone ?? 'UTC') }) : t('clinical.allSaved')}
+          </span>
+          <div className="form-actions">
+            <button type="submit" className="button button--primary" disabled={!dirty || save.isPending}>
+              {save.isPending ? t('common.saving') : t('clinical.saveDraft')}
+            </button>
+            <button
+              type="button"
+              className="button button--secondary"
+              disabled={dirty || save.isPending || finalize.isPending || confirming}
+              aria-describedby={dirty ? 'finalize-blocked' : undefined}
+              onClick={requestFinalize}
+            >
+              {t('clinical.finalize')}
+            </button>
+          </div>
+          {dirty && (
+            <p id="finalize-blocked" className="muted small">
+              {t('clinical.saveBeforeFinalize')}
+            </p>
+          )}
         </div>
-        {dirty && (
-          <p id="finalize-blocked" className="muted small">
-            {t('clinical.saveBeforeFinalize')}
-          </p>
-        )}
       </form>
 
       {confirming && (

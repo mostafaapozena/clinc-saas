@@ -1,13 +1,15 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type FocusEvent, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, NavLink, Outlet, useLocation, useSearchParams } from 'react-router';
 import { useSession } from '../auth/session';
 import { BrandLogo } from '../components/BrandLogo';
 import { Icon } from '../components/Icon';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
+import { ThemeSwitcher } from '../components/ThemeSwitcher';
 import { setLanguage } from '../i18n';
 import { SolutionIcon, IconTile } from './shared';
-import { SOLUTIONS, startPath } from './solutions';
+import { useSiteMotion } from './motion';
+import { SOLUTIONS, findSolution, startPath } from './solutions';
 import './public.css';
 
 /** Company pages, shown in the "Company" menu and the footer. */
@@ -37,6 +39,11 @@ export function PublicSiteLayout() {
     setDrawerPath((typeof open === 'function' ? open(drawerOpen) : open) ? location.pathname : null);
   const setOpenMenu = (menu: 'solutions' | 'company' | null) => setMenuState(menu ? { menu, path: location.pathname } : null);
   const navRef = useRef<HTMLUListElement>(null);
+  const siteRef = useRef<HTMLDivElement>(null);
+  useSiteMotion(siteRef);
+  // On a solution page every "create" action keeps that solution's pre-selection (UX-014).
+  const solution = findSolution(location.pathname.match(/^\/solutions\/([^/]+)/)?.[1]);
+  const createPath = startPath(solution?.start);
   const requested = params.get('lang');
 
   // `?lang=en|ar` selects the page language (these are the hreflang alternate URLs).
@@ -48,8 +55,13 @@ export function PublicSiteLayout() {
     if (!drawerOpen && !openMenu) return;
     const onKey = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return;
+      // Focus goes back to the control that opened the menu or drawer (not to the page body).
+      const trigger = openMenu
+        ? navRef.current?.querySelector<HTMLButtonElement>(`[aria-controls="menu-${openMenu}"]`)
+        : document.querySelector<HTMLButtonElement>('[aria-controls="site-drawer"]');
       setDrawerPath(null);
       setMenuState(null);
+      trigger?.focus();
     };
     const onPointer = (event: MouseEvent) => {
       if (openMenu && !navRef.current?.contains(event.target as Node)) setMenuState(null);
@@ -72,27 +84,19 @@ export function PublicSiteLayout() {
   const inSolutions = location.pathname.startsWith('/solutions') || location.pathname.startsWith('/custom-solutions');
   const inCompany = COMPANY.some((c) => location.pathname === c.to);
   const toggle = (menu: 'solutions' | 'company') => setOpenMenu(openMenu === menu ? null : menu);
+  // Tabbing out of an open menu closes it, so it never stays open over the page.
+  const closeOnFocusOut = (event: FocusEvent<HTMLLIElement>) => {
+    if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setMenuState(null);
+  };
 
   const solutionLinks = SOLUTIONS.map((s) => (
     <li key={s.slug}>
-      <Link className="site-menu-item" to={`/solutions/${s.slug}`}>
-        <SolutionIcon solution={s} size="sm" />
-        <span>
-          <strong>{t(`site.solutions.${s.key}.name`)}</strong>
-          <span>{t(`site.solutions.${s.key}.tagline`)}</span>
-        </span>
-      </Link>
+      <MenuItem to={`/solutions/${s.slug}`} icon={<SolutionIcon solution={s} size="sm" />} title={t(`site.solutions.${s.key}.name`)} description={t(`site.solutions.${s.key}.tagline`)} />
     </li>
   ));
   const companyLinks = COMPANY.map((c) => (
     <li key={c.to}>
-      <Link className="site-menu-item" to={c.to}>
-        <IconTile name={c.icon} size="sm" />
-        <span>
-          <strong>{t(`site.nav.${c.key}`)}</strong>
-          <span>{t(`site.nav.descriptions.${c.key}`)}</span>
-        </span>
-      </Link>
+      <MenuItem to={c.to} icon={<IconTile name={c.icon} size="sm" />} title={t(`site.nav.${c.key}`)} description={t(`site.nav.descriptions.${c.key}`)} />
     </li>
   ));
   const workspaceActions = signedIn ? (
@@ -104,14 +108,14 @@ export function PublicSiteLayout() {
       <Link className="site-signin" to="/login">
         {t('site.nav.signIn')}
       </Link>
-      <Link className="button button--primary" to={startPath()}>
+      <Link className="button button--primary" to={createPath}>
         {t('site.nav.createWorkspace')}
       </Link>
     </>
   );
 
   return (
-    <div className="site">
+    <div className="site" ref={siteRef}>
       <a className="skip-link" href="#main-content">
         {t('shell.skipToContent')}
       </a>
@@ -122,7 +126,7 @@ export function PublicSiteLayout() {
           </Link>
           <nav aria-label={t('site.nav.main')}>
             <ul className="site-nav" ref={navRef}>
-              <li>
+              <li onBlur={closeOnFocusOut}>
                 <button
                   type="button"
                   className={inSolutions ? 'site-nav-trigger site-nav-trigger--active' : 'site-nav-trigger'}
@@ -157,7 +161,7 @@ export function PublicSiteLayout() {
                   {t('site.nav.custom')}
                 </NavLink>
               </li>
-              <li>
+              <li onBlur={closeOnFocusOut}>
                 <button
                   type="button"
                   className={inCompany ? 'site-nav-trigger site-nav-trigger--active' : 'site-nav-trigger'}
@@ -181,6 +185,7 @@ export function PublicSiteLayout() {
             </ul>
           </nav>
           <div className="site-header-actions">
+            <ThemeSwitcher />
             <LanguageSwitcher onSwitched={keepLanguageInUrl} />
             {workspaceActions}
           </div>
@@ -206,21 +211,10 @@ export function PublicSiteLayout() {
                   <ul>
                     {solutionLinks}
                     <li>
-                      <Link className="site-menu-item" to="/custom-solutions">
-                        <IconTile name="scan" tone="custom" size="sm" />
-                        <span>
-                          <strong>{t('site.nav.custom')}</strong>
-                          <span>{t('site.nav.descriptions.custom')}</span>
-                        </span>
-                      </Link>
+                      <MenuItem to="/custom-solutions" icon={<IconTile name="scan" tone="custom" size="sm" />} title={t('site.nav.custom')} description={t('site.nav.descriptions.custom')} />
                     </li>
                     <li>
-                      <Link className="site-menu-item" to="/solutions">
-                        <IconTile name="layers" size="sm" />
-                        <span>
-                          <strong>{t('site.nav.allSolutions')}</strong>
-                        </span>
-                      </Link>
+                      <MenuItem to="/solutions" icon={<IconTile name="layers" size="sm" />} title={t('site.nav.allSolutions')} />
                     </li>
                   </ul>
                 </details>
@@ -248,7 +242,7 @@ export function PublicSiteLayout() {
               </Link>
             ) : (
               <>
-                <Link className="button button--primary button--large" to={startPath()}>
+                <Link className="button button--primary button--large" to={createPath}>
                   {t('site.nav.createWorkspace')}
                 </Link>
                 <Link className="button button--secondary button--large" to="/login">
@@ -262,12 +256,25 @@ export function PublicSiteLayout() {
       <main id="main-content" className="site-main" tabIndex={-1}>
         <Outlet />
       </main>
-      <SiteFooter signedIn={signedIn} />
+      <SiteFooter signedIn={signedIn} createPath={createPath} />
     </div>
   );
 }
 
-function SiteFooter({ signedIn }: { signedIn: boolean }) {
+/** One entry of the header menus and the mobile drawer: icon tile, name, optional description. */
+function MenuItem({ to, icon, title, description }: { to: string; icon: ReactNode; title: string; description?: string }) {
+  return (
+    <Link className="site-menu-item" to={to}>
+      {icon}
+      <span className="site-menu-item-text">
+        <strong>{title}</strong>
+        {description && <span className="site-menu-item-desc">{description}</span>}
+      </span>
+    </Link>
+  );
+}
+
+function SiteFooter({ signedIn, createPath }: { signedIn: boolean; createPath: string }) {
   const { t } = useTranslation();
   const year = new Date().getFullYear();
   return (
@@ -334,7 +341,7 @@ function SiteFooter({ signedIn }: { signedIn: boolean }) {
                     <Link to="/login">{t('site.nav.signIn')}</Link>
                   </li>
                   <li>
-                    <Link to={startPath()}>{t('site.nav.createWorkspace')}</Link>
+                    <Link to={createPath}>{t('site.nav.createWorkspace')}</Link>
                   </li>
                 </>
               )}

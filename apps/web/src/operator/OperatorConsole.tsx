@@ -4,6 +4,10 @@ import { useTranslation } from 'react-i18next';
 import { Link, NavLink, Outlet, useParams, useSearchParams } from 'react-router';
 import { BrandLogo } from '../components/BrandLogo';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
+import { Icon } from '../components/Icon';
+import { Metric } from '../components/Metric';
+import { ThemeSwitcher } from '../components/ThemeSwitcher';
+import { ToastRegion } from '../components/Toasts';
 import { PageHeader } from '../components/PageHeader';
 import { EmptyState, ErrorState, Field, Loading, Notice } from '../components/ui';
 import { useFocusOnError } from '../lib/a11y';
@@ -81,12 +85,14 @@ function OperatorShellFrame({ children, actions }: { children: ReactNode; action
         </span>
         <div className="public-header-actions operator-header-actions">
           {actions}
+          <ThemeSwitcher />
           <LanguageSwitcher />
         </div>
       </header>
       <main id="main-content" className="public-main operator-main" tabIndex={-1}>
         {children}
       </main>
+      <ToastRegion />
       <footer className="app-footer">{t('operator.footer')}</footer>
     </div>
   );
@@ -200,7 +206,6 @@ function OperatorLayout({ children }: { children: ReactNode }) {
           </NavLink>
         ))}
       </nav>
-      <Notice kind="info">{t('operator.privacyRule')}</Notice>
       {children}
     </OperatorShellFrame>
   );
@@ -243,25 +248,61 @@ export function OperatorOverviewPage() {
   return (
     <>
       <PageHeader title={t('operator.nav.overview')} />
-      <div className="stats">
-        <div className="stat">
-          <strong>{fmt.number(o.organizations)}</strong> {t('operator.overview.organizations')}
-        </div>
-        {(['active', 'past_due', 'restricted', 'expired', 'canceled', 'none'] as const).map((s) => (
-          <div className="stat" key={s}>
-            <strong>{fmt.number(o.subscriptions.byStatus[s] ?? 0)}</strong> {t(`subscription.status.${s}`)}
-          </div>
-        ))}
-        <div className="stat">
-          <strong>{fmt.number(o.inquiries.new)}</strong> {t('operator.overview.newInquiries')}
-        </div>
-        <div className="stat">
-          <strong>{fmt.number(o.contactMessages?.new ?? 0)}</strong> {t('operator.overview.newContact')}
-        </div>
-        <div className="stat">
-          <strong>{fmt.number(o.support?.open ?? 0)}</strong> {t('operator.overview.openSupport')}
-        </div>
-      </div>
+      <Notice kind="info">{t('operator.privacyRule')}</Notice>
+      {/* What waits for an operator first, each card opening its list; then the platform at a glance (UX-045). */}
+      <section className="card op-metrics" aria-labelledby="op-action-title">
+        <h2 id="op-action-title" className="card-title">
+          <Icon name="alert" /> {t('operator.overview.needsAction')}
+        </h2>
+        <dl className="metrics metrics--four">
+          <Metric
+            icon="file"
+            tone="warn"
+            label={t('operator.overview.newInquiries')}
+            value={o.inquiries.new}
+            to="/operator/inquiries"
+            linkLabel={t('operator.overview.openList', { label: t('operator.overview.newInquiries') })}
+            testId="op-new-inquiries"
+          />
+          <Metric
+            icon="message"
+            tone="warn"
+            label={t('operator.overview.newContact')}
+            value={o.contactMessages?.new ?? 0}
+            to="/operator/contact-messages"
+            linkLabel={t('operator.overview.openList', { label: t('operator.overview.newContact') })}
+          />
+          <Metric
+            icon="help"
+            tone="info"
+            label={t('operator.overview.openSupport')}
+            value={o.support?.open ?? 0}
+            to="/operator/support"
+            linkLabel={t('operator.overview.openList', { label: t('operator.overview.openSupport') })}
+          />
+          <Metric
+            icon="card"
+            tone="bad"
+            label={t('subscription.status.past_due')}
+            value={o.subscriptions.byStatus.past_due ?? 0}
+            to="/operator/organizations"
+            linkLabel={t('operator.overview.openList', { label: t('subscription.status.past_due') })}
+          />
+        </dl>
+      </section>
+      <section className="card op-metrics" aria-labelledby="op-status-title">
+        <h2 id="op-status-title" className="card-title">
+          <Icon name="chart" /> {t('operator.overview.platformStatus')}
+        </h2>
+        <dl className="metrics metrics--six">
+          <Metric icon="building" tone="brand" label={t('operator.overview.organizations')} value={o.organizations} to="/operator/organizations" testId="op-organizations" />
+          <Metric icon="checkCircle" tone="ok" label={t('subscription.status.active')} value={o.subscriptions.byStatus.active ?? 0} />
+          <Metric icon="lock" tone="warn" label={t('subscription.status.restricted')} value={o.subscriptions.byStatus.restricted ?? 0} />
+          <Metric icon="clock" tone="muted" label={t('subscription.status.expired')} value={o.subscriptions.byStatus.expired ?? 0} />
+          <Metric icon="ban" tone="muted" label={t('subscription.status.canceled')} value={o.subscriptions.byStatus.canceled ?? 0} />
+          <Metric icon="layers" tone="neutral" label={t('subscription.status.none')} value={o.subscriptions.byStatus.none ?? 0} />
+        </dl>
+      </section>
       <div className="card-grid card-grid--wide">
         <section className="card" aria-labelledby="op-health-title">
           <h2 id="op-health-title">{t('operator.overview.health')}</h2>
@@ -498,7 +539,7 @@ export function OperatorOrganizationsPage() {
       {list.isPending && <Loading />}
       {list.isError && <ErrorState message={errorMessage(t, list.error)} onRetry={() => void list.refetch()} />}
       {list.isSuccess && list.data.data.length === 0 && (
-        <EmptyState>
+        <EmptyState icon="building">
           {q ? (
             <>
               {t('operator.organizations.noMatches', { q })}{' '}
@@ -670,7 +711,7 @@ export function OperatorOrganizationPage() {
         <section className="card" aria-labelledby="op-org-sub" data-testid="operator-subscription">
           <h2 id="op-org-sub">{t('subscription.current')}</h2>
           {!sub ? (
-            <EmptyState>{t('operator.organization.noSubscription')}</EmptyState>
+            <EmptyState icon="card">{t('operator.organization.noSubscription')}</EmptyState>
           ) : (
             <dl className="details">
               <dt>{t('subscription.kindLabel')}</dt>
@@ -882,7 +923,7 @@ export function OperatorOrganizationPage() {
         <section className="card" aria-labelledby="op-org-history">
           <h2 id="op-org-history">{t('operator.organization.history')}</h2>
           {history.length === 0 ? (
-            <EmptyState>{t('operator.organization.noHistory')}</EmptyState>
+            <EmptyState icon="file">{t('operator.organization.noHistory')}</EmptyState>
           ) : (
             <ol className="timeline">
               {history.map((h, i) => (
@@ -908,7 +949,7 @@ export function OperatorOrganizationPage() {
         <section className="card" aria-labelledby="op-org-events">
           <h2 id="op-org-events">{t('operator.organization.events')}</h2>
           {billingEvents.length === 0 ? (
-            <EmptyState>{t('operator.organization.noEvents')}</EmptyState>
+            <EmptyState icon="file">{t('operator.organization.noEvents')}</EmptyState>
           ) : (
             <ul className="data-list">
               {billingEvents.map((e) => (
@@ -1256,7 +1297,7 @@ export function OperatorInquiriesPage() {
       </div>
       {list.isPending && <Loading />}
       {list.isError && <ErrorState message={errorMessage(t, list.error)} onRetry={() => void list.refetch()} />}
-      {list.isSuccess && list.data.data.length === 0 && <EmptyState>{t('operator.inquiries.none')}</EmptyState>}
+      {list.isSuccess && list.data.data.length === 0 && <EmptyState icon="file">{t('operator.inquiries.none')}</EmptyState>}
       {list.isSuccess && list.data.data.length > 0 && (
         <ul className="data-list">
           {list.data.data.map((i) => (
@@ -1452,6 +1493,9 @@ export function OperatorAuditPage() {
   const fmt = useFormatters();
   useDocumentTitle(t('operator.nav.audit'));
   const [pages, setPages] = useState<string[]>(['']);
+  const [hideSignIns, setHideSignIns] = useState(false);
+  const [actionFilter, setActionFilter] = useState('');
+  const [actorFilter, setActorFilter] = useState('');
   const audit = useQuery({
     queryKey: [...opKeys.audit, pages],
     queryFn: async ({ signal }) => {
@@ -1470,6 +1514,15 @@ export function OperatorAuditPage() {
       {audit.isError && <ErrorState message={errorMessage(t, audit.error)} onRetry={() => void audit.refetch()} />}
       {audit.isSuccess && (
         <>
+          <AuditFilters
+            rows={audit.data.data}
+            hideSignIns={hideSignIns}
+            onHideSignIns={setHideSignIns}
+            action={actionFilter}
+            onAction={setActionFilter}
+            actor={actorFilter}
+            onActor={setActorFilter}
+          />
           <div className="table-wrap">
             <table className="data-table">
               <thead>
@@ -1481,7 +1534,11 @@ export function OperatorAuditPage() {
                 </tr>
               </thead>
               <tbody>
-                {audit.data.data.map((e) => (
+                {audit.data.data
+                  .filter((e) => !(hideSignIns && e.action === 'operator.signed_in'))
+                  .filter((e) => !actionFilter || e.action === actionFilter)
+                  .filter((e) => !actorFilter || (e.operator ?? e.actor) === actorFilter)
+                  .map((e) => (
                   <tr key={e.id}>
                     <td data-label={t('operator.audit.time')}>{fmt.dateTime(e.at, Intl.DateTimeFormat().resolvedOptions().timeZone)}</td>
                     <td data-label={t('operator.audit.actor')}>{e.operator ?? t(`operator.actor.${e.actor}`)}</td>
@@ -1515,6 +1572,58 @@ export function OperatorAuditPage() {
         </>
       )}
     </>
+  );
+}
+
+/** Filters for the platform log; they narrow the entries loaded so far ("Load more" fetches older ones). */
+function AuditFilters({
+  rows,
+  hideSignIns,
+  onHideSignIns,
+  action,
+  onAction,
+  actor,
+  onActor,
+}: {
+  rows: AuditRow[];
+  hideSignIns: boolean;
+  onHideSignIns: (value: boolean) => void;
+  action: string;
+  onAction: (value: string) => void;
+  actor: string;
+  onActor: (value: string) => void;
+}) {
+  const { t } = useTranslation();
+  const actions = [...new Set(rows.map((r) => r.action))].sort();
+  const actors = [...new Set(rows.map((r) => r.operator ?? r.actor))].sort();
+  return (
+    <div className="filters audit-filters">
+      <Field id="audit-action" label={t('operator.audit.action')}>
+        <select id="audit-action" value={action} onChange={(e) => onAction(e.target.value)}>
+          <option value="">{t('operator.audit.allActions')}</option>
+          {actions.map((a) => (
+            <option key={a} value={a}>
+              {t(`operator.audit.actions.${a}`, { defaultValue: a })}
+            </option>
+          ))}
+        </select>
+      </Field>
+      <Field id="audit-actor" label={t('operator.audit.actor')}>
+        <select id="audit-actor" value={actor} onChange={(e) => onActor(e.target.value)} dir="auto">
+          <option value="">{t('operator.audit.allActors')}</option>
+          {actors.map((a) => (
+            <option key={a} value={a}>
+              {t(`operator.actor.${a}`, { defaultValue: a })}
+            </option>
+          ))}
+        </select>
+      </Field>
+      <label className="choice">
+        <input type="checkbox" checked={hideSignIns} onChange={(e) => onHideSignIns(e.target.checked)} />
+        {t('operator.audit.hideSignIns')}
+      </label>
+      <p className="field-hint">{t('operator.audit.filterHint')}</p>
+    </div>
   );
 }
 
@@ -1560,7 +1669,7 @@ export function OperatorSupportPage() {
       </div>
       {list.isPending && <Loading />}
       {list.isError && <ErrorState message={errorMessage(t, list.error)} onRetry={() => void list.refetch()} />}
-      {list.isSuccess && list.data.data.length === 0 && <EmptyState>{t('operator.support.none')}</EmptyState>}
+      {list.isSuccess && list.data.data.length === 0 && <EmptyState icon="help">{t('operator.support.none')}</EmptyState>}
       {list.isSuccess && list.data.data.length > 0 && (
         <ul className="data-list" data-testid="support-queue">
           {list.data.data.map((r) => (
@@ -1647,7 +1756,7 @@ export function OperatorSupportRequestPage() {
             ))}
         />
       ) : (
-        <EmptyState>{t('operator.support.readOnly')}</EmptyState>
+        <EmptyState icon="lock">{t('operator.support.readOnly')}</EmptyState>
       )}
     </>
   );
@@ -1670,7 +1779,7 @@ export function OperatorDevMailPage() {
       <Notice kind="warning">{t('operator.devMail.warning')}</Notice>
       {list.isPending && <Loading />}
       {list.isError && <ErrorState message={errorMessage(t, list.error)} onRetry={() => void list.refetch()} />}
-      {list.isSuccess && list.data.data.length === 0 && <EmptyState>{t('operator.devMail.none')}</EmptyState>}
+      {list.isSuccess && list.data.data.length === 0 && <EmptyState icon="mail">{t('operator.devMail.none')}</EmptyState>}
       {list.isSuccess && list.data.data.length > 0 && (
         <ul className="data-list" data-testid="dev-mail">
           {list.data.data.map((m) => (
@@ -1730,7 +1839,7 @@ export function OperatorContactMessagesPage() {
       </div>
       {list.isPending && <Loading />}
       {list.isError && <ErrorState message={errorMessage(t, list.error)} onRetry={() => void list.refetch()} />}
-      {list.isSuccess && list.data.data.length === 0 && <EmptyState>{t('operator.contact.none')}</EmptyState>}
+      {list.isSuccess && list.data.data.length === 0 && <EmptyState icon="message">{t('operator.contact.none')}</EmptyState>}
       {list.isSuccess && list.data.data.length > 0 && (
         <ul className="data-list" data-testid="contact-messages">
           {list.data.data.map((m) => (

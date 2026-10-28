@@ -16,13 +16,57 @@ import { orgKeys, useOrg } from '../org/context';
 
 const DURATIONS = [10, 15, 20, 30, 45, 60, 90];
 
+/**
+ * The chosen patient is not (or no longer) registered in the chosen branch: a warning, and — for
+ * front-desk roles — registering them there without leaving the booking (UX-022). The API checks
+ * the branch access again.
+ */
+function RegisterHere({
+  patient,
+  branchId,
+  canRegister,
+  onRegistered,
+}: {
+  patient: PatientSummary;
+  branchId: string;
+  canRegister: boolean;
+  onRegistered: (patient: PatientSummary) => void;
+}) {
+  const { t } = useTranslation();
+  const { orgId } = useOrg();
+  const invalidate = useInvalidateOrg();
+  const archived = patient.registrations.some((r) => r.branchId === branchId && r.status === 'archived');
+  const register = useMutation({
+    mutationFn: () =>
+      archived
+        ? api<{ patient: Patient }>(`/orgs/${orgId}/patients/${patient.id}/registrations/${branchId}`, { method: 'PATCH', body: { status: 'active' } })
+        : api<{ patient: Patient }>(`/orgs/${orgId}/patients/${patient.id}/registrations`, { method: 'POST', body: { branchId } }),
+    onSuccess: async ({ patient: next }) => {
+      onRegistered(next);
+      await invalidate();
+    },
+  });
+  return (
+    <div className="notice notice--warning" role="status" id="booking-branch-warning">
+      <p>{t('booking.notRegisteredHere')}</p>
+      {register.isError && <p>{errorMessage(t, register.error)}</p>}
+      {canRegister && (
+        <button type="button" className="button button--secondary" disabled={register.isPending} onClick={() => register.mutate()}>
+          {t('booking.registerHere')}
+        </button>
+      )}
+    </div>
+  );
+}
+
 /** New booking: patient → branch → practitioner → date → server-provided slot → confirm. */
 export function BookAppointmentPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [params] = useSearchParams();
-  const { orgId, branches, selectedBranchId, timeZone } = useOrg();
+  const { orgId, branches, selectedBranchId, timeZone, can } = useOrg();
+  const fmt = useFormatters();
   const invalidate = useInvalidateOrg();
   useDocumentTitle(t('booking.title'));
 
@@ -38,7 +82,12 @@ export function BookAppointmentPage() {
   const activeBranches = branches.filter((b) => b.status === 'active');
   // Derived on every render: the branch list may still be loading when the page opens.
   const [branchChoice, setBranchId] = useState('');
-  const defaultBranch = activeBranches.some((b) => b.id === selectedBranchId) ? selectedBranchId : (activeBranches[0]?.id ?? '');
+  // The default follows the patient (UX-022): the header branch when they are registered there,
+  // otherwise their first active registration; without a patient, the header branch.
+  const registeredIn = (id: string) => Boolean(patient?.registrations.some((r) => r.branchId === id && r.status === 'active'));
+  const headerBranch = activeBranches.some((b) => b.id === selectedBranchId) ? selectedBranchId : (activeBranches[0]?.id ?? '');
+  const patientBranch = patient && !registeredIn(headerBranch) ? activeBranches.find((b) => registeredIn(b.id))?.id : undefined;
+  const defaultBranch = patientBranch ?? headerBranch;
   const branchId = activeBranches.some((b) => b.id === branchChoice) ? branchChoice : defaultBranch;
   const [practitionerId, setPractitionerId] = useState('');
   const [date, setDate] = useState(() => (timeZone ? todayIn(timeZone) : ''));
@@ -98,12 +147,13 @@ export function BookAppointmentPage() {
   }
   if (presetPatient && preset.isPending && !chosenPatient) return <Loading />;
 
-  const ready = Boolean(patient && branchId && practitionerId && slot);
+  const registeredHere = registeredIn(branchId);
+  // The API refuses a branch the patient is not registered in; the button says so before sending.
+  const ready = Boolean(patient && registeredHere && branchId && practitionerId && slot);
   const onSubmit = (event: FormEvent) => {
     event.preventDefault();
     if (ready) book.mutate();
   };
-  const registeredHere = patient?.registrations.some((r) => r.branchId === branchId && r.status === 'active');
 
   return (
     <>
@@ -117,7 +167,17 @@ export function BookAppointmentPage() {
             resetAttempt();
           }}
         />
-        {patient && !registeredHere && <Notice kind="info">{t('booking.notRegisteredHere')}</Notice>}
+        {patient && !registeredHere && (
+          <RegisterHere
+            patient={patient}
+            branchId={branchId}
+            canRegister={can('patient.registration.manage')}
+            onRegistered={(next) => {
+              setPatient(next);
+              resetAttempt();
+            }}
+          />
+        )}
         <div className="form-grid">
           <Field id="booking-branch" label={t('booking.branch')}>
             <select
@@ -154,10 +214,11 @@ export function BookAppointmentPage() {
               ))}
             </select>
           </Field>
-          <Field id="booking-date" label={t('booking.date')}>
+          <Field id="booking-date" label={t('booking.date')} hint={date ? fmt.localDate(date) : undefined}>
             <input
               id="booking-date"
               type="date"
+              aria-describedby={date ? 'booking-date-hint' : undefined}
               min={todayIn(timeZone)}
               value={date}
               onChange={(e) => {
@@ -180,7 +241,7 @@ export function BookAppointmentPage() {
                 .sort((a, b) => a - b)
                 .map((d) => (
                   <option key={d} value={d}>
-                    {t('booking.minutes', { n: d })}
+                    {t('booking.minutes', { count: d })}
                   </option>
                 ))}
             </select>
@@ -201,7 +262,12 @@ export function BookAppointmentPage() {
           onChange={setSlot}
         />
         <div className="form-actions">
-          <button type="submit" className="button button--primary" disabled={!ready || book.isPending}>
+          <button
+            type="submit"
+            className="button button--primary"
+            disabled={!ready || book.isPending}
+            aria-describedby={patient && !registeredHere ? 'booking-branch-warning' : undefined}
+          >
             {book.isPending ? t('common.saving') : t('booking.confirm')}
           </button>
           <Link className="button button--secondary" to={`/app/${orgId}/appointments`}>
@@ -271,7 +337,7 @@ export function RescheduleAppointmentPage() {
       >
         <p>{t('booking.currentTime', { time: fmt.dateTime(a.startAt, timeZone) })}</p>
         {save.isError && <Notice kind="error">{errorMessage(t, save.error)}</Notice>}
-        <Field id="reschedule-date" label={t('booking.date')}>
+        <Field id="reschedule-date" label={t('booking.date')} hint={date ? fmt.localDate(date) : undefined}>
           <input
             id="reschedule-date"
             type="date"
@@ -289,6 +355,7 @@ export function RescheduleAppointmentPage() {
           date={date}
           durationMinutes={a.durationMinutes}
           excludeAppointmentId={a.id}
+          currentStartAt={a.startAt}
           value={slot}
           onChange={setSlot}
         />

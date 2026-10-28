@@ -34,7 +34,11 @@ export function LanguageSwitcher({ onSwitched }: { onSwitched?: (language: 'ar' 
       onClick={() => void switchLanguage()}
     >
       <Icon name="globe" />
-      <span>{t('language.switchTo')}</span>
+      <span className="language-switcher-label">{t('language.switchTo')}</span>
+      {/* Short form for narrow headers (CSS shows it); the full name stays the accessible label. */}
+      <span className="language-switcher-code" aria-hidden="true">
+        {next === 'en' ? 'EN' : 'ع'}
+      </span>
     </button>
   );
 }

@@ -3,6 +3,8 @@
 // specialty.seed.ts) — a test keeps them in sync. Radiology and other complex specialties are not
 // SaaS solutions: they belong to the custom-ownership path.
 
+import type { IconName } from '../components/Icon';
+
 export type SolutionKey = 'dentistry' | 'physiotherapy' | 'ent' | 'medicalCenters';
 export type SolutionSlug = 'dentistry' | 'physiotherapy' | 'ent' | 'medical-centers';
 
@@ -21,13 +23,19 @@ export type Solution = {
   tone: 'dentistry' | 'physiotherapy' | 'ent' | 'centers';
   /** Real workspace screenshot (synthetic data) under /product/<lang>/<shot>.jpg. */
   shot: string;
+  /** One icon per card, in the order of the locale lists `problems`, `tools` and `workflow`. */
+  icons: { problems: readonly IconName[]; tools: readonly IconName[]; workflow: readonly IconName[] };
 };
 
 export const SOLUTIONS: readonly Solution[] = [
-  { slug: 'dentistry', key: 'dentistry', specialtyCode: 'dentistry', start: { specialty: 'dentistry' }, inquiryInterest: 'dentistry', icon: 'tooth', tone: 'dentistry', shot: 'dental' },
-  { slug: 'physiotherapy', key: 'physiotherapy', specialtyCode: 'physiotherapy', start: { specialty: 'physiotherapy' }, inquiryInterest: 'physiotherapy', icon: 'activity', tone: 'physiotherapy', shot: 'physio' },
-  { slug: 'ent', key: 'ent', specialtyCode: 'ent', start: { specialty: 'ent' }, inquiryInterest: 'ent', icon: 'ear', tone: 'ent', shot: 'ent' },
-  { slug: 'medical-centers', key: 'medicalCenters', specialtyCode: null, start: { type: 'medical_center' }, inquiryInterest: 'multi_specialty', icon: 'layers', tone: 'centers', shot: 'week' },
+  { slug: 'dentistry', key: 'dentistry', specialtyCode: 'dentistry', start: { specialty: 'dentistry' }, inquiryInterest: 'dentistry', icon: 'tooth', tone: 'dentistry', shot: 'dental',
+    icons: { problems: ['layers', 'clock', 'tooth', 'users', 'calendar', 'wallet'], tools: ['tooth', 'file', 'layers', 'stethoscope'], workflow: ['calendar', 'queue', 'tooth', 'wallet'] } },
+  { slug: 'physiotherapy', key: 'physiotherapy', specialtyCode: 'physiotherapy', start: { specialty: 'physiotherapy' }, inquiryInterest: 'physiotherapy', icon: 'activity', tone: 'physiotherapy', shot: 'physio',
+    icons: { problems: ['calendar', 'clock', 'building', 'activity', 'checkCircle', 'wallet'], tools: ['file', 'layers', 'activity', 'checkCircle'], workflow: ['file', 'calendar', 'activity', 'checkCircle'] } },
+  { slug: 'ent', key: 'ent', specialtyCode: 'ent', start: { specialty: 'ent' }, inquiryInterest: 'ent', icon: 'ear', tone: 'ent', shot: 'ent',
+    icons: { problems: ['clock', 'queue', 'ear', 'calendar', 'users', 'wallet'], tools: ['file', 'ear', 'calendar', 'stethoscope'], workflow: ['calendar', 'queue', 'ear', 'wallet'] } },
+  { slug: 'medical-centers', key: 'medicalCenters', specialtyCode: null, start: { type: 'medical_center' }, inquiryInterest: 'multi_specialty', icon: 'layers', tone: 'centers', shot: 'week',
+    icons: { problems: ['building', 'file', 'lock', 'chart', 'wallet', 'users'], tools: ['building', 'layers', 'users', 'stethoscope'], workflow: ['building', 'layers', 'users', 'activity'] } },
 ];
 
 export const SPECIALTY_SOLUTION_CODES = SOLUTIONS.flatMap((s) => (s.specialtyCode ? [s.specialtyCode] : []));
@@ -65,3 +73,5 @@ export const PUBLIC_PATHS: readonly string[] = [
 
 /** A real workspace screenshot (synthetic demo data) in the page language. */
 export const productShot = (name: string, language: string) => `/product/${language === 'en' ? 'en' : 'ar'}/${name}.jpg`;
+/** 1x and 2x files of a screenshot, for <img srcSet> (UX-008: readable on high-density screens). */
+export const productShotSet = (name: string, language: string) => `${productShot(name, language)} 1x, ${productShot(name, language).replace(/\.jpg$/, '@2x.jpg')} 2x`;

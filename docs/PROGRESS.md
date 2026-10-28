@@ -1,6 +1,19 @@
 # Progress
 
-_Last updated: 2026-10-27 (public website redesign in review, stacked on the front-end audit fixes)._
+_Last updated: 2026-10-28 (UI polish in review, stacked on the public website redesign)._
+
+## UI polish: light and dark themes, review findings (in review)
+
+Branch `phase-15/ui-polish`, PR [#16](https://github.com/mostafaapozena/clinc-saas/pull/16), stacked on `phase-14/public-redesign`. Tracker: [UI_POLISH_IMPLEMENTATION.md](UI_POLISH_IMPLEMENTATION.md) (every finding UX-001…049, ICN, ANIM and brief requirement with status and evidence).
+
+- **Themes:** light and dark everywhere, one switch per layout and a light/dark/system choice on the profile; saved per device; applied before the first paint (`public/theme-init.js`).
+- **Header:** dropdown icons centered and tinted, keyboard focus return, no horizontal scroll 1024–1920px in Arabic or English, sign-in always visible.
+- **Dashboards:** metric cards with icons, real values counting up once, links to the filtered lists; getting-started checklist for new organizations; operator overview grouped by what needs action.
+- **Workflows:** booking branch safeguards, action confirmations, doctor goes straight to the record, finalize pre-check and autosave, payment from the invoice, preselected charges.
+- **Public site:** motion (reveals, hero float, cross-fade, lightbox) off with reduced motion; product screenshots at 2x.
+- **Spacing and alignment:** one spacing system for the workspace and operator console (root cause: a sibling margin pushed the second card of every row down); tracker [SPACING_ALIGNMENT_POLISH.md](SPACING_ALIGNMENT_POLISH.md).
+- **Waiting on the owner:** D-2 (merge home sections), D-4 (count specialty findings for finalizing), D-6 (sign-in language after logout).
+
 
 ## Front-end redesign (in review)
 
@@ -471,19 +484,21 @@ management, bilingual shell (Arabic/RTL/Alexandria, English/LTR/Inter). Details:
 
 ## Production gaps (must be resolved before real data or deployment)
 
+The current, categorized list (missing / incomplete / awaiting configuration / awaiting a provider / optional / out of scope, with what blocks a demo, a pilot or production) is [PLATFORM_REMAINING_GAPS_AR.md](PLATFORM_REMAINING_GAPS_AR.md). Summary:
+
 - **Hosting and data residency for Egypt and Saudi Arabia — undecided**; backups, monitoring,
   incident response, secrets management.
 - Legal/regulatory review for processing patient administrative data; retention and deletion
   policy; data-subject requests.
 - A real email provider for verification, recovery and invitations (flows built; development sink only).
 - MFA (options documented, not built).
-- Shared rate-limit store for multiple instances; abuse monitoring.
+- Abuse monitoring (the shared rate-limit store exists).
 - Audit viewer, retention and export; ownership transfer, organization deletion, member removal.
 - Patient duplicate reconciliation policy; time-zone migration workflow.
 - Independent security review / penetration test, including the concurrency design under load.
 - Clinical records: clinician review, legal review of record keeping, delegation/break-glass policy,
   clinical audit viewer and retention ([CLINICAL.md](architecture/CLINICAL.md#known-limitations-and-production-gates)).
-- No specialty clinical tools, billing, subscriptions, payments, messaging or public booking exist.
+- Real payment provider, tax and e-invoicing; no messaging/reminders or public booking (specialty tools, clinic finances and subscriptions exist, payments simulated).
 
 ## Next
 

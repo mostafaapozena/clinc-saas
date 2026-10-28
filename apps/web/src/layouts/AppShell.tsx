@@ -6,6 +6,8 @@ import { SESSION_KEY, useAuthActions, useSession } from '../auth/session';
 import { BrandLogo } from '../components/BrandLogo';
 import { Icon, type IconName } from '../components/Icon';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
+import { ThemeSwitcher } from '../components/ThemeSwitcher';
+import { ToastRegion } from '../components/Toasts';
 import { ErrorState, Loading } from '../components/ui';
 import { useRouteFocus } from '../lib/a11y';
 import { ApiError, api } from '../lib/api';
@@ -234,6 +236,7 @@ function Shell({ orgId, detail, branches }: { orgId: string; detail: OrgDetail; 
             <BranchSwitcher />
             <SpecialtySwitcher />
             <div className="topbar-end">
+              <ThemeSwitcher />
               <LanguageSwitcher />
               <UserMenu orgId={orgId} />
             </div>
@@ -241,6 +244,7 @@ function Shell({ orgId, detail, branches }: { orgId: string; detail: OrgDetail; 
           <main id="main-content" className="content" tabIndex={-1} ref={mainRef}>
             <Outlet />
           </main>
+          <ToastRegion />
         </div>
       </div>
     </OrgContext.Provider>
@@ -254,6 +258,17 @@ function OrgSwitcher({ orgId, currentName }: { orgId: string; currentName: strin
   const options = memberships.some((m) => m.organization.id === orgId)
     ? memberships
     : [{ organization: { id: orgId, name: currentName } }, ...memberships];
+  // Nothing to choose: show the name, not a one-option list (UX-027).
+  if (options.length === 1) {
+    return (
+      <div className="switcher switcher--static">
+        <span className="switcher-label">{t('shell.organization')}</span>
+        <bdi className="switcher-value" id="org-current">
+          {currentName}
+        </bdi>
+      </div>
+    );
+  }
   return (
     <div className="switcher">
       <label htmlFor="org-switcher" className="switcher-label">
@@ -275,12 +290,22 @@ function BranchSwitcher() {
   const { detail, branches, selectedBranchId, selectBranch } = useOrg();
   const active = branches.filter((b) => b.status === 'active');
   if (active.length === 0) return null;
+  if (active.length === 1 && detail.membership.branchScope.type !== 'all') {
+    return (
+      <div className="switcher switcher--static">
+        <span className="switcher-label">{t('shell.branch')}</span>
+        <bdi className="switcher-value" id="branch-current">
+          {active[0]!.name}
+        </bdi>
+      </div>
+    );
+  }
   return (
     <div className="switcher">
       <label htmlFor="branch-switcher" className="switcher-label">
         {t('shell.branch')}
       </label>
-      <select id="branch-switcher" value={selectedBranchId} onChange={(e) => selectBranch(e.target.value)}>
+      <select id="branch-switcher" dir="auto" value={selectedBranchId} onChange={(e) => selectBranch(e.target.value)}>
         {detail.membership.branchScope.type === 'all' && <option value="all">{t('shell.allBranches')}</option>}
         {active.map((b) => (
           <option key={b.id} value={b.id}>

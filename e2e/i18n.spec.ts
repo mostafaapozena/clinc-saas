@@ -52,7 +52,7 @@ test('the language preference is saved to the account and localized formatting f
 
   await page.getByRole('button', { name: 'العربية' }).click();
   await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
-  await expect(page.getByTestId('home-role')).toHaveText('مشاهد');
+  await expect(page.getByTestId('home-role')).toHaveText('مطّلع');
   await expect(page.getByTestId('stat-branches')).toHaveText(new Intl.NumberFormat('ar').format(3));
 
   // A new browser context (no local preference) gets the saved account preference.

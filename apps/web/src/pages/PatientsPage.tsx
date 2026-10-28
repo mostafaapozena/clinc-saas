@@ -1,10 +1,10 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { useDeferredValue, useRef, useState, type FormEvent } from 'react';
+import { useDeferredValue, useEffect, useRef, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router';
 import { PageHeader } from '../components/PageHeader';
 import { PatientFields } from '../components/PatientForm';
-import { useFocusOnError } from '../lib/a11y';
+import { revealAndFocus, useFocusOnError } from '../lib/a11y';
 import { emptyPatientForm, patientBody, type PatientFormValue } from '../lib/patient-form';
 import { useInvalidateOrg } from '../lib/scheduling';
 import { EmptyState, ErrorState, Field, Loading, Notice } from '../components/ui';
@@ -19,7 +19,7 @@ const PAGE_SIZE = 20;
 
 export function PatientsPage() {
   const { t } = useTranslation();
-  const { orgId, can, branches } = useOrg();
+  const { orgId, can, branches, detail } = useOrg();
   const branchFilter = useBranchFilter();
   const fmt = useFormatters();
   const [search, setSearch] = useState('');
@@ -28,6 +28,12 @@ export function PatientsPage() {
   const [sort, setSort] = useState<'recent' | 'name' | 'number'>('recent');
   const [page, setPage] = useState(1);
   const [creating, setCreating] = useState(false);
+  const newButton = useRef<HTMLButtonElement>(null);
+  const closeCreate = () => {
+    setCreating(false);
+    // Focus returns to the button that opened the form (UX-043).
+    requestAnimationFrame(() => newButton.current?.focus());
+  };
   useDocumentTitle(t('nav.patients'));
 
   const params = { q, branchId: branchFilter, status, sort, page, pageSize: PAGE_SIZE };
@@ -49,12 +55,12 @@ export function PatientsPage() {
     <>
       <PageHeader title={t('patients.title')} subtitle={t('patients.subtitle')}>
         {can('patient.create') && !creating && (
-          <button type="button" className="button button--primary" onClick={() => setCreating(true)}>
+          <button type="button" className="button button--primary" ref={newButton} onClick={() => setCreating(true)}>
             {t('patients.new')}
           </button>
         )}
       </PageHeader>
-      {creating && <CreatePatient onCancel={() => setCreating(false)} />}
+      {creating && <CreatePatient onCancel={closeCreate} />}
 
       <section className="card" aria-labelledby="patients-list-title">
         <div className="section-header">
@@ -86,11 +92,14 @@ export function PatientsPage() {
             </select>
           </Field>
         </div>
-        {branchFilter && <p className="muted small">{t('patients.branchFilterNote', { branch: branchName.get(branchFilter) ?? '' })}</p>}
+        {/* Only when "all branches" is really a choice for this user (UX-027). */}
+        {branchFilter && detail.membership.branchScope.type === 'all' && (
+          <p className="muted small">{t('patients.branchFilterNote', { branch: branchName.get(branchFilter) ?? '' })}</p>
+        )}
 
         {list.isPending && <Loading />}
         {list.isError && <ErrorState message={errorMessage(t, list.error)} onRetry={() => void list.refetch()} />}
-        {list.isSuccess && list.data.data.length === 0 && <EmptyState>{q ? t('patients.noMatches') : t('patients.empty')}</EmptyState>}
+        {list.isSuccess && list.data.data.length === 0 && <EmptyState icon="search">{q ? t('patients.noMatches') : t('patients.empty')}</EmptyState>}
         {list.isSuccess && list.data.data.length > 0 && (
           <>
             <table className="data-table" aria-label={t('patients.listTitle')}>
@@ -115,7 +124,7 @@ export function PatientsPage() {
                     <td data-label={t('patients.branches')}>
                       <span className="chip-row">
                         {p.registrations.map((r) => (
-                          <span key={r.branchId} className={`badge badge--${r.status === 'active' ? 'active' : 'inactive'}`}>
+                          <span key={r.branchId} className={`badge badge--branch${r.status === 'active' ? '' : ' badge--branch-archived'}`}>
                             {branchName.get(r.branchId) ?? '—'}
                             {r.status === 'archived' && ` (${t('patients.archived')})`}
                           </span>
@@ -175,7 +184,10 @@ function CreatePatient({ onCancel }: { onCancel: () => void }) {
     : [];
   const fields = fieldErrors(create.error);
   const sectionRef = useRef<HTMLElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
   useFocusOnError(sectionRef, create.error);
+  // The form replaces the list: take keyboard and screen-reader users to it (UX-043).
+  useEffect(() => revealAndFocus(titleRef.current), []);
 
   const onSubmit = (event: FormEvent) => {
     event.preventDefault();
@@ -184,7 +196,9 @@ function CreatePatient({ onCancel }: { onCancel: () => void }) {
 
   return (
     <section className="card" aria-labelledby="new-patient-title" ref={sectionRef}>
-      <h2 id="new-patient-title">{t('patients.newTitle')}</h2>
+      <h2 id="new-patient-title" ref={titleRef} tabIndex={-1}>
+        {t('patients.newTitle')}
+      </h2>
       <p className="muted small">{t('patients.newHint')}</p>
       {create.isError && duplicates.length === 0 && (
         <Notice kind="error">{Object.keys(fields).length > 0 ? t('errors.VALIDATION_ERROR') : errorMessage(t, create.error)}</Notice>

@@ -22,7 +22,8 @@ test('a member of two organizations switches scope without leftovers from the pr
 
   await expect(page.getByTestId('home-org-name')).toHaveText(SHIFA);
   await expect(page.getByTestId('home-role')).toHaveText('طبيب');
-  await expect(page.locator('#branch-switcher option')).toHaveText(['فرع جدة']);
+  // One branch: shown as text, not as a one-option list.
+  await expect(page.locator('#branch-current')).toHaveText('فرع جدة');
   await expect(page.getByRole('navigation').getByRole('link', { name: 'الفريق' })).toHaveCount(0);
   // Nothing from the previous organization remains on screen.
   const main = page.locator('#main-content');
@@ -44,7 +45,7 @@ test('a branch-restricted doctor only sees permitted pages and branches', async 
   // milestone 1 adds clinical coverage (records shared between doctors); milestone 5 adds help & support.
   await expect(nav.getByRole('link')).toHaveText(['الرئيسية', 'المواعيد', 'قائمة الانتظار', 'جدولي', 'التغطية السريرية', 'الفروع', 'المساعدة والدعم', 'الملف الشخصي']);
   await expect(page.getByTestId('stat-members')).toHaveCount(0);
-  await expect(page.locator('#branch-switcher option')).toHaveText(['فرع المعادي']);
+  await expect(page.locator('#branch-current')).toHaveText('فرع المعادي');
 
   await page.goto(`/app/${orgId}/team`);
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('لا يمكنك الوصول إلى هذه الصفحة');
@@ -86,7 +87,7 @@ test('an owner manages the team: add an existing user, change role and branches,
   await editor.getByLabel('الدور').selectOption('viewer');
   await editor.getByLabel('كل الفروع').check();
   await editor.getByRole('button', { name: 'حفظ' }).click();
-  await expect(row.getByTestId('member-role')).toHaveText('مشاهد');
+  await expect(row.getByTestId('member-role')).toHaveText('مطّلع');
   await expect(row).toContainText('كل الفروع');
 
   await row.getByRole('button', { name: /^إيقاف عضوية/ }).click();

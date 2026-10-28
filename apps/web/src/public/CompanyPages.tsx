@@ -2,13 +2,18 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { Icon, type IconName } from '../components/Icon';
 import { usePageMeta } from '../lib/pageMeta';
-import { Breadcrumb, CtaBlock, FeatureList, IconTile, SectionHeader, SolutionCards } from './shared';
+import { Breadcrumb, CtaBlock, FactValue, FeatureList, IconTile, SectionHeader, SolutionCards } from './shared';
 import { useList, useObjects, type TitledItem } from './useList';
 
 // Company pages. Only verified facts: raclinic is a product built by Devware; everything else here
 // describes the product as it is implemented (no history, team, customer numbers or certifications).
 
 const PRINCIPLE_ICONS: IconName[] = ['globe', 'lock', 'stethoscope', 'check'];
+/** One icon per section of site.security.sections / site.privacy.sections, in order. */
+const PROSE_ICONS: Record<'security' | 'privacy', IconName[]> = {
+  security: ['building', 'users', 'lock', 'shield', 'clock', 'file'],
+  privacy: ['message', 'users', 'lock', 'mail', 'clock'],
+};
 
 export function AboutPage() {
   const { t } = useTranslation();
@@ -29,7 +34,9 @@ export function AboutPage() {
           <ul className="site-stat-row site-stat-row--spaced">
             {facts.map((fact) => (
               <li key={fact.label}>
-                <strong>{fact.value}</strong>
+                <strong>
+                  <FactValue value={fact.value} />
+                </strong>
                 <span>{fact.label}</span>
               </li>
             ))}
@@ -114,8 +121,9 @@ function ProsePage({ page, path, icon }: { page: 'security' | 'privacy'; path: s
       </section>
       <section className="site-section site-section--light" aria-label={t(`site.${page}.title`)}>
         <div className="site-container site-narrow site-prose">
-          {sections.map((section) => (
-            <section key={section.title} className="site-card">
+          {sections.map((section, index) => (
+            <section key={section.title} className="site-card site-card--prose" data-reveal>
+              {PROSE_ICONS[page][index] && <IconTile name={PROSE_ICONS[page][index]} />}
               <h2>{section.title}</h2>
               <p>{section.body}</p>
             </section>

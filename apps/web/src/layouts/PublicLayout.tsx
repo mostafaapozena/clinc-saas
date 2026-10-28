@@ -4,6 +4,7 @@ import { Link } from 'react-router';
 import { BrandLogo } from '../components/BrandLogo';
 import { Icon } from '../components/Icon';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
+import { ThemeSwitcher } from '../components/ThemeSwitcher';
 
 /**
  * Layout of sign-in, registration, onboarding and simple standalone pages. With `brand`, the
@@ -25,6 +26,7 @@ export function PublicLayout({ children, actions, brand = false, panel = false }
           )}
           <div className="public-header-actions">
             {actions}
+            <ThemeSwitcher />
             <LanguageSwitcher />
           </div>
         </header>
@@ -65,7 +67,8 @@ function AuthPanel() {
             </li>
           ))}
         </ul>
-        <img className="auth-panel-shot" src={`/product/${language}/appointments.jpg`} alt={t('auth.panel.shotAlt')} loading="lazy" decoding="async" />
+        <img className="auth-panel-shot" src={`/product/${language}/appointments.jpg`}
+          srcSet={`/product/${language}/appointments.jpg 1x, /product/${language}/appointments@2x.jpg 2x`} alt={t('auth.panel.shotAlt')} loading="lazy" decoding="async" />
         <p className="auth-panel-note">{t('auth.panel.note')}</p>
       </div>
     </aside>

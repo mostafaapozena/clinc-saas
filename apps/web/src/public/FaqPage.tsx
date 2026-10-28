@@ -69,7 +69,7 @@ export function FaqPage() {
           </label>
         </div>
       </section>
-      <section className="site-section" aria-label={t('site.faqPage.title')}>
+      <section className="site-section site-section--after-hero" aria-label={t('site.faqPage.title')}>
         <div className="site-container site-narrow">
           <div className="site-faq-tools">
             <div className="site-tabs" role="group" aria-label={t('site.faqPage.categoriesLabel')}>

@@ -65,7 +65,7 @@ describe('money parsing (no floating point)', () => {
 });
 
 describe('patient account', () => {
-  it('invoices selected charges and records a payment, keeping any remainder as credit', async () => {
+  it('invoices the selected charges and opens the draft', async () => {
     const fetchMock = mockApi({
       ...shell('receptionist', DESK),
       [`GET /api/v1/orgs/${ORG}/finance/patients/p1/account`]: account(),
@@ -74,12 +74,30 @@ describe('patient account', () => {
       [`POST /api/v1/orgs/${ORG}/finance/invoices`]: Response.json({ invoice: invoice({ status: 'draft', number: null }) }, { status: 201 }),
       [`POST /api/v1/orgs/${ORG}/finance/payments`]: Response.json({ payment: { id: 'pay1' } }, { status: 201 }),
     });
-    renderRoute(`/app/${ORG}/finance/patients/p1`);
+    const { router } = renderRoute(`/app/${ORG}/finance/patients/p1`);
     const pending = await screen.findByTestId('pending-charges');
-    fireEvent.click(within(pending).getAllByRole('checkbox')[1]!);
+    // UX-036: the pending charges of the branch are selected already; the user unticks one.
+    const boxes = within(pending).getAllByRole('checkbox');
+    expect(boxes.map((b) => (b as HTMLInputElement).checked)).toEqual([true, true]);
+    fireEvent.click(boxes[0]!);
     fireEvent.click(screen.getByRole('button', { name: 'إنشاء فاتورة من المحدد' }));
     await waitFor(() => expect(callsTo(fetchMock, 'POST', '/finance/invoices')).toHaveLength(1));
     expect(JSON.parse(String(callsTo(fetchMock, 'POST', '/finance/invoices')[0]![1].body))).toEqual({ patientId: 'p1', branchId: 'b1', chargeIds: ['c3'] });
+    // …and the new draft opens.
+    await waitFor(() => expect(router.state.location.pathname).toBe(`/app/${ORG}/finance/invoices/i1`));
+  });
+
+  it('records a payment towards the open invoice, keeping any remainder as credit', async () => {
+    const fetchMock = mockApi({
+      ...shell('receptionist', DESK),
+      [`GET /api/v1/orgs/${ORG}/finance/patients/p1/account`]: account(),
+      [`GET /api/v1/orgs/${ORG}/finance/patients/p1/statement`]: { patient: account().patient, entries: [], balances: [] },
+      [`GET /api/v1/orgs/${ORG}/finance/services`]: { data: [] },
+      [`POST /api/v1/orgs/${ORG}/finance/payments`]: Response.json({ payment: { id: 'pay1' } }, { status: 201 }),
+    });
+    // From the invoice's "record a payment": the payment form is open and the amount focused (UX-035).
+    renderRoute(`/app/${ORG}/finance/patients/p1?pay=i1`);
+    await waitFor(() => expect(screen.getByLabelText('المبلغ')).toHaveFocus());
 
     // 200.00 paid towards an invoice with 150.00 due: 150.00 applied, 50.00 kept as credit.
     fireEvent.change(screen.getByLabelText('المبلغ'), { target: { value: '٢٠٠' } });

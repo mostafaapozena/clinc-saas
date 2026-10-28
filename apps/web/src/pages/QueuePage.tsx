@@ -117,13 +117,14 @@ function QueueSection({
         {title} <span className="count-pill">{fmt.number(items.length)}</span>
       </h2>
       {items.length === 0 ? (
-        <EmptyState>{empty}</EmptyState>
+        <EmptyState icon="queue">{empty}</EmptyState>
       ) : (
         <ol className="queue-list">
           {items.map((a, index) => {
             const when = timeLabel === 'arrival' ? a.checkedInAt : timeLabel === 'started' ? a.startedAt : a.startAt;
             return (
               <li key={a.id} className="queue-item" data-testid="queue-entry">
+                <div className="queue-item-body">
                 <span className="queue-position" aria-hidden="true">
                   {fmt.number(index + 1)}
                 </span>
@@ -142,6 +143,7 @@ function QueueSection({
                   {a.documentation && a.status === 'in_progress' && <DocumentationBadge status={a.documentation} />}
                 </div>
                 <AppointmentActions appointment={a} compact />
+                </div>
               </li>
             );
           })}

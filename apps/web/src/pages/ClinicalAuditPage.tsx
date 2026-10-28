@@ -72,7 +72,7 @@ export function ClinicalAuditPage() {
       </div>
       {events.isPending && <Loading />}
       {events.isError && <ErrorState message={errorMessage(t, events.error)} onRetry={() => void events.refetch()} />}
-      {events.isSuccess && rows.length === 0 && <EmptyState>{t('clinicalAudit.empty')}</EmptyState>}
+      {events.isSuccess && rows.length === 0 && <EmptyState icon="shield">{t('clinicalAudit.empty')}</EmptyState>}
       {rows.length > 0 && (
         <div className="table-wrap">
           <table className="data-table" data-testid="clinical-audit">

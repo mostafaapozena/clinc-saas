@@ -6,6 +6,7 @@ import { api, query } from '../lib/api';
 import { conflictAppointments, errorMessage } from '../lib/errors';
 import { useFormatters } from '../lib/format';
 import { availableActions, useInvalidateOrg } from '../lib/scheduling';
+import { showToast } from '../lib/toast';
 import type { Appointment, AppointmentStatus, Page, PatientSummary, Slot, StatusAction } from '../lib/types';
 import { orgKeys, useOrg } from '../org/context';
 import { EmptyState, ErrorState, Field, Loading, Notice } from './ui';
@@ -44,9 +45,11 @@ export function AppointmentActions({ appointment, compact = false }: { appointme
         method: 'POST',
         body: { ...input, version: appointment.version },
       }),
-    onSuccess: async () => {
+    onSuccess: async (_result, input) => {
       setCancelling(false);
       setReason('');
+      // Announced once, and still visible after the entry moves to another list (UX-023).
+      showToast(t(`appointments.done.${input.action}`, { name }));
       await invalidate();
     },
     onError: async () => {
@@ -57,7 +60,10 @@ export function AppointmentActions({ appointment, compact = false }: { appointme
   const actions = availableActions(appointment, org);
   const name = appointment.patient?.fullName ?? '';
   const reasonRequired = appointment.status === 'checked_in';
-  if (actions.length === 0 && !run.isError) return null;
+  // The treating doctor's next step during a visit is the record; completing it comes after (UX-031).
+  const treating =
+    appointment.status === 'in_progress' && org.can('clinical.encounter.own') && Boolean(appointment.practitioner) && org.detail.membership.practitionerId === appointment.practitioner?.id;
+  if (actions.length === 0 && !run.isError && !treating) return null;
 
   const submitCancel = (event: FormEvent) => {
     event.preventDefault();
@@ -92,12 +98,22 @@ export function AppointmentActions({ appointment, compact = false }: { appointme
         </form>
       ) : (
         <div className="row-actions">
+          {treating && (
+            <Link
+              className="button button--primary"
+              to={`/app/${org.orgId}/appointments/${appointment.id}/record`}
+              state={{ startRecord: true }}
+              aria-label={t('clinical.openRecordLabel', { name })}
+            >
+              {t('clinical.openRecord')}
+            </Link>
+          )}
           {actions.map((action) =>
             action === 'cancel' ? (
               <button
                 key={action}
                 type="button"
-                className="button button--secondary"
+                className="button button--danger-outline"
                 onClick={() => setCancelling(true)}
                 aria-label={t('appointments.actionLabel.cancel', { name })}
               >
@@ -107,7 +123,7 @@ export function AppointmentActions({ appointment, compact = false }: { appointme
               <button
                 key={action}
                 type="button"
-                className={action === 'no_show' ? 'button button--secondary' : 'button button--primary'}
+                className={action === 'no_show' || (treating && action === 'complete') ? 'button button--secondary' : 'button button--primary'}
                 disabled={run.isPending}
                 onClick={() => run.mutate({ action })}
                 aria-label={t(`appointments.actionLabel.${action}`, { name })}
@@ -154,6 +170,7 @@ export function SlotPicker({
   date,
   durationMinutes,
   excludeAppointmentId,
+  currentStartAt,
   value,
   onChange,
 }: {
@@ -162,6 +179,8 @@ export function SlotPicker({
   date: string;
   durationMinutes?: number;
   excludeAppointmentId?: string;
+  /** When rescheduling: the appointment's present start, marked among the times (UX-030). */
+  currentStartAt?: string;
   value: Slot | null;
   onChange: (slot: Slot | null) => void;
 }) {
@@ -177,28 +196,42 @@ export function SlotPicker({
   if (!practitionerId || !branchId || !date) return <p className="muted">{t('booking.chooseFirst')}</p>;
   if (slots.isPending) return <Loading />;
   if (slots.isError) return <ErrorState message={errorMessage(t, slots.error)} onRetry={() => void slots.refetch()} />;
-  if (slots.data.length === 0) return <EmptyState>{t('booking.noSlots')}</EmptyState>;
+  if (slots.data.length === 0) return <EmptyState icon="clock">{t('booking.noSlots')}</EmptyState>;
   return (
     <fieldset className="fieldset">
       <legend>{t('booking.availableTimes')}</legend>
-      <div className="slot-grid" role="group" aria-label={t('booking.availableTimes')}>
-        {slots.data.map((slot) => {
-          const selected = value?.startAt === slot.startAt;
-          const label = `${fmt.time(slot.startAt, timeZone ?? 'UTC')}${slot.repeatedTime ? ` (${fmt.offset(slot.utcOffsetMinutes)})` : ''}`;
-          return (
-            <button
-              key={slot.startAt}
-              type="button"
-              className={selected ? 'slot slot--selected' : 'slot'}
-              aria-pressed={selected}
-              data-testid="slot"
-              onClick={() => onChange(selected ? null : slot)}
-            >
-              {label}
-            </button>
-          );
-        })}
-      </div>
+      {/* Grouped before and after noon (local time), so a long list is quicker to scan (UX-030). */}
+      {(['morning', 'afternoon'] as const).map((part) => {
+        const group = slots.data.filter((slot) => (Number(slot.localTime.slice(0, 2)) < 12) === (part === 'morning'));
+        if (group.length === 0) return null;
+        return (
+          <div key={part} className="slot-group">
+            <p className="slot-group-title" id={`slots-${part}`}>
+              {t(`booking.${part}`)}
+            </p>
+            <div className="slot-grid" role="group" aria-labelledby={`slots-${part}`}>
+              {group.map((slot) => {
+                const selected = value?.startAt === slot.startAt;
+                const current = currentStartAt === slot.startAt;
+                const label = `${fmt.time(slot.startAt, timeZone ?? 'UTC')}${slot.repeatedTime ? ` (${fmt.offset(slot.utcOffsetMinutes)})` : ''}`;
+                return (
+                  <button
+                    key={slot.startAt}
+                    type="button"
+                    className={`slot${selected ? ' slot--selected' : ''}${current ? ' slot--current' : ''}`}
+                    aria-pressed={selected}
+                    data-testid="slot"
+                    onClick={() => onChange(selected ? null : slot)}
+                  >
+                    {label}
+                    {current && <span className="slot-current">{t('booking.currentSlot')}</span>}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
       {slots.data.some((s) => s.repeatedTime) && <p className="field-hint">{t('booking.repeatedHourHint')}</p>}
     </fieldset>
   );
@@ -244,7 +277,7 @@ export function PatientPicker({ value, onChange }: { value: PatientSummary | nul
         autoComplete="off"
       />
       {q.length >= 2 && results.isPending && <Loading />}
-      {results.isSuccess && results.data.length === 0 && <EmptyState>{t('patients.noMatches')}</EmptyState>}
+      {results.isSuccess && results.data.length === 0 && <EmptyState icon="search">{t('patients.noMatches')}</EmptyState>}
       {results.isSuccess && results.data.length > 0 && (
         <ul className="pick-list" aria-label={t('booking.searchResults')}>
           {results.data.map((p) => (

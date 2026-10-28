@@ -44,7 +44,7 @@ function Faq() {
       </label>
       <input id="faq-search" type="search" placeholder={t('support.faqSearch')} value={query} onChange={(e) => setQuery(e.target.value)} />
       {shown.length === 0 ? (
-        <EmptyState>{t('support.faqNone')}</EmptyState>
+        <EmptyState icon="help">{t('support.faqNone')}</EmptyState>
       ) : (
         <div className="stack-sm" data-testid="faq">
           {shown.map((i) => (
@@ -164,7 +164,7 @@ export function SupportPage() {
         <h2 id="support-list-title">{t('support.listTitle')}</h2>
         {list.isPending && <Loading />}
         {list.isError && <ErrorState message={errorMessage(t, list.error)} onRetry={() => void list.refetch()} />}
-        {list.isSuccess && list.data.data.length === 0 && <EmptyState>{t('support.none')}</EmptyState>}
+        {list.isSuccess && list.data.data.length === 0 && <EmptyState icon="help">{t('support.none')}</EmptyState>}
         {list.isSuccess && list.data.data.length > 0 && (
           <ul className="data-list" data-testid="support-requests">
             {list.data.data.map((r) => (

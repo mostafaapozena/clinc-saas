@@ -40,7 +40,10 @@
   --font-ar: 'Alexandria Variable', 'Alexandria', Tahoma, sans-serif;
   --font-en: 'Inter Variable', 'Inter', system-ui, sans-serif;
 
-  color-scheme: light dark;
+  --info: #1d4ed8;
+  --info-bg: #e6effc;
+
+  color-scheme: light;
   font-family: var(--font-ar);
   line-height: 1.6;
   color: var(--text);
@@ -51,29 +54,36 @@
   font-family: var(--font-en);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    /* Dark surfaces are derived from the brand navy; turquoise becomes the primary (8.5:1). */
-    --bg: #0d1b2e;
-    --surface: #13253c;
-    --surface-muted: #192f4a;
-    --text: #e6eef5;
-    --muted: #9fb2c4;
-    --border: #2a4260;
-    --primary: var(--brand-turquoise);
-    --primary-strong: #7fdfd4;
-    --primary-contrast: var(--brand-navy);
-    --link: #7fdfd4;
-    --accent: var(--brand-turquoise);
-    --ok: #4ade80;
-    --ok-bg: #12331f;
-    --warn: #facc15;
-    --warn-bg: #3a3110;
-    --bad: #f87171;
-    --bad-bg: #3d1717;
-    --neutral-bg: #233535;
-    --focus: #93c5fd;
-  }
+/*
+ * Dark theme: <html data-theme="dark">, set before the first paint by public/theme-init.js from the
+ * saved choice or the system preference (src/lib/theme.ts). Every color below is a semantic token,
+ * so components never need their own dark-mode rules.
+ */
+:root[data-theme='dark'] {
+  /* Dark surfaces are derived from the brand navy; turquoise becomes the primary (8.5:1). */
+  --bg: #0d1b2e;
+  --surface: #13253c;
+  --surface-muted: #192f4a;
+  --text: #e6eef5;
+  --muted: #9fb2c4; /* 7.0:1 on --surface */
+  --border: #2a4260;
+  --primary: var(--brand-turquoise);
+  --primary-strong: #7fdfd4;
+  --primary-contrast: var(--brand-navy);
+  --link: #7fdfd4;
+  --accent: var(--brand-turquoise);
+  --ok: #4ade80;
+  --ok-bg: #12331f;
+  --warn: #facc15;
+  --warn-bg: #3a3110;
+  --bad: #f87171;
+  --bad-bg: #3d1717;
+  --neutral-bg: #22354d;
+  --focus: #93c5fd;
+  --info: #93c5fd;
+  --info-bg: #172f52;
+
+  color-scheme: dark;
 }
 
 * {
@@ -143,13 +153,11 @@ a {
 }
 
 /* The supplied logo has no reverse variant: on dark surfaces it sits on a light container. */
-@media (prefers-color-scheme: dark) {
-  .brand-logo {
-    box-sizing: content-box;
-    padding: 6px 10px;
-    background: #ffffff;
-    border-radius: 8px;
-  }
+[data-theme='dark'] .brand-logo {
+  box-sizing: content-box;
+  padding: 6px 10px;
+  background: #ffffff;
+  border-radius: 8px;
 }
 
 .auth-brand {
@@ -173,6 +181,12 @@ a {
 .sidebar-brand-link {
   display: inline-block;
   border-radius: 8px;
+}
+
+/* ---------- Header controls ---------- */
+.language-switcher-code {
+  display: none;
+  font-weight: 700;
 }
 
 /* ---------- Icons ---------- */
@@ -523,9 +537,11 @@ input[aria-invalid='true'] {
   gap: 10px;
 }
 
+/* Main content takes the space; the state (badges, metadata) and the actions hug the end, so a
+   status label sits at a predictable place instead of floating mid-row. */
 .data-row {
   display: grid;
-  grid-template-columns: minmax(0, 2fr) minmax(0, 2fr) auto;
+  grid-template-columns: minmax(0, 1fr) fit-content(45%) auto;
   align-items: center;
   gap: 8px 16px;
   padding: 12px 14px;
@@ -1872,6 +1888,22 @@ input[aria-invalid='true'] {
 }
 
 @media print {
+  /* Invoices and receipts always print in the light palette, whatever the screen theme. */
+  :root,
+  :root[data-theme='dark'] {
+    --bg: #ffffff;
+    --surface: #ffffff;
+    --surface-muted: #f3f6f8;
+    --text: #000000;
+    --muted: #444444;
+    --border: #c9d2da;
+    --primary: var(--brand-navy-symbol);
+    --primary-contrast: #ffffff;
+    --link: #000000;
+
+    color-scheme: light;
+  }
+
   .no-print,
   .sidebar,
   .topbar,
@@ -1902,17 +1934,17 @@ input[aria-invalid='true'] {
 .operator-main { max-width: 72rem; width: 100%; margin-inline: auto; }
 .operator-nav { display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; margin-block-end: 1rem; border-block-end: 1px solid var(--border, #d9dee5); padding-block-end: 0.5rem; }
 .operator-nav .nav-link[aria-current='page'] { font-weight: 700; text-decoration: underline; }
-.badge--operator { background: #1f2a44; color: #fff; }
-.badge--subscription-active, .badge--checkout-completed, .badge--plan-status-active { background: #e3f4ea; color: #145c32; }
-.badge--subscription-past_due, .badge--subscription-restricted, .badge--checkout-failed { background: #fdf0d9; color: #7a4b00; }
-.badge--subscription-canceled, .badge--subscription-expired, .badge--subscription-none, .badge--checkout-expired, .badge--plan-status-retired { background: #eceff3; color: #3d4654; }
-.badge--checkout-open, .badge--plan-status-draft { background: #e6effc; color: #1d4b8f; }
+.badge--operator { background: var(--brand-navy); color: #fff; }
+.badge--subscription-active, .badge--checkout-completed, .badge--plan-status-active { background: var(--ok-bg); color: var(--ok); }
+.badge--subscription-past_due, .badge--subscription-restricted, .badge--checkout-failed { background: var(--warn-bg); color: var(--warn); }
+.badge--subscription-canceled, .badge--subscription-expired, .badge--subscription-none, .badge--checkout-expired, .badge--plan-status-retired { background: var(--neutral-bg); color: var(--text); }
+.badge--checkout-open, .badge--plan-status-draft { background: var(--info-bg); color: var(--info); }
 
 /* Support (milestone 5) */
-.badge--support-open { background: #e6effc; color: #1d4b8f; }
-.badge--support-answered { background: #e3f4ea; color: #145c32; }
-.badge--support-closed { background: #eceff3; color: #3d4654; }
-.support-message--operator { border-inline-start: 3px solid #1f2a44; padding-inline-start: 0.75rem; }
+.badge--support-open { background: var(--info-bg); color: var(--info); }
+.badge--support-answered { background: var(--ok-bg); color: var(--ok); }
+.badge--support-closed { background: var(--neutral-bg); color: var(--text); }
+.support-message--operator { border-inline-start: 3px solid var(--primary); padding-inline-start: 0.75rem; }
 .dev-mail-text { white-space: pre-wrap; word-break: break-word; font-size: 0.875rem; }
 details > summary { cursor: pointer; font-weight: 600; padding-block: 0.25rem; }
 
@@ -2008,7 +2040,7 @@ h1[tabindex='-1']:focus {
   }
 
   /* Icon-only language button; its label stays available to screen readers. */
-  .operator-header .language-switcher span {
+  .operator-header .language-switcher-label {
     position: absolute;
     inline-size: 1px;
     block-size: 1px;

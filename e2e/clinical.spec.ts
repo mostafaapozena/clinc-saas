@@ -37,7 +37,7 @@ test('treating doctor writes, finalizes and corrects a record; other roles see t
   await page.goto(`/app/${orgId}/queue`);
   const inProgress = page.getByTestId('queue-in-progress');
   await expect(inProgress.getByTestId('documentation-status')).toHaveText('سجل الزيارة: لم يبدأ');
-  await inProgress.getByRole('link', { name: 'Karim Nabil' }).click();
+  await inProgress.getByRole('link', { name: 'Karim Nabil', exact: true }).click();
   const appointmentUrl = page.url();
   await page.getByRole('link', { name: 'بدء سجل الزيارة' }).click();
   await expect(page).toHaveURL(/\/record$/);

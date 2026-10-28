@@ -67,7 +67,7 @@ export function ClinicalHistoryCard({ patientId }: { patientId: string }) {
       <p className="muted small">{t('clinical.patientHistoryNote')}</p>
       {history.isPending && <Loading />}
       {history.isError && <ErrorState message={errorMessage(t, history.error)} onRetry={() => void history.refetch()} />}
-      {history.isSuccess && history.data.length === 0 && <EmptyState>{t('clinical.noHistory')}</EmptyState>}
+      {history.isSuccess && history.data.length === 0 && <EmptyState icon="file">{t('clinical.noHistory')}</EmptyState>}
       {history.isSuccess && history.data.length > 0 && (
         <ol className="timeline" data-testid="clinical-history">
           {history.data.map((item) => (
