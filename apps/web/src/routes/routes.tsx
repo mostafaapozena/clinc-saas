@@ -43,6 +43,12 @@ const RecordPage = named(workspace, 'RecordPage');
 const CoveragePage = named(workspace, 'CoveragePage');
 const CoverageRecordsPage = named(workspace, 'CoverageRecordsPage');
 const ClinicalAuditPage = named(workspace, 'ClinicalAuditPage');
+const FinancePage = named(workspace, 'FinancePage');
+const ServicesPage = named(workspace, 'ServicesPage');
+const PatientAccountPage = named(workspace, 'PatientAccountPage');
+const InvoicePage = named(workspace, 'InvoicePage');
+const InvoicePrintPage = named(workspace, 'InvoicePrintPage');
+const ReceiptPrintPage = named(workspace, 'ReceiptPrintPage');
 const QueuePage = named(workspace, 'QueuePage');
 const PatientsPage = named(workspace, 'PatientsPage');
 const PatientDetailPage = named(workspace, 'PatientDetailPage');
@@ -103,6 +109,12 @@ export const routes: RouteObject[] = [
           guarded('coverage', 'clinical.encounter.own', <CoveragePage />),
           guarded('coverage/:coverageId', 'clinical.encounter.own', <CoverageRecordsPage />),
           guarded('clinical-audit', 'clinical.audit.read', <ClinicalAuditPage />),
+          guarded('finance', 'finance.account.read', <FinancePage />),
+          guarded('finance/services', 'finance.catalog.read', <ServicesPage />),
+          guarded('finance/patients/:patientId', 'finance.account.read', <PatientAccountPage />),
+          guarded('finance/invoices/:invoiceId', 'finance.account.read', <InvoicePage />),
+          guarded('finance/invoices/:invoiceId/print', 'finance.account.read', <InvoicePrintPage />),
+          guarded('finance/payments/:paymentId/print', 'finance.account.read', <ReceiptPrintPage />),
           guarded('queue', 'queue.read', <QueuePage />),
           guarded('patients', 'patient.list', <PatientsPage />),
           guarded('patients/:patientId', 'patient.read', <PatientDetailPage />),

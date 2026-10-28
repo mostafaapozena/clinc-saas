@@ -1,5 +1,5 @@
 export type Language = 'ar' | 'en';
-export type Role = 'owner' | 'admin' | 'doctor' | 'receptionist' | 'viewer';
+export type Role = 'owner' | 'admin' | 'doctor' | 'receptionist' | 'accountant' | 'viewer';
 export type Permission =
   | 'organization.read'
   | 'organization.update'
@@ -26,12 +26,23 @@ export type Permission =
   | 'clinical.documentation_status.read'
   | 'clinical.coverage.grant'
   | 'clinical.coverage.lead'
-  | 'clinical.audit.read';
+  | 'clinical.audit.read'
+  | 'finance.settings.manage'
+  | 'finance.catalog.read'
+  | 'finance.catalog.manage'
+  | 'finance.charge.create'
+  | 'finance.charge.clinical'
+  | 'finance.invoice.manage'
+  | 'finance.payment.record'
+  | 'finance.discount.apply'
+  | 'finance.adjustment.manage'
+  | 'finance.account.read'
+  | 'finance.report.read';
 
 /** Explicit per-membership grants on top of the role (assigned by owners). */
 export type Capability = 'clinical_audit' | 'clinical_lead';
 
-export const ASSIGNABLE_ROLES: Role[] = ['admin', 'doctor', 'receptionist', 'viewer'];
+export const ASSIGNABLE_ROLES: Role[] = ['admin', 'doctor', 'receptionist', 'accountant', 'viewer'];
 export const ORG_WIDE_ROLES: Role[] = ['owner', 'admin'];
 
 /** Mirrors the API's supported list; the API validates independently. */

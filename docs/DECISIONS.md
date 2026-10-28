@@ -50,7 +50,9 @@ Status after phase 4 in brackets.
 | P7 | Specialty pages describe the shared features that work today and label specialty-specific features as "planned" without dates. [Implemented; copy under review per C21.] | Honest presentation; C16. |
 | P11 | Inquiry retention: 12 months after the last status change, earlier deletion on request. [Proposal; not automated.] | Data minimization; needs legal confirmation (E4). |
 | P8 | Clinical access (phase 5) is a separate permission dimension granted per membership; owners/admins need explicit grant. | C12. |
-| P9 | Money stored in integer minor units; one currency per organization at first (EGP or SAR). | Avoids rounding errors; simplest model. Needs owner confirmation. |
+| P9 | Money stored in integer minor units; one currency per organization at first (EGP or SAR). [Implemented in milestone 3; still needs owner confirmation.] | Avoids rounding errors; simplest model. |
+| P15 | Invoice / receipt numbers: one sequence per organization, document type and year (`INV-2026-000012`). [Implemented; legal numbering rules may require changes.] | Unique and gap-free per committed document. |
+| P16 | A new **accountant** role: finance work and patient identity in its branches, no clinical access; doctors charge only their own finalized record items and see no reports. [Implemented.] | Finance staff never need clinical text. |
 | P10 | Subscription states never delete tenant data automatically; expired subscriptions become read-only after a grace period to be defined. | Data safety. |
 | P12 | Explicit per-membership **capabilities** on top of roles, assigned only by owners and audited: `clinical_audit` (metadata-only clinical audit log) and `clinical_lead` (switched off, see Q17). [Implemented in milestone 1.] | Keeps clinical oversight separate from administration (C12). |
 | P14 | Specialty templates are **versioned** and stored with each record; dentistry uses **FDI** notation; derived views (chart, plan, courses) are computed from finalized records, never stored. [Implemented in milestone 2; notation and fields pending clinician review.] | History cannot be reinterpreted or overwritten. |

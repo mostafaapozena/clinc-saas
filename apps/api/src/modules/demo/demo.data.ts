@@ -81,6 +81,8 @@ export type DemoOrganization = {
   patients: DemoPatient[];
   appointments: DemoAppointment[];
   encounters?: DemoEncounter[];
+  /** Clinic finances (milestone 3): currency and a synthetic service catalog (prices in minor units). */
+  finance?: { currency: 'EGP' | 'SAR'; services: { code: string; name: string; specialtyCode: string | null; price: number }[] };
 };
 
 export const DEMO_USERS: DemoUser[] = [
@@ -90,6 +92,7 @@ export const DEMO_USERS: DemoUser[] = [
   { email: 'doctor2.nour@demo.test', displayName: 'د. سامي (تجريبي)', language: 'ar' },
   { email: 'reception.nour@demo.test', displayName: 'سلمى (استقبال تجريبي)', language: 'ar' },
   { email: 'viewer.nour@demo.test', displayName: 'Omar (demo viewer)', language: 'en' },
+  { email: 'accountant.nour@demo.test', displayName: 'نهى (محاسبة تجريبية)', language: 'ar' },
   { email: 'suspended.nour@demo.test', displayName: 'د. ياسر (موقوف تجريبي)', language: 'ar' },
   { email: 'owner.shifa@demo.test', displayName: 'Faisal (demo owner)', language: 'en' },
   { email: 'multi@demo.test', displayName: 'ريم (عضو في منشأتين)', language: 'ar' },
@@ -106,6 +109,14 @@ export const DEMO_ORGANIZATIONS: DemoOrganization[] = [
   {
     key: 'demo-nour',
     name: 'عيادات النور (تجريبي)',
+    finance: {
+      currency: 'EGP',
+      services: [
+        { code: 'DEN-EXAM', name: 'كشف أسنان (سعر تجريبي)', specialtyCode: 'dentistry', price: 30000 },
+        { code: 'DEN-FILL', name: 'حشو تجميلي (سعر تجريبي)', specialtyCode: 'dentistry', price: 75000 },
+        { code: 'PT-SESSION', name: 'جلسة علاج طبيعي (سعر تجريبي)', specialtyCode: 'physiotherapy', price: 40000 },
+      ],
+    },
     timeZone: 'Africa/Cairo',
     // A medical center with two specialties, offered at different branches.
     type: 'medical_center',
@@ -122,6 +133,7 @@ export const DEMO_ORGANIZATIONS: DemoOrganization[] = [
       { email: 'doctor2.nour@demo.test', role: 'doctor', branches: [NASR, ALEX] },
       { email: 'reception.nour@demo.test', role: 'receptionist', branches: [NASR] },
       { email: 'viewer.nour@demo.test', role: 'viewer' },
+      { email: 'accountant.nour@demo.test', role: 'accountant', branches: [NASR, MAADI] },
       { email: 'suspended.nour@demo.test', role: 'doctor', status: 'suspended' },
       { email: 'multi@demo.test', role: 'admin' },
     ],
@@ -271,6 +283,7 @@ export const DEMO_ORGANIZATIONS: DemoOrganization[] = [
   {
     key: 'demo-shifa',
     name: 'مركز الشفاء (تجريبي)',
+    finance: { currency: 'SAR', services: [{ code: 'ENT-EXAM', name: 'كشف أنف وأذن وحنجرة (سعر تجريبي)', specialtyCode: 'ent', price: 25000 }] },
     timeZone: 'Asia/Riyadh',
     type: 'multi_branch',
     specialtyCodes: ['ent'],

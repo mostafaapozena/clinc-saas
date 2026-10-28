@@ -18,8 +18,10 @@ const memberships = {} as Record<Role, string>;
 /** The doctor's own scheduling profile, and a patient with an appointment with that doctor. */
 let doctorPractitioner: string;
 let linkedPatient: string;
+let serviceId: string;
 
-const everyDayAtA = () => [0, 1, 2, 3, 4, 5, 6].map((weekday) => ({ branchId: branchA, weekday, start: '08:00', end: '20:00' }));
+// Until midnight: every role books several of today's 15-minute slots in the matrix.
+const everyDayAtA = () => [0, 1, 2, 3, 4, 5, 6].map((weekday) => ({ branchId: branchA, weekday, start: '08:00', end: '24:00' }));
 
 beforeAll(async () => {
   pinClock();
@@ -31,12 +33,17 @@ beforeAll(async () => {
   // A configured organization (phase 4): every helper practitioner is a dentist.
   await configureSpecialties(owner, orgId, ['dentistry'], [branchA, branchB]);
   clients.owner = owner;
-  for (const role of ['admin', 'doctor', 'receptionist', 'viewer'] as const) {
+  for (const role of ['admin', 'doctor', 'receptionist', 'accountant', 'viewer'] as const) {
     clients[role] = await register(app, role);
-    memberships[role] = await addMember(owner, orgId, clients[role], role, role === 'doctor' || role === 'receptionist' ? [branchA] : undefined);
+    memberships[role] = await addMember(owner, orgId, clients[role], role, role === 'doctor' || role === 'receptionist' || role === 'accountant' ? [branchA] : undefined);
   }
   doctorPractitioner = await createPractitioner(owner, orgId, memberships.doctor, [branchA], 15, everyDayAtA());
   linkedPatient = await createPatient(owner, orgId, branchA, 'Linked Patient');
+  // Clinic finances need a currency and a priced service.
+  expect((await send(owner, 'put', `/api/v1/orgs/${orgId}/finance/settings`, { currency: 'EGP' })).status).toBe(200);
+  const service = await send(owner, 'post', `/api/v1/orgs/${orgId}/finance/services`, { code: 'MATRIX', name: 'Matrix service', price: 10000 });
+  expect(service.status).toBe(201);
+  serviceId = service.body.service.id;
   await bookOk(owner, orgId, { patientId: linkedPatient, practitionerId: doctorPractitioner, branchId: branchA, date: '2026-11-20', time: '09:00' });
 });
 afterAll(() => dropTestDatabase());
@@ -72,6 +79,9 @@ async function visitInProgress() {
 
 const FRONT_DESK: Role[] = ['owner', 'admin', 'receptionist'];
 const STAFF: Role[] = ['owner', 'admin', 'receptionist', 'doctor'];
+/** Accountants read patient identity and appointments (to bill), nothing more of the front desk. */
+const REGISTRY_READERS: Role[] = ['owner', 'admin', 'receptionist', 'accountant'];
+const FINANCE_DESK: Role[] = ['owner', 'admin', 'receptionist', 'accountant'];
 
 let seq = 0;
 type Action = { name: string; allowed: readonly Role[]; run: (c: Client) => Promise<{ status: number }> };
@@ -126,13 +136,13 @@ const ACTIONS: Action[] = [
   },
   // Phase 3 — front desk
   { name: 'read today’s counts', allowed: ROLES, run: (c) => c.agent.get(`/api/v1/orgs/${orgId}/dashboard`) },
-  { name: 'browse the patient registry', allowed: FRONT_DESK, run: (c) => c.agent.get(`/api/v1/orgs/${orgId}/patients`) },
+  { name: 'browse the patient registry', allowed: REGISTRY_READERS, run: (c) => c.agent.get(`/api/v1/orgs/${orgId}/patients`) },
   {
     name: 'create a patient',
     allowed: FRONT_DESK,
     run: (c) => send(c, 'post', `/api/v1/orgs/${orgId}/patients`, { fullName: `Matrix ${++seq}`, phone: { country: 'EG', number: nextPhone() }, branchId: branchA }),
   },
-  { name: 'open a patient linked to their appointments', allowed: STAFF, run: (c) => c.agent.get(`/api/v1/orgs/${orgId}/patients/${linkedPatient}`) },
+  { name: 'open a patient linked to their appointments', allowed: [...STAFF, 'accountant'], run: (c) => c.agent.get(`/api/v1/orgs/${orgId}/patients/${linkedPatient}`) },
   {
     name: 'edit patient demographics',
     allowed: FRONT_DESK,
@@ -172,7 +182,7 @@ const ACTIONS: Action[] = [
     allowed: ['owner', 'admin'],
     run: async (c) => send(c, 'post', `/api/v1/orgs/${orgId}/practitioners/${await freshPractitioner()}/exceptions`, { date: '2026-12-01', kind: 'closed' }),
   },
-  { name: 'list appointments', allowed: STAFF, run: (c) => c.agent.get(`/api/v1/orgs/${orgId}/appointments`) },
+  { name: 'list appointments', allowed: [...STAFF, 'accountant'], run: (c) => c.agent.get(`/api/v1/orgs/${orgId}/appointments`) },
   {
     name: 'check availability',
     allowed: FRONT_DESK,
@@ -239,6 +249,27 @@ const ACTIONS: Action[] = [
         .set('Idempotency-Key', `matrix-${++seq}-encounter`)
         .send({ sections: { reason: 'Synthetic reason' } }),
   },
+  // Milestone 3 — clinic finances (no role gets clinical access from these)
+  { name: 'read the finance settings', allowed: ['owner', 'admin', 'doctor', 'receptionist', 'accountant'], run: (c) => c.agent.get(`/api/v1/orgs/${orgId}/finance/settings`) },
+  { name: 'set the clinic currency', allowed: ['owner'], run: (c) => send(c, 'put', `/api/v1/orgs/${orgId}/finance/settings`, { currency: 'EGP' }) },
+  { name: 'read the service catalog', allowed: [...FINANCE_DESK, 'doctor'], run: (c) => c.agent.get(`/api/v1/orgs/${orgId}/finance/services`) },
+  {
+    name: 'add a service to the catalog',
+    allowed: ['owner', 'admin'],
+    run: (c) => send(c, 'post', `/api/v1/orgs/${orgId}/finance/services`, { code: `M-${++seq}`, name: 'Matrix extra', price: 500 }),
+  },
+  {
+    name: 'record a charge',
+    allowed: FINANCE_DESK,
+    run: (c) =>
+      c.agent
+        .post(`/api/v1/orgs/${orgId}/finance/charges`)
+        .set('X-CSRF-Token', c.csrf)
+        .set('Idempotency-Key', `matrix-${++seq}-charge`)
+        .send({ patientId: linkedPatient, branchId: branchA, serviceId }),
+  },
+  { name: "read a patient's account", allowed: FINANCE_DESK, run: (c) => c.agent.get(`/api/v1/orgs/${orgId}/finance/patients/${linkedPatient}/account`) },
+  { name: 'read finance reports', allowed: ['owner', 'admin', 'accountant'], run: (c) => c.agent.get(`/api/v1/orgs/${orgId}/finance/reports/summary?from=2026-11-01&to=2026-11-30`) },
   // Milestone 1 — clinical coverage and the clinical audit (capability-only: no role has it)
   { name: 'list clinical coverage (given and received)', allowed: ['doctor'], run: (c) => c.agent.get(`/api/v1/orgs/${orgId}/clinical/coverage`) },
   { name: 'read the clinical audit log (capability only)', allowed: [], run: (c) => c.agent.get(`/api/v1/orgs/${orgId}/clinical/audit`) },

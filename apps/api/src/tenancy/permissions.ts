@@ -4,17 +4,19 @@
  * sufficient: clinical access also requires the treating relationship checked in
  * modules/clinical/clinical-access.ts (docs/architecture/CLINICAL.md).
  */
-export const ROLES = ['owner', 'admin', 'doctor', 'receptionist', 'viewer'] as const;
+export const ROLES = ['owner', 'admin', 'doctor', 'receptionist', 'accountant', 'viewer'] as const;
 export type Role = (typeof ROLES)[number];
 
 /** Owner status cannot be granted through ordinary membership changes (no ownership transfer yet). */
-export const ASSIGNABLE_ROLES: readonly Role[] = ['admin', 'doctor', 'receptionist', 'viewer'];
+export const ASSIGNABLE_ROLES: readonly Role[] = ['admin', 'doctor', 'receptionist', 'accountant', 'viewer'];
 
 /** These roles always have organization-wide branch access. */
 export const ORG_WIDE_ROLES: readonly Role[] = ['owner', 'admin'];
 
 const EVERYONE = ROLES;
 const FRONT_DESK = ['owner', 'admin', 'receptionist'] as const;
+/** Who works with clinic money (milestone 3). Accountants see patients' identity, never clinical text. */
+const FINANCE_DESK = ['owner', 'admin', 'receptionist', 'accountant'] as const;
 
 export const PERMISSION_MATRIX = {
   'organization.read': EVERYONE,
@@ -27,14 +29,14 @@ export const PERMISSION_MATRIX = {
   'member.update': ['owner', 'admin'],
   // Phase 3 — front desk. Record-level limits come from RECORD_VISIBILITY below.
   'dashboard.read': EVERYONE,
-  'patient.list': FRONT_DESK,
-  'patient.read': ['owner', 'admin', 'receptionist', 'doctor'],
+  'patient.list': [...FRONT_DESK, 'accountant'],
+  'patient.read': ['owner', 'admin', 'receptionist', 'doctor', 'accountant'],
   'patient.create': FRONT_DESK,
   'patient.update': FRONT_DESK,
   'patient.registration.manage': FRONT_DESK,
   'practitioner.read': ['owner', 'admin', 'receptionist', 'doctor'],
   'practitioner.manage': ['owner', 'admin'],
-  'appointment.read': ['owner', 'admin', 'receptionist', 'doctor'],
+  'appointment.read': ['owner', 'admin', 'receptionist', 'doctor', 'accountant'],
   'appointment.book': FRONT_DESK,
   'appointment.front_desk': FRONT_DESK,
   'appointment.visit': ['owner', 'admin', 'doctor'],
@@ -49,6 +51,19 @@ export const PERMISSION_MATRIX = {
   // Granted only through membership capabilities (CAPABILITY_PERMISSIONS), never by role alone.
   'clinical.coverage.lead': [],
   'clinical.audit.read': [],
+  // Milestone 3 — clinic finances (separate from clinical permissions and from platform billing).
+  'finance.settings.manage': ['owner'],
+  'finance.catalog.read': [...FINANCE_DESK, 'doctor'],
+  'finance.catalog.manage': ['owner', 'admin'],
+  'finance.charge.create': FINANCE_DESK,
+  // A doctor charges procedures / plan items of their own records (explicit confirmation).
+  'finance.charge.clinical': ['doctor'],
+  'finance.invoice.manage': FINANCE_DESK,
+  'finance.payment.record': FINANCE_DESK,
+  'finance.discount.apply': ['owner', 'admin', 'accountant'],
+  'finance.adjustment.manage': ['owner', 'admin', 'accountant'],
+  'finance.account.read': FINANCE_DESK,
+  'finance.report.read': ['owner', 'admin', 'accountant'],
 } as const satisfies Record<string, readonly Role[]>;
 
 export type Permission = keyof typeof PERMISSION_MATRIX;
@@ -101,6 +116,7 @@ const RECORD_VISIBILITY: Record<Role, RecordVisibility> = {
   owner: 'scope',
   admin: 'scope',
   receptionist: 'scope',
+  accountant: 'scope',
   doctor: 'own_practitioner',
   viewer: 'none',
 };

@@ -1,3 +1,4 @@
+import { CURRENCY_CODES, type Currency } from '../finance/finance.model.js';
 import { Schema, model, type HydratedDocument, type Types } from 'mongoose';
 import { SUPPORTED_TIME_ZONES } from '../../time/local-time.js';
 
@@ -31,6 +32,8 @@ export interface Organization {
    * each passing its checks against the other's stale state.
    */
   configVersion: number;
+  /** Clinic finances currency (milestone 3); chosen once by an owner. */
+  currency: Currency | null;
   createdBy: Types.ObjectId;
   /** Stable key for development seed data only. */
   seedKey?: string;
@@ -45,6 +48,7 @@ const organizationSchema = new Schema<Organization>(
     type: { type: String, enum: [...ORGANIZATION_TYPES, null], default: null },
     specialtyCodes: { type: [String], default: [] },
     configVersion: { type: Number, required: true, default: 0 },
+    currency: { type: String, enum: [...CURRENCY_CODES, null], default: null },
     createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     seedKey: { type: String },
   },

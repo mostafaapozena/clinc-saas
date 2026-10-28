@@ -74,4 +74,13 @@ export const orgKeys = {
   dentalChart: (orgId: string, patientId: string) => ['org', orgId, 'clinical', 'dental-chart', patientId] as const,
   physioCourses: (orgId: string, patientId: string) => ['org', orgId, 'clinical', 'physio-courses', patientId] as const,
   specialtySummary: (orgId: string) => ['org', orgId, 'specialty-summary'] as const,
+  // Clinic finances (all under ['org', orgId, 'finance'] so one invalidation refreshes them).
+  financeSettings: (orgId: string) => ['org', orgId, 'finance', 'settings'] as const,
+  financeServices: (orgId: string, scope = 'all') => ['org', orgId, 'finance', 'services', scope] as const,
+  financeAccount: (orgId: string, patientId: string) => ['org', orgId, 'finance', 'account', patientId] as const,
+  financeStatement: (orgId: string, patientId: string) => ['org', orgId, 'finance', 'statement', patientId] as const,
+  financeInvoice: (orgId: string, id: string) => ['org', orgId, 'finance', 'invoice', id] as const,
+  financePayment: (orgId: string, id: string) => ['org', orgId, 'finance', 'payment', id] as const,
+  financeReport: (orgId: string, params: object) => ['org', orgId, 'finance', 'report', params] as const,
+  clinicalCharges: (orgId: string, encounterId: string) => ['org', orgId, 'finance', 'clinical-charges', encounterId] as const,
 };

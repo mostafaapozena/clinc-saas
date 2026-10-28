@@ -1713,3 +1713,73 @@ input[aria-invalid='true'] {
   cursor: pointer;
   font: inherit;
 }
+
+/* Clinic finances (milestone 3) */
+.badge--invoice-draft,
+.badge--payment-reversed {
+  color: var(--warn);
+  background: var(--warn-bg);
+}
+
+.badge--invoice-issued,
+.badge--payment-active {
+  color: var(--ok);
+  background: var(--ok-bg);
+}
+
+.badge--invoice-discarded {
+  color: var(--text);
+  background: var(--neutral-bg);
+}
+
+.invoice-totals dd {
+  font-variant-numeric: tabular-nums;
+}
+
+.print-document {
+  max-width: 820px;
+  margin-inline: auto;
+  padding: 24px;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.print-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-block-end: 16px;
+  padding-block-end: 12px;
+  border-block-end: 2px solid var(--brand-turquoise);
+}
+
+.print-footer {
+  margin-block-start: 24px;
+}
+
+@media print {
+  .no-print,
+  .sidebar,
+  .topbar,
+  .skip-link,
+  .menu-button {
+    display: none !important;
+  }
+
+  body,
+  .print-document {
+    background: #ffffff;
+    color: #000000;
+  }
+
+  .print-document .card {
+    border: 0;
+    box-shadow: none;
+  }
+
+  .print-document .brand-logo {
+    background: none;
+    padding: 0;
+  }
+}

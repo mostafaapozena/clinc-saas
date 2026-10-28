@@ -63,7 +63,8 @@
     "practitioners": "Doctors & schedules",
     "mySchedule": "My schedule",
     "coverage": "Clinical coverage",
-    "clinicalAudit": "Clinical audit"
+    "clinicalAudit": "Clinical audit",
+    "finance": "Finance"
   },
   "shell": {
     "skipToContent": "Skip to main content",
@@ -82,7 +83,8 @@
     "admin": "Admin",
     "doctor": "Doctor",
     "receptionist": "Receptionist",
-    "viewer": "Viewer"
+    "viewer": "Viewer",
+    "accountant": "Accountant"
   },
   "auth": {
     "systemStatus": "System status",
@@ -371,7 +373,20 @@
     "CAPABILITY_OWNER_ONLY": "Only owners can change this access.",
     "CAPABILITY_NOT_ENABLED": "This access is not enabled on this platform.",
     "CAPABILITY_NOT_ELIGIBLE": "This role cannot hold this access.",
-    "TEMPLATE_NOT_ALLOWED": "This record type does not fit the doctor’s specialty."
+    "TEMPLATE_NOT_ALLOWED": "This record type does not fit the doctor’s specialty.",
+    "CURRENCY_REQUIRED": "An owner must choose the clinic’s currency first.",
+    "CURRENCY_LOCKED": "The currency cannot change once prices or charges exist.",
+    "SERVICE_CODE_TAKEN": "Another service already uses this code.",
+    "CHARGE_EXISTS": "This item was already charged.",
+    "CHARGE_NOT_PENDING": "Only charges not yet invoiced can be voided.",
+    "CHARGES_UNAVAILABLE": "Some of these charges are no longer pending. Reload the account.",
+    "MIXED_CURRENCIES": "Charges in different currencies cannot share an invoice.",
+    "INVOICE_NOT_DRAFT": "Only draft invoices can be changed.",
+    "OVER_ALLOCATION": "That is more than the invoice still asks for, or than the receipt has left.",
+    "OVER_CREDIT": "A credit note cannot exceed the open balance.",
+    "OVER_REFUND": "A refund cannot exceed the unallocated part of the receipt.",
+    "PAYMENT_REVERSED": "This receipt was reversed.",
+    "PAYMENT_REFUNDED": "A receipt with refunds cannot be reversed."
   },
   "validation": {
     "required": "This field is required.",
@@ -773,6 +788,7 @@
       "Booking, rescheduling and cancellation without double booking",
       "Check-in on arrival and the daily waiting queue",
       "General visit records written by the treating doctor: draft, finalize, and dated addenda for corrections",
+      "Service prices, invoices, receipts and patient balances (ordinary invoices, not tax invoices)",
       "Today's appointment counts by status",
       "Several branches, with access by role and branch",
       "Full Arabic and English interface"
@@ -808,7 +824,7 @@
       "availableTitle": "Available today",
       "availableLead": "These features work now in the shared workspace:",
       "plannedTitle": "Not available yet",
-      "plannedBody": "Prescriptions, attachments, billing, reminders and online booking for patients are planned for later stages. They are not part of the workspace today.",
+      "plannedBody": "Prescriptions, attachments, tax and electronic invoicing, insurance claims, reminders, and online booking or payment for patients are planned for later stages. They are not part of the workspace today.",
       "stepsTitle": "How to get started",
       "steps": {
         "account": {
@@ -1331,6 +1347,173 @@
       "empty": "No records in this period.",
       "counts": "{{finalized}} finalized · {{draft}} drafts",
       "own": "Open plan items: {{plan}} · Active physiotherapy courses: {{courses}}"
+    }
+  },
+  "finance": {
+    "title": "Finance",
+    "subtitle": "Prices, charges, invoices, receipts and balances of the clinic.",
+    "notTaxNotice": "These are ordinary invoices and receipts. Tax / VAT handling and electronic invoicing are not included and need approved requirements first.",
+    "currencyRequired": "Choose the clinic’s currency before setting prices. It cannot be changed once prices or charges exist.",
+    "currency": "Currency",
+    "currencies": {
+      "EGP": "Egyptian pound (EGP)",
+      "SAR": "Saudi riyal (SAR)"
+    },
+    "setCurrency": "Save currency",
+    "amountHint": "For example 750.50",
+    "invalidAmount": "Enter an amount with at most two decimals.",
+    "patientAccounts": "Patient accounts",
+    "report": "Summary",
+    "from": "From",
+    "to": "To",
+    "invoicedCount": "Invoiced ({{n}} invoices)",
+    "discounts": "Discounts",
+    "collectedBy": "Collected — {{method}}",
+    "outstandingNow": "Outstanding now",
+    "byService": "By service",
+    "adjustmentTypes": {
+      "credit_note": "Credit notes",
+      "refund": "Refunds"
+    },
+    "services": "Services and prices",
+    "servicesHint": "Prices are examples you set; issued invoices keep the price they were issued with.",
+    "noServices": "No services yet.",
+    "newService": "New service",
+    "serviceCode": "Code",
+    "serviceCodeHint": "Capital letters, digits and dashes (e.g. DEN-FILL).",
+    "serviceName": "Name (shown on invoices)",
+    "price": "Price",
+    "addService": "Add service",
+    "changePrice": "Change price",
+    "deactivate": "Deactivate",
+    "activate": "Activate",
+    "serviceStatus": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "account": "Account",
+    "accountOf": "Account of patient no. {{number}}",
+    "patientFile": "Patient file",
+    "balance": "Balance",
+    "outstanding": "Outstanding on invoices",
+    "unallocatedCredit": "Unallocated credit",
+    "net": "Net balance",
+    "pendingCharges": "Charges not yet invoiced",
+    "noPendingCharges": "No pending charges.",
+    "sources": {
+      "clinical_procedure": "from a recorded procedure",
+      "plan_item": "from a treatment-plan item"
+    },
+    "oneBranchPerInvoice": "An invoice covers charges of one branch.",
+    "createInvoice": "Create invoice from selected",
+    "addCharge": "Add charge",
+    "service": "Service",
+    "quantity": "Quantity",
+    "invoices": "Invoices",
+    "noInvoices": "No invoices.",
+    "draftInvoice": "Draft invoice",
+    "balanceShort": "due {{amount}}",
+    "invoiceStatus": {
+      "draft": "Draft",
+      "issued": "Issued",
+      "discarded": "Discarded"
+    },
+    "payments": "Receipts",
+    "noPayments": "No receipts.",
+    "recordPayment": "Record payment",
+    "paymentHint": "Record money actually received. No card is charged here.",
+    "paymentRecorded": "Payment recorded.",
+    "printReceipt": "Print receipt",
+    "amount": "Amount",
+    "method": "Method",
+    "methods": {
+      "cash": "Cash",
+      "card": "Card (terminal)",
+      "bank_transfer": "Bank transfer",
+      "other": "Other"
+    },
+    "reference": "Reference",
+    "applyTo": "Apply to invoice",
+    "applyHint": "Anything above the invoice balance stays as credit.",
+    "keepAsCredit": "Keep as credit",
+    "remainderAsCredit": "{{amount}} will stay as credit.",
+    "unallocatedShort": "unallocated {{amount}}",
+    "paymentStatus": {
+      "active": "Active",
+      "reversed": "Reversed"
+    },
+    "allocate": "Apply credit",
+    "refund": "Refund",
+    "reverse": "Reverse",
+    "reason": "Reason",
+    "reverseHint": "Reversing keeps the receipt, marked reversed, and puts its amounts back on the invoices.",
+    "confirm": {
+      "allocate": "Apply",
+      "refund": "Record refund",
+      "reverse": "Reverse receipt"
+    },
+    "statement": "Statement",
+    "noEntries": "Nothing yet.",
+    "date": "Date",
+    "document": "Document",
+    "debit": "Charged",
+    "credit": "Paid / credited",
+    "runningBalance": "Balance",
+    "entryTypes": {
+      "invoice": "Invoice",
+      "payment": "Receipt",
+      "payment_reversal": "Receipt reversed",
+      "credit_note": "Credit note",
+      "refund": "Refund"
+    },
+    "invoice": "Invoice",
+    "receipt": "Receipt",
+    "print": "Print",
+    "backToAccount": "Back to the account",
+    "draftActions": "Draft",
+    "discount": "Discount",
+    "applyDiscount": "Apply discount",
+    "issue": "Issue invoice",
+    "discard": "Discard draft",
+    "confirmIssueTitle": "Issue this invoice?",
+    "confirmIssueBody": "It gets a number and can no longer be changed. Corrections are made with a credit note.",
+    "confirmIssue": "Yes, issue",
+    "paymentsApplied": "Receipts applied",
+    "creditNotes": "Credit notes",
+    "issueCreditNote": "Credit note",
+    "creditNoteHint": "Reduces what this invoice asks for, up to its open balance. The invoice itself stays as issued.",
+    "lines": "Lines",
+    "unitPrice": "Unit price",
+    "subtotal": "Subtotal",
+    "discountWithReason": "Discount ({{reason}})",
+    "total": "Total",
+    "paid": "Paid",
+    "credited": "Credited",
+    "balanceDue": "Balance due",
+    "printNow": "Print / save as PDF",
+    "printHint": "Use your browser’s print dialog; “Save as PDF” gives a file.",
+    "notTaxDocument": "Not a tax invoice and not an electronic invoice.",
+    "issuer": "Issued by",
+    "billedTo": "Patient",
+    "generatedBy": "Generated by raclinic.",
+    "printOnlyIssued": "Only issued invoices can be printed.",
+    "receiptReversed": "This receipt was reversed: {{reason}}",
+    "amountReceived": "Amount received",
+    "appliedToInvoice": "Applied to {{number}}",
+    "refundNumber": "Refund {{number}}",
+    "unallocated": "Unallocated",
+    "clinical": {
+      "title": "Charges for this visit",
+      "hint": "Turn a recorded procedure or plan item into a charge for the front desk to invoice. The charge shows the service name only.",
+      "kind": {
+        "procedure": "Procedure",
+        "plan_item": "Treatment-plan item"
+      },
+      "charge": "Charge…",
+      "chargeLabel": "Charge {{item}}",
+      "charged": "Charged: {{service}}",
+      "confirm": "I confirm this should be charged.",
+      "create": "Create charge"
     }
   }
 }

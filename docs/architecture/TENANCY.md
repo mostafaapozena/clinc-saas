@@ -130,6 +130,10 @@ them. `clinical_audit` (owner, admin or doctor) opens the metadata-only clinical
 `clinical_lead` (doctor) stays unassignable until `CLINICAL_LEAD_GRANTS_ENABLED` is turned on after
 the owner's decision (blocker B1). Checked with `tenantCan` / `requirePermission`, read fresh.
 
+Clinic finances (milestone 3) have their own permissions and the **accountant** role — see
+[FINANCE.md](FINANCE.md#permissions-separate-from-clinical-permissions). Accountants read patient identity and
+appointments within their branches (like receptionists) and nothing clinical.
+
 Outside organizations (phase 4): creating a new organization — directly (`POST /orgs`) or by
 completing one's own onboarding draft — is open to every signed-in user, who becomes its owner;
 it never touches existing organizations. Custom-ownership inquiries are platform records with no
