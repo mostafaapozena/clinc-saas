@@ -1802,3 +1802,122 @@ input[aria-invalid='true'] {
 .support-message--operator { border-inline-start: 3px solid #1f2a44; padding-inline-start: 0.75rem; }
 .dev-mail-text { white-space: pre-wrap; word-break: break-word; font-size: 0.875rem; }
 details > summary { cursor: pointer; font-weight: 600; padding-block: 0.25rem; }
+
+/* ---------- Front-end audit fixes (2026-10-27) ---------- */
+/* Pages with and without a scrollbar keep the same width (the header no longer shifts). */
+html {
+  scrollbar-gutter: stable;
+}
+
+/* Badges keep their own width in grid rows and flex columns instead of stretching into bars. */
+.data-row > .badge {
+  justify-self: start;
+  inline-size: fit-content;
+}
+
+.data-main > .badge {
+  align-self: flex-start;
+}
+
+/* Left-to-right values (phones, e-mails, codes) still line up with their labels and columns. */
+.details dd[dir='ltr'],
+.details dd [dir='ltr'].block,
+.data-table td[dir='ltr'] {
+  text-align: match-parent;
+}
+
+/* Required fields: a visible asterisk, left out of the accessible name (empty alt text). */
+.label--required::after {
+  content: ' *' / '';
+  color: var(--bad);
+}
+
+/* Focus moved to a page heading after navigation needs no ring; keyboard focus elsewhere keeps it. */
+h1[tabindex='-1']:focus {
+  outline: none;
+}
+
+.search-row {
+  display: flex;
+  gap: 8px;
+  margin-block-end: 12px;
+}
+
+.search-row input {
+  flex: 1;
+  min-inline-size: 0;
+}
+
+/* Operator console */
+.operator-header {
+  flex-wrap: wrap;
+}
+
+.operator-header-actions {
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  min-inline-size: 0;
+  margin-inline-start: auto;
+}
+
+.operator-user {
+  max-inline-size: 24ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.operator-main .stat > strong {
+  display: block;
+  font-size: 1.6rem;
+}
+
+.operator-actions {
+  margin-block-start: 8px;
+  padding-block-start: 12px;
+  border-block-start: 1px solid var(--border);
+}
+
+.operator-actions h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+@media (max-width: 640px) {
+  .operator-header-actions {
+    inline-size: 100%;
+  }
+
+  .operator-user {
+    flex: 1;
+    max-inline-size: none;
+  }
+
+  /* Icon-only language button; its label stays available to screen readers. */
+  .operator-header .language-switcher span {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
+/* Workspace header on small screens: compact, and it scrolls away with the page. */
+@media (max-width: 900px) {
+  .topbar {
+    position: static;
+    gap: 8px;
+  }
+
+  .switcher-label {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}

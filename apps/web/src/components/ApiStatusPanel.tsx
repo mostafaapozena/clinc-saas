@@ -33,7 +33,7 @@ export function ApiStatusPanel() {
 
   return (
     <section className="card" aria-labelledby="status-title">
-      <h2 id="status-title">{t('status.title')}</h2>
+      <h2 id="status-title">{t('status.services')}</h2>
       <dl className="status-list">
         <div className="status-row">
           <dt>{t('status.api')}</dt>
@@ -50,7 +50,11 @@ export function ApiStatusPanel() {
         </div>
         <div className="status-row">
           <dt>{t('status.database')}</dt>
-          <dd data-testid="db-status">{dbLabel}</dd>
+          <dd>
+            <span data-testid="db-status" className={`badge badge--${!health ? 'checking' : health.database.status === 'up' ? 'connected' : 'unreachable'}`}>
+              {dbLabel}
+            </span>
+          </dd>
         </div>
       </dl>
       {health?.database.latencyMs != null && (

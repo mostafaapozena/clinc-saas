@@ -428,7 +428,8 @@ export function createPlatformRouter(config: AppConfig, mailer?: Mailer) {
   router.post('/billing/lifecycle', requireOperatorPermission('platform.subscriptions.manage'), async (req, res) => {
     const { apply } = parseInput(z.object({ apply: z.boolean() }), req.body);
     const actions = await processLifecycle(apply, clock.now(), operatorOf(req).operator._id);
-    if (apply) await audit(req, 'billing.lifecycle_run', { type: 'subscription', id: 'all' }, { actions: actions.length, applied: actions.filter((a) => a.applied).length });
+    // Previews are recorded too (apply: false), like reconciliation runs, so the audit shows every run.
+    await audit(req, 'billing.lifecycle_run', { type: 'subscription', id: 'all' }, { apply, actions: actions.length, applied: actions.filter((a) => a.applied).length });
     res.json({ actions });
   });
 

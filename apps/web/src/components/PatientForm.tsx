@@ -34,8 +34,8 @@ export function PatientFields({
   const set = <K extends keyof PatientFormValue>(key: K) => (v: PatientFormValue[K]) => onChange({ ...value, [key]: v });
   const id = (name: string) => `${idPrefix}-${name}`;
   const errors = {
-    fullName: fieldMessage(t, 'fullName', fields.fullName),
-    phone: fieldMessage(t, 'phone', fields['phone.number'] ?? fields['phone.country']),
+    fullName: fieldMessage(t, 'fullName', fields.fullName, value.fullName),
+    phone: fieldMessage(t, 'phone', fields['phone.number'] ?? fields['phone.country'], fields['phone.number'] ? value.phoneNumber : undefined),
     secondaryPhone: fieldMessage(t, 'phone', fields['secondaryPhone.number'] ?? fields['secondaryPhone.country']),
     email: fieldMessage(t, 'email', fields.email),
     dateOfBirth: fieldMessage(t, 'dateOfBirth', fields.dateOfBirth),
@@ -43,7 +43,7 @@ export function PatientFields({
 
   return (
     <>
-      <Field id={id('name')} label={t('patients.fullName')} error={errors.fullName} hint={t('patients.fullNameHint')}>
+      <Field id={id('name')} label={t('patients.fullName')} error={errors.fullName} hint={t('patients.fullNameHint')} required>
         <input
           id={id('name')}
           required
@@ -54,7 +54,9 @@ export function PatientFields({
         />
       </Field>
       <div className="field">
-        <label htmlFor={id('phone')}>{t('patients.phone')}</label>
+        <label htmlFor={id('phone')} className="label--required">
+          {t('patients.phone')}
+        </label>
         <div className="phone-input">
           <CountrySelect id={id('phone-country')} label={t('patients.phoneCountry')} value={value.phoneCountry} onChange={set('phoneCountry')} />
           <input

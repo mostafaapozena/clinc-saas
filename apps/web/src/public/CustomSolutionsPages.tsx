@@ -3,7 +3,7 @@ import { useRef, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useSearchParams } from 'react-router';
 import { Field, Notice } from '../components/ui';
-import { describedBy } from '../lib/a11y';
+import { describedBy, useFocusOnError } from '../lib/a11y';
 import { api } from '../lib/api';
 import { errorMessage, fieldErrors, fieldMessage } from '../lib/errors';
 import { usePageMeta } from '../lib/pageMeta';
@@ -121,17 +121,19 @@ export function InquiryPage() {
   });
 
   const fields = fieldErrors(send.error);
-  const message = (field: string, key = field) => fieldMessage(t, `inquiry.${key}`, fields[field]);
+  const formRef = useRef<HTMLDivElement>(null);
+  useFocusOnError(formRef, send.error);
+  const message = (field: string, key = field, value?: string) => fieldMessage(t, `inquiry.${key}`, fields[field], value);
   const errors = {
-    contactName: message('contactName'),
-    organizationName: message('organizationName'),
-    country: message('country'),
+    contactName: message('contactName', 'contactName', form.contactName),
+    organizationName: message('organizationName', 'organizationName', form.organizationName),
+    country: message('country', 'country', form.country),
     phone: message('phone.number', 'phone') ?? message('phone.country', 'phone'),
     email: message('email'),
     contact: message('contact'),
-    organizationType: message('organizationType'),
-    interest: message('interest'),
-    description: message('description'),
+    organizationType: message('organizationType', 'organizationType', form.organizationType),
+    interest: message('interest', 'interest', form.interest),
+    description: message('description', 'description', form.description),
   };
   const hasFieldErrors = Object.keys(fields).length > 0;
   const update = (key: keyof InquiryForm) => (e: { target: { value: string } }) => setForm((f) => ({ ...f, [key]: e.target.value }));
@@ -175,7 +177,7 @@ export function InquiryPage() {
 
   return (
     <section className="site-section" aria-labelledby="inquiry-title">
-      <div className="site-container site-narrow">
+      <div className="site-container site-narrow" ref={formRef}>
         <h1 id="inquiry-title">{t('site.inquiry.title')}</h1>
         <p className="site-section-lead">{t('site.inquiry.lead')}</p>
         <Notice kind="info">{t('site.inquiry.privacy')}</Notice>

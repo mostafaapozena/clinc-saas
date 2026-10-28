@@ -208,8 +208,8 @@ test('appointments in English are LTR with Inter; Arabic is RTL with Alexandria'
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Appointments');
   await expect(page.locator('html')).toHaveAttribute('dir', 'ltr');
   expect(await font()).toMatch(/^"Inter Variable"/);
-  await expect(page.getByRole('button', { name: 'Week' })).toBeVisible();
-  await page.getByRole('button', { name: 'Week' }).click();
+  await expect(page.getByRole('button', { name: '7 days' })).toBeVisible();
+  await page.getByRole('button', { name: '7 days' }).click();
   await expect(page.getByTestId('schedule-day')).toHaveCount(7);
   await page.getByRole('navigation').getByRole('link', { name: 'Queue' }).click();
   await expect(page.getByRole('heading', { level: 1 })).toHaveText("Today's queue");

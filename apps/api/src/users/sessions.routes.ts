@@ -38,7 +38,15 @@ function deviceLabel(userAgent: string | null | undefined) {
 
 sessionsRouter.get('/', async (req, res) => {
   const { user, session: current } = authOf(req);
-  const sessions = await SessionModel.find({ userId: user._id, expiresAt: { $gt: new Date() } })
+  // Sessions idle past the timeout can never be used again (they end on their next request), so
+  // they are not listed as signed-in devices.
+  const idleMinutes = Number(req.app.locals.sessionIdleMinutes ?? 0);
+  const now = Date.now();
+  const sessions = await SessionModel.find({
+    userId: user._id,
+    expiresAt: { $gt: new Date(now) },
+    ...(idleMinutes > 0 ? { $or: [{ lastSeenAt: { $exists: false } }, { lastSeenAt: { $gt: new Date(now - idleMinutes * 60_000) } }] } : {}),
+  })
     .sort({ createdAt: -1 })
     .limit(50)
     .lean();

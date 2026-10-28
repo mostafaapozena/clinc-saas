@@ -223,7 +223,7 @@ export function PatientPicker({ value, onChange }: { value: PatientSummary | nul
           <strong>{value.fullName}</strong>
           <span className="muted small">
             {' '}
-            #{value.patientNumber} · <span dir="ltr">{value.phone.e164}</span>
+            <bdi dir="ltr">#{value.patientNumber}</bdi> · <span dir="ltr">{value.phone.e164}</span>
           </span>
         </div>
         <button type="button" className="button button--secondary" onClick={() => onChange(null)}>
@@ -252,7 +252,7 @@ export function PatientPicker({ value, onChange }: { value: PatientSummary | nul
               <button type="button" className="pick-item" onClick={() => onChange(p)}>
                 <strong>{p.fullName}</strong>
                 <span className="muted small">
-                  #{p.patientNumber} · <span dir="ltr">{p.phone.e164}</span>
+                  <bdi dir="ltr">#{p.patientNumber}</bdi> · <span dir="ltr">{p.phone.e164}</span>
                 </span>
               </button>
             </li>

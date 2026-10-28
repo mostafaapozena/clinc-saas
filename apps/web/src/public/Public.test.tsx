@@ -244,7 +244,8 @@ describe('custom-ownership request', () => {
     renderRoute('/custom-solutions/request');
     fireEvent.click(await screen.findByRole('button', { name: 'إرسال الطلب' }));
     expect(await screen.findByText('اكتب رقم هاتف أو بريدًا إلكترونيًا.')).toBeInTheDocument();
-    expect(screen.getByText('اكتب ١٠ أحرف على الأقل.')).toBeInTheDocument();
+    // The description was left empty, so the message asks for one instead of "too short".
+    expect(screen.getByText('اكتب وصفًا مختصرًا لما تحتاجه (10 أحرف على الأقل).')).toBeInTheDocument();
   });
 
   it('reports a rate limit without losing what was typed', async () => {

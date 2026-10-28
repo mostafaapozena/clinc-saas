@@ -47,6 +47,25 @@ export function phoneSearchCandidates(term: string): string[] {
   return [...found];
 }
 
+/** Endings of a phone number that "last digits" search accepts (reception asks for the last 4+). */
+export const PHONE_TAIL_MIN = 4;
+export const PHONE_TAIL_MAX = 9;
+
+/**
+ * Endings of the stored numbers' digits, PHONE_TAIL_MIN–PHONE_TAIL_MAX long, for indexed
+ * "last digits" search: "+201001234509" → ["4509", "34509", …, "001234509"]. A suffix regex on
+ * e164 cannot use an index, so the endings are stored with the patient (like nameTokens).
+ */
+export function phoneTails(...phones: ({ e164: string } | null | undefined)[]): string[] {
+  const tails = new Set<string>();
+  for (const phone of phones) {
+    if (!phone) continue;
+    const digits = phone.e164.replace(/\D/g, '');
+    for (let n = PHONE_TAIL_MIN; n <= Math.min(PHONE_TAIL_MAX, digits.length); n++) tails.add(digits.slice(-n));
+  }
+  return [...tails];
+}
+
 /**
  * Search key for names: Arabic diacritics and tatweel removed, alef/yaa/taa-marbuta variants
  * unified, Latin lowercased, whitespace collapsed. The original spelling is stored separately.

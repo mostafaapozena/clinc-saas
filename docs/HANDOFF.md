@@ -131,6 +131,18 @@ are accepted with header `X-Github-Token: $GITHUB_TOKEN`. Browsers first get Git
   then start with `setsid nohup npx concurrently -k -n api,web "npm run dev -w @clinc/api" "npm run dev -w @clinc/web" > /tmp/dev.log 2>&1 < /dev/null &`.
   Dev servers left from an earlier session may still hold port 5173 (`strictPort`), so a second
   start exits — stop first.
+- **Same 502 again (2026-10-26/27), with the owner's VS Code editor attached.**
+  - The agent's host-side forwards changed between restarts: at one point only 4000 (and the
+    detected 4001) reached the container, at another 5173 did. Check with
+    `curl http://172.18.0.1:<port>/` from inside the container: refused means no forward on the
+    host.
+  - Running the web server on a port that is forwarded (`vite --host 0.0.0.0 --port 4000` with
+    `PORT=4001 API_PROXY_TARGET=http://127.0.0.1:4001`) served the preview while 5173 was broken.
+  - A later restart with the editor attached made 5173 work again.
+  - The Codespace also stops on its 30-minute idle timeout, which clears `/tmp` and the dev
+    servers.
+  - The 503s seen in the browser on the first API requests come from the forwarder, not from the
+    API: the API log had none.
 - Do not publish app ports in `docker-compose.yml`: the Codespaces agent already listens on them
   on the VM (`bind: address already in use` → recovery container).
 

@@ -10,7 +10,13 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/png" sizes="32x32" href="/brand/favicon-32.png" />
     <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png" />
-    <link rel="manifest" href="/site.webmanifest" />
+    <!-- With credentials: behind an authenticating proxy (private previews) the manifest request needs the cookies too. -->
+    <link rel="manifest" href="/site.webmanifest" crossorigin="use-credentials" />
+    <!-- The page colour before the stylesheet loads (no white flash in the dark theme); matches --bg. -->
+    <style>
+      html { background: #f5f8fa; }
+      @media (prefers-color-scheme: dark) { html { background: #0d1b2e; } }
+    </style>
     <title>raclinic</title>
   </head>
   <body>

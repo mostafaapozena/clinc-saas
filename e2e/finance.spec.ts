@@ -39,7 +39,7 @@ test('front desk: charge → invoice → issue → partial and full payment → 
   await expect(page.getByTestId('invoice-status')).toHaveText('صادرة');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(/^INV-\d{4}-\d{6}$/);
   const total = await page.getByTestId('invoice-total').textContent();
-  expect(total).toContain('٤٠٠');
+  expect(total).toContain('400'); // Latin digits in the Arabic UI too
 
   await page.getByRole('link', { name: 'العودة إلى الحساب' }).click();
   const recordPayment = async (amount: string) => {
@@ -48,9 +48,9 @@ test('front desk: charge → invoice → issue → partial and full payment → 
     await expect(page.getByText('سُجّلت الدفعة.')).toBeVisible();
   };
   await recordPayment('250');
-  await expect(page.getByTestId('balance-outstanding')).toContainText('١٥٠');
+  await expect(page.getByTestId('balance-outstanding')).toContainText('150');
   await recordPayment('١٥٠');
-  await expect(page.getByTestId('balance-outstanding')).toContainText('٠٫٠٠');
+  await expect(page.getByTestId('balance-outstanding')).toContainText('0.00');
   await expect(page.getByTestId('statement').locator('tbody tr')).toHaveCount(3);
 
   await page.getByRole('link', { name: 'طباعة الإيصال' }).click();

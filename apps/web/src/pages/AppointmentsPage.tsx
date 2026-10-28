@@ -1,14 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router';
+import { Link, useSearchParams } from 'react-router';
 import { Icon } from '../components/Icon';
 import { PageHeader } from '../components/PageHeader';
 import { AppointmentActions, StatusBadge, TimeZoneRequired } from '../components/scheduling';
 import { EmptyState, ErrorState, Field, Loading, Notice } from '../components/ui';
 import { api, query } from '../lib/api';
 import { errorMessage } from '../lib/errors';
-import { useFormatters } from '../lib/format';
+import { useFormatters, zoneLabel } from '../lib/format';
 import { addDays, datesFrom, isValidDateInput, localDateOf, todayIn } from '../lib/time';
 import { APPOINTMENT_STATUSES, type Appointment, type AppointmentStatus, type Practitioner } from '../lib/types';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
@@ -21,10 +20,28 @@ export function AppointmentsPage() {
   const { orgId, can, timeZone } = useOrg();
   const branchFilter = useBranchFilter();
   const specialty = useSpecialtyFilter();
-  const [view, setView] = useState<View>('day');
-  const [date, setDate] = useState(() => (timeZone ? todayIn(timeZone) : ''));
-  const [practitionerId, setPractitionerId] = useState('');
-  const [status, setStatus] = useState<AppointmentStatus | ''>('');
+  // View, date and filters live in the URL, so Back, refresh and shared links keep them.
+  const [params, setParams] = useSearchParams();
+  const view: View = params.get('view') === 'week' ? 'week' : 'day';
+  const dateParam = params.get('date') ?? '';
+  const date = isValidDateInput(dateParam) ? dateParam : timeZone ? todayIn(timeZone) : '';
+  const practitionerId = params.get('practitioner') ?? '';
+  const statusParam = params.get('status') ?? '';
+  const status = (APPOINTMENT_STATUSES as readonly string[]).includes(statusParam) ? (statusParam as AppointmentStatus) : '';
+  const setParam = (key: string, value: string) =>
+    setParams(
+      (current) => {
+        const next = new URLSearchParams(current);
+        if (value) next.set(key, value);
+        else next.delete(key);
+        return next;
+      },
+      { replace: true },
+    );
+  const setView = (v: View) => setParam('view', v === 'day' ? '' : v);
+  const setDate = (d: string) => setParam('date', d);
+  const setPractitionerId = (id: string) => setParam('practitioner', id);
+  const setStatus = (s: AppointmentStatus | '') => setParam('status', s);
   useDocumentTitle(t('nav.appointments'));
 
   const practitionerParams = { branchId: branchFilter, specialty };
@@ -49,7 +66,7 @@ export function AppointmentsPage() {
 
   return (
     <>
-      <PageHeader title={t('appointments.title')} subtitle={t('appointments.timeZoneNote', { zone: timeZone })}>
+      <PageHeader title={t('appointments.title')} subtitle={t('appointments.timeZoneNote', { zone: zoneLabel(t, timeZone) })}>
         {can('appointment.book') && (
           <Link className="button button--primary" to={`/app/${orgId}/appointments/new`}>
             <Icon name="plus" /> {t('appointments.book')}
@@ -186,7 +203,12 @@ function Schedule({
                       </td>
                       <td data-label={t('appointments.patient')}>
                         {a.patient?.fullName ?? '—'}
-                        <span className="muted small"> #{a.patient ? fmt.number(a.patient.patientNumber) : ''}</span>
+                        {a.patient && (
+                          <span className="muted small">
+                            {' '}
+                            <bdi dir="ltr">#{fmt.number(a.patient.patientNumber)}</bdi>
+                          </span>
+                        )}
                       </td>
                       <td data-label={t('appointments.practitioner')}>{a.practitioner?.displayName ?? '—'}</td>
                       <td data-label={t('appointments.statusLabel')}>

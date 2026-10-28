@@ -201,7 +201,7 @@ when asking for a change.
 | `site.inquiry.interests.multi_specialty` | عدة تخصصات معًا | Several specialties together |
 | `site.inquiry.interests.custom` | نظام مخصص (مثل الأشعة) | A custom system (for example radiology) |
 | `site.inquiry.description` | اشرح ما تحتاج إليه | Describe what you need |
-| `site.inquiry.descriptionHint` | من ١٠ إلى ١٥٠٠ حرف، دون أي بيانات للمرضى. | 10 to 1,500 characters. No patient information. |
+| `site.inquiry.descriptionHint` | من 10 إلى 1500 حرف، دون أي بيانات للمرضى. | 10 to 1,500 characters. No patient information. |
 | `site.inquiry.submit` | إرسال الطلب | Send request |
 | `site.inquiry.submitting` | جارٍ الإرسال… | Sending… |
 | `site.inquiry.successTitle` | تم استلام الطلب | Request received |
@@ -247,7 +247,7 @@ when asking for a change.
 | Key | العربية | English |
 | --- | --- | --- |
 | `onboarding.title` | إعداد المنشأة | Set up your organization |
-| `onboarding.subtitle` | أهلًا {{name}}. خطوات قليلة وتصبح مساحة العمل جاهزة، وستكون أنت مالكها. | Welcome {{name}}. A few steps and your workspace is ready. You will be its owner. |
+| `onboarding.subtitle` | أهلًا {{name}}. خطوات قليلة وتصبح مساحة العمل جاهزة، وتكون ملكيتها لحسابك. | Welcome {{name}}. A few steps and your workspace is ready; your account will own it. |
 | `onboarding.orgName` | اسم المنشأة | Organization name |
 | `onboarding.branchName` | اسم الفرع الأول | First branch name |
 | `onboarding.branchHint` | يمكنك إضافة فروع أخرى لاحقًا. | You can add more branches later. |

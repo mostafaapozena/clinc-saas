@@ -23,6 +23,9 @@ import {
   nameTokens,
   normalizePhone,
   phoneSearchCandidates,
+  phoneTails,
+  PHONE_TAIL_MAX,
+  PHONE_TAIL_MIN,
   toAsciiDigits,
   type NormalizedPhone,
 } from './normalize.js';
@@ -163,9 +166,14 @@ patientsRouter.get('/', requirePermission('patient.list'), async (req, res) => {
   if (query.q) {
     const term = toAsciiDigits(query.q);
     const or: Record<string, unknown>[] = [];
-    if (/^\d{1,9}$/.test(term)) or.push({ patientNumber: Number(term) });
+    // "#9" is how file numbers are shown, so the hash is accepted in front of a number.
+    const fileNumber = term.replace(/^#\s*/, '');
+    if (/^\d{1,9}$/.test(fileNumber)) or.push({ patientNumber: Number(fileNumber) });
     const phones = phoneSearchCandidates(term);
     if (phones.length > 0) or.push({ 'phone.e164': { $in: phones } }, { 'secondaryPhone.e164': { $in: phones } });
+    // The last digits of a number ("1234509"), matched exactly against the stored endings.
+    const digits = term.replace(/[\s\-().]/g, '');
+    if (new RegExp(`^\\d{${PHONE_TAIL_MIN},${PHONE_TAIL_MAX}}$`).test(digits)) or.push({ phoneTails: digits });
     // Every word typed must start a word of the name (index range on nameTokens). A substring
     // regex on nameKey read every patient of the organization (scalability review, finding S2).
     const words = nameTokens(nameKey(query.q)).slice(0, 5);
@@ -228,6 +236,7 @@ patientsRouter.post('/', requirePermission('patient.create'), async (req, res) =
     fullName: input.fullName,
     nameKey: key,
     nameTokens: nameTokens(key),
+    phoneTails: phoneTails(phone, secondaryPhone),
     phone,
     secondaryPhone,
     email: input.email ?? null,
@@ -279,7 +288,11 @@ patientsRouter.patch('/:patientId', requirePermission('patient.update'), async (
   if (input.address !== undefined) {
     set.address = input.address && (input.address.line || input.address.city) ? input.address : null;
   }
-  const changedFields = Object.keys(set).filter((key) => key !== 'nameKey' && key !== 'nameTokens' && JSON.stringify(set[key as keyof Patient]) !== JSON.stringify(current[key as keyof Patient]));
+  if (set.phone !== undefined || set.secondaryPhone !== undefined) {
+    set.phoneTails = phoneTails(set.phone ?? current.phone, set.secondaryPhone !== undefined ? set.secondaryPhone : current.secondaryPhone);
+  }
+  const derived = new Set(['nameKey', 'nameTokens', 'phoneTails']);
+  const changedFields = Object.keys(set).filter((key) => !derived.has(key) && JSON.stringify(set[key as keyof Patient]) !== JSON.stringify(current[key as keyof Patient]));
 
   const saved = await PatientModel.findOneAndUpdate(
     { organizationId: tenant.organizationId, _id: current._id, version: input.version },

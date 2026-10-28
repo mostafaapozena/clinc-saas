@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import request from 'supertest';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { RateLimitCounterModel } from '../src/auth/rate-limit.js';
+import { clock } from '../src/time/clock.js';
 import { OwnershipInquiryModel } from '../src/modules/inquiries/inquiry.model.js';
 import { seedSpecialties } from '../src/modules/specialties/specialty.seed.js';
 import { TEST_PASSWORD, register, resetRateLimits, testApp } from './helpers/api.js';
@@ -41,6 +42,10 @@ describe('shared rate limits across replicas', () => {
     const a = testApp(proxied);
     const b = testApp(proxied);
     const statuses: number[] = [];
+    // All attempts fall in one fixed window: without this, a run that crosses a window boundary
+    // resets the count and the ninth attempt is not limited.
+    const windowStart = Math.floor(Date.now() / 3_600_000) * 3_600_000 + 1_000;
+    vi.spyOn(clock, 'now').mockImplementation(() => new Date(windowStart));
     // Each attempt from a different client address: the per-address limit is never reached.
     for (let i = 0; i < 9; i++) statuses.push((await login(i % 2 ? b : a, 'victim@example.test', `203.0.113.${i + 1}`)).status);
     expect(statuses.slice(0, 8).every((s) => s === 401)).toBe(true);
