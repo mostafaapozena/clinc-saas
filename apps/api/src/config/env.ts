@@ -65,6 +65,10 @@ const envSchema = z
     SUPPORT_CONTACT_PHONE: blankAsUnset(z.string().regex(/^\+?[0-9 ()-]{6,30}$/)),
     SUPPORT_HOURS_AR: blankAsUnset(z.string().max(120)),
     SUPPORT_HOURS_EN: blankAsUnset(z.string().max(120)),
+    // Rate-limit counters: shared in MongoDB by default; "memory" only for a single local process.
+    RATE_LIMIT_STORE: z.enum(['mongo', 'memory']).default('mongo'),
+    // Load-test process metrics (event loop, memory, CPU) at /api/health/metrics; refused in production.
+    OPS_METRICS: z.stringbool().default(false),
   })
   .superRefine((env, ctx) => {
     if (env.NODE_ENV === 'production' && !env.SESSION_COOKIE_SECURE) {
@@ -80,6 +84,12 @@ const envSchema = z
         path: ['BILLING_PROVIDER'],
         message: 'the payment simulator is refused in production',
       });
+    }
+    if (env.NODE_ENV === 'production' && env.OPS_METRICS) {
+      ctx.addIssue({ code: 'custom', path: ['OPS_METRICS'], message: 'is for load tests only and refused in production' });
+    }
+    if (env.NODE_ENV === 'production' && env.RATE_LIMIT_STORE === 'memory') {
+      ctx.addIssue({ code: 'custom', path: ['RATE_LIMIT_STORE'], message: 'must be "mongo" in production (shared across replicas)' });
     }
     if (env.NODE_ENV === 'production' && env.MAIL_PROVIDER === 'dev_sink') {
       ctx.addIssue({ code: 'custom', path: ['MAIL_PROVIDER'], message: 'the development mail sink is refused in production' });

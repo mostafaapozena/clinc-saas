@@ -25,7 +25,9 @@ stacked on the previous one, each its own PR (never merged by the agent). Milest
 review, as are milestone 3 (`phase-8/clinic-finance`, PR [#9](https://github.com/mostafaapozena/clinc-saas/pull/9)) and milestone 4
 (`phase-9/subscriptions-operator`, PR [#10](https://github.com/mostafaapozena/clinc-saas/pull/10)) and milestone 5 (`phase-10/support-operations`,
 PR [#11](https://github.com/mostafaapozena/clinc-saas/pull/11)) and milestone 6 (`phase-11/acceptance`, PR [#12](https://github.com/mostafaapozena/clinc-saas/pull/12)). All milestones are in
-review; see [COMPLETION_MATRIX.md](COMPLETION_MATRIX.md) and [ACCEPTANCE.md](ACCEPTANCE.md). Open owner decisions are in
+review; see [COMPLETION_MATRIX.md](COMPLETION_MATRIX.md) and [ACCEPTANCE.md](ACCEPTANCE.md). The
+scalability and subscriptions checkpoint is `phase-12/scalability-subscriptions` (PR [#13](https://github.com/mostafaapozena/clinc-saas/pull/13)); see
+[COMPLETION_ASSESSMENT.md](COMPLETION_ASSESSMENT.md). Open owner decisions are in
 the plan's blocker register (B1 = clinical-lead authority, Q17).
 
 ## Phase 5 state (2026-10-25)

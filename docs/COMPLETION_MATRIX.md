@@ -1,4 +1,4 @@
-# Completion matrix (as of milestone 6, 2026-10-25)
+# Completion matrix (as of the scalability/subscriptions checkpoint, 2026-10-25)
 
 This matrix uses five states. It gives no percentages, and nothing here is "production-ready" or
 "clinically validated".
@@ -17,7 +17,7 @@ This matrix uses five states. It gives no percentages, and nothing here is "prod
 | ---------- | ----- | ----- |
 | Registration, organizations, branches, team, roles and branch scope | Implemented and verified | |
 | Specialty-aware onboarding (multi-specialty) | Implemented and verified | |
-| Patients, schedules, booking, check-in, queue | Implemented and verified | |
+| Patients, schedules, booking, check-in, queue | Implemented and verified | Name search is word-prefix since the scalability review (S2) |
 | Visit records (treating doctor), finalize, addenda | Implemented and verified | Clinician review pending (B2) |
 | Clinical coverage between doctors, metadata-only clinical audit | Implemented and verified | |
 | Clinical-lead authority | Awaiting decision (B1) | Built and switched off |
@@ -40,7 +40,7 @@ This matrix uses five states. It gives no percentages, and nothing here is "prod
 | Plans (versioned, draft/active/retired) and development grants | Implemented and verified | No prices or limits decided (B4) |
 | Commercial subscriptions and payments | **Simulated** | Signed webhooks, replay protection, out-of-order handling and reconciliation all run against the simulator. A real provider awaits B5. |
 | Entitlement enforcement | Implemented and verified · **off** by default | Turning it on awaits B4 |
-| Trials, grace periods, plan changes | Awaiting decision (B4) | |
+| Trials, grace policy, plan-change and cancellation requests, lifecycle pass | Implemented and verified (configuration unset; provider effects **simulated**) | Terms (trial length, grace, enforcement) still decision B4 |
 
 ## Operations
 
@@ -51,7 +51,8 @@ This matrix uses five states. It gives no percentages, and nothing here is "prod
 | Backup and restore | Implemented and verified; **drill performed** on synthetic data in an isolated database | Schedule, off-site storage and RPO/RTO await B8 |
 | Retention | Implemented (configuration plus a read-only report) | Periods await E4. Nothing is deleted. |
 | Dependency audit | Performed: 1 high fixed in range, then 0 | |
-| Rate limits | Implemented (per instance, in memory) | A shared store is needed for several instances |
+| Rate limits | Implemented and verified, **shared across replicas** (MongoDB, fail closed) | Tested with two processes on one host |
+| Load and multi-replica behavior | Measured on one 2-vCPU host: about 120 rps, p95 under 0.5 s, 0 failures, after fixing S1–S5 ([LOAD_TESTING.md](operations/LOAD_TESTING.md)) | Horizontal scaling not measured |
 | Hosting, production deployment | Awaiting decision (B8) | No deployment was made |
 
 ## External integrations

@@ -177,7 +177,8 @@ export type Patient = PatientSummary & {
   updatedAt: string;
 };
 
-export type Page<T> = { data: T[]; page: number; pageSize: number; total: number };
+/** `totalCapped`: the server stopped counting, so the list shows "more than `total`". */
+export type Page<T> = { data: T[]; page: number; pageSize: number; total: number; totalCapped?: boolean };
 
 export type WeeklyInterval = { branchId: string; weekday: number; start: string; end: string };
 

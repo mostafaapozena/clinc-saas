@@ -3,6 +3,7 @@ import { expect } from 'vitest';
 import { createApp } from '../../src/app.js';
 import type { AppConfig } from '../../src/config/app-config.js';
 import type { Role } from '../../src/tenancy/permissions.js';
+import { RateLimitCounterModel } from '../../src/auth/rate-limit.js';
 
 export type App = ReturnType<typeof createApp>;
 export type Agent = ReturnType<typeof request.agent>;
@@ -88,4 +89,12 @@ export function sessionCookie(res: { headers: Record<string, unknown> }): string
   const cookie = cookies?.find((c) => c.startsWith('clinc_sid='));
   if (!cookie) throw new Error('No session cookie in response');
   return cookie.split(';')[0] ?? '';
+}
+
+/**
+ * Rate-limit counters are shared through the database (every replica sees them), so a new app
+ * instance no longer starts from zero. Tests that count up to a limit clear them first.
+ */
+export async function resetRateLimits() {
+  await RateLimitCounterModel.deleteMany({});
 }

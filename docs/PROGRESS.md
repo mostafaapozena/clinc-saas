@@ -15,12 +15,46 @@ Decisions: [DECISIONS.md](DECISIONS.md). Next phase: [NEXT_PHASE_BRIEF.md](NEXT_
 | Planning docs | [#4](https://github.com/mostafaapozena/clinc-saas/pull/4) | `d8b93b9` | Merged 2026-10-20 (docs only, CI green) |
 | 4 — public site & onboarding | [#5](https://github.com/mostafaapozena/clinc-saas/pull/5) | — | Open, `phase-4/public-onboarding` → `main`; awaiting owner review of the public copy and the raclinic identity; not merged |
 | 5 — clinical visit records | [#6](https://github.com/mostafaapozena/clinc-saas/pull/6) | — | Open, `phase-5/visit-records` → `phase-4/public-onboarding` (stacked); awaiting owner review and clinician review; not merged |
+| Scalability & subscriptions checkpoint | [#13](https://github.com/mostafaapozena/clinc-saas/pull/13) | — | Open, `phase-12/scalability-subscriptions` → `phase-11/acceptance` (stacked); awaiting review; not merged |
 | M6 — integrated acceptance | [#12](https://github.com/mostafaapozena/clinc-saas/pull/12) | — | Open, `phase-11/acceptance` → `phase-10/support-operations` (stacked); awaiting review; not merged |
 | M5 — support & operations | [#11](https://github.com/mostafaapozena/clinc-saas/pull/11) | — | Open, `phase-10/support-operations` → `phase-9/subscriptions-operator` (stacked); awaiting review; email via development sink only; not merged |
 | M4 — subscriptions & operator console | [#10](https://github.com/mostafaapozena/clinc-saas/pull/10) | — | Open, `phase-9/subscriptions-operator` → `phase-8/clinic-finance` (stacked); awaiting review; payments simulated, enforcement off; not merged |
 | M3 — clinic finances | [#9](https://github.com/mostafaapozena/clinc-saas/pull/9) | — | Open, `phase-8/clinic-finance` → `phase-7/specialty-workspaces` (stacked); awaiting review; tax/e-invoicing not included; not merged |
 | M2 — specialty workspaces | [#8](https://github.com/mostafaapozena/clinc-saas/pull/8) | — | Open, `phase-7/specialty-workspaces` → `phase-6/clinical-continuity` (stacked); awaiting review and clinician review; not merged |
 | M1 — clinical coverage & audit view | [#7](https://github.com/mostafaapozena/clinc-saas/pull/7) | — | Open, `phase-6/clinical-continuity` → `phase-5/visit-records` (stacked); awaiting review and decision Q17; not merged |
+
+## Scalability and subscriptions checkpoint (in review)
+
+Branch `phase-12/scalability-subscriptions` (PR [#13](https://github.com/mostafaapozena/clinc-saas/pull/13)), stacked on M6.
+
+### What was delivered
+
+- **Shared rate limits.** Counters live in MongoDB and fail closed; sign-in and recovery also have
+  per-account limits.
+- **Multi-replica checks.** Two app instances in tests, and a two-process script (8/8).
+- **Load harness, explain scripts and profiler pass**, which found and fixed five defects:
+  - S1: unbounded counts;
+  - S2: substring search;
+  - S3: cross-tenant plan cache;
+  - S4: unbounded transaction retries;
+  - S5: unusable partial idempotency index.
+- **Measured throughput** on the 2-vCPU Codespace (1 replica):
+  - before the fixes, 52.7% failures at 20 rps;
+  - after, about 120 rps with p95 448 ms and 0 failures.
+  A second replica on the same host adds no capacity.
+- **Subscription lifecycle:** trials, grace policy, plan-change and cancellation requests as local
+  intent, and an idempotent lifecycle pass, in the UI and the operator console.
+
+### Documents
+
+[SCALABILITY_REVIEW.md](architecture/SCALABILITY_REVIEW.md),
+[LOAD_TESTING.md](operations/LOAD_TESTING.md), [COMPLETION_ASSESSMENT.md](COMPLETION_ASSESSMENT.md).
+
+### Behavior changes
+
+- Patient name search is word-prefix.
+- Lists show "more than 1,000".
+- Run the patient-search backfill on existing data.
 
 ## Platform completion — milestone 6: integrated acceptance (in review)
 

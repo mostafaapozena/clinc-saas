@@ -48,7 +48,7 @@ function newReference(): string {
  */
 export function createPublicRouter(config: AppConfig) {
   const router = Router();
-  const inquiryLimiter = createRateLimiter(config.inquiryRateLimit);
+  const inquiryLimiter = createRateLimiter(config.inquiryRateLimit, 'ownership-inquiry');
 
   router.post('/ownership-inquiries', inquiryLimiter, async (req, res) => {
     const key = req.get('idempotency-key') ?? '';

@@ -1,6 +1,7 @@
+import { runTransaction } from '../../db/transaction.js';
 import { createHash } from 'node:crypto';
 import { DateTime } from 'luxon';
-import mongoose, { Types, type ClientSession } from 'mongoose';
+import { Types, type ClientSession } from 'mongoose';
 import { conflict, isDuplicateKeyError } from '../../http/errors.js';
 import { clock } from '../../time/clock.js';
 import {
@@ -11,6 +12,7 @@ import {
   type BillingCheckout,
   type BillingEvent,
   type BillingInterval,
+  type PlanPrice,
   type PlatformSubscription,
   type SubscriptionStatus,
 } from './billing.model.js';
@@ -43,7 +45,7 @@ export async function handleWebhook(provider: PaymentProvider, rawBody: Buffer, 
     return { eventId: event.id, duplicate: true, outcome: null, detail: 'already processed' };
   }
   try {
-    return await mongoose.connection.transaction(async (session) => {
+    return await runTransaction(async (session) => {
       const { outcome, detail, organizationId, providerSubscriptionId } = await applyEvent(event, session);
       await BillingEventModel.create(
         [
@@ -103,7 +105,7 @@ async function applyEvent(event: ProviderEvent, session: ClientSession): Promise
   if (!['subscription.renewed', 'subscription.payment_failed', 'subscription.canceled'].includes(event.type)) {
     return result('ignored_unknown', 'event type not handled');
   }
-  const sub = subId ? await SubscriptionModel.findOne({ providerSubscriptionId: subId }).session(session).lean() : null;
+  const sub = subId ? await SubscriptionModel.findOne({ providerSubscriptionId: { $eq: subId, $type: 'string' } }).session(session).lean() : null;
   if (!sub) return result('ignored_unknown', 'unknown subscription');
   if (sub.providerEventAt && event.occurredAt <= sub.providerEventAt)
     return result('ignored_stale', 'older than the last applied event', sub.organizationId);
@@ -115,12 +117,20 @@ async function applyEvent(event: ProviderEvent, session: ClientSession): Promise
     if (!end) return result('rejected', 'missing period', sub.organizationId);
     extra.currentPeriodEnd = end;
     if (sub.status === 'past_due') to = 'active';
+    if (to !== 'past_due') extra.pastDueSince = null;
+    // The provider renewed on a different plan (a scheduled change took effect at its side).
+    const plan = event.data.plan as { planId?: unknown; planCode?: unknown; planVersion?: unknown; price?: PlanPrice } | undefined;
+    if (plan && typeof plan.planId === 'string' && Types.ObjectId.isValid(plan.planId) && typeof plan.planCode === 'string' && typeof plan.planVersion === 'number' && plan.price) {
+      Object.assign(extra, { planId: new Types.ObjectId(plan.planId), planCode: plan.planCode, planVersion: plan.planVersion, price: plan.price, pendingChange: null });
+    }
   } else if (event.type === 'subscription.payment_failed') {
     if (sub.status === 'active') to = 'past_due';
+    if (!sub.pastDueSince) extra.pastDueSince = event.occurredAt;
   } else {
     to = 'canceled';
+    Object.assign(extra, { pendingChange: null });
   }
-  if (sub.status === 'canceled') return result('ignored_stale', 'subscription already canceled', sub.organizationId);
+  if (sub.status === 'canceled' || sub.status === 'expired') return result('ignored_stale', `subscription already ${sub.status}`, sub.organizationId);
   if (!canTransition(sub.status, to)) return result('ignored_stale', `no transition ${sub.status} → ${to}`, sub.organizationId);
   // A restriction is an operator decision: provider events update the period but never lift it.
   await changeStatus(sub, to, 'provider', event.type, extra, session);
@@ -158,6 +168,12 @@ async function startCommercial(
     provider: checkout.provider,
     providerSubscriptionId,
     providerEventAt: event.occurredAt,
+    // A new commercial subscription starts clean (a trial converts; earlier requests do not carry over).
+    trialEndsAt: null,
+    pastDueSince: null,
+    cancelRequest: null,
+    pendingChange: null,
+    ...(existing?.status === 'restricted' ? {} : { restriction: null }),
   };
   if (existing) {
     const updated = await SubscriptionModel.updateOne(
@@ -232,23 +248,58 @@ export async function simulateProviderAction(sim: Simulator, organizationId: Typ
     : null;
   if (!sub || !record) throw conflict('NO_PROVIDER_SUBSCRIPTION', 'This organization has no simulator subscription');
   if (record.status === 'canceled') throw conflict('PROVIDER_SUBSCRIPTION_CANCELED', 'The simulator subscription is canceled');
-  if (action === 'renew') {
-    record.currentPeriodEnd = periodEnd(
-      record.currentPeriodEnd > clock.now() ? record.currentPeriodEnd : clock.now(),
-      record.price.interval,
-    );
+  let type: string;
+  let plan: Record<string, unknown> | undefined;
+  if (action === 'renew' && record.cancelAtPeriodEnd) {
+    // The period ended with a scheduled cancellation: the provider ends it instead of renewing.
+    record.status = 'canceled';
+    type = 'subscription.canceled';
+  } else if (action === 'renew') {
+    if (record.scheduledPlan) {
+      record.price = record.scheduledPlan.price;
+      plan = { planId: String(record.scheduledPlan.planId), planCode: record.scheduledPlan.planCode, planVersion: record.scheduledPlan.planVersion, price: record.scheduledPlan.price };
+      record.scheduledPlan = null;
+    }
+    record.currentPeriodEnd = periodEnd(record.currentPeriodEnd > clock.now() ? record.currentPeriodEnd : clock.now(), record.price.interval);
     record.status = 'active';
-  } else if (action === 'fail_payment') record.status = 'past_due';
-  else record.status = 'canceled';
+    type = 'subscription.renewed';
+  } else if (action === 'fail_payment') {
+    record.status = 'past_due';
+    type = 'subscription.payment_failed';
+  } else {
+    record.status = 'canceled';
+    type = 'subscription.canceled';
+  }
   await record.save();
   if (!emit) return { emitted: false as const };
-  const type =
-    action === 'renew' ? 'subscription.renewed' : action === 'fail_payment' ? 'subscription.payment_failed' : 'subscription.canceled';
   const result = await deliver(sim, type, {
     providerSubscriptionId: record.providerSubscriptionId,
     currentPeriodEnd: record.currentPeriodEnd.toISOString(),
+    ...(plan ? { plan } : {}),
   });
   return { emitted: true as const, result };
+}
+
+/**
+ * The simulator's side of an owner's request: records the schedule in the simulator's own state
+ * (what a real provider would hold after an API call). Returns true — "acknowledged by the
+ * SIMULATOR", which the UI labels as such; no real provider is involved.
+ */
+export function simulatorScheduler(sim: Simulator | null) {
+  if (!sim) return null;
+  return {
+    async schedule(
+      sub: Sub,
+      change: { cancelAtPeriodEnd?: boolean; scheduledPlan?: { planId: Types.ObjectId; planCode: string; planVersion: number; price: PlanPrice } | null },
+    ) {
+      if (sub.provider !== 'simulator' || !sub.providerSubscriptionId) return false;
+      const set: Record<string, unknown> = {};
+      if (change.cancelAtPeriodEnd !== undefined) set.cancelAtPeriodEnd = change.cancelAtPeriodEnd;
+      if (change.scheduledPlan !== undefined) set.scheduledPlan = change.scheduledPlan;
+      const res = await SimulatorSubscriptionModel.updateOne({ providerSubscriptionId: sub.providerSubscriptionId, status: { $ne: 'canceled' } }, { $set: set });
+      return res.matchedCount === 1;
+    },
+  };
 }
 
 // ---------------------------------------------------------------------------------------------

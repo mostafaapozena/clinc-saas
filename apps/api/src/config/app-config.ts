@@ -33,6 +33,10 @@ export type AppConfig = {
   appBaseUrl: string;
   /** Support contact details shown in the app — only what is configured, nothing invented. */
   supportContact: { email: string | null; phone: string | null; hours: { ar: string; en: string } | null };
+  /** Where rate-limit counters live: 'mongo' (shared by all replicas) or 'memory' (single-process tests only). */
+  rateLimitStore: 'mongo' | 'memory';
+  /** Exposes /api/health/metrics (event loop, memory, CPU) for load tests; never in production. */
+  opsMetrics: boolean;
 };
 
 export const defaultAppConfig: AppConfig = {
@@ -52,6 +56,8 @@ export const defaultAppConfig: AppConfig = {
   mailProvider: 'none',
   appBaseUrl: '',
   supportContact: { email: null, phone: null, hours: null },
+  rateLimitStore: 'mongo',
+  opsMetrics: false,
 };
 
 export function appConfigFromEnv(env: Env): AppConfig {
@@ -79,5 +85,7 @@ export function appConfigFromEnv(env: Env): AppConfig {
       phone: env.SUPPORT_CONTACT_PHONE ?? null,
       hours: env.SUPPORT_HOURS_AR && env.SUPPORT_HOURS_EN ? { ar: env.SUPPORT_HOURS_AR, en: env.SUPPORT_HOURS_EN } : null,
     },
+    rateLimitStore: env.RATE_LIMIT_STORE,
+    opsMetrics: env.OPS_METRICS,
   };
 }

@@ -53,7 +53,8 @@ test('operator grant → owner subscribes through the simulator → signed webho
   await page.getByRole('button', { name: 'Fail a payment' }).click();
   await expect(opSub).toContainText('Active');
   await page.getByRole('link', { name: 'Overview' }).click();
-  await page.getByRole('button', { name: 'Check (dry run)' }).click();
+  // The overview also has a lifecycle dry run; use the reconciliation card's.
+  await page.getByRole('region', { name: 'Reconciliation' }).getByRole('button', { name: 'Check (dry run)' }).click();
   await expect(page.getByTestId('reconcile-result')).toContainText('Status differs: active → past_due · not applied');
   await page.getByRole('button', { name: 'Apply provider state' }).click();
   await expect(page.getByTestId('reconcile-result')).toContainText('Status differs: active → past_due · applied');

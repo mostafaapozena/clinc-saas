@@ -74,7 +74,7 @@ export function createMembersRouter(config: AppConfig) {
   const addLimiter = createRateLimiter({
     ...config.authRateLimit,
     max: config.authRateLimit.max * 3,
-  });
+  }, 'member-lookup');
 
   router.get('/', requirePermission('member.read'), async (req, res) => {
     const tenant = tenantOf(req);

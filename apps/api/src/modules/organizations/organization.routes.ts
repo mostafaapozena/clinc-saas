@@ -1,5 +1,6 @@
+import { runTransaction } from '../../db/transaction.js';
 import { Router } from 'express';
-import mongoose, { Types } from 'mongoose';
+import { Types } from 'mongoose';
 import { z } from 'zod';
 import { createRateLimiter } from '../../auth/rate-limit.js';
 import { requireAuth, authOf } from '../../auth/session.middleware.js';
@@ -34,6 +35,7 @@ import { createCoverageRouter } from '../clinical/coverage.routes.js';
 import { createSpecialtyRouter } from '../clinical/specialty.routes.js';
 import { createFinanceRouter } from '../finance/finance.routes.js';
 import { createSubscriptionRouter } from '../platform/subscription.routes.js';
+import { restrictedWriteGuard } from '../platform/subscription.lifecycle.js';
 import type { Mailer } from '../mail/mailer.js';
 import { createInvitationsRouter } from '../memberships/invitation.routes.js';
 import { createSupportRouter } from '../support/support.routes.js';
@@ -105,7 +107,7 @@ async function membershipView(tenant: TenantContext) {
 
 export function createOrganizationsRouter(config: AppConfig, mailer: Mailer = { name: 'none', send: async () => {} }) {
   const router = Router();
-  const setupLimiter = createRateLimiter(config.setupRateLimit);
+  const setupLimiter = createRateLimiter(config.setupRateLimit, 'organization-create');
   router.use(requireAuth);
 
   // Organizations the caller belongs to (never anyone else's).
@@ -133,6 +135,8 @@ export function createOrganizationsRouter(config: AppConfig, mailer: Mailer = { 
   });
 
   router.use('/:orgId', requireMembership);
+  // Only with SUBSCRIPTION_ENFORCEMENT=on and a read_only billing policy (both off by default).
+  router.use('/:orgId', restrictedWriteGuard);
 
   router.get('/:orgId', requirePermission('organization.read'), async (req, res) => {
     const tenant = tenantOf(req);
@@ -204,7 +208,7 @@ export function createOrganizationsRouter(config: AppConfig, mailer: Mailer = { 
     await assertCatalogSpecialties(input.specialtyCodes, 'specialtyCodes');
     await assertCatalogSpecialties(input.branches.flatMap((b) => b.specialtyCodes), 'branches');
 
-    const result = await mongoose.connection.transaction(async (session) => {
+    const result = await runTransaction(async (session) => {
       const before = await lockSpecialtyConfig(tenant.organizationId, session);
       if ((before.configVersion ?? 0) !== input.configVersion) {
         throw conflict('VERSION_CONFLICT', 'The specialty setup was changed by someone else. Reload and try again.');

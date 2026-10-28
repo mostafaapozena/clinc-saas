@@ -15,6 +15,7 @@ import {
   opKeys,
   planName,
   setOperatorCsrf,
+  type BillingPolicy,
   type OperatorSession,
   type Plan,
   type PlanLimits,
@@ -302,8 +303,126 @@ export function OperatorOverviewPage() {
               ))}
           </section>
         )}
+        {operator.can('platform.plans.read') && <PolicyCard canEdit={operator.can('platform.subscriptions.manage')} />}
+        {operator.can('platform.subscriptions.manage') && <LifecycleCard />}
       </div>
     </>
+  );
+}
+
+/** Billing policy: unset by default; values are commercial decisions (B4), recorded with an audit entry. */
+function PolicyCard({ canEdit }: { canEdit: boolean }) {
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
+  const policy = useQuery({ queryKey: ['operator', 'policy'], queryFn: ({ signal }) => opApi<{ policy: BillingPolicy }>('/billing/policy', { signal }) });
+  const [draft, setDraft] = useState<{ graceDays: string; afterGrace: BillingPolicy['afterGrace']; restrictedAccess: BillingPolicy['restrictedAccess'] } | null>(null);
+  const save = useMutation({
+    mutationFn: (body: object) => opApi<{ policy: BillingPolicy }>('/billing/policy', { method: 'PUT', body }),
+    onSuccess: (data) => {
+      queryClient.setQueryData(['operator', 'policy'], data);
+      setDraft(null);
+    },
+  });
+  if (!policy.data) return null;
+  const p = policy.data.policy;
+  return (
+    <section className="card" aria-labelledby="op-policy-title" data-testid="billing-policy">
+      <h2 id="op-policy-title">{t('operator.policy.title')}</h2>
+      <p className="muted small">{t('operator.policy.hint')}</p>
+      {save.isError && <Notice kind="error">{errorMessage(t, save.error)}</Notice>}
+      {!draft ? (
+        <>
+          <dl className="details">
+            <dt>{t('operator.policy.graceDays')}</dt>
+            <dd>{p.graceDays === null ? t('operator.policy.notSet') : t('operator.policy.days', { count: p.graceDays })}</dd>
+            <dt>{t('operator.policy.afterGrace')}</dt>
+            <dd>{t(`operator.policy.after.${p.afterGrace}`)}</dd>
+            <dt>{t('operator.policy.restrictedAccess')}</dt>
+            <dd>{t(`operator.policy.access.${p.restrictedAccess}`)}</dd>
+          </dl>
+          {canEdit && (
+            <button type="button" className="button button--secondary" onClick={() => setDraft({ graceDays: p.graceDays?.toString() ?? '', afterGrace: p.afterGrace, restrictedAccess: p.restrictedAccess })}>
+              {t('operator.policy.edit')}
+            </button>
+          )}
+        </>
+      ) : (
+        <form
+          className="stack-sm"
+          onSubmit={(e) => {
+            e.preventDefault();
+            save.mutate({ graceDays: draft.graceDays.trim() === '' ? null : Number(draft.graceDays), afterGrace: draft.afterGrace, restrictedAccess: draft.restrictedAccess, revision: p.revision ?? 0 });
+          }}
+        >
+          <Field id="policy-grace" label={t('operator.policy.graceDays')} hint={t('operator.policy.graceHint')}>
+            <input id="policy-grace" inputMode="numeric" dir="ltr" value={draft.graceDays} onChange={(e) => setDraft({ ...draft, graceDays: e.target.value })} />
+          </Field>
+          <Field id="policy-after" label={t('operator.policy.afterGrace')}>
+            <select id="policy-after" value={draft.afterGrace} onChange={(e) => setDraft({ ...draft, afterGrace: e.target.value as BillingPolicy['afterGrace'] })}>
+              <option value="none">{t('operator.policy.after.none')}</option>
+              <option value="restricted">{t('operator.policy.after.restricted')}</option>
+            </select>
+          </Field>
+          <Field id="policy-access" label={t('operator.policy.restrictedAccess')} hint={t('operator.policy.accessHint')}>
+            <select id="policy-access" value={draft.restrictedAccess} onChange={(e) => setDraft({ ...draft, restrictedAccess: e.target.value as BillingPolicy['restrictedAccess'] })}>
+              <option value="growth_only">{t('operator.policy.access.growth_only')}</option>
+              <option value="read_only">{t('operator.policy.access.read_only')}</option>
+            </select>
+          </Field>
+          <div className="form-actions">
+            <button type="submit" className="button button--primary" disabled={save.isPending}>
+              {t('common.save')}
+            </button>
+            <button type="button" className="button button--ghost" onClick={() => setDraft(null)}>
+              {t('common.cancel')}
+            </button>
+          </div>
+        </form>
+      )}
+    </section>
+  );
+}
+
+type LifecycleAction = { organizationId: string; from: string; to: string | null; reason: string; applied: boolean; conflict?: boolean };
+
+/** The lifecycle pass (trials and grants that ended, grace periods): dry run first, then apply. */
+function LifecycleCard() {
+  const { t } = useTranslation();
+  const [actions, setActions] = useState<LifecycleAction[] | null>(null);
+  const run = useMutation({
+    mutationFn: (apply: boolean) => opApi<{ actions: LifecycleAction[] }>('/billing/lifecycle', { method: 'POST', body: { apply } }),
+    onSuccess: (r) => setActions(r.actions),
+  });
+  return (
+    <section className="card" aria-labelledby="op-lifecycle-title">
+      <h2 id="op-lifecycle-title">{t('operator.lifecycle.title')}</h2>
+      <p className="muted small">{t('operator.lifecycle.hint')}</p>
+      {run.isError && <Notice kind="error">{errorMessage(t, run.error)}</Notice>}
+      <div className="form-actions">
+        <button type="button" className="button button--secondary" disabled={run.isPending} onClick={() => run.mutate(false)}>
+          {t('operator.lifecycle.dryRun')}
+        </button>
+        <button type="button" className="button button--primary" disabled={run.isPending || !actions?.some((a) => a.to)} onClick={() => run.mutate(true)}>
+          {t('operator.lifecycle.apply')}
+        </button>
+      </div>
+      {actions &&
+        (actions.length === 0 ? (
+          <p data-testid="lifecycle-result">{t('operator.lifecycle.none')}</p>
+        ) : (
+          <ul className="data-list" data-testid="lifecycle-result">
+            {actions.map((a) => (
+              <li key={`${a.organizationId}-${a.reason}`} className="data-row">
+                <Link to={`/operator/organizations/${a.organizationId}`}>{a.organizationId.slice(-6)}</Link>
+                <span className="data-meta">
+                  {t(`operator.lifecycle.reason.${a.reason}`)}: {t(`subscription.status.${a.from}`)} → {a.to ? t(`subscription.status.${a.to}`) : t('operator.lifecycle.providerDecides')} ·{' '}
+                  {a.applied ? t('operator.reconcile.applied') : a.conflict ? t('operator.lifecycle.conflict') : t('operator.reconcile.notApplied')}
+                </span>
+              </li>
+            ))}
+          </ul>
+        ))}
+    </section>
   );
 }
 
@@ -434,6 +553,7 @@ export function OperatorOrganizationPage() {
   const refresh = () => queryClient.invalidateQueries({ queryKey: opKeys.organization(orgId) });
   const [grant, setGrant] = useState({ planId: '', endsAt: '', note: '' });
   const [reason, setReason] = useState('');
+  const [planChange, setPlanChange] = useState('');
   const [emit, setEmit] = useState(true);
   const action = useMutation({
     mutationFn: ({ path, body }: { path: string; body: object }) => opApi<unknown>(path, { method: 'POST', body }),
@@ -555,7 +675,61 @@ export function OperatorOrganizationPage() {
               <p className="muted small">{t('operator.organization.restrictHint')}</p>
             </div>
           )}
-          {manage && (!sub || sub.status === 'canceled') && (
+          {sub && (sub.status === 'trialing' || sub.pendingChange || sub.cancelRequest) && (
+            <dl className="details" data-testid="operator-lifecycle">
+              {sub.status === 'trialing' && sub.trialEndsAt && (
+                <>
+                  <dt>{t('subscription.trial.endsLabel')}</dt>
+                  <dd>{fmt.date(sub.trialEndsAt)}</dd>
+                </>
+              )}
+              {sub.pendingChange && (
+                <>
+                  <dt>{t('subscription.change.pendingLabel')}</dt>
+                  <dd>
+                    {t('subscription.change.pending', { plan: sub.pendingChange.plan.code, date: fmt.date(sub.pendingChange.effectiveAt) })} ·{' '}
+                    {sub.pendingChange.providerAcknowledged ? t('subscription.intent.acknowledged') : t('subscription.intent.local')}
+                  </dd>
+                </>
+              )}
+              {sub.cancelRequest && (
+                <>
+                  <dt>{t('subscription.cancel.pendingLabel')}</dt>
+                  <dd>
+                    {t('subscription.cancel.pending', { date: sub.currentPeriodEnd ? fmt.date(sub.currentPeriodEnd) : '—' })} ·{' '}
+                    {sub.cancelRequest.providerAcknowledged ? t('subscription.intent.acknowledged') : t('subscription.intent.local')}
+                  </dd>
+                </>
+              )}
+            </dl>
+          )}
+          {manage && sub && sub.kind === 'development_grant' && !['canceled', 'expired'].includes(sub.status) && (
+            <form
+              className="stack-sm"
+              onSubmit={(e) => {
+                e.preventDefault();
+                action.mutate({ path: `/organizations/${orgId}/subscription/plan`, body: { planId: planChange, version: sub.version, reason } });
+              }}
+            >
+              <h3>{t('operator.organization.changePlanTitle')}</h3>
+              <Field id="op-change-plan" label={t('subscription.plan')} hint={t('operator.organization.changePlanHint')}>
+                <select id="op-change-plan" value={planChange} onChange={(e) => setPlanChange(e.target.value)}>
+                  <option value="">{t('operator.organization.choosePlan')}</option>
+                  {activePlans
+                    .filter((p) => p.id !== sub.plan.id)
+                    .map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {planName(p, i18n.resolvedLanguage ?? 'ar')} v{p.version}
+                      </option>
+                    ))}
+                </select>
+              </Field>
+              <button type="submit" className="button button--secondary" disabled={action.isPending || !planChange || reason.trim().length < 3}>
+                {t('operator.organization.changePlan')}
+              </button>
+            </form>
+          )}
+          {manage && (!sub || sub.status === 'canceled' || sub.status === 'expired') && (
             <form
               className="stack-sm"
               onSubmit={(e) => {
@@ -602,6 +776,16 @@ export function OperatorOrganizationPage() {
               >
                 {t('operator.organization.grant')}
               </button>
+              {!sub?.trialUsed && (
+                <button
+                  type="button"
+                  className="button button--secondary"
+                  disabled={action.isPending || !grant.planId || !grant.endsAt}
+                  onClick={() => action.mutate({ path: `/organizations/${orgId}/subscription/trial`, body: { planId: grant.planId, endsAt: grant.endsAt } })}
+                >
+                  {t('operator.organization.startTrial')}
+                </button>
+              )}
             </form>
           )}
           {manage && sub?.provider === 'simulator' && sub.status !== 'canceled' && (
@@ -684,6 +868,7 @@ type PlanDraft = {
   prices: { currency: 'EGP' | 'SAR'; interval: 'month' | 'year'; amount: string }[];
   limits: Record<keyof PlanLimits, string>;
   note: string;
+  trialDays: string;
 };
 const emptyDraft: PlanDraft = {
   code: '',
@@ -692,6 +877,7 @@ const emptyDraft: PlanDraft = {
   prices: [],
   limits: { branches: '', practitioners: '', members: '' },
   note: '',
+  trialDays: '',
 };
 const toDraft = (p: Plan): PlanDraft => ({
   code: p.code,
@@ -704,6 +890,7 @@ const toDraft = (p: Plan): PlanDraft => ({
     members: p.limits.members?.toString() ?? '',
   },
   note: p.note ?? '',
+  trialDays: p.trialDays?.toString() ?? '',
 });
 
 function PlanForm({ initial, plan, onDone }: { initial: PlanDraft; plan?: Plan; onDone: () => void }) {
@@ -733,8 +920,10 @@ function PlanForm({ initial, plan, onDone }: { initial: PlanDraft; plan?: Plan; 
     const limits = { branches: limit(d.limits.branches), practitioners: limit(d.limits.practitioners), members: limit(d.limits.members) };
     if (Object.values(limits).some((v) => v !== null && (!Number.isInteger(v) || v < 0)))
       return setLocalError(t('operator.plans.badLimit'));
+    const trialDays = d.trialDays.trim() === '' ? null : Number(d.trialDays);
+    if (trialDays !== null && (!Number.isInteger(trialDays) || trialDays < 1 || trialDays > 365)) return setLocalError(t('operator.plans.badTrial'));
     setLocalError(null);
-    save.mutate({ name: { ar: d.nameAr, en: d.nameEn }, prices, limits, note: d.note });
+    save.mutate({ name: { ar: d.nameAr, en: d.nameEn }, prices, limits, note: d.note, trialDays });
   };
   return (
     <form className="stack-sm" onSubmit={submit} data-testid="plan-form">
@@ -818,6 +1007,9 @@ function PlanForm({ initial, plan, onDone }: { initial: PlanDraft; plan?: Plan; 
           ))}
         </div>
       </fieldset>
+      <Field id="plan-trial" label={t('operator.plans.trialDays')} hint={t('operator.plans.trialHint')}>
+        <input id="plan-trial" inputMode="numeric" dir="ltr" value={d.trialDays} onChange={(e) => setD({ ...d, trialDays: e.target.value })} />
+      </Field>
       <Field id="plan-note" label={t('operator.plans.note')}>
         <input id="plan-note" value={d.note} maxLength={500} onChange={(e) => setD({ ...d, note: e.target.value })} />
       </Field>

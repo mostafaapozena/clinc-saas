@@ -31,7 +31,7 @@ Plans are therefore **configuration**, edited by platform operators:
   - An **active** plan is frozen. To change it, create a **new version**, which starts as a draft.
     Each plan code has at most one draft.
   - A **retired** plan is no longer offered. Subscriptions already on it keep it.
-- **Trial and grace states are not implemented.** Their length is a commercial decision.
+- **Trials and grace** are configurable but unset: `trialDays` on a plan, `graceDays` in the platform billing policy (see Lifecycle).
 
 The development seed creates three plans:
 
@@ -176,10 +176,81 @@ Nothing has been purchased or configured.
 
 ## Not included
 
-- Trials and grace periods.
-- Plan changes or proration for commercial subscriptions.
-- Owner-initiated cancellation.
+- Proration and immediate plan changes for commercial subscriptions (a provider feature).
+
 - Invoices or receipts from raclinic to clinics.
 - Tax.
 - Dunning emails (there is no email provider yet, B7).
 - Automatic expiry jobs. Expiry is derived on read instead.
+
+## Lifecycle (trials, grace, plan changes, cancellation)
+
+Added in the scalability/subscriptions checkpoint (`phase-12/scalability-subscriptions`).
+Code: `subscription.lifecycle.ts`; tests: `subscription-lifecycle.test.ts`,
+`SubscriptionLifecycle.test.tsx`, `e2e/subscription-lifecycle.spec.ts`.
+
+### Statuses and trials
+
+- **New statuses.** `trialing` and `expired` join the existing ones.
+  - `expired` is stored by the lifecycle pass and is also derived on read.
+  - Ended (canceled or expired) subscriptions are replaced, never revived.
+- **Trials.**
+  - A plan may offer one through `trialDays`, which is unset by default.
+  - An owner starts it once per organization, and only when there is no live subscription.
+  - An operator can also start one with an explicit end date.
+  - A trial is free access (kind `development_grant`). It becomes commercial only through a
+    verified checkout.
+
+### Billing policy
+
+- **Content.** One document (`platform_billing_policy`), edited by platform administrators,
+  versioned and audited, with three settings:
+  - `graceDays` (unset);
+  - `afterGrace`: `none` or `restricted`;
+  - `restrictedAccess`: `growth_only` (default) or `read_only`.
+- **Grace.** With a grace period configured, past-due subscriptions are restricted after
+  `pastDueSince + graceDays`.
+- **Read-only mode.**
+  - It applies only with `SUBSCRIPTION_ENFORCEMENT=on`.
+  - It refuses most changes with 403 `SUBSCRIPTION_READ_ONLY`.
+  - It never blocks reading, support, the subscription page, or clinical documentation and
+    coverage: patient safety comes before billing.
+  - Activating it commercially remains decision B4.
+
+### Owner requests
+
+- **Plan change** (commercial only): a request effective at the end of the current period. Rules:
+  - The price always comes from the plan.
+  - Repeating the same request is idempotent.
+  - A stale version gets 409.
+  - The request can be withdrawn.
+- **Cancellation:** requires `confirm: true`, and the UI asks for explicit confirmation.
+  - A commercial subscription ends at the period end, through the provider.
+  - A trial or grant ends at once.
+  - Data is never removed.
+
+### Local intent vs provider state
+
+- **Where requests live.** Requests are stored on the subscription as local intent:
+  `pendingChange` and `cancelRequest`, each with `providerAcknowledged`.
+- **Acknowledgement.** It is true only once the provider holds the same schedule. Today that is
+  the labelled simulator; without a provider it stays false, and the UI says "recorded here only —
+  not yet confirmed by a payment provider".
+- **What changes the subscription.** It changes plan or ends only through a verified provider
+  event:
+  - a renewal on the scheduled plan;
+  - a cancellation at the period end.
+  Out-of-order and duplicate events are handled as before.
+
+### Lifecycle pass
+
+`POST /api/v1/platform/billing/lifecycle {apply}` or `npm run ops:subscriptions -w @clinc/api -- [--apply]`.
+
+- **What it does:**
+  - expires ended trials and grants;
+  - applies the grace policy;
+  - reports commercial subscriptions past their period as `awaiting_provider`. It never ends
+    them itself.
+- **Safety.** It is a dry run by default. Every change is a conditional update on the version:
+  concurrent runs apply once (tested), and a repeat run finds nothing to do.
+- **Scheduling.** It needs a scheduler (cron) once hosting is chosen; no in-process timer exists.

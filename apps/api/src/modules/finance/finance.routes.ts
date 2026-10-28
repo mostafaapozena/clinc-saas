@@ -1,6 +1,7 @@
+import { runTransaction } from '../../db/transaction.js';
 import { createHash } from 'node:crypto';
 import { Router, type Request } from 'express';
-import mongoose, { Types, type ClientSession } from 'mongoose';
+import { Types, type ClientSession } from 'mongoose';
 import { z } from 'zod';
 import { HttpError, conflict, forbidden, isDuplicateKeyError, notFound, validationError } from '../../http/errors.js';
 import { objectIdSchema } from '../../http/schemas.js';
@@ -53,7 +54,7 @@ function requireKey(req: Request): string {
   return key;
 }
 const reused = () => conflict('IDEMPOTENCY_KEY_REUSED', 'This request key was already used for a different request');
-const inTx = <T>(work: (session: ClientSession) => Promise<T>) => mongoose.connection.transaction(work);
+const inTx = <T>(work: (session: ClientSession) => Promise<T>) => runTransaction(work);
 const yearOf = (d: Date) => d.getUTCFullYear();
 
 async function organizationCurrency(tenant: TenantContext, session?: ClientSession): Promise<Currency> {

@@ -64,3 +64,11 @@ export function nameKey(name: string): string {
     .replace(/\s+/g, ' ')
     .trim();
 }
+
+/**
+ * Distinct words of a normalized name (nameKey), for indexed word-prefix search: "محمد احمد" → ["محمد", "احمد"].
+ * Stored with every patient (scalability review): a substring regex over nameKey cannot use an index.
+ */
+export function nameTokens(key: string): string[] {
+  return [...new Set(key.split(' ').filter(Boolean))].slice(0, 12);
+}

@@ -21,9 +21,10 @@ const tokenInvalid = () => new HttpError(400, 'TOKEN_INVALID', 'This link is inv
 
 export function createAccountRouter(config: AppConfig, mailer: Mailer) {
   const router = Router();
-  const limiter = createRateLimiter(config.authRateLimit);
+  const limiter = createRateLimiter(config.authRateLimit, 'account-email');
+  const resetAccountLimiter = createRateLimiter({ ...config.authRateLimit, max: config.authRateLimit.max * 2 }, 'password-reset-account', 'account');
 
-  router.post('/password-reset/request', limiter, async (req, res) => {
+  router.post('/password-reset/request', limiter, resetAccountLimiter, async (req, res) => {
     const { email } = parseInput(z.object({ email: emailSchema }), req.body);
     const user = await UserModel.findOne({ email });
     if (user && !(config.production && isDemoEmail(user.email))) {

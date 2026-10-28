@@ -33,7 +33,7 @@ const invitationInvalid = () => new HttpError(400, 'TOKEN_INVALID', 'This invita
 
 export function createInvitationsRouter(config: AppConfig, mailer: Mailer) {
   const router = Router({ mergeParams: true });
-  const limiter = createRateLimiter({ ...config.authRateLimit, max: config.authRateLimit.max * 3 });
+  const limiter = createRateLimiter({ ...config.authRateLimit, max: config.authRateLimit.max * 3 }, 'invitation-create');
 
   router.get('/', requirePermission('member.read'), async (req, res) => {
     const tenant = tenantOf(req);

@@ -1,6 +1,7 @@
+import { runTransaction } from '../../db/transaction.js';
 import { assertEntitlement } from '../platform/subscription.service.js';
 import { Router } from 'express';
-import mongoose, { Types, type ClientSession } from 'mongoose';
+import { Types, type ClientSession } from 'mongoose';
 import { z } from 'zod';
 import { HttpError, conflict, isDuplicateKeyError, notFound } from '../../http/errors.js';
 import { objectIdSchema } from '../../http/schemas.js';
@@ -191,7 +192,7 @@ async function inScheduleTransaction<T>(
   practitionerId: Types.ObjectId,
   work: (practitioner: PractitionerLean, session: ClientSession) => Promise<T>,
 ): Promise<T> {
-  return mongoose.connection.transaction(async (session) => {
+  return runTransaction(async (session) => {
     const practitioner = await PractitionerModel.findOneAndUpdate(
       { organizationId: tenant.organizationId, _id: practitionerId },
       { $inc: { scheduleSeq: 1 } },
@@ -269,7 +270,7 @@ practitionersRouter.post('/', requirePermission('practitioner.manage'), async (r
   const branchIds = await validateBranches(tenant, input.branchIds.map((id) => new Types.ObjectId(id)), membershipId);
   const user = await UserModel.findById(membership.userId).select('displayName').lean();
   try {
-    const practitioner = await mongoose.connection.transaction(async (session) => {
+    const practitioner = await runTransaction(async (session) => {
       // The specialty must be enabled and offered at every chosen branch (once configured).
       const organization = await lockSpecialtyConfig(tenant.organizationId, session);
       await assertPractitionerFits(organization, input.specialtyCode, branchIds, session);

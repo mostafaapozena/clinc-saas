@@ -4,7 +4,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { OwnershipInquiryModel } from '../src/modules/inquiries/inquiry.model.js';
 import { parseReviewArgs, runReview } from '../src/modules/inquiries/inquiry.review.js';
 import { seedSpecialties } from '../src/modules/specialties/specialty.seed.js';
-import { createOrg, register, testApp, type App } from './helpers/api.js';
+import { createOrg, register, testApp, type App, resetRateLimits } from './helpers/api.js';
 import { connectTestDatabase, dropTestDatabase } from './helpers/test-database.js';
 
 const app = testApp();
@@ -95,6 +95,7 @@ describe('submitting a custom-ownership inquiry', () => {
   });
 
   it('is rate limited per client and refuses cross-site posts', async () => {
+    await resetRateLimits();
     const limited = testApp({ inquiryRateLimit: { max: 2, windowMs: 60_000 } });
     expect((await submit(valid, randomUUID(), limited)).status).toBe(201);
     expect((await submit(valid, randomUUID(), limited)).status).toBe(201);

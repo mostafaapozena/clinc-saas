@@ -5,11 +5,13 @@ import type { Logger } from 'pino';
 import { pinoHttp } from 'pino-http';
 import { createAuthRouter } from './auth/auth.routes.js';
 import { csrfProtection, originCheck } from './auth/csrf.js';
+import { configureRateLimitStore } from './auth/rate-limit.js';
 import { loadSession } from './auth/session.middleware.js';
 import { defaultAppConfig, type AppConfig } from './config/app-config.js';
 import './db/models.js';
 import { HttpError } from './http/errors.js';
 import { healthRouter } from './modules/health/health.routes.js';
+import { createMetricsRouter } from './modules/health/metrics.js';
 import { createPublicRouter } from './modules/inquiries/inquiry.routes.js';
 import { createOnboardingRouter } from './modules/onboarding/onboarding.routes.js';
 import { createOrganizationsRouter } from './modules/organizations/organization.routes.js';
@@ -44,6 +46,8 @@ export function createApp({ logger, config: overrides, mailer: givenMailer, erro
   const config: AppConfig = { ...defaultAppConfig, ...overrides };
   const mailer = givenMailer ?? createMailer(config);
   const reporter = errorReporter ?? logErrorReporter(logger);
+  // Before any router is built: every limiter picks up the shared store.
+  configureRateLimitStore(config.rateLimitStore);
   const app = express();
 
   app.disable('x-powered-by');
@@ -83,6 +87,7 @@ export function createApp({ logger, config: overrides, mailer: givenMailer, erro
   });
   app.use('/api', cookieParser(), loadSession(config), originCheck(config));
 
+  if (config.opsMetrics) app.use('/api/health/metrics', createMetricsRouter());
   app.use('/api/health', healthRouter);
   app.use('/api/v1/specialties', specialtiesRouter); // public platform catalog (not tenant data)
   // Anonymous website forms: no session involved, so no CSRF token; the origin check still
@@ -120,6 +125,11 @@ export function createApp({ logger, config: overrides, mailer: givenMailer, erro
           ...(err.details ? { details: err.details } : {}),
         },
       });
+      return;
+    }
+    // A query that hit its time limit (maxTimeMS): the database is overloaded; ask to retry.
+    if (typeof err === 'object' && err !== null && 'code' in err && (err as { code?: unknown }).code === 50) {
+      res.status(503).json({ error: { code: 'QUERY_TIMEOUT', message: 'The service is busy. Please try again.' } });
       return;
     }
     const parserStatus = bodyParserStatus(err);
