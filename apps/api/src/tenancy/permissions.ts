@@ -74,6 +74,13 @@ export const PERMISSION_MATRIX = {
   'cash.session.operate': FINANCE_DESK,
   'cash.session.review': ['owner', 'admin', 'accountant'],
   'cash.voucher.create': ['owner', 'admin', 'accountant'],
+  // ERP milestone B — inventory and medical consumables (docs/architecture/INVENTORY.md).
+  'inventory.read': ['owner', 'admin', 'receptionist', 'accountant', 'doctor'],
+  'inventory.manage': ['owner', 'admin'],
+  'inventory.move': ['owner', 'admin'],
+  // The treating doctor records materials used in their own finalized records.
+  'inventory.consume': ['doctor'],
+  'inventory.value.read': ['owner', 'admin', 'accountant'],
   // Milestone 4 — the organization's platform subscription (what the clinic pays raclinic).
   'subscription.read': ['owner', 'admin'],
   'subscription.manage': ['owner'],

@@ -40,7 +40,7 @@ starts when an owner sets it up; the demo organizations are set up by the seed.
 **Rollback.** Without settings, nothing posts (the finance code paths are no-ops), so disabling
 accounting does not affect patient finances.
 
-## B. Inventory and medical consumables — planned next
+## B. Inventory and medical consumables — ✅ built (branch `phase-16/erp-inventory`, stacked on A)
 
 **Outcome.** Clinics track supplies by warehouse, lot and expiry. Procedures consume stock
 explicitly, and the ledger carries stock value.

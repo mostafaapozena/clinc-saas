@@ -61,10 +61,15 @@ export const AUDIT_ACTIONS = [
   'bank_statement.imported',
   'bank_line.matched',
   'bank_line.unmatched',
+  'stock_item.created',
+  'stock_item.updated',
+  'warehouse.created',
+  'warehouse.updated',
+  'stock_document.created',
 ] as const;
 export type AuditAction = (typeof AUDIT_ACTIONS)[number];
 
-export const AUDIT_TARGET_TYPES = ['organization', 'branch', 'membership', 'patient', 'practitioner', 'appointment', 'service', 'charge', 'invoice', 'payment', 'adjustment', 'ledger_account', 'journal_entry', 'cash_account', 'cash_session', 'cash_voucher'] as const;
+export const AUDIT_TARGET_TYPES = ['organization', 'branch', 'membership', 'patient', 'practitioner', 'appointment', 'service', 'charge', 'invoice', 'payment', 'adjustment', 'ledger_account', 'journal_entry', 'cash_account', 'cash_session', 'cash_voucher', 'stock_item', 'warehouse', 'stock_document'] as const;
 export type AuditTargetType = (typeof AUDIT_TARGET_TYPES)[number];
 
 /**
