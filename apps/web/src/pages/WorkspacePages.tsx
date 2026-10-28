@@ -52,6 +52,7 @@ export type Focus = {
   };
   approvals?: { purchaseRequests?: number; directBills?: number; settlements?: number };
   stock?: { reorder: number; expiring: number };
+  equipment?: { maintenanceDue: number; outOfService: number };
 };
 
 function useFocus(full = false) {
@@ -117,7 +118,7 @@ export function FocusPanel() {
   if (!focus.isSuccess) return null;
   const f = focus.data;
   const approvals = f.approvals ? (f.approvals.purchaseRequests ?? 0) + (f.approvals.directBills ?? 0) + (f.approvals.settlements ?? 0) : 0;
-  if (!f.clinical && !f.frontDesk && !f.finance && !approvals && !f.stock) return null;
+  if (!f.clinical && !f.frontDesk && !f.finance && !approvals && !f.stock && !f.equipment) return null;
   return (
     <section className="card focus-panel" aria-labelledby="focus-title" data-testid="focus-panel">
       <h2 id="focus-title">{t('workspace.focusTitle')}</h2>
@@ -238,7 +239,7 @@ export function FocusPanel() {
           )}
         </div>
       )}
-      {(approvals > 0 || f.stock) && (
+      {(approvals > 0 || f.stock || f.equipment) && (
         <div className="focus-group">
           <h3>{t('workspace.managementTitle')}</h3>
           <ul className="link-list">
@@ -267,9 +268,21 @@ export function FocusPanel() {
                 <Link to={`/app/${orgId}/inventory`}>{t('workspace.lotsExpiring', { count: f.stock.expiring })}</Link>
               </li>
             )}
-            {approvals === 0 && (!f.stock || (f.stock.reorder === 0 && f.stock.expiring === 0)) && (
-              <li className="muted">{t('workspace.nothingWaiting')}</li>
+            {f.equipment && f.equipment.maintenanceDue > 0 && (
+              <li>
+                <Link to={`/app/${orgId}/assets`}>{t('workspace.maintenanceDue', { count: f.equipment.maintenanceDue })}</Link>
+              </li>
             )}
+            {f.equipment && f.equipment.outOfService > 0 && (
+              <li>
+                <Link to={`/app/${orgId}/assets`}>{t('workspace.outOfService', { count: f.equipment.outOfService })}</Link>
+              </li>
+            )}
+            {approvals === 0 &&
+              (!f.stock || (f.stock.reorder === 0 && f.stock.expiring === 0)) &&
+              (!f.equipment || (f.equipment.maintenanceDue === 0 && f.equipment.outOfService === 0)) && (
+                <li className="muted">{t('workspace.nothingWaiting')}</li>
+              )}
           </ul>
         </div>
       )}

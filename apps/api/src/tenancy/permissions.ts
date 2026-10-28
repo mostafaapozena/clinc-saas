@@ -98,6 +98,10 @@ export const PERMISSION_MATRIX = {
   'compensation.pay': ['owner', 'accountant'],
   // A practitioner's own approved settlements (statement).
   'compensation.own.read': ['doctor'],
+  // ERP milestone F — equipment register and maintenance (docs/architecture/ASSETS.md).
+  'asset.read': ['owner', 'admin', 'receptionist', 'accountant', 'doctor'],
+  'asset.manage': ['owner', 'admin'],
+  'asset.maintain': ['owner', 'admin', 'receptionist'],
   // Milestone 4 — the organization's platform subscription (what the clinic pays raclinic).
   'subscription.read': ['owner', 'admin'],
   'subscription.manage': ['owner'],

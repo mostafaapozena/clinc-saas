@@ -76,6 +76,9 @@ const SuppliersPage = named(workspace, 'SuppliersPage');
 const CompensationPage = named(workspace, 'CompensationPage');
 const SettlementPage = named(workspace, 'SettlementPage');
 const WorklistPage = named(workspace, 'WorklistPage');
+const AssetsPage = named(workspace, 'AssetsPage');
+const AssetPage = named(workspace, 'AssetPage');
+const ReportsHubPage = named(workspace, 'ReportsHubPage');
 const ServicesPage = named(workspace, 'ServicesPage');
 const PatientAccountPage = named(workspace, 'PatientAccountPage');
 const InvoicePage = named(workspace, 'InvoicePage');
@@ -210,6 +213,9 @@ export const routes: RouteObject[] = [
           },
           guarded('compensation/settlements/:settlementId', 'compensation.read', <SettlementPage />),
           guarded('worklist', 'clinical.encounter.own', <WorklistPage />),
+          { path: 'reports', element: load(<ReportsHubPage />) },
+          guarded('assets', 'asset.read', <AssetsPage />),
+          guarded('assets/:assetId', 'asset.read', <AssetPage />),
           guarded('queue', 'queue.read', <QueuePage />),
           guarded('patients', 'patient.list', <PatientsPage />),
           guarded('patients/:patientId', 'patient.read', <PatientDetailPage />),

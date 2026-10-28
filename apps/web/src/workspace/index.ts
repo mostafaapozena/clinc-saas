@@ -14,6 +14,8 @@ export { InventoryItemsPage, InventoryMovesPage, InventoryPage } from '../pages/
 export { BillPage, BillsPage, PurchaseOrderPage, PurchaseOrderPrintPage, PurchaseOrdersPage, PurchasingPage, RfqPage, RfqPrintPage, SuppliersPage } from '../pages/PurchasingPages';
 export { CompensationPage, SettlementPage } from '../pages/CompensationPages';
 export { WorklistPage } from '../pages/WorkspacePages';
+export { AssetPage, AssetsPage } from '../pages/AssetPages';
+export { ReportsHubPage } from '../pages/ReportsHubPage';
 export { HomePage } from '../pages/HomePage';
 export { NotFoundInShell } from '../pages/NotFoundPage';
 export { PatientDetailPage } from '../pages/PatientDetailPage';

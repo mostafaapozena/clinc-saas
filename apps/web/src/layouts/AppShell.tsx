@@ -155,11 +155,15 @@ function Shell({ orgId, detail, branches }: { orgId: string; detail: OrgDetail; 
     {
       key: 'erp',
       items: [
+        ...(value.can('accounting.read') || value.can('finance.report.read') || value.can('purchase.read') || value.can('cash.session.review')
+          ? [{ to: `/app/${orgId}/reports`, icon: 'chart' as const, label: t('nav.reports') }]
+          : []),
         ...(value.can('accounting.read') ? [{ to: `/app/${orgId}/accounting`, icon: 'book' as const, label: t('nav.accounting') }] : []),
         ...(value.can('cash.session.operate') ? [{ to: `/app/${orgId}/cash`, icon: 'cash' as const, label: t('nav.cash') }] : []),
         ...(value.can('inventory.read') ? [{ to: `/app/${orgId}/inventory`, icon: 'box' as const, label: t('nav.inventory') }] : []),
         // Purchasing in the menu for those who run it; anyone may still raise a request from the stock pages.
         ...(value.can('purchase.read') ? [{ to: `/app/${orgId}/purchasing`, icon: 'cart' as const, label: t('nav.purchasing') }] : []),
+        ...(value.can('asset.manage') || value.can('asset.maintain') ? [{ to: `/app/${orgId}/assets`, icon: 'tool' as const, label: t('nav.assets') }] : []),
         ...(value.can('compensation.read') || value.can('compensation.own.read') ? [{ to: `/app/${orgId}/compensation`, icon: 'users' as const, label: t('nav.compensation') }] : []),
       ],
     },

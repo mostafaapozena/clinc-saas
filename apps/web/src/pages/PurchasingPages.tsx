@@ -27,6 +27,7 @@ import {
 import { showToast } from '../lib/toast';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { orgKeys, useOrg } from '../org/context';
+import { csvMoney, downloadCsv } from '../lib/csv';
 
 // Suppliers, purchasing and payables (docs/architecture/PURCHASING.md): request → approval → RFQ →
 // quotations → order → receipt → bill → payment. Supplier documents are printed or downloaded by the
@@ -1503,7 +1504,23 @@ export function BillsPage() {
       <PurchasingNav />
       {aging.isSuccess && (
         <section className="card" aria-labelledby="aging-title">
-          <h2 id="aging-title">{t('purchasing.aging')}</h2>
+          <div className="section-header">
+            <h2 id="aging-title">{t('purchasing.aging')}</h2>
+            {aging.data.rows.length > 0 && (
+              <button
+                type="button"
+                className="button button--secondary"
+                onClick={() =>
+                  downloadCsv('payables-aging.csv', [
+                    [t('purchasing.supplier'), ...buckets.map((b) => t(`purchasing.buckets.${b}`)), t('purchasing.total')],
+                    ...aging.data.rows.map((r) => [r.name, ...buckets.map((b) => csvMoney(r[b])), csvMoney(r.total)]),
+                  ])
+                }
+              >
+                {t('reportsHub.downloadCsv')}
+              </button>
+            )}
+          </div>
           {aging.data.rows.length === 0 ? (
             <EmptyState icon="check">{t('purchasing.nothingOwed')}</EmptyState>
           ) : (

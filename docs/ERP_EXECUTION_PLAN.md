@@ -144,13 +144,13 @@ Reception sees arrivals, finance sees money, and owners see an overview.
 Configuration follows the enabled modules, branch, specialty, role and permissions. A specialty
 never widens access.
 
-## F. Assets and maintenance
+## F. Assets and maintenance — ✅ built (branch `phase-16/erp-assets`)
 
 The equipment register (location, custodian, purchase link), the maintenance schedule and log, the
 maintenance expense through a bill or voucher, and retirement. Depreciation only if the accountant
 defines it.
 
-## G. Reports and end-to-end proof
+## G. Reports and end-to-end proof — ✅ built (branch `phase-16/erp-assets`)
 
 A reports hub over posted data, with scoped filters and CSV export. Browser end-to-end tests cover
 journeys A to E from brief §18:
