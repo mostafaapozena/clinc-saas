@@ -370,7 +370,8 @@
     "COVERAGE_REVOKED": "This share was already revoked.",
     "CAPABILITY_OWNER_ONLY": "Only owners can change this access.",
     "CAPABILITY_NOT_ENABLED": "This access is not enabled on this platform.",
-    "CAPABILITY_NOT_ELIGIBLE": "This role cannot hold this access."
+    "CAPABILITY_NOT_ELIGIBLE": "This role cannot hold this access.",
+    "TEMPLATE_NOT_ALLOWED": "This record type does not fit the doctor’s specialty."
   },
   "validation": {
     "required": "This field is required.",
@@ -486,7 +487,8 @@
     "granteePractitionerId": {
       "invalid_choice": "Choose another active doctor of this organization.",
       "required": "Choose a colleague."
-    }
+    },
+    "invalid_reference": "This refers to a record or item that is not available."
   },
   "countries": {
     "EG": "Egypt +20",
@@ -806,7 +808,7 @@
       "availableTitle": "Available today",
       "availableLead": "These features work now in the shared workspace:",
       "plannedTitle": "Not available yet",
-      "plannedBody": "Specialty tools such as dental charts, physiotherapy treatment plans and ENT examination records, prescriptions, attachments, billing, reminders and online booking for patients are planned for later stages. They are not part of the workspace today.",
+      "plannedBody": "Prescriptions, attachments, billing, reminders and online booking for patients are planned for later stages. They are not part of the workspace today.",
       "stepsTitle": "How to get started",
       "steps": {
         "account": {
@@ -834,11 +836,11 @@
         },
         "clinical": {
           "q": "Can I keep clinical notes and medical records?",
-          "a": "Yes, in a general form. For each visit, the treating doctor can write a record — reason for visit, relevant history, examination findings, assessment and plan — save it as a draft, finalize it, and later add dated addenda; the finalized text never changes. Only that doctor can read it; owners and administrators see whether a visit is documented, not what it says. Specialty charts, prescriptions and attachments are not available yet, and the general template is pending review by practising clinicians."
+          "a": "Yes. For each visit, the treating doctor writes a record — reason for visit, relevant history, examination findings, assessment and plan, plus the specialty fields — saves it as a draft, finalizes it, and later adds dated addenda; the finalized text never changes. Only that doctor (and colleagues they explicitly share it with) can read it; owners and administrators see whether a visit is documented, not what it says. Prescriptions and attachments are not available yet, and the templates are pending review by practising clinicians."
         },
         "specialties": {
           "q": "Are there tools specific to dentistry, physiotherapy or ENT?",
-          "a": "Not yet. These specialties use the shared operational workspace today. Specialty tools will be designed with practising clinicians and added later."
+          "a": "Yes, as a first version: a dental chart with treatment-plan items, physiotherapy assessments, sessions and discharge summaries, and ENT examination by region. Everything is written by the clinician — nothing is suggested or generated — and the tools are pending review by practising clinicians."
         },
         "ai": {
           "q": "Does raclinic include AI or diagnosis?",
@@ -887,13 +889,13 @@
       "metaTitle": "Solutions for clinics and medical centers",
       "metaDescription": "raclinic solutions for dental clinics, physiotherapy centers, ENT clinics and multi-specialty medical centers, on a shared operational workspace.",
       "title": "Solutions",
-      "lead": "Every solution starts from the same operational workspace. Specialty clinical tools are planned and will be added after review with practising clinicians.",
+      "lead": "Every solution runs on the same operational workspace, with a first version of each specialty’s tools, pending review by practising clinicians.",
       "labels": {
         "audience": "Who it is for",
         "needs": "Everyday needs it covers today",
         "available": "Available today in the shared workspace",
-        "planned": "Specialty tools being planned",
-        "plannedNote": "Not available yet. These tools need review with practising clinicians and have no release date.",
+        "planned": "Specialty tools (first version)",
+        "plannedNote": "Available in the workspace as a first version, for trying out with synthetic data. Not yet reviewed by practising clinicians.",
         "back": "All solutions",
         "sharedBadge": "Shared workspace"
       },
@@ -908,8 +910,8 @@
           "Patients checked in and seen in order of arrival"
         ],
         "planned": [
-          "Dental chart",
-          "Treatment plans over several sessions"
+          "Dental chart (FDI notation) with findings and procedures per visit",
+          "Treatment-plan items and their status across visits"
         ]
       },
       "physiotherapy": {
@@ -923,8 +925,8 @@
           "A clear schedule for each therapist and day"
         ],
         "planned": [
-          "Treatment plans with session tracking",
-          "Progress records"
+          "Initial assessment with goals and planned sessions",
+          "Session notes linked to real appointments, and a discharge summary"
         ]
       },
       "ent": {
@@ -938,7 +940,7 @@
           "Patients returning for follow-up"
         ],
         "planned": [
-          "Structured examination records"
+          "Ear, nose and throat history and examination by region, with follow-up"
         ]
       },
       "medicalCenters": {
@@ -952,7 +954,7 @@
           "Each team member limited to their own branches"
         ],
         "planned": [
-          "The specialty tools above, as each becomes available"
+          "The specialty tools above, for each doctor’s specialty"
         ]
       },
       "customCard": {
@@ -1031,7 +1033,7 @@
   "specialtyContext": {
     "label": "Specialty",
     "all": "All specialties",
-    "sharedNote": "Appointments, the queue, patient records and general visit records are shared by all specialties. Specialty clinical tools are not available yet."
+    "sharedNote": "Appointments, the queue, patient records and visit records are shared by all specialties; each specialty adds its own first-version tools, pending clinician review."
   },
   "clinical": {
     "title": "Visit record",
@@ -1203,6 +1205,132 @@
       "coverage_expired": "coverage expired",
       "coverage_not_started": "coverage not started",
       "coverage_out_of_scope": "outside the coverage or branch scope"
+    }
+  },
+  "specialty": {
+    "chooseTemplate": "Type of record",
+    "provisional": "Specialty template — provisional, pending review by practising clinicians. Everything here is written by you; nothing is suggested or scored.",
+    "otherVersion": "This record uses template version {{version}}, which this screen cannot edit. It is shown as recorded.",
+    "versionLabel": "(template v{{version}})",
+    "fixErrors": "Check the specialty fields.",
+    "none": "None recorded.",
+    "remove": "Remove {{item}}",
+    "removeShort": "Remove",
+    "templates": {
+      "general": "General visit record",
+      "dentistry.visit": "Dental visit",
+      "physiotherapy.assessment": "Physiotherapy — initial assessment",
+      "physiotherapy.session": "Physiotherapy — treatment session",
+      "physiotherapy.discharge": "Physiotherapy — discharge summary",
+      "ent.visit": "ENT visit"
+    },
+    "required": {
+      "plannedSessions": "Enter the planned number of sessions to finalize the assessment.",
+      "courseEncounterId": "Choose the treatment course this record belongs to.",
+      "summary": "Write the discharge summary to finalize."
+    },
+    "dental": {
+      "chart": "Tooth chart (FDI notation)",
+      "chartTitle": "Dental chart",
+      "chartHint": "From finalized dental visits you can read. Select a tooth to see its history; earlier findings are never overwritten.",
+      "upper": "Upper jaw",
+      "lower": "Lower jaw",
+      "tooth": "Tooth {{n}}",
+      "selected": "Selected: tooth {{n}}",
+      "selectTooth": "Select a tooth to add a finding, procedure or plan item.",
+      "dentition": "Dentition",
+      "dentitions": {
+        "permanent": "Permanent",
+        "primary": "Primary",
+        "mixed": "Mixed"
+      },
+      "history": "History of tooth {{n}}",
+      "noHistory": "Nothing recorded for this tooth.",
+      "kind": {
+        "finding": "Finding",
+        "procedure": "Procedure"
+      },
+      "surfaces": "Surfaces",
+      "surface": {
+        "M": "Mesial",
+        "O": "Occlusal / incisal",
+        "D": "Distal",
+        "B": "Buccal / labial",
+        "L": "Lingual / palatal"
+      },
+      "findingNote": "Finding (your words)",
+      "addFinding": "Add finding",
+      "procedure": "Procedure performed",
+      "addProcedure": "Add procedure",
+      "planItem": "Treatment-plan item",
+      "addPlanItem": "Add to plan",
+      "findings": "Findings at this visit",
+      "procedures": "Procedures at this visit",
+      "planItems": "New plan items",
+      "planUpdates": "Plan changes at this visit",
+      "openPlan": "Open plan items from earlier visits",
+      "updateStatus": "Status change for {{item}}",
+      "noChange": "No change",
+      "planTitle": "Treatment plan",
+      "noPlan": "No plan items.",
+      "status": {
+        "planned": "Planned",
+        "in_progress": "In progress",
+        "done": "Done",
+        "cancelled": "Cancelled"
+      }
+    },
+    "physio": {
+      "limitations": "Functional limitations",
+      "limitationsHint": "As you assess them; no scale or score is calculated.",
+      "goals": "Goals",
+      "newGoal": "New goal",
+      "addGoal": "Add goal",
+      "plannedSessions": "Planned sessions",
+      "plannedSessionsHint": "Required to finalize the assessment (1–60).",
+      "frequency": "Frequency",
+      "courseNotes": "Course notes",
+      "course": "Treatment course",
+      "courseHint": "Sessions are your real appointments; this links the record to its course.",
+      "courseOption": "Started {{date}} — {{done}} of {{planned}} sessions",
+      "noCourse": "No open course for this patient. Finalize an initial assessment first.",
+      "performed": "Treatment performed",
+      "progress": "Progress",
+      "summary": "Discharge summary",
+      "summaryHint": "Required to finalize.",
+      "goalNotes": "Notes per goal",
+      "goalNote": "Goal note",
+      "coursesTitle": "Physiotherapy courses",
+      "courseFrom": "Course from {{date}}",
+      "sessionsDone": "{{done}} of {{planned}} sessions documented",
+      "upcoming": "{{n}} upcoming appointments",
+      "active": "Active",
+      "discharged": "Discharged"
+    },
+    "ent": {
+      "historyTitle": "History by region",
+      "history": {
+        "ear": "Ear",
+        "nose": "Nose",
+        "throat": "Throat"
+      },
+      "examinationTitle": "Examination by region",
+      "examination": {
+        "rightEar": "Right ear",
+        "leftEar": "Left ear",
+        "nose": "Nose",
+        "throat": "Throat",
+        "neck": "Neck"
+      },
+      "followUp": "Follow-up instructions"
+    },
+    "summary": {
+      "ownTitle": "My documentation (last 30 days)",
+      "orgTitle": "Documentation across the organization (last 30 days)",
+      "hint": "Counts only — no clinical content.",
+      "empty": "No records in this period.",
+      "counts": "{{finalized}} finalized · {{draft}} drafts",
+      "own": "Open plan items: {{plan}} · Active physiotherapy courses: {{courses}}"
     }
   }
 }

@@ -4,6 +4,7 @@ import type { TenantContext } from '../../tenancy/tenant-context.js';
 import { clock } from '../../time/clock.js';
 import { MembershipModel } from '../memberships/membership.model.js';
 import { PractitionerModel } from '../practitioners/practitioner.model.js';
+import { EncounterModel, type Encounter } from './clinical.model.js';
 import { CoverageModel, type CoverageAccess } from './coverage.model.js';
 
 // The single place that decides clinical access (docs/architecture/CLINICAL.md):
@@ -143,6 +144,43 @@ export async function recordAccess(
   if (treats(actor, record)) return { access: 'own', coverageId: null };
   const grant = await activeCoverage(actor, record, 'read', options);
   return grant ? { access: grant.access, coverageId: grant._id } : null;
+}
+
+/**
+ * Every record of one patient this actor may read: their own, plus those covered by an active
+ * grant (patient-wide or per encounter), within the actor's current branch scope. The single
+ * source for the history, the dental chart and the physiotherapy courses.
+ */
+export async function visibleEncountersForPatient(
+  actor: ClinicalActor,
+  patientId: Types.ObjectId,
+  extra: Record<string, unknown> = {},
+  options: { session?: ClientSession; limit?: number } = {},
+) {
+  const now = clock.now();
+  const grants = await CoverageModel.find({
+    organizationId: actor.organizationId,
+    granteePractitionerId: actor.practitionerId,
+    granteeUserId: actor.userId,
+    'scope.patientId': patientId,
+    revokedAt: null,
+    startsAt: { $lte: now },
+    expiresAt: { $gt: now },
+  })
+    .session(options.session ?? null)
+    .lean();
+  const covered = grants.map((g) =>
+    g.scope.type === 'patient'
+      ? { practitionerId: g.sourcePractitionerId }
+      : { _id: g.scope.encounterId, practitionerId: g.sourcePractitionerId },
+  );
+  const own = { practitionerId: actor.practitionerId, authorUserId: actor.userId };
+  const candidates = await EncounterModel.find({ organizationId: actor.organizationId, patientId, ...extra, $or: [own, ...covered] })
+    .sort({ createdAt: -1 })
+    .limit(options.limit ?? 200)
+    .session(options.session ?? null)
+    .lean<(Encounter & { _id: Types.ObjectId })[]>();
+  return candidates.filter((e) => actor.canAccessBranch(e.branchId));
 }
 
 /** The treating relationship for an appointment or a clinical record. */

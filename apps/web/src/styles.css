@@ -1596,3 +1596,120 @@ input[aria-invalid='true'] {
   overflow-x: auto;
   margin-block-end: 16px;
 }
+
+/* Specialty workspaces (milestone 2) */
+.specialty-card {
+  margin-block: 16px;
+  padding-block-start: 16px;
+  border-block-start: 1px solid var(--border);
+}
+
+.specialty-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.specialty-subform {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-muted);
+}
+
+.specialty-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.plain-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.tooth-chart {
+  display: grid;
+  gap: 6px;
+  overflow-x: auto;
+  padding-block: 4px;
+}
+
+.tooth-row {
+  display: grid;
+  grid-template-columns: repeat(16, minmax(2.25rem, 1fr));
+  gap: 4px;
+}
+
+.tooth-row:has(> :nth-child(10):last-child) {
+  grid-template-columns: repeat(10, minmax(2.25rem, 1fr));
+}
+
+.tooth {
+  min-height: 2.5rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+
+.tooth--marked {
+  border-color: var(--link);
+  box-shadow: inset 0 -3px 0 var(--accent);
+}
+
+.tooth[aria-pressed='true'] {
+  background: var(--primary);
+  color: var(--primary-contrast);
+}
+
+.tooth:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.plan-update {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.badge--plan-planned,
+.badge--plan-in_progress {
+  color: var(--warn);
+  background: var(--warn-bg);
+}
+
+.badge--plan-done {
+  color: var(--ok);
+  background: var(--ok-bg);
+}
+
+.badge--plan-cancelled {
+  color: var(--text);
+  background: var(--neutral-bg);
+}
+
+.block {
+  display: block;
+}
+
+.button--link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--link);
+  text-decoration: underline;
+  cursor: pointer;
+  font: inherit;
+}

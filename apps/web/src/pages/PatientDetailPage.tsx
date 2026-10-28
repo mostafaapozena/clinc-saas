@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Link, useLocation, useParams } from 'react-router';
 import { PageHeader } from '../components/PageHeader';
 import { ClinicalHistoryCard } from '../components/clinical';
+import { DentalChartCard, PhysioCoursesCard } from '../components/specialty';
 import { PatientFields } from '../components/PatientForm';
 import { patientBody, patientFormFrom, type PatientFormValue } from '../lib/patient-form';
 import { ConflictList, StatusBadge } from '../components/scheduling';
@@ -113,6 +114,8 @@ export function PatientDetailPage() {
         <Registrations patient={p} />
       </div>
       <PatientAppointments patientId={p.id} />
+      <DentalChartCard patientId={p.id} />
+      <PhysioCoursesCard patientId={p.id} />
       <ClinicalHistoryCard patientId={p.id} />
     </>
   );

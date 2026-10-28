@@ -8,13 +8,14 @@ import { OCCUPYING_STATUSES, type AppointmentStatus } from '../appointments/appo
 import { BranchModel } from '../branches/branch.model.js';
 import { AddendumModel, EncounterModel } from '../clinical/clinical.model.js';
 import { CoverageModel } from '../clinical/coverage.model.js';
+import { latestTemplate, parseTemplateData } from '../clinical/templates.js';
 import { MembershipModel } from '../memberships/membership.model.js';
 import { OrganizationModel } from '../organizations/organization.model.js';
 import { nextPatientNumber } from '../patients/counter.model.js';
 import { nameKey, normalizePhone } from '../patients/normalize.js';
 import { PatientModel } from '../patients/patient.model.js';
 import { PractitionerModel, ScheduleExceptionModel } from '../practitioners/practitioner.model.js';
-import { DEMO_ORGANIZATIONS, DEMO_USERS, type DemoAppointment, type DemoOrganization } from './demo.data.js';
+import { DEMO_ORGANIZATIONS, DEMO_USERS, type DemoAppointment, type DemoEncounter, type DemoOrganization } from './demo.data.js';
 
 const UPSERT = { upsert: true, returnDocument: 'after', runValidators: true } as const;
 
@@ -231,6 +232,7 @@ async function seedFrontDesk(
     appointments.set(a.key, created);
   }
 
+  const seededEncounters = new Map<string, string>();
   for (const e of org.encounters ?? []) {
     const appointment = appointments.get(e.appointment);
     if (!appointment) {
@@ -255,6 +257,7 @@ async function seedFrontDesk(
       authorUserId,
       status: e.status,
       sections: { reason: '', history: '', examination: '', assessment: '', plan: '', ...e.sections },
+      specialty: e.specialty ? seedSpecialty(e.specialty, seededEncounters) : null,
       version: e.status === 'finalized' ? 2 : 1,
       lateEntry: e.lateEntryReason ? { reason: e.lateEntryReason } : null,
       creationKey: `seed-${e.key}`,
@@ -266,6 +269,7 @@ async function seedFrontDesk(
       seedKey: e.key,
       createdAt,
     });
+    seededEncounters.set(e.key, String(encounter._id));
     for (const [i, x] of (e.addenda ?? []).entries()) {
       await AddendumModel.create({
         organizationId,
@@ -351,4 +355,17 @@ async function seedAppointment(
     return null;
   }
   return appointment;
+}
+
+/** Specialty data for a seed record, validated like any record (references resolved by seed key). */
+function seedSpecialty(specialty: NonNullable<DemoEncounter['specialty']>, seeded: Map<string, string>) {
+  const template = latestTemplate(specialty.template);
+  const resolved = JSON.parse(
+    JSON.stringify(specialty.data, (_key, value: unknown) =>
+      typeof value === 'string' && value.startsWith('seed:') ? required(seeded.get(value.slice(5)), value) : value,
+    ),
+  ) as unknown;
+  const parsed = parseTemplateData(template, resolved);
+  if (!parsed.ok) throw new Error(`Demo seed: invalid specialty data (${Object.keys(parsed.fields).join(', ')})`);
+  return { template: template.id, version: template.version, data: parsed.data };
 }

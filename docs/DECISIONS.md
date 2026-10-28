@@ -53,6 +53,7 @@ Status after phase 4 in brackets.
 | P9 | Money stored in integer minor units; one currency per organization at first (EGP or SAR). | Avoids rounding errors; simplest model. Needs owner confirmation. |
 | P10 | Subscription states never delete tenant data automatically; expired subscriptions become read-only after a grace period to be defined. | Data safety. |
 | P12 | Explicit per-membership **capabilities** on top of roles, assigned only by owners and audited: `clinical_audit` (metadata-only clinical audit log) and `clinical_lead` (switched off, see Q17). [Implemented in milestone 1.] | Keeps clinical oversight separate from administration (C12). |
+| P14 | Specialty templates are **versioned** and stored with each record; dentistry uses **FDI** notation; derived views (chart, plan, courses) are computed from finalized records, never stored. [Implemented in milestone 2; notation and fields pending clinician review.] | History cannot be reinterpreted or overwritten. |
 | P13 | Clinical coverage grants last at most **90 days**, need a reason, and can be scoped to one patient or one encounter. [Implemented; the 90-day bound is an engineering default.] | Bounded, reviewable access. |
 
 ## 3. Unanswered product questions
@@ -86,7 +87,7 @@ the brand source of truth (C23).
 
 | # | Question | Phase |
 | - | -------- | ----- |
-| Q8 | Which specialty slice goes first? | 6 |
+| Q8 | Which specialty slice goes first? — **All three built as a first version (owner brief 2026-10-25); clinician review still required (Q6).** | 6 |
 | Q9 | Currency per organization or branch; tax treatment; e-invoicing obligations. **Needs authoritative validation.** | 7 |
 | Q10 | Plans, prices, trial length, access behavior per subscription state. | 8 |
 | Q11 | Support channel and approved support hours; chatbot scope, if any. | 8 |
