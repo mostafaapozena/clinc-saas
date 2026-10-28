@@ -80,7 +80,12 @@
     "cash": "الخزينة والبنوك",
     "inventory": "المخزون والمستلزمات",
     "purchasing": "المشتريات والموردون",
-    "compensation": "مستحقات الأطباء"
+    "compensation": "مستحقات الأطباء",
+    "worklist": {
+      "dentistry": "خطط العلاج",
+      "physiotherapy": "برامج العلاج",
+      "ent": "المتابعات"
+    }
   },
   "shell": {
     "skipToContent": "تخطَّ إلى المحتوى الرئيسي",
@@ -4052,5 +4057,61 @@
     "pay": "صرف المستحقات",
     "payFrom": "الصرف من",
     "paid": "تم الصرف."
+  },
+  "workspace": {
+    "focusTitle": "تركيز اليوم",
+    "clinicalTitle": {
+      "dentistry": "عيادتي — الأسنان",
+      "physiotherapy": "عيادتي — العلاج الطبيعي",
+      "ent": "عيادتي — الأنف والأذن والحنجرة",
+      "general": "عيادتي"
+    },
+    "myVisitsToday": "زياراتي المتبقية اليوم",
+    "waitingForMe": "في انتظاري",
+    "draftRecords": "سجلات لم تُنهَ",
+    "worklist": {
+      "metric": {
+        "dentistry": "مرضى بخطط علاج مفتوحة",
+        "physiotherapy": "برامج علاج نشطة",
+        "ent": "متابعات لم تُحجز"
+      },
+      "empty": {
+        "dentistry": "لا توجد خطط علاج مفتوحة.",
+        "physiotherapy": "لا توجد برامج علاج نشطة.",
+        "ent": "كل المتابعات محجوزة."
+      },
+      "openItems": "{{count}} بند مفتوح في الخطة",
+      "sessions": "{{done}} من {{planned}} جلسة · {{upcoming}} محجوزة",
+      "lastVisit": "آخر زيارة {{date}}",
+      "nextVisit": "الموعد القادم {{date}}",
+      "noFollowUpBooked": "لا موعد متابعة",
+      "seeAll": "عرض الكل ({{count}})",
+      "subtitle": {
+        "dentistry": "مرضاك الذين لديهم بنود خطة لم تكتمل، من سجلاتك المُنهاة",
+        "physiotherapy": "برامج العلاج المفتوحة: الجلسات المنفذة والمحجوزة",
+        "ent": "زيارات آخر 60 يومًا بها تعليمات متابعة ولا يوجد لها موعد قادم"
+      }
+    },
+    "worklistTitle": "قائمة عملي",
+    "noWorklist": "لا توجد قائمة عمل لتخصصك بعد.",
+    "frontDeskTitle": "الاستقبال اليوم",
+    "expectedArrivals": "حضور متوقع",
+    "inQueue": "في قائمة الانتظار",
+    "chargesToInvoice": "خدمات لم تُفوتر",
+    "sessionOpen": "ورديتك {{number}} مفتوحة",
+    "noSession": "لم تفتح ورديتك بعد",
+    "financeTitle": "المالية",
+    "openReceivables": "مستحقات على المرضى",
+    "unallocated": "دفعات لم تُخصص",
+    "payablesDue": "للموردين خلال 7 أيام",
+    "openSessions": "ورديات مفتوحة",
+    "monthToClose": "شهر {{month}} انتهى ولم يُقفل بعد",
+    "managementTitle": "بانتظار قرارك",
+    "requestsToApprove": "{{count}} طلب شراء للاعتماد",
+    "billsToApprove": "{{count}} فاتورة مصروف للاعتماد",
+    "settlementsToApprove": "{{count}} تسوية أطباء مسودة",
+    "itemsToReorder": "{{count}} صنف تحت حد الطلب",
+    "lotsExpiring": "{{count}} تشغيلة تنتهي خلال 30 يومًا",
+    "nothingWaiting": "لا شيء بانتظارك."
   }
 }

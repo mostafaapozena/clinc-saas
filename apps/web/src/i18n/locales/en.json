@@ -80,7 +80,12 @@
     "cash": "Cash and banks",
     "inventory": "Inventory",
     "purchasing": "Purchasing",
-    "compensation": "Practitioner fees"
+    "compensation": "Practitioner fees",
+    "worklist": {
+      "dentistry": "Treatment plans",
+      "physiotherapy": "Treatment courses",
+      "ent": "Follow-ups"
+    }
   },
   "shell": {
     "skipToContent": "Skip to main content",
@@ -4052,5 +4057,61 @@
     "pay": "Pay fees",
     "payFrom": "Pay from",
     "paid": "Payment recorded."
+  },
+  "workspace": {
+    "focusTitle": "Today's focus",
+    "clinicalTitle": {
+      "dentistry": "My clinic — dentistry",
+      "physiotherapy": "My clinic — physiotherapy",
+      "ent": "My clinic — ENT",
+      "general": "My clinic"
+    },
+    "myVisitsToday": "My visits left today",
+    "waitingForMe": "Waiting for me",
+    "draftRecords": "Records to finalize",
+    "worklist": {
+      "metric": {
+        "dentistry": "Patients with open plans",
+        "physiotherapy": "Active treatment courses",
+        "ent": "Follow-ups not booked"
+      },
+      "empty": {
+        "dentistry": "No open treatment plans.",
+        "physiotherapy": "No active treatment courses.",
+        "ent": "Every follow-up is booked."
+      },
+      "openItems": "{{count}} open plan items",
+      "sessions": "{{done}} of {{planned}} sessions · {{upcoming}} booked",
+      "lastVisit": "Last visit {{date}}",
+      "nextVisit": "Next visit {{date}}",
+      "noFollowUpBooked": "No follow-up booked",
+      "seeAll": "See all ({{count}})",
+      "subtitle": {
+        "dentistry": "Your patients with unfinished plan items, from your finalized records",
+        "physiotherapy": "Open treatment courses: sessions done and booked",
+        "ent": "Visits of the last 60 days with follow-up instructions and no upcoming appointment"
+      }
+    },
+    "worklistTitle": "My worklist",
+    "noWorklist": "There is no worklist for your specialty yet.",
+    "frontDeskTitle": "Front desk today",
+    "expectedArrivals": "Expected arrivals",
+    "inQueue": "In the queue",
+    "chargesToInvoice": "Charges to invoice",
+    "sessionOpen": "Your session {{number}} is open",
+    "noSession": "Your cashier session is not open",
+    "financeTitle": "Finance",
+    "openReceivables": "Owed by patients",
+    "unallocated": "Unallocated receipts",
+    "payablesDue": "Due to suppliers within 7 days",
+    "openSessions": "Open cashier sessions",
+    "monthToClose": "{{month}} has ended and is not closed yet",
+    "managementTitle": "Waiting for you",
+    "requestsToApprove": "{{count}} purchase requests to approve",
+    "billsToApprove": "{{count}} expense bills to approve",
+    "settlementsToApprove": "{{count}} practitioner settlements in draft",
+    "itemsToReorder": "{{count}} items to reorder",
+    "lotsExpiring": "{{count}} lots expiring within 30 days",
+    "nothingWaiting": "Nothing is waiting for you."
   }
 }

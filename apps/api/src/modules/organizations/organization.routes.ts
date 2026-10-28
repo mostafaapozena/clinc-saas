@@ -29,6 +29,8 @@ import { patientsRouter } from '../patients/patient.routes.js';
 import { practitionersRouter } from '../practitioners/practitioner.routes.js';
 import { futureActiveAppointments } from '../scheduling/schedule.service.js';
 import { ownPractitionerId } from '../scheduling/scheduling-context.js';
+import { PractitionerModel } from '../practitioners/practitioner.model.js';
+import { createFocusRouter } from '../workspace/focus.routes.js';
 import { assertCatalogSpecialties, specialtyListSchema } from '../specialties/specialty.service.js';
 import { createClinicalRouter } from '../clinical/clinical.routes.js';
 import { createCoverageRouter } from '../clinical/coverage.routes.js';
@@ -107,6 +109,10 @@ async function membershipView(tenant: TenantContext) {
     permissions: effectivePermissions(tenant.role, tenant.capabilities),
     capabilities: tenant.capabilities,
     practitionerId: practitionerId ? String(practitionerId) : null,
+    // The own practitioner profile's specialty shapes the doctor's workspace (never their access).
+    practitionerSpecialty: practitionerId
+      ? ((await PractitionerModel.findOne({ organizationId: tenant.organizationId, _id: practitionerId }).select('specialtyCode').lean())?.specialtyCode ?? null)
+      : null,
   };
 }
 
@@ -273,6 +279,7 @@ export function createOrganizationsRouter(config: AppConfig, mailer: Mailer = { 
   router.use('/:orgId', createInventoryRouter());
   router.use('/:orgId', createPurchasingRouter());
   router.use('/:orgId', createCompensationRouter());
+  router.use('/:orgId', createFocusRouter());
   router.use('/:orgId', createSubscriptionRouter(config));
   router.use('/:orgId', createClinicalRouter());
   router.use('/:orgId/branches', branchesRouter);

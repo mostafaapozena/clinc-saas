@@ -76,5 +76,5 @@ Legend:
 | Dentistry chart, per-tooth history, plan items and status | ✅ | `specialty-records.test.ts` |
 | Physiotherapy assessment, course, sessions, discharge | ✅ | `specialty-records.test.ts` |
 | ENT visit template | ✅ | `specialty-records.test.ts` |
-| Specialty and role-specific home and navigation | 🟡 → milestone E | The home page shows specialty counts; navigation is the same for every specialty |
+| Specialty and role-specific home and navigation | ✅ | Milestone E: "Today's focus" per role and the doctor's specialty worklist (`workspace-focus.test.ts`) |
 | Materials linked to procedures | ✅ | "Materials used" on the finalized record (milestone B) |

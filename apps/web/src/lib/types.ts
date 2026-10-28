@@ -129,6 +129,8 @@ export type OrgDetail = {
     permissions: Permission[];
     capabilities: Capability[];
     practitionerId: string | null;
+    /** Specialty of the member's own practitioner profile (shapes the doctor's workspace). */
+    practitionerSpecialty?: string | null;
   };
   stats: { accessibleBranches: number; activeMembers?: number };
 };

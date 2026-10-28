@@ -44,8 +44,8 @@ test('a branch-restricted doctor only sees permitted pages and branches', async 
   // Phase 3: a doctor also gets their appointments, the queue and their own schedule — not the registry or team;
   // milestone 1 adds clinical coverage (records shared between doctors); milestone 5 adds help & support;
   // ERP milestone B adds the stock pages (read-only: doctors record materials used on their records);
-  // milestone D adds their own practitioner-fee statements.
-  await expect(nav.getByRole('link')).toHaveText(['الرئيسية', 'المواعيد', 'قائمة الانتظار', 'جدولي', 'التغطية السريرية', 'المخزون والمستلزمات', 'مستحقات الأطباء', 'الفروع', 'المساعدة والدعم', 'الملف الشخصي']);
+  // milestone D adds their own practitioner-fee statements; milestone E their specialty worklist (a dentist: plans).
+  await expect(nav.getByRole('link')).toHaveText(['الرئيسية', 'المواعيد', 'قائمة الانتظار', 'جدولي', 'خطط العلاج', 'التغطية السريرية', 'المخزون والمستلزمات', 'مستحقات الأطباء', 'الفروع', 'المساعدة والدعم', 'الملف الشخصي']);
   await expect(page.getByTestId('stat-members')).toHaveCount(0);
   await expect(page.locator('#branch-current')).toHaveText('فرع المعادي');
 

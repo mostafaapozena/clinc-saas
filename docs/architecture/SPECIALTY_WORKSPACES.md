@@ -85,3 +85,35 @@ use other appointments for new records.
 - A plan-item status change refers to items the author can read; covered colleagues see the chart
   only while coverage lasts.
 - Specialty dashboards are counts; there are no clinical analytics.
+
+## Role and specialty workspaces (ERP milestone E)
+
+`GET /workspace/focus` assembles a "Today's focus" panel at the top of the home page. Each section
+is present only for the permissions that allow it, and **nothing widens access**: the specialty
+changes what a doctor sees first, never what they may see. Code: `modules/workspace/focus.routes.ts`,
+web `pages/WorkspacePages.tsx`; tests `apps/api/test/workspace-focus.test.ts`.
+
+| Who | Section | Content |
+| --- | --- | --- |
+| Treating doctor (`clinical.encounter.own`) | My clinic | Own visits left today, waiting for them, records to finalize, and the **specialty worklist** |
+| Front desk (`appointment.front_desk`) | Front desk today | Expected arrivals and queue in their branches, charges not yet invoiced, own cashier session |
+| Finance (`accounting.read`, org-wide) | Finance | Owed by patients, unallocated receipts, payables due within 7 days, open sessions, a month to close |
+| Approvers (`purchase.approve`, `compensation.approve`) | Waiting for you | Purchase requests, direct expense bills, practitioner settlements in draft |
+| Stock managers (`inventory.manage`) | Waiting for you | Items to reorder, lots expiring within 30 days |
+
+Specialty worklists come from the doctor's **own finalized records**, with patient names and counts
+only (no clinical text):
+
+- **Dentistry** ("Treatment plans"): patients with open plan items (planned or in progress after
+  all later updates), with the next booked visit.
+- **Physiotherapy** ("Treatment courses"): active courses (an assessment without a discharge), sessions
+  done against planned, sessions booked.
+- **ENT** ("Follow-ups"): visits of the last 60 days with follow-up instructions and no upcoming
+  appointment with the same doctor — patients to call back.
+
+The menu shows the doctor's worklist under its specialty name (`/worklist`, full list). The
+organization detail now includes the member's own practitioner specialty
+(`membership.practitionerSpecialty`), used for the menu only.
+
+Multi-specialty centers keep one shared front desk and administration; each doctor sees the
+worklist of their own specialty; owners and admins see aggregated counts without clinical content.
