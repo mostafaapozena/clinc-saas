@@ -36,11 +36,28 @@ export interface Organization {
   currency: Currency | null;
   /** Enabled shared ERP modules; absent = all (organizations created before modules existed). */
   enabledModules?: string[] | null;
+  /** Identity and legal profile shown on documents (docs/architecture/ORGANIZATION_PROFILE.md). */
+  profile?: OrganizationProfile | null;
   createdBy: Types.ObjectId;
   /** Stable key for development seed data only. */
   seedKey?: string;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface OrganizationProfile {
+  legalNameAr: string;
+  legalNameEn: string;
+  /** As entered by the owner (السجل التجاري); no statutory format is assumed. */
+  commercialRegistration: string;
+  /** Tax card / registration number (البطاقة الضريبية), as entered. */
+  taxRegistration: string;
+  address: string;
+  phone: string;
+  email: string;
+  documentFooter: string;
+  logoFileId: Types.ObjectId | null;
+  version: number;
 }
 
 const organizationSchema = new Schema<Organization>(
@@ -52,6 +69,24 @@ const organizationSchema = new Schema<Organization>(
     configVersion: { type: Number, required: true, default: 0 },
     currency: { type: String, enum: [...CURRENCY_CODES, null], default: null },
     enabledModules: { type: [String], default: undefined },
+    profile: {
+      type: new Schema<OrganizationProfile>(
+        {
+          legalNameAr: { type: String, default: '', maxlength: 160 },
+          legalNameEn: { type: String, default: '', maxlength: 160 },
+          commercialRegistration: { type: String, default: '', maxlength: 40 },
+          taxRegistration: { type: String, default: '', maxlength: 40 },
+          address: { type: String, default: '', maxlength: 300 },
+          phone: { type: String, default: '', maxlength: 40 },
+          email: { type: String, default: '', maxlength: 120 },
+          documentFooter: { type: String, default: '', maxlength: 300 },
+          logoFileId: { type: Schema.Types.ObjectId, ref: 'StoredFile', default: null },
+          version: { type: Number, required: true, default: 0 },
+        },
+        { _id: false },
+      ),
+      default: null,
+    },
     createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     seedKey: { type: String },
   },

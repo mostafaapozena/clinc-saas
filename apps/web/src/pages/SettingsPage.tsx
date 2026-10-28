@@ -3,6 +3,7 @@ import { useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SESSION_KEY } from '../auth/session';
 import { ModuleSettings } from '../components/ModuleSettings';
+import { OrganizationProfileSettings } from '../components/OrganizationProfile';
 import { PageHeader } from '../components/PageHeader';
 import { SpecialtyCheckboxes } from '../components/SpecialtyCheckboxes';
 import { Field, Notice } from '../components/ui';
@@ -63,6 +64,7 @@ export function SettingsPage() {
       </section>
       <TimeZoneSettings />
       <SpecialtySettings />
+      <OrganizationProfileSettings />
       <ModuleSettings />
     </>
   );

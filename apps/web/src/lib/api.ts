@@ -35,15 +35,18 @@ type RequestOptions = {
   body?: unknown;
   signal?: AbortSignal;
   headers?: Record<string, string>;
+  /** A file sent as the raw body with its own type (e.g. an image upload) instead of JSON. */
+  raw?: Blob;
 };
 
 type ErrorPayload = {
   error?: { code?: string; message?: string; fields?: Record<string, string>; details?: Record<string, unknown> };
 };
 
-export async function api<T>(path: string, { method = 'GET', body, signal, headers: extra }: RequestOptions = {}): Promise<T> {
+export async function api<T>(path: string, { method = 'GET', body, signal, headers: extra, raw }: RequestOptions = {}): Promise<T> {
   const headers: Record<string, string> = { Accept: 'application/json', ...extra };
-  if (body !== undefined) headers['Content-Type'] = 'application/json';
+  if (raw) headers['Content-Type'] = raw.type;
+  else if (body !== undefined) headers['Content-Type'] = 'application/json';
   if (method !== 'GET' && csrfToken) headers['X-CSRF-Token'] = csrfToken;
 
   let res: Response;
@@ -51,7 +54,7 @@ export async function api<T>(path: string, { method = 'GET', body, signal, heade
     res = await fetch(`/api/v1${path}`, {
       method,
       headers,
-      body: body === undefined ? undefined : JSON.stringify(body),
+      body: raw ?? (body === undefined ? undefined : JSON.stringify(body)),
       credentials: 'same-origin',
       signal,
     });

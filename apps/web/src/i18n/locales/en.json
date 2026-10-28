@@ -372,13 +372,35 @@
     }
   },
   "profile": {
-    "title": "Profile",
+    "title": "Organization identity and legal profile",
     "details": "Your details",
     "emailStatus": "Email status",
     "emailVerified": "Verified",
     "emailUnverified": "Not verified",
     "language": "Preferred interface language",
-    "saved": "Your profile was saved."
+    "saved": "Profile saved.",
+    "intro": "The legal name, logo, commercial registration and tax card numbers and the address appear at the top of printed invoices, receipts and purchase orders.",
+    "fields": {
+      "legalNameAr": "Legal name (Arabic)",
+      "legalNameEn": "Legal name (English)",
+      "commercialRegistration": "Commercial registration number",
+      "taxRegistration": "Tax card number",
+      "address": "Address",
+      "phone": "Phone",
+      "email": "Email",
+      "documentFooter": "Line under the letterhead"
+    },
+    "numbersHint": "Numbers are kept exactly as you type them; their legal format is not checked. Printouts are not electronic tax invoices.",
+    "logo": "Organization logo",
+    "logoHint": "PNG, JPEG or WebP up to 512 KB. SVG is not accepted.",
+    "logoType": "Choose a PNG, JPEG or WebP image.",
+    "logoSize": "The image is larger than 512 KB.",
+    "logoSaved": "Logo saved.",
+    "logoRemoved": "Logo removed.",
+    "removeLogo": "Remove logo",
+    "logoAlt": "{{name}} logo",
+    "printCr": "CR: {{value}}",
+    "printTax": "Tax no.: {{value}}"
   },
   "notFound": {
     "title": "Page not found",
@@ -581,7 +603,8 @@
     "STAFF_FUND_SETTLED": "This amount is already settled.",
     "NOT_CUSTODY": "Only custody is settled with receipts.",
     "ASSET_NOT_CAPITALIZED": "Only equipment capitalized through a supplier bill is depreciated.",
-    "DEPRECIATION_STARTED": "Depreciation was already posted for this device; the method no longer changes."
+    "DEPRECIATION_STARTED": "Depreciation was already posted for this device; the method no longer changes.",
+    "UNSUPPORTED_IMAGE": "The file is not a PNG, JPEG or WebP image of its declared type."
   },
   "validation": {
     "required": "This field is required.",
