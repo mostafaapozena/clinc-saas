@@ -91,6 +91,13 @@ export const PERMISSION_MATRIX = {
   'purchase.receive': ['owner', 'admin', 'receptionist'],
   'purchase.bill.manage': ['owner', 'admin', 'accountant'],
   'purchase.pay': ['owner', 'accountant'],
+  // ERP milestone D — practitioner compensation (docs/architecture/COMPENSATION.md); not payroll.
+  'compensation.read': ['owner', 'admin', 'accountant'],
+  'compensation.manage': ['owner', 'accountant'],
+  'compensation.approve': ['owner'],
+  'compensation.pay': ['owner', 'accountant'],
+  // A practitioner's own approved settlements (statement).
+  'compensation.own.read': ['doctor'],
   // Milestone 4 — the organization's platform subscription (what the clinic pays raclinic).
   'subscription.read': ['owner', 'admin'],
   'subscription.manage': ['owner'],

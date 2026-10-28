@@ -70,3 +70,9 @@ export function RequirePermission({ permission, children }: { permission: Permis
   const { can } = useOrg();
   return can(permission) ? children : <AccessDenied />;
 }
+
+/** UX only: any one of the permissions opens the page (the API checks each request on its own). */
+export function RequireAnyPermission({ permissions, children }: { permissions: Permission[]; children: ReactNode }) {
+  const { can } = useOrg();
+  return permissions.some((p) => can(p)) ? children : <AccessDenied />;
+}

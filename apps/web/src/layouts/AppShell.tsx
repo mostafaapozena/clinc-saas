@@ -155,6 +155,7 @@ function Shell({ orgId, detail, branches }: { orgId: string; detail: OrgDetail; 
         ...(value.can('inventory.read') ? [{ to: `/app/${orgId}/inventory`, icon: 'box' as const, label: t('nav.inventory') }] : []),
         // Purchasing in the menu for those who run it; anyone may still raise a request from the stock pages.
         ...(value.can('purchase.read') ? [{ to: `/app/${orgId}/purchasing`, icon: 'cart' as const, label: t('nav.purchasing') }] : []),
+        ...(value.can('compensation.read') || value.can('compensation.own.read') ? [{ to: `/app/${orgId}/compensation`, icon: 'users' as const, label: t('nav.compensation') }] : []),
       ],
     },
     {

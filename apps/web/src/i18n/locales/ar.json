@@ -79,7 +79,8 @@
     "accounting": "الحسابات العامة",
     "cash": "الخزينة والبنوك",
     "inventory": "المخزون والمستلزمات",
-    "purchasing": "المشتريات والموردون"
+    "purchasing": "المشتريات والموردون",
+    "compensation": "مستحقات الأطباء"
   },
   "shell": {
     "skipToContent": "تخطَّ إلى المحتوى الرئيسي",
@@ -530,7 +531,11 @@
     "OVER_BILLING": "الكمية أكبر من المستلم غير المفوتر.",
     "BILL_ALREADY_RECORDED": "فاتورة المورد هذه مسجلة بالفعل.",
     "BILL_NOT_PENDING": "الفاتورة ليست بانتظار الاعتماد.",
-    "OVER_PAYMENT": "المبلغ أكبر من المتبقي على الفاتورة."
+    "OVER_PAYMENT": "المبلغ أكبر من المتبقي على الفاتورة.",
+    "PERIOD_SETTLED": "لا يمكن تغيير أسعار فترة تمت تسويتها.",
+    "AGREEMENT_OVERLAP": "توجد اتفاقية تبدأ في هذا التاريخ أو بعده.",
+    "SETTLEMENT_NOT_DRAFT": "التسوية المعتمدة لا تُعدل ولا يُعاد حسابها.",
+    "ITEMS_ALREADY_SETTLED": "بعض البنود سُويت في تسوية أخرى؛ أعد حساب المسودة."
   },
   "validation": {
     "required": "هذا الحقل مطلوب.",
@@ -3974,5 +3979,78 @@
     "supplierName": "اسم المورد",
     "phone": "الهاتف",
     "paymentTerms": "مدة السداد (أيام)"
+  },
+  "compensation": {
+    "title": "مستحقات الأطباء",
+    "subtitle": "اتفاقيات مؤرخة، تسويات من العمل الفعلي، اعتماد ثم صرف",
+    "notPayroll": "هذه مستحقات أطباء حسب اتفاقيات، وليست مرتبات: لا ضرائب ولا تأمينات ولا استقطاعات قانونية.",
+    "myStatements": "كشوف مستحقاتي",
+    "noStatements": "لا توجد تسويات معتمدة لك بعد.",
+    "totalPaid": "المستحق {{total}} · المصروف {{paid}}",
+    "items": "{{count}} بند",
+    "agreements": "الاتفاقيات",
+    "noAgreements": "لا توجد اتفاقيات.",
+    "terms": "{{percent}}٪ + {{fixed}} للوحدة",
+    "ended": "منتهية",
+    "current": "سارية",
+    "newAgreement": "اتفاقية جديدة",
+    "agreementHint": "تُنهي الاتفاقية السارية في اليوم السابق، ولا يمكن أن تبدأ داخل فترة تمت تسويتها.",
+    "practitioner": "الطبيب",
+    "effectiveFrom": "تسري من",
+    "basis": "أساس الحساب",
+    "bases": {
+      "performed": "الخدمات المنفذة",
+      "invoiced": "المفوتر",
+      "collected": "المحصّل"
+    },
+    "percent": "النسبة ٪",
+    "fixedPerUnit": "مبلغ ثابت لكل وحدة",
+    "saveAgreement": "حفظ الاتفاقية",
+    "agreementSaved": "تم حفظ الاتفاقية.",
+    "newSettlement": "تسوية جديدة",
+    "settlementHint": "تُحسب من بيانات الفترة (حتى أمس) كمسودة؛ لا شيء يُرحّل قبل الاعتماد.",
+    "from": "من",
+    "to": "إلى",
+    "compute": "احسب المسودة",
+    "settlements": "التسويات",
+    "noSettlements": "لا توجد تسويات.",
+    "status": {
+      "draft": "مسودة",
+      "approved": "معتمدة",
+      "paid": "مصروفة",
+      "cancelled": "ملغاة"
+    },
+    "settlement": "تسوية",
+    "settlementTitle": "التسوية {{number}}",
+    "back": "العودة",
+    "lines": "البنود",
+    "noLines": "لا بنود في هذه الفترة.",
+    "date": "التاريخ",
+    "item": "البند",
+    "base": "الأساس",
+    "fee": "المستحق",
+    "sources": {
+      "charge": "خدمة منفذة",
+      "charge_void": "إلغاء خدمة",
+      "invoice_line": "بند فاتورة",
+      "credit_note": "إشعار دائن",
+      "allocation": "تحصيل",
+      "allocation_reversal": "إلغاء تحصيل"
+    },
+    "computed": "المحسوب",
+    "adjustment": "تسوية يدوية",
+    "total": "الإجمالي",
+    "paidLabel": "المصروف",
+    "draftNote": "المسودة تُعاد حسابها عند الحاجة؛ بعد الاعتماد تُجمّد ولا تُعاد أبدًا.",
+    "recompute": "إعادة الحساب",
+    "approve": "اعتماد",
+    "cancel": "إلغاء المسودة",
+    "addAdjustment": "إضافة تسوية يدوية",
+    "amount": "المبلغ",
+    "adjustmentHint": "استخدم علامة السالب للخصم، مثل ‎-50‎.",
+    "reason": "السبب",
+    "pay": "صرف المستحقات",
+    "payFrom": "الصرف من",
+    "paid": "تم الصرف."
   }
 }

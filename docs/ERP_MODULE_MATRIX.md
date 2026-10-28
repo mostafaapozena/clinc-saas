@@ -65,7 +65,7 @@ Legend:
 | Consumption from performed procedures | ✅ | Milestone B; treating doctor, finalized records, once per item, linked returns |
 | Suppliers, PR, approval, RFQ, quotations, PO, receipts, bills, payments, returns, credit notes | ✅ | Milestone C (`purchasing.test.ts`, full chain) |
 | Expenses with approval | ✅ | Direct expense bills with threshold approval (milestone C); cash-out vouchers (milestone A) |
-| Practitioner compensation | ⛔ | Milestone D |
+| Practitioner compensation | ✅ | Milestone D (`compensation.test.ts`: performed and invoiced bases, approval once, payments) |
 | Assets and maintenance | ⛔ | Milestone F |
 | People / payroll | ➖ (E-13) | Non-statutory employee records could be added later |
 
