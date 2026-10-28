@@ -2131,3 +2131,25 @@ h1[tabindex='-1']:focus {
     opacity: 0.5;
   }
 }
+
+/* Budgets (ERP milestone H2): twelve month inputs that wrap on narrow screens. */
+.month-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr));
+  gap: var(--space-3, 0.75rem);
+}
+.month-cell {
+  display: grid;
+  gap: 0.25rem;
+}
+.input--compact {
+  width: 100%;
+  min-width: 6rem;
+  max-width: 10rem;
+}
+.data-row--stack {
+  flex-wrap: wrap;
+}
+.data-row--stack > .inline-form {
+  flex-basis: 100%;
+}

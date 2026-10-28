@@ -50,6 +50,7 @@ export type Focus = {
     payablesDueSoon: { amount: number; bills: number };
     openCashSessions: number;
     monthToClose: string | null;
+    commitmentsDue?: number;
   };
   approvals?: { purchaseRequests?: number; directBills?: number; settlements?: number };
   stock?: { reorder: number; expiring: number };
@@ -237,6 +238,11 @@ export function FocusPanel() {
           {f.finance.monthToClose && (
             <p>
               <Link to={`/app/${orgId}/accounting/periods`}>{t('workspace.monthToClose', { month: f.finance.monthToClose })}</Link>
+            </p>
+          )}
+          {Boolean(f.finance.commitmentsDue) && (
+            <p>
+              <Link to={`/app/${orgId}/accounting/commitments`}>{t('workspace.commitmentsDue', { count: f.finance.commitmentsDue })}</Link>
             </p>
           )}
         </div>
