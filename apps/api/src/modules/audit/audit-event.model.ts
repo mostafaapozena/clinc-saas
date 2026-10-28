@@ -12,6 +12,7 @@ export const AUDIT_ACTIONS = [
   'member.branch_scope_changed',
   'member.suspended',
   'member.reactivated',
+  'member.capabilities_changed',
   'patient.created',
   'patient.updated',
   'patient.branch_registered',

@@ -3,7 +3,7 @@ import { AuditEventModel } from '../src/modules/audit/audit-event.model.js';
 import { BranchModel } from '../src/modules/branches/branch.model.js';
 import { MembershipModel } from '../src/modules/memberships/membership.model.js';
 import { OrganizationModel } from '../src/modules/organizations/organization.model.js';
-import { PERMISSIONS } from '../src/tenancy/permissions.js';
+import { permissionsFor } from '../src/tenancy/permissions.js';
 import { addMember, createOrg, register, send, testApp } from './helpers/api.js';
 import { connectTestDatabase, dropTestDatabase } from './helpers/test-database.js';
 
@@ -42,8 +42,13 @@ describe('organization onboarding', () => {
     expect(detail.body.organization.name).toBe('عيادة الاختبار');
     expect(detail.body.organization.timeZone).toBe('Asia/Riyadh');
     expect(detail.body.membership).toMatchObject({ role: 'owner', branchScope: { type: 'all' } });
-    // Every permission except writing clinical records, which belongs to the treating doctor only.
-    expect(detail.body.membership.permissions).toEqual(PERMISSIONS.filter((p) => p !== 'clinical.encounter.own'));
+    // The owner role's permissions — none of the clinical ones (records, coverage, clinical audit),
+    // which belong to treating doctors or to explicit capabilities.
+    expect(detail.body.membership.permissions).toEqual(permissionsFor('owner'));
+    for (const p of ['clinical.encounter.own', 'clinical.coverage.grant', 'clinical.coverage.lead', 'clinical.audit.read']) {
+      expect(detail.body.membership.permissions).not.toContain(p);
+    }
+    expect(detail.body.membership.capabilities).toEqual([]);
     expect(detail.body.stats).toEqual({ accessibleBranches: 1, activeMembers: 1 });
 
     const list = await client.agent.get('/api/v1/orgs');

@@ -6,9 +6,10 @@ The sections and the finalization rule are provisional until practising clinicia
 ([CLINICIAN_REVIEW.md](../CLINICIAN_REVIEW.md)); nothing here is clinically validated or ready
 for production.**
 
-Out of scope in this phase: specialty charts and plans, prescriptions, attachments, AI or any
-automated suggestion, billing, patient portal, sharing outside the treating doctor, break-glass
-access, record import, production use.
+Out of scope: specialty charts and plans (milestone 2), prescriptions, attachments, AI or any
+automated suggestion, billing, patient portal, sharing outside the organization, break-glass
+access, record import, production use. Milestone 1 added explicit coverage between doctors and a
+metadata-only clinical audit view (below).
 
 Code: `apps/api/src/modules/clinical/`, `apps/web/src/pages/EncounterPage.tsx`,
 `apps/web/src/components/clinical.tsx`, `apps/web/src/lib/clinical.ts`. Tests:
@@ -44,8 +45,10 @@ Database-level guards, so no code path can break the rules:
 | Who | Clinical text | Documentation status (`none` / `draft` / `finalized`) |
 | --- | ------------- | ----------------------------------------------------- |
 | Treating doctor (see below) | Read and write own records | Yes |
+| Covering doctor (active coverage grant, below) | Read the covered records; add addenda only with "author" coverage | Only on their own appointments |
 | Another doctor of the organization | No — generic `404` | Only on their own appointments |
 | Owner, admin | No — `403` | Yes, on appointments they can see |
+| Member with the `clinical_audit` capability | No (audit metadata only) | As their role allows |
 | Receptionist, viewer | No — `403` | No (field absent) |
 
 Permissions in `PERMISSION_MATRIX`: `clinical.encounter.own` (doctor only) and
@@ -70,6 +73,47 @@ list, not an error, for anything else — so counts reveal nothing).
 
 Responses: no permission → `403 FORBIDDEN`; permission but no treating relationship (or missing
 id) → `404 NOT_FOUND` with an identical body. Both are recorded as `clinical.access_denied`.
+
+## Clinical coverage
+
+Continuity of care when a doctor is away or leaves, **without** any blanket access
+(`coverage.model.ts`, `coverage.routes.ts`, checks in `clinical-access.ts`).
+
+- **A grant** names a source practitioner (whose records), a grantee practitioner (an active
+  doctor of the same organization, never the grantor or the source), a scope — **one encounter**
+  or **one patient** (then: all of the source practitioner's records for that patient) — an access
+  level (**read**, or **author** = read + addenda), a start, an expiry (at most 90 days —
+  engineering default pending confirmation) and a reason (5–300 characters).
+- **Who grants:** the treating doctor, for their own records only (`clinical.coverage.grant`,
+  doctors). A **clinical lead** may grant on behalf of an unavailable doctor — implemented, but
+  **off**: it needs both `CLINICAL_LEAD_GRANTS_ENABLED=true` and the `clinical_lead` membership
+  capability, which cannot be assigned while the switch is off (blocker B1: who may hold that
+  authority is an owner decision). Nobody can grant to themselves; owners and admins cannot grant.
+- **Use:** checked per request, like the treating relationship: active, unrevoked, started and
+  unexpired grant; grantee's membership active and doctor; record's branch inside the grantee's
+  current branch scope. A covering doctor reads through `GET /encounters/:id` and
+  `GET /clinical/coverage/:id/records`; with "author" access they add addenda **under their own
+  name** — the record's author, finalized text and drafts never change (someone else's draft is
+  read-only).
+- **Revoke:** the grantor or the source doctor (or an enabled clinical lead); effective on the
+  next request. Covered addenda run in a transaction that write-locks the grant (`useSeq`), so a
+  revocation racing an addendum serializes with it (tested with parallel requests: an addendum is
+  never written after the revocation time).
+- **Audit:** `coverage.granted`, `coverage.revoked`; covered reads and addenda carry
+  `via: coverage` and the grant id; refused access records why (`coverage_revoked`,
+  `coverage_expired`, `coverage_not_started`, `coverage_out_of_scope`).
+- Grants are never edited (only revoked) or deleted; the grantor's later suspension does not end
+  a grant (that is the point of continuity) — the grantee's suspension does, immediately.
+
+## Clinical audit view
+
+`GET /clinical/audit` (web: "Clinical audit") lists clinical audit events — actor name and role,
+action, time, patient number, record ids and the metadata above — **never clinical text**, with
+an action filter and a cursor (`createdAt|id`). It requires the `clinical_audit` membership
+capability, which only owners assign (to owners, admins or doctors) in the Team page; no role has
+it by default, and holding it gives no access to records. Opening the view is itself recorded
+(`clinical_audit.viewed`). Capability changes go to the administrative audit log
+(`member.capabilities_changed`).
 
 ## Lifecycle
 
@@ -105,7 +149,14 @@ All under `/api/v1/orgs/:orgId`, after `requireMembership`; all clinical respons
 | `PUT /encounters/:encounterId` | Save draft | `{ sections, version }` |
 | `POST /encounters/:encounterId/finalize` | Finalize | `Idempotency-Key`; `{ version }` |
 | `POST /encounters/:encounterId/addenda` | Add addendum | `Idempotency-Key`; `{ reason, content }` |
-| `GET /patients/:patientId/clinical-history` | Caller's own records for a patient | Excerpt of the reason only (160 characters), status, late-entry flag, addenda count |
+| `GET /patients/:patientId/clinical-history` | Caller's own records for a patient, plus records covered by an active grant (`covered: true`) | Excerpt of the reason only (160 characters), status, late-entry flag, addenda count |
+| `GET /encounters/:encounterId` | One record by id: own or covered; `access`, `canAddAddendum`, minimal patient identity | Covered reads audited with the grant id |
+| `GET /clinical/coverage` | Grants given (or covering the caller's records) and received | |
+| `GET /clinical/coverage/candidates` | Active doctors who could cover (name, specialty) | |
+| `POST /clinical/coverage` | Grant | `Idempotency-Key`; `{ granteePractitionerId, scope, access, expiresAt, reason, startsAt?, sourcePractitionerId? (lead only) }` |
+| `POST /clinical/coverage/:id/revoke` | Revoke | `{ reason }` |
+| `GET /clinical/coverage/:id/records` | Records a received, active grant opens | |
+| `GET /clinical/audit` | Clinical audit events (metadata) | `clinical_audit` capability; `?action=&before=&limit=` |
 
 Appointment DTOs (list, detail, queue) carry `documentation` only for roles with
 `clinical.documentation_status.read`.
@@ -134,7 +185,7 @@ Clinical audit events (`clinical_audit_events`, separate from the administrative
 role, ids and metadata such as versions, names of changed sections, late-entry flag, appointment
 status, addendum id or a denial reason code — **never clinical text** (tested by searching all
 events for a marker string). Reads and denials are deduplicated per actor/action/target for 10
-minutes. There is no audit viewer; reviewing the log is an operator task with database access.
+minutes. Members holding the `clinical_audit` capability read it in the app (above).
 
 Where clinical text must never appear, and how:
 
@@ -163,9 +214,10 @@ development database are kept but point to appointments that a re-seed recreates
 
 - Clinician review of sections, wording and the finalization rule (CLINICIAN_REVIEW.md) — required
   before any real use.
-- No delegation, cover or break-glass access: if the treating doctor leaves or their profile is
-  deactivated, nobody can read their records through the app. Needs an owner decision.
-- No audit viewer, retention policy, export or legal hold; no patient access requests.
+- Coverage needs the treating doctor to grant it. If that doctor is already unavailable, only an
+  enabled clinical lead could grant it — switched off until the owner decides who holds that
+  authority (B1). No break-glass access (deliberately not built).
+- No audit retention policy, export or legal hold; no patient access requests.
 - No legal/regulatory review of clinical record keeping in Egypt or Saudi Arabia; retention periods
   and amendment rules may need to change.
 - Data residency, encryption at rest and backups for clinical data are undecided (same gate as the

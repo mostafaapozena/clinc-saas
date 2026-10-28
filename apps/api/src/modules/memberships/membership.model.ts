@@ -1,5 +1,5 @@
 import { Schema, model, type HydratedDocument, type Types } from 'mongoose';
-import { ROLES, type Role } from '../../tenancy/permissions.js';
+import { CAPABILITIES, ROLES, type Capability, type Role } from '../../tenancy/permissions.js';
 import { tenantGuardPlugin } from '../../tenancy/tenant-guard.plugin.js';
 
 export const MEMBERSHIP_STATUSES = ['active', 'suspended'] as const;
@@ -20,6 +20,8 @@ export interface Membership {
    * new state (docs/architecture/CLINICAL.md).
    */
   accessSeq: number;
+  /** Explicit grants on top of the role (permissions.ts `CAPABILITIES`); none by default. */
+  capabilities: Capability[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -44,6 +46,7 @@ const membershipSchema = new Schema<Membership>(
       default: () => ({ type: 'all', branchIds: [] }),
     },
     accessSeq: { type: Number, required: true, default: 0 },
+    capabilities: { type: [{ type: String, enum: CAPABILITIES }], default: [] },
   },
   { collection: 'memberships', timestamps: true },
 );

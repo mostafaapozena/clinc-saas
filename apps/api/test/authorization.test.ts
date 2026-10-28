@@ -239,6 +239,9 @@ const ACTIONS: Action[] = [
         .set('Idempotency-Key', `matrix-${++seq}-encounter`)
         .send({ sections: { reason: 'Synthetic reason' } }),
   },
+  // Milestone 1 — clinical coverage and the clinical audit (capability-only: no role has it)
+  { name: 'list clinical coverage (given and received)', allowed: ['doctor'], run: (c) => c.agent.get(`/api/v1/orgs/${orgId}/clinical/coverage`) },
+  { name: 'read the clinical audit log (capability only)', allowed: [], run: (c) => c.agent.get(`/api/v1/orgs/${orgId}/clinical/audit`) },
   { name: "read a patient's clinical history (own records)", allowed: ['doctor'], run: (c) => c.agent.get(`/api/v1/orgs/${orgId}/patients/${linkedPatient}/clinical-history`) },
 ];
 

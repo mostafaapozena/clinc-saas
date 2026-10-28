@@ -43,6 +43,8 @@ const envSchema = z
     // Per IP and hour.
     SETUP_RATE_LIMIT_MAX: z.coerce.number().int().min(1).max(10_000).default(20),
     INQUIRY_RATE_LIMIT_MAX: z.coerce.number().int().min(1).max(10_000).default(5),
+    // Off until the owner decides who may grant coverage for an unavailable doctor (B1).
+    CLINICAL_LEAD_GRANTS_ENABLED: z.stringbool().default(false),
   })
   .superRefine((env, ctx) => {
     if (env.NODE_ENV === 'production' && !env.SESSION_COOKIE_SECURE) {

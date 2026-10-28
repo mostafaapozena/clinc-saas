@@ -66,4 +66,9 @@ export const orgKeys = {
   clinical: (orgId: string) => ['org', orgId, 'clinical'] as const,
   encounter: (orgId: string, appointmentId: string) => ['org', orgId, 'clinical', 'encounter', appointmentId] as const,
   clinicalHistory: (orgId: string, patientId: string) => ['org', orgId, 'clinical', 'history', patientId] as const,
+  record: (orgId: string, encounterId: string) => ['org', orgId, 'clinical', 'record', encounterId] as const,
+  coverage: (orgId: string) => ['org', orgId, 'clinical', 'coverage'] as const,
+  coverageRecords: (orgId: string, coverageId: string) => ['org', orgId, 'clinical', 'coverage', coverageId] as const,
+  coverageCandidates: (orgId: string) => ['org', orgId, 'clinical', 'coverage-candidates'] as const,
+  clinicalAudit: (orgId: string, params: object) => ['org', orgId, 'clinical', 'audit', params] as const,
 };

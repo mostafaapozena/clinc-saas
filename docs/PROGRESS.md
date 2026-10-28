@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 2026-10-25 (phase 4 and phase 5 in review)._
+_Last updated: 2026-10-26 (phases 4–5 in review; platform completion milestone 1 in review)._
 
 Product state: [PRODUCT_INVENTORY.md](PRODUCT_INVENTORY.md). Plan: [ROADMAP.md](ROADMAP.md).
 Decisions: [DECISIONS.md](DECISIONS.md). Next phase: [NEXT_PHASE_BRIEF.md](NEXT_PHASE_BRIEF.md).
@@ -15,6 +15,26 @@ Decisions: [DECISIONS.md](DECISIONS.md). Next phase: [NEXT_PHASE_BRIEF.md](NEXT_
 | Planning docs | [#4](https://github.com/mostafaapozena/clinc-saas/pull/4) | `d8b93b9` | Merged 2026-10-20 (docs only, CI green) |
 | 4 — public site & onboarding | [#5](https://github.com/mostafaapozena/clinc-saas/pull/5) | — | Open, `phase-4/public-onboarding` → `main`; awaiting owner review of the public copy and the raclinic identity; not merged |
 | 5 — clinical visit records | [#6](https://github.com/mostafaapozena/clinc-saas/pull/6) | — | Open, `phase-5/visit-records` → `phase-4/public-onboarding` (stacked); awaiting owner review and clinician review; not merged |
+| M1 — clinical coverage & audit view | [#7](https://github.com/mostafaapozena/clinc-saas/pull/7) | — | Open, `phase-6/clinical-continuity` → `phase-5/visit-records` (stacked); awaiting review and decision Q17; not merged |
+
+## Platform completion — milestone 1: clinical continuity (in review)
+
+Plan: [PLATFORM_COMPLETION_PLAN.md](PLATFORM_COMPLETION_PLAN.md) (milestones 1–6, blocker register).
+Branch `phase-6/clinical-continuity` (PR [#7](https://github.com/mostafaapozena/clinc-saas/pull/7)), stacked on `phase-5/visit-records`.
+
+Delivered: clinical coverage grants (own records → colleague, one encounter or one patient, read or
+author, ≤ 90 days, reason; revoke; expiry; branch/suspension enforced per request; covered addenda
+under the covering doctor's name; grant write-lock against racing revocation), membership
+capabilities (owner-assigned, audited, role-checked), metadata-only clinical audit view, the
+clinical-lead path implemented but switched off (Q17/B1); web: share panel on the record,
+Clinical coverage page, covered-record page, Clinical audit page, Team toggle; Arabic and English.
+Bug found by the new e2e test and fixed: audit events stored without metadata crashed the view.
+
+Evidence (Codespace): API `clinical-coverage.test.ts` 12 tests (incl. parallel revoke vs
+addendum, idempotent parallel grants, cross-organization ids, lead switch); authorization matrix
++2 actions × 5 roles; web `Coverage.test.tsx` 8 tests; `e2e/coverage.spec.ts` (share → covered
+access + addendum → revoke → refused; owner refused; admin with capability reads the audit without
+clinical text); 10/10 mutation checks caught. Full `npm run verify` and CI: see the PR.
 
 ## Phase 5 — clinical visit records (implemented, in review — clinician review pending)
 

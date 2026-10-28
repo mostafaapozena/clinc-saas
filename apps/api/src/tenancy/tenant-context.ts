@@ -2,7 +2,7 @@ import type { Request, RequestHandler } from 'express';
 import { Types } from 'mongoose';
 import { forbidden, notFound, unauthenticated } from '../http/errors.js';
 import { MembershipModel } from '../modules/memberships/membership.model.js';
-import { hasPermission, isOrgWideRole, type Permission, type Role } from './permissions.js';
+import { can, isOrgWideRole, type Capability, type Permission, type Role } from './permissions.js';
 
 export type BranchScope = { type: 'all' } | { type: 'selected'; branchIds: Types.ObjectId[] };
 
@@ -12,6 +12,8 @@ export type TenantContext = {
   userId: Types.ObjectId;
   role: Role;
   branchScope: BranchScope;
+  /** Explicit membership capabilities, read fresh with the membership. */
+  capabilities: Capability[];
 };
 
 export function parseObjectId(value: unknown): Types.ObjectId | null {
@@ -44,14 +46,20 @@ export const requireMembership: RequestHandler = async (req, _res, next) => {
       isOrgWideRole(membership.role) || membership.branchScope.type === 'all'
         ? { type: 'all' }
         : { type: 'selected', branchIds: membership.branchScope.branchIds },
+    capabilities: membership.capabilities ?? [],
   };
   next();
 };
 
+/** Role or (eligible) capability permission of the caller. */
+export function tenantCan(tenant: TenantContext, permission: Permission): boolean {
+  return can(tenant.role, tenant.capabilities, permission);
+}
+
 export function requirePermission(permission: Permission): RequestHandler {
   return (req, _res, next) => {
     if (!req.tenant) throw notFound();
-    if (!hasPermission(req.tenant.role, permission)) throw forbidden();
+    if (!tenantCan(req.tenant, permission)) throw forbidden();
     next();
   };
 }

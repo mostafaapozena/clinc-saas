@@ -1567,3 +1567,32 @@ input[aria-invalid='true'] {
   min-height: 3em;
   resize: vertical;
 }
+
+/* Clinical coverage and the clinical audit (milestone 1) */
+.badge--coverage-active {
+  color: var(--ok);
+  background: var(--ok-bg);
+}
+
+.badge--coverage-scheduled {
+  color: var(--warn);
+  background: var(--warn-bg);
+}
+
+.badge--coverage-expired,
+.badge--coverage-revoked {
+  color: var(--text);
+  background: var(--neutral-bg);
+}
+
+.badge--capability {
+  margin-inline-start: 8px;
+  color: var(--link);
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+}
+
+.table-wrap {
+  overflow-x: auto;
+  margin-block-end: 16px;
+}

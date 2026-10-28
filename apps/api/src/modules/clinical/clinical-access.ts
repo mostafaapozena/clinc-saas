@@ -1,8 +1,10 @@
 import type { ClientSession, Types } from 'mongoose';
-import { hasPermission } from '../../tenancy/permissions.js';
+import { hasPermission, type Capability } from '../../tenancy/permissions.js';
 import type { TenantContext } from '../../tenancy/tenant-context.js';
+import { clock } from '../../time/clock.js';
 import { MembershipModel } from '../memberships/membership.model.js';
 import { PractitionerModel } from '../practitioners/practitioner.model.js';
+import { CoverageModel, type CoverageAccess } from './coverage.model.js';
 
 // The single place that decides clinical access (docs/architecture/CLINICAL.md):
 //
@@ -14,12 +16,17 @@ import { PractitionerModel } from '../practitioners/practitioner.model.js';
 //
 // Administrative roles (owner/admin) never pass: a practitioner profile can only belong to a
 // doctor membership. Same organization or specialty grants nothing.
+//
+// Coverage (milestone 1) is the only other way in: an active, explicit grant to this practitioner
+// for records of another practitioner, for one patient or one encounter (activeCoverage below).
 
 export type ClinicalActor = {
   organizationId: Types.ObjectId;
   userId: Types.ObjectId;
   membershipId: Types.ObjectId;
   practitionerId: Types.ObjectId;
+  /** Capabilities of the freshly read membership (not the ones cached on the request). */
+  capabilities: Capability[];
   canAccessBranch: (branchId: Types.ObjectId) => boolean;
 };
 
@@ -65,8 +72,77 @@ export async function resolveClinicalActor(
     userId: tenant.userId,
     membershipId: membership._id,
     practitionerId: practitioner._id,
+    capabilities: membership.capabilities ?? [],
     canAccessBranch: (branchId) => allBranches || allowed.has(String(branchId)),
   };
+}
+
+type CoveredRecord = { _id: Types.ObjectId; practitionerId: Types.ObjectId; patientId: Types.ObjectId; branchId: Types.ObjectId };
+
+/** Filter for coverage grants that match a record for this actor, active or not. */
+function coverageMatch(actor: ClinicalActor, record: CoveredRecord) {
+  return {
+    organizationId: actor.organizationId,
+    granteePractitionerId: actor.practitionerId,
+    granteeUserId: actor.userId,
+    sourcePractitionerId: record.practitionerId,
+    $or: [
+      { 'scope.type': 'patient' as const, 'scope.patientId': record.patientId },
+      { 'scope.type': 'encounter' as const, 'scope.encounterId': record._id },
+    ],
+  };
+}
+
+/**
+ * An active coverage grant giving this actor `need` access to a record written by someone else,
+ * or null. The record's branch must still be in the actor's own scope. With `lock` (inside a
+ * covered write's transaction) the grant is written (`useSeq`), so a concurrent revocation
+ * conflicts with the write and the retry decides on the new state.
+ */
+export async function activeCoverage(
+  actor: ClinicalActor,
+  record: CoveredRecord,
+  need: CoverageAccess,
+  options: { session?: ClientSession; lock?: boolean } = {},
+) {
+  if (!actor.canAccessBranch(record.branchId)) return null;
+  const now = clock.now();
+  const filter = {
+    ...coverageMatch(actor, record),
+    revokedAt: null,
+    startsAt: { $lte: now },
+    expiresAt: { $gt: now },
+    access: need === 'author' ? ('author' as const) : { $in: ['read', 'author'] as CoverageAccess[] },
+  };
+  return options.lock
+    ? CoverageModel.findOneAndUpdate(filter, { $inc: { useSeq: 1 } }, { session: options.session, returnDocument: 'after' }).lean()
+    : CoverageModel.findOne(filter)
+        .session(options.session ?? null)
+        .lean();
+}
+
+/** Why a matching grant no longer applies ("coverage_revoked" / "coverage_expired"), for the audit. */
+export async function inactiveCoverageReason(actor: ClinicalActor, record: CoveredRecord): Promise<string | null> {
+  const last = await CoverageModel.findOne(coverageMatch(actor, record)).sort({ createdAt: -1 }).lean();
+  if (!last) return null;
+  if (last.revokedAt) return 'coverage_revoked';
+  const now = clock.now();
+  if (last.expiresAt <= now) return 'coverage_expired';
+  if (last.startsAt > now) return 'coverage_not_started';
+  return 'coverage_out_of_scope';
+}
+
+export type RecordAccess = 'own' | CoverageAccess;
+
+/** Own records first; otherwise what an active grant allows (read or author), or null. */
+export async function recordAccess(
+  actor: ClinicalActor,
+  record: CoveredRecord & { authorUserId: Types.ObjectId },
+  options: { session?: ClientSession } = {},
+): Promise<{ access: RecordAccess; coverageId: Types.ObjectId | null } | null> {
+  if (treats(actor, record)) return { access: 'own', coverageId: null };
+  const grant = await activeCoverage(actor, record, 'read', options);
+  return grant ? { access: grant.access, coverageId: grant._id } : null;
 }
 
 /** The treating relationship for an appointment or a clinical record. */

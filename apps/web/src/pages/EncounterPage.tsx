@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Link, useBlocker, useParams } from 'react-router';
 import { PageHeader } from '../components/PageHeader';
 import { DocumentationBadge } from '../components/clinical';
+import { ShareRecord } from '../components/coverage';
 import { TimeZoneRequired } from '../components/scheduling';
 import { ErrorState, Field, Loading, Notice } from '../components/ui';
 import { ApiError, api } from '../lib/api';
@@ -15,6 +16,7 @@ import {
   sameSections,
   type Encounter,
   type EncounterView,
+  type RecordView,
   type Sections,
 } from '../lib/clinical';
 import { errorMessage, fieldErrors, fieldMessage, isApiError } from '../lib/errors';
@@ -44,6 +46,7 @@ export function EncounterPage() {
     queryFn: ({ signal }) => api<EncounterView>(`/orgs/${orgId}/appointments/${appointmentId}/encounter`, { signal }),
     ...CLINICAL_QUERY,
   });
+  const update = useRecordUpdater(appointmentId);
 
   if (!timeZone) return <TimeZoneRequired />;
   if (appointment.isPending || record.isPending) return <Loading />;
@@ -90,7 +93,71 @@ export function EncounterPage() {
       </Notice>
       {!encounter && <StartRecord view={view} appointmentId={a.id} />}
       {encounter?.status === 'draft' && <DraftEditor encounter={encounter} reload={async () => (await record.refetch()).data?.encounter ?? null} />}
-      {encounter?.status === 'finalized' && <FinalizedRecord encounter={encounter} />}
+      {encounter?.status === 'finalized' && <FinalizedRecord encounter={encounter} onUpdated={update} />}
+      {encounter && <ShareRecord encounter={encounter} />}
+    </>
+  );
+}
+
+/**
+ * A record opened by id (from coverage or the patient timeline). The API decides the access:
+ * own, read-only coverage, or coverage with addenda. Someone else's draft is never editable.
+ */
+export function RecordPage() {
+  const { t } = useTranslation();
+  const { encounterId = '' } = useParams();
+  const { orgId, timeZone } = useOrg();
+  const fmt = useFormatters();
+  const queryClient = useQueryClient();
+  useDocumentTitle(t('clinical.title'));
+  const key = orgKeys.record(orgId, encounterId);
+  const view = useQuery({
+    queryKey: key,
+    queryFn: ({ signal }) => api<RecordView>(`/orgs/${orgId}/encounters/${encounterId}`, { signal }),
+    ...CLINICAL_QUERY,
+  });
+  if (!timeZone) return <TimeZoneRequired />;
+  if (view.isPending) return <Loading />;
+  if (view.isError) {
+    if (view.error instanceof ApiError && (view.error.status === 404 || view.error.status === 403)) {
+      return (
+        <section className="card state-card">
+          <h1>{t('clinical.notFoundTitle')}</h1>
+          <p>{t('coverage.unavailable')}</p>
+          <Link className="button button--secondary" to={`/app/${orgId}/coverage`}>
+            {t('coverage.backToCoverage')}
+          </Link>
+        </section>
+      );
+    }
+    return <ErrorState message={errorMessage(t, view.error)} onRetry={() => void view.refetch()} />;
+  }
+  const { encounter, access, canAddAddendum, context } = view.data;
+  const onUpdated = (next: Encounter) => queryClient.setQueryData<RecordView>(key, (old) => (old ? { ...old, encounter: next } : old));
+  const subtitle = [
+    context.patient ? `⁨${context.patient.fullName}⁩ (#${fmt.number(context.patient.patientNumber)})` : null,
+    context.appointment ? `⁨${fmt.dateTime(context.appointment.startAt, timeZone)}⁩` : null,
+  ]
+    .filter(Boolean)
+    .join(' · ');
+  return (
+    <>
+      <PageHeader title={t('clinical.title')} subtitle={subtitle}>
+        <DocumentationBadge status={encounter.status} />
+        {encounter.lateEntry && <span className="badge badge--late-entry">{t('clinical.lateEntryBadge')}</span>}
+      </PageHeader>
+      {access !== 'own' && (
+        <Notice kind="info">
+          {t(access === 'author' ? 'coverage.viewingAuthor' : 'coverage.viewingRead', { name: encounter.author.displayName })}
+        </Notice>
+      )}
+      {access === 'own' && context.appointment && (
+        <p className="muted small">
+          <Link to={`/app/${orgId}/appointments/${context.appointment.id}/record`}>{t('coverage.openOwnRecord')}</Link>
+        </p>
+      )}
+      <Notice kind="info">{t('clinical.provisionalNote')}</Notice>
+      <FinalizedRecord encounter={encounter} canAddAddendum={canAddAddendum} onUpdated={onUpdated} />
     </>
   );
 }
@@ -377,7 +444,26 @@ function DraftEditor({ encounter, reload }: { encounter: Encounter; reload: () =
   );
 }
 
-function FinalizedRecord({ encounter }: { encounter: Encounter }) {
+function FinalizedRecord({
+  encounter,
+  canAddAddendum = true,
+  onUpdated,
+}: {
+  encounter: Encounter;
+  canAddAddendum?: boolean;
+  onUpdated: (encounter: Encounter) => void;
+}) {
+  return (
+    <>
+      <RecordSections encounter={encounter} />
+      <RecordTimeline encounter={encounter} />
+      {canAddAddendum && <AddAddendum encounter={encounter} onAdded={onUpdated} />}
+    </>
+  );
+}
+
+/** Read-only sections of a record (finalized, or someone else's draft seen through coverage). */
+function RecordSections({ encounter }: { encounter: Encounter }) {
   const { t } = useTranslation();
   const { timeZone } = useOrg();
   const fmt = useFormatters();
@@ -385,7 +471,7 @@ function FinalizedRecord({ encounter }: { encounter: Encounter }) {
   return (
     <>
       <section className="card" aria-labelledby="finalized-title">
-        <h2 id="finalized-title">{t('clinical.finalizedTitle')}</h2>
+        <h2 id="finalized-title">{encounter.status === 'finalized' ? t('clinical.finalizedTitle') : t('clinical.draftReadOnlyTitle')}</h2>
         <p className="muted small">
           {t('clinical.author')}: {encounter.author.displayName}
           {encounter.finalizedAt && <> · {t('clinical.finalizedAt', { time: fmt.dateTime(encounter.finalizedAt, zone) })}</>}
@@ -400,8 +486,6 @@ function FinalizedRecord({ encounter }: { encounter: Encounter }) {
           ))}
         </dl>
       </section>
-      <RecordTimeline encounter={encounter} />
-      <AddAddendum encounter={encounter} />
     </>
   );
 }
@@ -434,7 +518,9 @@ function RecordTimeline({ encounter }: { encounter: Encounter }) {
           <li key={addendum.id} className="timeline-item" data-testid="addendum">
             <div className="timeline-head">
               <strong>{t('clinical.addendum')}</strong>
-              <span className="muted small">{fmt.dateTime(addendum.createdAt, zone)}</span>
+              <span className="muted small">
+                {fmt.dateTime(addendum.createdAt, zone)} · {addendum.author.displayName}
+              </span>
             </div>
             <p className="muted small">{t('clinical.addendumReasonShown', { reason: addendum.reason })}</p>
             <p className="record-text">{addendum.content}</p>
@@ -445,10 +531,9 @@ function RecordTimeline({ encounter }: { encounter: Encounter }) {
   );
 }
 
-function AddAddendum({ encounter }: { encounter: Encounter }) {
+function AddAddendum({ encounter, onAdded }: { encounter: Encounter; onAdded: (encounter: Encounter) => void }) {
   const { t } = useTranslation();
   const { orgId } = useOrg();
-  const update = useRecordUpdater(encounter.appointmentId);
   const [reason, setReason] = useState('');
   const [content, setContent] = useState('');
   const [added, setAdded] = useState(false);
@@ -461,7 +546,7 @@ function AddAddendum({ encounter }: { encounter: Encounter }) {
         headers: { 'Idempotency-Key': key.current },
       }),
     onSuccess: (r) => {
-      update(r.encounter);
+      onAdded(r.encounter);
       setReason('');
       setContent('');
       setAdded(true);

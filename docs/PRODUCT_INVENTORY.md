@@ -61,7 +61,9 @@ development Codespace.
 | Capability | Status | Notes |
 | ---------- | ------ | ----- |
 | Encounter / visit record | Implemented and tested _(phase 5, in review; clinician review pending)_ | General sections, draft, finalize, append-only addenda, late entry, one record per appointment, idempotent and concurrency-safe. Synthetic data only; not clinically validated. [CLINICAL.md](architecture/CLINICAL.md) |
-| Clinical access rules distinct from administrative access | Implemented and tested _(phase 5, in review)_ | Treating doctor only; owners/admins see documentation status only; separate clinical audit log. No delegation or break-glass yet. |
+| Clinical access rules distinct from administrative access | Implemented and tested _(phase 5, in review)_ | Treating doctor only; owners/admins see documentation status only; separate clinical audit log. |
+| Clinical coverage between doctors | Implemented and tested _(milestone 1, in review)_ | Treating doctor shares own records (one visit or one patient), read or addenda, ≤ 90 days, with reason; revoke/expiry/suspension immediate; audited. Clinical-lead path built but off pending decision Q17. No break-glass. |
+| Clinical audit view | Implemented and tested _(milestone 1, in review)_ | Metadata only; explicit owner-assigned capability; reads of the log are logged. |
 | Dentistry workspace (e.g. charting, treatment plans) | Planned | Requires clinician validation. Not implied by the specialty name in the catalog. |
 | Physiotherapy workspace (e.g. treatment plans, session tracking) | Planned | Requires clinician validation. |
 | ENT workspace | Planned | Requires clinician validation. |

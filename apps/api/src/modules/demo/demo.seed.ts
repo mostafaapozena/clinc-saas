@@ -7,6 +7,7 @@ import { AppointmentModel, SlotReservationModel } from '../appointments/appointm
 import { OCCUPYING_STATUSES, type AppointmentStatus } from '../appointments/appointment.state.js';
 import { BranchModel } from '../branches/branch.model.js';
 import { AddendumModel, EncounterModel } from '../clinical/clinical.model.js';
+import { CoverageModel } from '../clinical/coverage.model.js';
 import { MembershipModel } from '../memberships/membership.model.js';
 import { OrganizationModel } from '../organizations/organization.model.js';
 import { nextPatientNumber } from '../patients/counter.model.js';
@@ -201,6 +202,11 @@ async function seedFrontDesk(
 
   // Seed visit records belong to seed appointments, which are re-created below. Clinical records
   // can never be deleted — except these synthetic ones, by the seed (allowSeedCleanup).
+  const seedEncounters = await EncounterModel.find({ organizationId, seedKey: { $type: 'string' } }).select('_id').lean();
+  await CoverageModel.deleteMany(
+    { organizationId, 'scope.encounterId': { $in: seedEncounters.map((e) => e._id) } },
+    { allowSeedCleanup: true },
+  );
   await AddendumModel.deleteMany({ organizationId, seedKey: { $type: 'string' } }, { allowSeedCleanup: true });
   await EncounterModel.deleteMany({ organizationId, seedKey: { $type: 'string' } }, { allowSeedCleanup: true });
 

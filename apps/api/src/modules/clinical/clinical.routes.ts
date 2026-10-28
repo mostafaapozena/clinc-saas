@@ -9,7 +9,15 @@ import { parseObjectId, tenantOf, type TenantContext } from '../../tenancy/tenan
 import { clock } from '../../time/clock.js';
 import { AppointmentModel } from '../appointments/appointment.model.js';
 import { PractitionerModel } from '../practitioners/practitioner.model.js';
-import { resolveClinicalActor, treats, type ClinicalActor } from './clinical-access.js';
+import { PatientModel } from '../patients/patient.model.js';
+import {
+  activeCoverage,
+  inactiveCoverageReason,
+  recordAccess,
+  resolveClinicalActor,
+  treats,
+  type ClinicalActor,
+} from './clinical-access.js';
 import { recordClinical, recordClinicalOnce } from './clinical-audit.js';
 import {
   AddendumModel,
@@ -20,6 +28,7 @@ import {
   type Encounter,
   type EncounterSection,
 } from './clinical.model.js';
+import { CoverageModel } from './coverage.model.js';
 
 // Clinical visit records (docs/architecture/CLINICAL.md). Every endpoint:
 //   1. requires `clinical.encounter.own` (otherwise 403, and a denial is recorded);
@@ -45,7 +54,7 @@ function stripControl(value: string): string {
 }
 
 /** Plain text only: line endings normalized, control characters removed, ends trimmed. */
-const clinicalText = (max: number) =>
+export const clinicalText = (max: number) =>
   z
     .string()
     .max(max)
@@ -73,9 +82,9 @@ const addendumSchema = z.object({
 
 const emptySections = (): Record<EncounterSection, string> =>
   Object.fromEntries(ENCOUNTER_SECTIONS.map((s) => [s, ''])) as Record<EncounterSection, string>;
-const hash = (value: unknown) => createHash('sha256').update(JSON.stringify(value)).digest('base64url');
+export const hash = (value: unknown) => createHash('sha256').update(JSON.stringify(value)).digest('base64url');
 
-function requireKey(req: Request): string {
+export function requireKey(req: Request): string {
   const key = req.get('idempotency-key') ?? '';
   if (!IDEMPOTENCY_KEY.test(key)) throw new HttpError(400, 'IDEMPOTENCY_KEY_REQUIRED', 'Send a unique Idempotency-Key header');
   return key;
@@ -102,13 +111,17 @@ async function toEncounterDto(encounter: EncounterLean, session?: ClientSession)
     .sort({ createdAt: 1, _id: 1 })
     .session(session ?? null)
     .lean<AddendumLean[]>();
-  const practitioner = await PractitionerModel.findOne({
+  // Author names: the record's practitioner, and each addendum's own author (a covering doctor
+  // writes addenda under their own name).
+  const practitioners = await PractitionerModel.find({
     organizationId: encounter.organizationId,
-    _id: encounter.practitionerId,
+    _id: { $in: [encounter.practitionerId, ...addenda.map((a) => a.practitionerId)] },
   })
     .select('displayName')
     .session(session ?? null)
     .lean();
+  const nameOf = new Map(practitioners.map((p) => [String(p._id), p.displayName]));
+  const practitioner = { displayName: nameOf.get(String(encounter.practitionerId)) };
   return {
     id: String(encounter._id),
     appointmentId: String(encounter.appointmentId),
@@ -129,6 +142,7 @@ async function toEncounterDto(encounter: EncounterLean, session?: ClientSession)
       id: String(a._id),
       reason: a.reason,
       content: a.content,
+      author: { practitionerId: String(a.practitionerId), displayName: nameOf.get(String(a.practitionerId)) ?? '' },
       createdAt: a.createdAt.toISOString(),
     })),
   };
@@ -138,7 +152,7 @@ const sectionNames = (sections: Partial<Record<EncounterSection, string>> | unde
   ENCOUNTER_SECTIONS.filter((s) => (sections?.[s] ?? '') !== '');
 
 /** Records a denial without any payload, then answers like a missing record. */
-async function deny(
+export async function deny(
   tenant: TenantContext,
   reason: string,
   refs: {
@@ -153,7 +167,7 @@ async function deny(
 }
 
 /** Permission gate that also records the denial (receptionists, viewers, owners, admins). */
-const requireClinicalPermission: RequestHandler = async (req, _res, next) => {
+export const requireClinicalPermission: RequestHandler = async (req, _res, next) => {
   const tenant = tenantOf(req);
   if (hasPermission(tenant.role, 'clinical.encounter.own')) {
     next();
@@ -172,10 +186,13 @@ const requireClinicalPermission: RequestHandler = async (req, _res, next) => {
   );
 };
 
-const noStore = (res: Response) => res.set('Cache-Control', 'no-store');
+export const noStore = (res: Response) => res.set('Cache-Control', 'no-store');
 
 /** Runs a clinical mutation: fresh, locked access check and all writes in one transaction. */
-function inClinicalTransaction<T>(tenant: TenantContext, work: (actor: ClinicalActor, session: ClientSession) => Promise<T>): Promise<T> {
+export function inClinicalTransaction<T>(
+  tenant: TenantContext,
+  work: (actor: ClinicalActor, session: ClientSession) => Promise<T>,
+): Promise<T> {
   return mongoose.connection.transaction(async (session) => {
     const actor = await resolveClinicalActor(tenant, { session, lock: true });
     if (!actor) throw notFound();
@@ -335,6 +352,46 @@ export function createClinicalRouter() {
     }
   });
 
+  // One record by id: its author, or a covering doctor (read-only unless the grant allows addenda).
+  // Includes the minimal patient identity a covering doctor needs to know whose record it is.
+  router.get('/encounters/:encounterId', requireClinicalPermission, async (req, res) => {
+    noStore(res);
+    const tenant = tenantOf(req);
+    const encounterId = parseObjectId(req.params.encounterId);
+    if (!encounterId) throw notFound();
+    const actor = await resolveClinicalActor(tenant);
+    if (!actor) return deny(tenant, 'not_treating', { encounterId });
+    const encounter = await EncounterModel.findOne({ organizationId: tenant.organizationId, _id: encounterId }).lean<EncounterLean>();
+    if (!encounter) return deny(tenant, 'not_found', { encounterId });
+    const access = await recordAccess(actor, encounter);
+    if (!access) {
+      const reason = (await inactiveCoverageReason(actor, encounter)) ?? 'not_treating';
+      return deny(tenant, reason, { encounterId, patientId: encounter.patientId });
+    }
+    await recordClinicalOnce(
+      tenant,
+      'encounter.viewed',
+      { encounterId, appointmentId: encounter.appointmentId, patientId: encounter.patientId },
+      access.coverageId ? { via: 'coverage', coverageId: String(access.coverageId) } : {},
+    );
+    const [patient, appointment] = await Promise.all([
+      PatientModel.findOne({ organizationId: tenant.organizationId, _id: encounter.patientId }).select('fullName patientNumber').lean(),
+      AppointmentModel.findOne({ organizationId: tenant.organizationId, _id: encounter.appointmentId }).select('startAt status').lean(),
+    ]);
+    res.json({
+      encounter: await toEncounterDto(encounter),
+      access: access.access,
+      // Drafts of someone else are never editable; addenda need "author" access on a finalized record.
+      canAddAddendum: encounter.status === 'finalized' && (access.access === 'own' || access.access === 'author'),
+      context: {
+        patient: patient ? { id: String(patient._id), fullName: patient.fullName, patientNumber: patient.patientNumber } : null,
+        appointment: appointment
+          ? { id: String(appointment._id), startAt: appointment.startAt.toISOString(), status: appointment.status }
+          : null,
+      },
+    });
+  });
+
   // Save the draft. Optimistic version: a stale tab gets VERSION_CONFLICT, never an overwrite;
   // a finalized record can never be changed by a draft save.
   router.put('/encounters/:encounterId', requireClinicalPermission, async (req, res) => {
@@ -471,8 +528,13 @@ export function createClinicalRouter() {
     const requestHash = hash([String(encounterId), input.reason, input.content]);
     try {
       const result = await inClinicalTransaction(tenant, async (actor, session) => {
-        const encounter = await loadOwnEncounter(actor, encounterId, session);
+        const encounter = await EncounterModel.findOne({ organizationId: tenant.organizationId, _id: encounterId })
+          .session(session)
+          .lean<EncounterLean>();
         if (!encounter) throw notFound();
+        // The author, or a covering doctor with an active "author" grant (locked against revocation).
+        const coverage = treats(actor, encounter) ? null : await activeCoverage(actor, encounter, 'author', { session, lock: true });
+        if (!treats(actor, encounter) && !coverage) throw notFound();
         const existing = await AddendumModel.findOne({
           organizationId: tenant.organizationId,
           authorUserId: tenant.userId,
@@ -511,7 +573,9 @@ export function createClinicalRouter() {
             appointmentId: encounter.appointmentId,
             patientId: encounter.patientId,
           },
-          { addendumId: String(addendum._id) },
+          coverage
+            ? { addendumId: String(addendum._id), via: 'coverage', coverageId: String(coverage._id) }
+            : { addendumId: String(addendum._id) },
           session,
         );
         return { encounter, replayed: false };
@@ -542,7 +606,8 @@ export function createClinicalRouter() {
     }
   });
 
-  // The caller's own records for one patient (no other doctor's), within the current branch scope.
+  // The caller's records for one patient: their own, plus records covered by an active grant
+  // (other doctors' records otherwise never appear), within the current branch scope.
   router.get('/patients/:patientId/clinical-history', requireClinicalPermission, async (req, res) => {
     noStore(res);
     const tenant = tenantOf(req);
@@ -550,17 +615,31 @@ export function createClinicalRouter() {
     if (!patientId) throw notFound();
     const actor = await resolveClinicalActor(tenant);
     if (!actor) return deny(tenant, 'not_treating', { patientId });
-    const encounters = (
-      await EncounterModel.find({
-        organizationId: tenant.organizationId,
-        patientId,
-        practitionerId: actor.practitionerId,
-        authorUserId: actor.userId,
-      })
-        .sort({ createdAt: -1 })
-        .limit(100)
-        .lean<EncounterLean[]>()
-    ).filter((e) => treats(actor, e));
+    const now = clock.now();
+    const grants = await CoverageModel.find({
+      organizationId: tenant.organizationId,
+      granteePractitionerId: actor.practitionerId,
+      granteeUserId: actor.userId,
+      'scope.patientId': patientId,
+      revokedAt: null,
+      startsAt: { $lte: now },
+      expiresAt: { $gt: now },
+    }).lean();
+    const covered = grants.map((g) =>
+      g.scope.type === 'patient'
+        ? { practitionerId: g.sourcePractitionerId }
+        : { _id: g.scope.encounterId, practitionerId: g.sourcePractitionerId },
+    );
+    const own = { practitionerId: actor.practitionerId, authorUserId: actor.userId };
+    const candidates = await EncounterModel.find({
+      organizationId: tenant.organizationId,
+      patientId,
+      $or: [own, ...covered],
+    })
+      .sort({ createdAt: -1 })
+      .limit(100)
+      .lean<EncounterLean[]>();
+    const encounters = candidates.filter((e) => actor.canAccessBranch(e.branchId));
     const appointments = await AppointmentModel.find({
       organizationId: tenant.organizationId,
       _id: { $in: encounters.map((e) => e.appointmentId) },
@@ -592,6 +671,7 @@ export function createClinicalRouter() {
         lateEntry: Boolean(e.lateEntry),
         finalizedAt: e.finalizedAt ? e.finalizedAt.toISOString() : null,
         addendaCount: addenda.get(String(e._id)) ?? 0,
+        covered: !treats(actor, e),
       })),
     });
   });

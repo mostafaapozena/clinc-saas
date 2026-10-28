@@ -73,11 +73,12 @@ export function ClinicalHistoryCard({ patientId }: { patientId: string }) {
           {history.data.map((item) => (
             <li key={item.id} className="timeline-item" data-testid="clinical-history-item">
               <div className="timeline-head">
-                <Link to={`/app/${orgId}/appointments/${item.appointmentId}/record`}>
+                <Link to={item.covered ? `/app/${orgId}/records/${item.id}` : `/app/${orgId}/appointments/${item.appointmentId}/record`}>
                   {item.appointmentStartAt && timeZone ? fmt.dateTime(item.appointmentStartAt, timeZone) : t('clinical.title')}
                 </Link>
                 <DocumentationBadge status={item.status} />
                 {item.lateEntry && <span className="badge badge--late-entry">{t('clinical.lateEntryBadge')}</span>}
+                {item.covered && <span className="badge badge--capability">{t('coverage.viaCoverageBadge')}</span>}
               </div>
               {item.reason && <p className="record-text record-excerpt">{item.reason}</p>}
               {item.addendaCount > 0 && <p className="muted small">{t('clinical.addendaCount', { n: fmt.number(item.addendaCount) })}</p>}

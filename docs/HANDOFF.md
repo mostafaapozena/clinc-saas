@@ -17,6 +17,14 @@ Read [AGENTS.md](../AGENTS.md) (rules) and [PROGRESS.md](PROGRESS.md) (state, ga
 Everything important is in Git; a new Codespace from any branch sets itself up via the
 devcontainer.
 
+## Platform completion (from 2026-10-25)
+
+Follow [PLATFORM_COMPLETION_PLAN.md](PLATFORM_COMPLETION_PLAN.md): six milestones, each a branch
+stacked on the previous one, each its own PR (never merged by the agent). Milestone 1
+(`phase-6/clinical-continuity`, PR [#7](https://github.com/mostafaapozena/clinc-saas/pull/7)) is in review; next is milestone 2 (specialty
+workspaces) on `phase-7/specialty-workspaces` from milestone 1's head. Open owner decisions are in
+the plan's blocker register (B1 = clinical-lead authority, Q17).
+
 ## Phase 5 state (2026-10-25)
 
 Implemented on `phase-5/visit-records` (PR [#6](https://github.com/mostafaapozena/clinc-saas/pull/6), stacked on `phase-4/public-onboarding`); see
