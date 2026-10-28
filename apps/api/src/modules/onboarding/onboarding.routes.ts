@@ -12,6 +12,7 @@ import { parseObjectId } from '../../tenancy/tenant-context.js';
 import { SUPPORTED_TIME_ZONES } from '../../time/local-time.js';
 import { ORGANIZATION_TYPES, OrganizationModel } from '../organizations/organization.model.js';
 import { createOrganizationInSession } from '../organizations/organization.service.js';
+import { defaultModules } from '../organizations/modules.js';
 import { assertCatalogSpecialties, specialtyCodeSchema, specialtyListSchema } from '../specialties/specialty.service.js';
 import { ONBOARDING_STEPS, OnboardingDraftModel, type OnboardingDraft, type OnboardingStep } from './onboarding.model.js';
 
@@ -108,8 +109,16 @@ export function createOnboardingRouter(config: AppConfig) {
 
   router.get('/', async (req, res) => {
     res.set('Cache-Control', 'no-store');
-    const draft = await OnboardingDraftModel.findOne({ userId: authOf(req).user._id, status: 'draft' }).lean();
-    res.json({ draft: draft ? toDraftDto(draft) : null });
+    const userId = authOf(req).user._id;
+    const draft = await OnboardingDraftModel.findOne({ userId, status: 'draft' }).lean();
+    // A setup completed in the last 30 minutes (its response may have been lost): the page resumes
+    // into that workspace instead of offering to start again.
+    const recent = draft
+      ? null
+      : await OnboardingDraftModel.findOne({ userId, status: 'completed', completedAt: { $gte: new Date(Date.now() - 30 * 60_000) } })
+          .sort({ completedAt: -1 })
+          .lean();
+    res.json({ draft: draft ? toDraftDto(draft) : null, completed: recent?.organizationId ? { organizationId: String(recent.organizationId) } : null });
   });
 
   router.put('/', async (req, res) => {
@@ -194,6 +203,8 @@ export function createOnboardingRouter(config: AppConfig) {
         },
         session,
       );
+      // The workspace defaults of the chosen kind of organization (idempotent: same transaction).
+      await OrganizationModel.updateOne({ _id: organization._id }, { $set: { enabledModules: defaultModules(data.organizationType) } }, { session });
       await OnboardingDraftModel.updateOne(
         { _id: draftId, userId },
         { $set: { status: 'completed', step: 'review', organizationId: organization._id, completedAt: new Date() } },

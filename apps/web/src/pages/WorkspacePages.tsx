@@ -4,7 +4,8 @@ import { Link } from 'react-router';
 import { Metric } from '../components/Metric';
 import { PageHeader } from '../components/PageHeader';
 import { EmptyState, ErrorState, Loading } from '../components/ui';
-import { api } from '../lib/api';
+import { api, query } from '../lib/api';
+import { useSpecialtyNames } from '../lib/specialties';
 import { formatMoney } from '../lib/finance';
 import { useFormatters } from '../lib/format';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
@@ -56,10 +57,11 @@ export type Focus = {
 };
 
 function useFocus(full = false) {
-  const { orgId } = useOrg();
+  const { orgId, selectedSpecialty } = useOrg();
+  const params = { full: full ? '1' : undefined, specialty: selectedSpecialty !== 'all' ? selectedSpecialty : undefined };
   return useQuery({
-    queryKey: [...orgKeys.all(orgId), 'focus', full],
-    queryFn: ({ signal }) => api<Focus>(`/orgs/${orgId}/workspace/focus${full ? '?full=1' : ''}`, { signal }),
+    queryKey: [...orgKeys.all(orgId), 'focus', params],
+    queryFn: ({ signal }) => api<Focus>(`/orgs/${orgId}/workspace/focus${query(params)}`, { signal }),
   });
 }
 
@@ -312,5 +314,84 @@ export function WorklistPage() {
         {worklist ? <WorklistRows worklist={worklist} compact={false} /> : <EmptyState icon="stethoscope">{t('workspace.noWorklist')}</EmptyState>}
       </section>
     </>
+  );
+}
+
+/**
+ * Several specialty contexts and no valid saved choice: ask instead of guessing. "All specialties"
+ * is offered too (the combined view of a shared front desk or management). The choice is a view
+ * filter only; the API decides what each person may see.
+ */
+export function SpecialtyContextChooser() {
+  const { t } = useTranslation();
+  const { specialtyOptions, specialtyChosen, selectSpecialty } = useOrg();
+  const names = useSpecialtyNames();
+  if (specialtyChosen || specialtyOptions.length < 2) return null;
+  return (
+    <section className="card" aria-labelledby="context-title" data-testid="specialty-chooser">
+      <h2 id="context-title">{t('workspace.chooser.title')}</h2>
+      <p className="muted">{t('workspace.chooser.body')}</p>
+      <div className="inline-form">
+        {specialtyOptions.map((code) => (
+          <button key={code} type="button" className="button button--secondary" onClick={() => selectSpecialty(code)}>
+            {names.name(code)}
+          </button>
+        ))}
+        <button type="button" className="button button--ghost" onClick={() => selectSpecialty('all')}>
+          {t('workspace.chooser.all')}
+        </button>
+      </div>
+    </section>
+  );
+}
+
+type QuickAction = { key: string; to: string; show: boolean };
+
+/** The active specialty's own shortcuts on the home page, filtered by permissions and modules. */
+export function SpecialtyQuickActions() {
+  const { t } = useTranslation();
+  const { orgId, can, moduleOn, selectedSpecialty, specialties } = useOrg();
+  const names = useSpecialtyNames();
+  const specialty = selectedSpecialty !== 'all' ? selectedSpecialty : specialties.length === 1 ? specialties[0] : null;
+  if (!specialty || !['dentistry', 'physiotherapy', 'ent'].includes(specialty)) return null;
+  const doctor = can('clinical.encounter.own');
+  const base = `/app/${orgId}`;
+  const actions: Record<string, QuickAction[]> = {
+    dentistry: [
+      { key: 'plans', to: `${base}/worklist`, show: doctor },
+      { key: 'todayVisits', to: `${base}/appointments`, show: can('appointment.read') },
+      { key: 'charts', to: `${base}/patients`, show: can('patient.list') },
+      { key: 'book', to: `${base}/appointments/new`, show: can('appointment.book') },
+      { key: 'queue', to: `${base}/queue`, show: can('queue.read') },
+      { key: 'materials', to: `${base}/inventory`, show: can('inventory.read') && moduleOn('inventory') },
+    ],
+    physiotherapy: [
+      { key: 'courses', to: `${base}/worklist`, show: doctor },
+      { key: 'todaySessions', to: `${base}/appointments`, show: can('appointment.read') },
+      { key: 'book', to: `${base}/appointments/new`, show: can('appointment.book') },
+      { key: 'patients', to: `${base}/patients`, show: can('patient.list') },
+      { key: 'queue', to: `${base}/queue`, show: can('queue.read') },
+    ],
+    ent: [
+      { key: 'followUps', to: `${base}/worklist`, show: doctor },
+      { key: 'todayVisits', to: `${base}/appointments`, show: can('appointment.read') },
+      { key: 'queue', to: `${base}/queue`, show: can('queue.read') },
+      { key: 'book', to: `${base}/appointments/new`, show: can('appointment.book') },
+      { key: 'patients', to: `${base}/patients`, show: can('patient.list') },
+    ],
+  };
+  const visible = actions[specialty]!.filter((a) => a.show);
+  if (visible.length === 0) return null;
+  return (
+    <section className="card" aria-labelledby="specialty-actions-title" data-testid={`specialty-actions-${specialty}`}>
+      <h2 id="specialty-actions-title">{t('workspace.quick.title', { specialty: names.name(specialty) })}</h2>
+      <ul className="link-list">
+        {visible.map((a) => (
+          <li key={a.key}>
+            <Link to={a.to}>{t(`workspace.quick.${specialty}.${a.key}`)}</Link>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }

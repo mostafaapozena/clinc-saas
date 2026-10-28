@@ -1,8 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import { SESSION_KEY, useAuthActions, useSession } from '../auth/session';
+import { PreparingWorkspace } from '../components/PreparingWorkspace';
 import { SpecialtyCheckboxes } from '../components/SpecialtyCheckboxes';
 import { ErrorState, Field, Loading, Notice } from '../components/ui';
 import { PublicLayout } from '../layouts/PublicLayout';
@@ -22,6 +23,38 @@ import {
 } from '../lib/types';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { SPECIALTY_SOLUTION_CODES } from '../public/solutions';
+
+/**
+ * Set (in this tab only) while a completion request is in flight: if its response is lost and the
+ * page reloads, the setup that did complete is resumed instead of offered again. Holds no data.
+ */
+const PENDING_SETUP = 'raclinic.setup.pending';
+const markPending = (on: boolean) => {
+  try {
+    if (on) sessionStorage.setItem(PENDING_SETUP, '1');
+    else sessionStorage.removeItem(PENDING_SETUP);
+  } catch {
+    /* storage unavailable: resuming falls back to the workspace list */
+  }
+};
+const isPending = () => {
+  try {
+    return sessionStorage.getItem(PENDING_SETUP) === '1';
+  } catch {
+    return false;
+  }
+};
+
+/** Opens the workspace of a setup that completed (after its response was lost). */
+function ResumeWorkspace({ orgId }: { orgId: string }) {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  useEffect(() => {
+    markPending(false);
+    void queryClient.invalidateQueries({ queryKey: SESSION_KEY }).then(() => navigate(`/app/${orgId}`, { replace: true }));
+  }, [orgId, navigate, queryClient]);
+  return <PreparingWorkspace resuming />;
+}
 
 /** Not organization data: cleared with the rest of the cache on sign-in and sign-out. */
 const ONBOARDING_KEY = ['onboarding'] as const;
@@ -50,6 +83,12 @@ export function OnboardingPage() {
   // The draft found when the page opened. Saving a step puts the (new) draft in the cache; that must
   // not restart the wizard as if an earlier setup were being resumed (UX-019).
   const [opened, setOpened] = useState<{ draft: OnboardingDraft | null } | null>(null);
+  const completed = useQuery({
+    queryKey: [...ONBOARDING_KEY, 'completed'],
+    queryFn: ({ signal }) => api<{ completed?: { organizationId: string } | null }>('/onboarding', { signal }).then((r) => r.completed ?? null),
+    enabled: draft.isSuccess && !draft.data && isPending(),
+    staleTime: 0,
+  });
   if (draft.isSuccess && !opened) setOpened({ draft: draft.data });
 
   const signOut = async () => {
@@ -61,6 +100,8 @@ export function OnboardingPage() {
   let body;
   if (draft.isPending) body = <Loading />;
   else if (draft.isError) body = <ErrorState message={errorMessage(t, draft.error)} onRetry={() => void draft.refetch()} />;
+  else if (completed.data) body = <ResumeWorkspace orgId={completed.data.organizationId} />;
+  else if (!draft.data && completed.isFetching) body = <Loading />;
   else if (!draft.data && memberships.length > 0 && !startNew) body = <ExistingWorkspaces onStartNew={() => setStartNew(true)} />;
   else body = <Wizard key={opened?.draft?.id ?? 'new'} initial={opened?.draft ?? draft.data} />;
 
@@ -182,8 +223,12 @@ function Wizard({ initial }: { initial: OnboardingDraft | null }) {
   });
 
   const complete = useMutation({
-    mutationFn: () => api<{ organization: { id: string } }>(`/onboarding/${draftId}/complete`, { method: 'POST' }),
+    mutationFn: () => {
+      markPending(true);
+      return api<{ organization: { id: string } }>(`/onboarding/${draftId}/complete`, { method: 'POST' });
+    },
     onSuccess: async ({ organization }) => {
+      markPending(false);
       queryClient.removeQueries({ queryKey: ONBOARDING_KEY });
       await queryClient.invalidateQueries({ queryKey: SESSION_KEY });
       navigate(`/app/${organization.id}`, { replace: true });
@@ -212,7 +257,7 @@ function Wizard({ initial }: { initial: OnboardingDraft | null }) {
     event.preventDefault();
     const next = ONBOARDING_STEPS[index + 1];
     if (next) goTo(next);
-    else complete.mutate();
+    else if (!complete.isPending) complete.mutate();
   };
 
   const setSpecialties = (codes: string[]) =>
@@ -220,6 +265,12 @@ function Wizard({ initial }: { initial: OnboardingDraft | null }) {
 
   const busy = save.isPending || complete.isPending;
   const fatal = (save.error && !isApiError(save.error, 'VERSION_CONFLICT') && Object.keys(fieldErrors(save.error)).length === 0) || complete.error;
+
+  // The real setup request is running (or done and the workspace is opening): no form to click twice.
+  if (complete.isPending || complete.isSuccess) {
+    const only = data.specialtyCodes.length === 1 ? specialties.name(data.specialtyCodes[0]!) : null;
+    return <PreparingWorkspace specialtyName={only} />;
+  }
 
   return (
     <div className="wizard">

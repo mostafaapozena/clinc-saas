@@ -34,6 +34,8 @@ export interface Organization {
   configVersion: number;
   /** Clinic finances currency (milestone 3); chosen once by an owner. */
   currency: Currency | null;
+  /** Enabled shared ERP modules; absent = all (organizations created before modules existed). */
+  enabledModules?: string[] | null;
   createdBy: Types.ObjectId;
   /** Stable key for development seed data only. */
   seedKey?: string;
@@ -49,6 +51,7 @@ const organizationSchema = new Schema<Organization>(
     specialtyCodes: { type: [String], default: [] },
     configVersion: { type: Number, required: true, default: 0 },
     currency: { type: String, enum: [...CURRENCY_CODES, null], default: null },
+    enabledModules: { type: [String], default: undefined },
     createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     seedKey: { type: String },
   },
