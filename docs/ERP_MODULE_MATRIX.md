@@ -20,9 +20,9 @@ Legend:
 | Legal entity distinct from branches | ✅ (by design, E-1) | One organization is one entity; branches are cost centers in the ledger |
 | Departments / locations inside a branch | ⛔ | Specialties per branch exist; no departments or rooms. Not needed by current workflows. |
 | Document numbering | ✅ | Per organization, type and year, gap-free (`finance.model.ts` counters; JE, CS and CV numbers) |
-| Approval thresholds | ⛔ → milestone C | Purchase-request approval threshold |
+| Approval thresholds | ✅ | Milestone C: purchase requests and direct bills (`purchasing.test.ts`) |
 | Team: roles, branch scope, immediate suspension, audit | ✅ | `membership.routes.ts`; `authorization.test.ts`, `session-security.test.ts` |
-| Separation of duties (request / approve / receive / pay) | ⛔ → milestone C | Configurable "requester ≠ approver" |
+| Separation of duties (request / approve / receive / pay) | ✅ | Milestone C: configurable approve / receive / pay switches (`purchasing.test.ts`) |
 | Patients: identity, branch registrations, scoped search, shared phone | ✅ | `patients.test.ts`, `front-desk-isolation.test.ts`, `patient-search-scale.test.ts` |
 | Scheduling, booking, reschedule, cancel, queue | ✅ | `appointments.test.ts`, `schedule-races.test.ts` |
 | Clinical records, finalize, addenda, coverage | ✅ | `clinical.test.ts`, `clinical-coverage.test.ts` |
@@ -35,7 +35,7 @@ Legend:
 | Clinical services with branch prices and price snapshots on charges | ✅ | `finance.test.ts` |
 | Effective-dated prices | 🟡 | Price changes apply from now on; there is no future-dated schedule |
 | Stock items, units and conversions | ✅ | Milestone B; `inventory.test.ts` (validated integer factors, immutable once used) |
-| Non-stock purchases | ⛔ → milestone C | Bill lines to expense accounts |
+| Non-stock purchases | ✅ | Milestone C: order and bill lines to expense accounts |
 | Treatment packages | ➖ (E-12) | Rules undefined |
 
 ## Accounting, revenue, cash
@@ -55,7 +55,7 @@ Legend:
 | Bank reconciliation (manual / CSV) | ✅ | `accounting.test.ts` |
 | Bank or payment-provider feeds | 🔌 ➖ | Not built |
 | Tax, VAT, e-invoicing | ⚙️ ➖ | Q9 / E4 |
-| Payables aging | ⛔ → milestone C | |
+| Payables aging | ✅ | Milestone C (`purchasing.test.ts`: aging = payables ledger) |
 
 ## Operations ERP
 
@@ -63,8 +63,8 @@ Legend:
 | --- | --- | --- |
 | Warehouses, stock ledger, lots and expiry, FEFO, counts, adjustments, valuation | ✅ | Milestone B; `inventory.test.ts` (moving average, concurrency, FEFO, expired lots) |
 | Consumption from performed procedures | ✅ | Milestone B; treating doctor, finalized records, once per item, linked returns |
-| Suppliers, PR, approval, RFQ, quotations, PO, receipts, bills, payments, returns, credit notes | ⛔ | Milestone C |
-| Expenses with approval | 🟡 | Cash-out vouchers exist (milestone A); expense bills come in milestone C |
+| Suppliers, PR, approval, RFQ, quotations, PO, receipts, bills, payments, returns, credit notes | ✅ | Milestone C (`purchasing.test.ts`, full chain) |
+| Expenses with approval | ✅ | Direct expense bills with threshold approval (milestone C); cash-out vouchers (milestone A) |
 | Practitioner compensation | ⛔ | Milestone D |
 | Assets and maintenance | ⛔ | Milestone F |
 | People / payroll | ➖ (E-13) | Non-statutory employee records could be added later |

@@ -37,6 +37,7 @@ import { createFinanceRouter } from '../finance/finance.routes.js';
 import { createAccountingRouter } from '../accounting/accounting.routes.js';
 import { createCashRouter } from '../accounting/cash.routes.js';
 import { createInventoryRouter } from '../inventory/inventory.routes.js';
+import { createPurchasingRouter } from '../purchasing/purchasing.routes.js';
 import { createSubscriptionRouter } from '../platform/subscription.routes.js';
 import { restrictedWriteGuard } from '../platform/subscription.lifecycle.js';
 import type { Mailer } from '../mail/mailer.js';
@@ -269,6 +270,7 @@ export function createOrganizationsRouter(config: AppConfig, mailer: Mailer = { 
   router.use('/:orgId', createAccountingRouter());
   router.use('/:orgId', createCashRouter());
   router.use('/:orgId', createInventoryRouter());
+  router.use('/:orgId', createPurchasingRouter());
   router.use('/:orgId', createSubscriptionRouter(config));
   router.use('/:orgId', createClinicalRouter());
   router.use('/:orgId/branches', branchesRouter);

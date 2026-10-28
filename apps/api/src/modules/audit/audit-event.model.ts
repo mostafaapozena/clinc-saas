@@ -66,10 +66,30 @@ export const AUDIT_ACTIONS = [
   'warehouse.created',
   'warehouse.updated',
   'stock_document.created',
+  'purchase.settings_updated',
+  'supplier.created',
+  'supplier.updated',
+  'purchase.request_created',
+  'purchase.request_approved',
+  'purchase.request_rejected',
+  'purchase.request_cancelled',
+  'purchase.rfq_created',
+  'purchase.quotation_recorded',
+  'purchase.order_created',
+  'purchase.order_confirmed',
+  'purchase.order_cancelled',
+  'purchase.order_closed',
+  'purchase.goods_received',
+  'purchase.goods_returned',
+  'purchase.bill_recorded',
+  'purchase.bill_approved',
+  'purchase.bill_rejected',
+  'purchase.payment_recorded',
+  'purchase.credit_recorded',
 ] as const;
 export type AuditAction = (typeof AUDIT_ACTIONS)[number];
 
-export const AUDIT_TARGET_TYPES = ['organization', 'branch', 'membership', 'patient', 'practitioner', 'appointment', 'service', 'charge', 'invoice', 'payment', 'adjustment', 'ledger_account', 'journal_entry', 'cash_account', 'cash_session', 'cash_voucher', 'stock_item', 'warehouse', 'stock_document'] as const;
+export const AUDIT_TARGET_TYPES = ['organization', 'branch', 'membership', 'patient', 'practitioner', 'appointment', 'service', 'charge', 'invoice', 'payment', 'adjustment', 'ledger_account', 'journal_entry', 'cash_account', 'cash_session', 'cash_voucher', 'stock_item', 'warehouse', 'stock_document', 'purchase_document'] as const;
 export type AuditTargetType = (typeof AUDIT_TARGET_TYPES)[number];
 
 /**

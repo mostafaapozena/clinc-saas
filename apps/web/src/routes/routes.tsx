@@ -64,6 +64,15 @@ const BankStatementPage = named(workspace, 'BankStatementPage');
 const InventoryPage = named(workspace, 'InventoryPage');
 const InventoryItemsPage = named(workspace, 'InventoryItemsPage');
 const InventoryMovesPage = named(workspace, 'InventoryMovesPage');
+const PurchasingPage = named(workspace, 'PurchasingPage');
+const RfqPage = named(workspace, 'RfqPage');
+const RfqPrintPage = named(workspace, 'RfqPrintPage');
+const PurchaseOrdersPage = named(workspace, 'PurchaseOrdersPage');
+const PurchaseOrderPage = named(workspace, 'PurchaseOrderPage');
+const PurchaseOrderPrintPage = named(workspace, 'PurchaseOrderPrintPage');
+const BillsPage = named(workspace, 'BillsPage');
+const BillPage = named(workspace, 'BillPage');
+const SuppliersPage = named(workspace, 'SuppliersPage');
 const ServicesPage = named(workspace, 'ServicesPage');
 const PatientAccountPage = named(workspace, 'PatientAccountPage');
 const InvoicePage = named(workspace, 'InvoicePage');
@@ -181,6 +190,15 @@ export const routes: RouteObject[] = [
           guarded('inventory', 'inventory.read', <InventoryPage />),
           guarded('inventory/items', 'inventory.read', <InventoryItemsPage />),
           guarded('inventory/moves', 'inventory.read', <InventoryMovesPage />),
+          guarded('purchasing', 'purchase.request', <PurchasingPage />),
+          guarded('purchasing/rfqs/:rfqId', 'purchase.read', <RfqPage />),
+          guarded('purchasing/rfqs/:rfqId/print', 'purchase.read', <RfqPrintPage />),
+          guarded('purchasing/orders', 'purchase.read', <PurchaseOrdersPage />),
+          guarded('purchasing/orders/:orderId', 'purchase.read', <PurchaseOrderPage />),
+          guarded('purchasing/orders/:orderId/print', 'purchase.read', <PurchaseOrderPrintPage />),
+          guarded('purchasing/bills', 'purchase.bill.manage', <BillsPage />),
+          guarded('purchasing/bills/:billId', 'purchase.bill.manage', <BillPage />),
+          guarded('purchasing/suppliers', 'purchase.request', <SuppliersPage />),
           guarded('queue', 'queue.read', <QueuePage />),
           guarded('patients', 'patient.list', <PatientsPage />),
           guarded('patients/:patientId', 'patient.read', <PatientDetailPage />),

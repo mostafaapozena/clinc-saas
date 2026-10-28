@@ -81,6 +81,16 @@ export const PERMISSION_MATRIX = {
   // The treating doctor records materials used in their own finalized records.
   'inventory.consume': ['doctor'],
   'inventory.value.read': ['owner', 'admin', 'accountant'],
+  // ERP milestone C — suppliers, purchasing and payables (docs/architecture/PURCHASING.md).
+  'purchase.read': ['owner', 'admin', 'accountant', 'receptionist'],
+  'purchase.settings.manage': ['owner'],
+  'purchase.supplier.manage': ['owner', 'admin', 'accountant'],
+  'purchase.request': ['owner', 'admin', 'receptionist', 'accountant', 'doctor'],
+  'purchase.approve': ['owner', 'admin'],
+  'purchase.order.manage': ['owner', 'admin', 'accountant'],
+  'purchase.receive': ['owner', 'admin', 'receptionist'],
+  'purchase.bill.manage': ['owner', 'admin', 'accountant'],
+  'purchase.pay': ['owner', 'accountant'],
   // Milestone 4 — the organization's platform subscription (what the clinic pays raclinic).
   'subscription.read': ['owner', 'admin'],
   'subscription.manage': ['owner'],

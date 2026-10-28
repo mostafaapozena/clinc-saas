@@ -14,6 +14,7 @@ import { localDateOf } from '../../time/local-time.js';
 import { AccountingSettingsModel, CashAccountModel, LedgerAccountModel } from '../accounting/accounting.model.js';
 import { createLedger } from '../accounting/accounting.setup.js';
 import { StockItemModel, WarehouseModel } from '../inventory/inventory.model.js';
+import { SupplierModel } from '../purchasing/purchasing.model.js';
 import { lockItem, saveDocument, stockIn, newId } from '../inventory/inventory.stock.js';
 import { ensureCounter } from '../finance/finance.model.js';
 import { prepareLedger } from '../accounting/accounting.posting.js';
@@ -121,6 +122,10 @@ export async function seedDemoData(password: string, now = clock.now()) {
     }
     if (org.finance?.currency) await seedLedger(organizationId, ownerId, org.finance.currency, org.timeZone, [...branchIds.values()], now);
     if (org.finance?.currency) await seedStock(organizationId, ownerId, org.timeZone, [...branchIds.values()], now);
+    // Synthetic suppliers (ERP milestone C); upserted by code.
+    for (const s of DEMO_SUPPLIERS) {
+      await SupplierModel.updateOne({ organizationId, code: s.code }, { $setOnInsert: { name: s.name, phone: s.phone, paymentTermsDays: s.paymentTermsDays } }, { upsert: true });
+    }
   }
 
   return {
@@ -455,3 +460,9 @@ async function seedStock(organizationId: Types.ObjectId, ownerId: Types.ObjectId
     );
   });
 }
+
+const DEMO_SUPPLIERS = [
+  { code: 'SUP-MED', name: 'Synthetic Medical Supplies Co.', phone: '+20 2 0000 0001', paymentTermsDays: 30 },
+  { code: 'SUP-DENT', name: 'Synthetic Dental Materials', phone: '+20 2 0000 0002', paymentTermsDays: 45 },
+  { code: 'SUP-SERV', name: 'Synthetic Equipment Services', phone: '+20 2 0000 0003', paymentTermsDays: 15 },
+];

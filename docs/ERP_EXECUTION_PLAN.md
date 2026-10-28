@@ -77,7 +77,7 @@ explicitly, and the ledger carries stock value.
 **Tests.** Valuation examples, a concurrent issue, isolation, FEFO, duplicate consumption, and plan
 items not consuming stock.
 
-## C. Suppliers, purchasing and payables
+## C. Suppliers, purchasing and payables — ✅ built (branch `phase-16/erp-purchasing`)
 
 **Outcome.** A traceable purchasing chain from request to payment, with 3-way matching and
 payables aging.

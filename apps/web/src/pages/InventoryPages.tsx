@@ -262,7 +262,13 @@ export function InventoryPage() {
   const expired = (alerts.data?.expiring ?? []).filter((b) => b.expired);
   return (
     <>
-      <PageHeader title={t('inventory.title')} subtitle={t('inventory.subtitle')} />
+      <PageHeader title={t('inventory.title')} subtitle={t('inventory.subtitle')}>
+        {can('purchase.request') && (
+          <Link className="button button--secondary" to={`/app/${orgId}/purchasing`}>
+            {t('inventory.requestSupplies')}
+          </Link>
+        )}
+      </PageHeader>
       <InventoryNav />
       {alerts.isSuccess && (
         <dl className="metrics" data-testid="inventory-metrics">

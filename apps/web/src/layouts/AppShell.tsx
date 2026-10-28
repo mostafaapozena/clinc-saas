@@ -153,6 +153,8 @@ function Shell({ orgId, detail, branches }: { orgId: string; detail: OrgDetail; 
         ...(value.can('accounting.read') ? [{ to: `/app/${orgId}/accounting`, icon: 'book' as const, label: t('nav.accounting') }] : []),
         ...(value.can('cash.session.operate') ? [{ to: `/app/${orgId}/cash`, icon: 'cash' as const, label: t('nav.cash') }] : []),
         ...(value.can('inventory.read') ? [{ to: `/app/${orgId}/inventory`, icon: 'box' as const, label: t('nav.inventory') }] : []),
+        // Purchasing in the menu for those who run it; anyone may still raise a request from the stock pages.
+        ...(value.can('purchase.read') ? [{ to: `/app/${orgId}/purchasing`, icon: 'cart' as const, label: t('nav.purchasing') }] : []),
       ],
     },
     {
