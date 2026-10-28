@@ -296,6 +296,32 @@ const ACTIONS: Action[] = [
   },
   { name: 'list cashier sessions', allowed: FINANCE_DESK, run: (c) => c.agent.get(`/api/v1/orgs/${orgId}/cash/sessions`) },
   { name: 'list cash vouchers', allowed: ['owner', 'admin', 'accountant'], run: (c) => c.agent.get(`/api/v1/orgs/${orgId}/cash/vouchers`) },
+  // ERP milestone C — purchasing (requests by anyone who works; payables need the org-wide accountant/owner)
+  { name: 'list suppliers', allowed: ['owner', 'admin', 'receptionist', 'accountant', 'doctor'], run: (c) => c.agent.get(`/api/v1/orgs/${orgId}/purchasing/suppliers`) },
+  {
+    name: 'add a supplier',
+    allowed: ['owner', 'admin', 'accountant'],
+    run: (c) => send(c, 'post', `/api/v1/orgs/${orgId}/purchasing/suppliers`, { code: `SUP-${++seq}`, name: 'Matrix supplier' }),
+  },
+  {
+    name: 'raise a purchase request',
+    allowed: ['owner', 'admin', 'receptionist', 'accountant', 'doctor'],
+    run: (c) =>
+      c.agent
+        .post(`/api/v1/orgs/${orgId}/purchasing/requests`)
+        .set('X-CSRF-Token', c.csrf)
+        .set('Idempotency-Key', `matrix-pr-${++seq}`)
+        .send({ branchId: branchA, lines: [{ description: 'Matrix paper', qty: 1, unitPrice: 100 }] }),
+  },
+  { name: 'list purchase orders', allowed: ['owner', 'admin', 'receptionist', 'accountant'], run: (c) => c.agent.get(`/api/v1/orgs/${orgId}/purchasing/orders`) },
+  {
+    name: 'change purchasing settings',
+    allowed: ['owner'],
+    run: async (c) => {
+      const { version } = (await owner.agent.get(`/api/v1/orgs/${orgId}/purchasing/settings`)).body.settings;
+      return send(c, 'put', `/api/v1/orgs/${orgId}/purchasing/settings`, { approvalThreshold: 0, separation: { approve: true, receive: false, pay: false }, version });
+    },
+  },
   // ERP milestone B — inventory
   { name: 'read stock items', allowed: ['owner', 'admin', 'receptionist', 'accountant', 'doctor'], run: (c) => c.agent.get(`/api/v1/orgs/${orgId}/inventory/items`) },
   { name: 'read stock alerts', allowed: ['owner', 'admin', 'receptionist', 'accountant', 'doctor'], run: (c) => c.agent.get(`/api/v1/orgs/${orgId}/inventory/alerts`) },

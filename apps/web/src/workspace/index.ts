@@ -11,6 +11,7 @@ export { FinancePage, InvoicePage, InvoicePrintPage, PatientAccountPage, Receipt
 export { AccountingPage, ChartPage, EntryPage, JournalPage, PeriodsPage, ReportsPage } from '../pages/AccountingPages';
 export { BankStatementPage, CashPage, CashSessionPage } from '../pages/CashPages';
 export { InventoryItemsPage, InventoryMovesPage, InventoryPage } from '../pages/InventoryPages';
+export { BillPage, BillsPage, PurchaseOrderPage, PurchaseOrderPrintPage, PurchaseOrdersPage, PurchasingPage, RfqPage, RfqPrintPage, SuppliersPage } from '../pages/PurchasingPages';
 export { HomePage } from '../pages/HomePage';
 export { NotFoundInShell } from '../pages/NotFoundPage';
 export { PatientDetailPage } from '../pages/PatientDetailPage';

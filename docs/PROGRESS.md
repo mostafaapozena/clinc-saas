@@ -11,7 +11,8 @@ Branch `phase-16/erp-accounting`. Scope, matrix, plan and decisions: [MEDICAL_ER
 - **Statements:** trial balance, general ledger, income and expenses (result per ledger, by branch), balance sheet, receivables aging, sub-ledger reconciliation, cutover dry run for opening balances.
 - **Cash and banks:** branch cashboxes and bank accounts, cashier sessions with opening and closing counts and posted differences, vouchers and two-sided transfers, CSV bank-statement matching.
 - **Milestone B (branch `phase-16/erp-inventory`):** stock items with units, branch warehouses, lots and expiry, moving-average valuation without drift, first-expiring-first picking, counts, write-offs, issues and transfers, materials used on finalized visit records (once per item, linked returns), alerts and reorder suggestions, stock ledger; postings to the ledger. Design: [architecture/INVENTORY.md](architecture/INVENTORY.md).
-- **Next:** C (purchasing and payables), D (practitioner compensation), E (specialty workspaces).
+- **Milestone C (branch `phase-16/erp-purchasing`):** suppliers, purchase requests with threshold approval and segregation of duties, RFQs with quotation comparison, purchase orders (from a quotation, an approved request, or direct below the threshold), partial receipts into stock, returns, supplier bills matched to received quantities, direct expense bills with approval, supplier credit notes, partial payments, payables aging, printable RFQ and order. Design: [architecture/PURCHASING.md](architecture/PURCHASING.md).
+- **Next:** D (practitioner compensation), E (specialty workspaces), F (assets), G (reports hub and end-to-end journeys).
 
 ## UI polish: light and dark themes, review findings (merged)
 
