@@ -52,6 +52,16 @@ export type DemoAppointment = {
   type?: 'new_visit' | 'follow_up';
   reason?: string;
 };
+/** Synthetic visit record (phase 5). Text is invented for demonstration, never real patient data. */
+export type DemoEncounter = {
+  key: string;
+  /** Key of the appointment it documents; the author is that appointment's practitioner. */
+  appointment: string;
+  status: 'draft' | 'finalized';
+  sections: Partial<Record<'reason' | 'history' | 'examination' | 'assessment' | 'plan', string>>;
+  lateEntryReason?: string;
+  addenda?: { key: string; reason: string; content: string }[];
+};
 export type DemoOrganization = {
   key: string;
   name: string;
@@ -65,6 +75,7 @@ export type DemoOrganization = {
   exceptions: DemoException[];
   patients: DemoPatient[];
   appointments: DemoAppointment[];
+  encounters?: DemoEncounter[];
 };
 
 export const DEMO_USERS: DemoUser[] = [
@@ -178,6 +189,48 @@ export const DEMO_ORGANIZATIONS: DemoOrganization[] = [
       { key: 'b10', practitioner: 'doctor2.nour@demo.test', patient: 'p2', branch: NASR, day: 1, time: '10:00', status: 'scheduled', type: 'follow_up' },
       { key: 'b11', practitioner: 'doctor2.nour@demo.test', patient: 'p9', branch: NASR, day: 2, time: '12:30', status: 'scheduled', type: 'follow_up' },
       { key: 'b12', practitioner: 'doctor2.nour@demo.test', patient: 'p6', branch: ALEX, day: 4, time: '16:30', status: 'scheduled', type: 'follow_up' },
+    ],
+    // Synthetic visit records. b04 (in progress) and b03 (completed) are left without a record so
+    // the start and late-entry flows can be tried as doctor2.nour.
+    encounters: [
+      {
+        key: 'e01',
+        appointment: 'a01',
+        status: 'finalized',
+        sections: {
+          reason: 'ألم في ضرس علوي منذ ثلاثة أيام (بيانات تجريبية)',
+          history: 'لا توجد حساسية معروفة مسجلة في هذا المثال التجريبي.',
+          examination: 'نص فحص تجريبي للتوضيح فقط.',
+          assessment: 'تقييم تجريبي للتوضيح فقط.',
+          plan: 'متابعة بعد يوم واحد (مثال تجريبي).',
+        },
+        addenda: [{ key: 'e01-x1', reason: 'توضيح بعد المراجعة', content: 'إضافة تجريبية توضح أن السجل الأصلي لا يتغير.' }],
+      },
+      {
+        key: 'e02',
+        appointment: 'a04',
+        status: 'finalized',
+        sections: { reason: 'زيارة متابعة (بيانات تجريبية)', plan: 'متابعة حسب الحاجة (مثال تجريبي).' },
+      },
+      {
+        key: 'e03',
+        appointment: 'a05',
+        status: 'draft',
+        sections: { reason: 'متابعة اليوم (مسودة تجريبية)', history: 'نص مسودة تجريبي لم يُعتمد بعد.' },
+      },
+      {
+        key: 'e04',
+        appointment: 'b01',
+        status: 'finalized',
+        sections: { reason: 'Lower back stiffness (synthetic example)', examination: 'Synthetic examination text.', plan: 'Synthetic home-exercise plan.' },
+      },
+      {
+        key: 'e05',
+        appointment: 'b02',
+        status: 'finalized',
+        lateEntryReason: 'Documented after the session (synthetic example)',
+        sections: { reason: 'Shoulder follow-up (synthetic example)', assessment: 'Synthetic assessment text.' },
+      },
     ],
   },
   {

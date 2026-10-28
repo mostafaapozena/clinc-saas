@@ -12,7 +12,7 @@ No dates, prices or delivery promises are implied.
 
 ```
 Phase 4  Public platform and specialty-aware onboarding      ← implemented, PR in review
-Phase 5  Clinical foundation: encounters and clinical access  ← next (needs clinician input)
+Phase 5  Clinical foundation: encounters and clinical access  ← implemented, PR in review (clinician review pending)
 Phase 6  Specialty workspaces: dentistry, physiotherapy, ENT  ← one slice per specialty
 Phase 7  Clinic financial operations                          ← needs tax/legal validation
 Phase 8  Platform subscriptions and operator administration   ← needs payment provider, terms

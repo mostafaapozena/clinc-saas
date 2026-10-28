@@ -64,6 +64,12 @@ async function todaysBooking(checkIn: boolean) {
   return (await act(owner, orgId, appointment.id, 'check_in', appointment.version)).body.appointment as typeof appointment;
 }
 
+/** A visit with the doctor that the owner checked in and started. */
+async function visitInProgress() {
+  const a = await todaysBooking(true);
+  return (await act(owner, orgId, a.id, 'start', a.version)).body.appointment as typeof a;
+}
+
 const FRONT_DESK: Role[] = ['owner', 'admin', 'receptionist'];
 const STAFF: Role[] = ['owner', 'admin', 'receptionist', 'doctor'];
 
@@ -217,6 +223,23 @@ const ACTIONS: Action[] = [
     },
   },
   { name: 'view the arrivals queue', allowed: STAFF, run: (c) => c.agent.get(`/api/v1/orgs/${orgId}/queue`) },
+  // Phase 5 — clinical visit records: the treating doctor only (owners and admins included are denied)
+  {
+    name: 'open the visit record of their own visit in progress',
+    allowed: ['doctor'],
+    run: async (c) => c.agent.get(`/api/v1/orgs/${orgId}/appointments/${(await visitInProgress()).id}/encounter`),
+  },
+  {
+    name: 'start a visit record',
+    allowed: ['doctor'],
+    run: async (c) =>
+      c.agent
+        .post(`/api/v1/orgs/${orgId}/appointments/${(await visitInProgress()).id}/encounter`)
+        .set('X-CSRF-Token', c.csrf)
+        .set('Idempotency-Key', `matrix-${++seq}-encounter`)
+        .send({ sections: { reason: 'Synthetic reason' } }),
+  },
+  { name: "read a patient's clinical history (own records)", allowed: ['doctor'], run: (c) => c.agent.get(`/api/v1/orgs/${orgId}/patients/${linkedPatient}/clinical-history`) },
 ];
 
 describe.each(ROLES)('role %s', (role) => {

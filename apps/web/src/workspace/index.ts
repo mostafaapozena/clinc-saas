@@ -4,6 +4,7 @@ export { AppointmentDetailPage } from '../pages/AppointmentDetailPage';
 export { AppointmentsPage } from '../pages/AppointmentsPage';
 export { BookAppointmentPage, RescheduleAppointmentPage } from '../pages/BookAppointmentPage';
 export { BranchesPage } from '../pages/BranchesPage';
+export { EncounterPage } from '../pages/EncounterPage';
 export { HomePage } from '../pages/HomePage';
 export { NotFoundInShell } from '../pages/NotFoundPage';
 export { PatientDetailPage } from '../pages/PatientDetailPage';

@@ -14,6 +14,12 @@ export interface Membership {
   status: MembershipStatus;
   /** "all" = every branch of the organization; "selected" = only branchIds. */
   branchScope: StoredBranchScope;
+  /**
+   * Incremented by every clinical mutation inside its transaction, so a concurrent change of this
+   * membership (suspension, role or branch change) write-conflicts with it and the retry sees the
+   * new state (docs/architecture/CLINICAL.md).
+   */
+  accessSeq: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -37,6 +43,7 @@ const membershipSchema = new Schema<Membership>(
       required: true,
       default: () => ({ type: 'all', branchIds: [] }),
     },
+    accessSeq: { type: Number, required: true, default: 0 },
   },
   { collection: 'memberships', timestamps: true },
 );

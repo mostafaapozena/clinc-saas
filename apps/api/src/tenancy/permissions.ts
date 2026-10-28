@@ -1,6 +1,8 @@
 /**
  * The single source of truth for authorization. Routes ask for a permission, never a role.
- * Only implemented actions appear here — no clinical permissions until those modules exist.
+ * Only implemented actions appear here. Clinical permissions (phase 5) are necessary but never
+ * sufficient: clinical access also requires the treating relationship checked in
+ * modules/clinical/clinical-access.ts (docs/architecture/CLINICAL.md).
  */
 export const ROLES = ['owner', 'admin', 'doctor', 'receptionist', 'viewer'] as const;
 export type Role = (typeof ROLES)[number];
@@ -37,6 +39,11 @@ export const PERMISSION_MATRIX = {
   'appointment.front_desk': FRONT_DESK,
   'appointment.visit': ['owner', 'admin', 'doctor'],
   'queue.read': ['owner', 'admin', 'receptionist', 'doctor'],
+  // Phase 5 — clinical visit records. Only the treating doctor's own records (relationship
+  // checked per record); owners/admins administer the organization but read no clinical text.
+  'clinical.encounter.own': ['doctor'],
+  // Operational documentation status of an appointment ("none" / "draft" / "finalized"), no text.
+  'clinical.documentation_status.read': ['owner', 'admin', 'doctor'],
 } as const satisfies Record<string, readonly Role[]>;
 
 export type Permission = keyof typeof PERMISSION_MATRIX;

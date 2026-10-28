@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { PageHeader } from '../components/PageHeader';
+import { DocumentationBadge } from '../components/clinical';
 import { AppointmentActions, StatusBadge, TimeZoneRequired } from '../components/scheduling';
 import { EmptyState, ErrorState, Field, Loading } from '../components/ui';
 import { api, query } from '../lib/api';
@@ -136,6 +137,7 @@ function QueueSection({
                     {branchName.get(a.branchId) ?? '—'}
                   </span>
                   <StatusBadge status={a.status} />
+                  {a.documentation && a.status === 'in_progress' && <DocumentationBadge status={a.documentation} />}
                 </div>
                 <AppointmentActions appointment={a} compact />
               </li>

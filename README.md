@@ -5,7 +5,8 @@ managing clinics and medical centers, initially for Egypt and Saudi Arabia.
 Arabic (RTL) is the default language; English (LTR) is fully supported.
 
 > **Status:** phases 1–3 are merged; phase 4 (public website, solution selection and
-> specialty-aware onboarding) is in review. This is a development system with synthetic data
+> specialty-aware onboarding) and phase 5 (general clinical visit records, stacked on phase 4) are
+> in review. Visit records are not clinically validated. This is a development system with synthetic data
 > only: it is **not** ready for real patient data or production deployment. See
 > [docs/PROGRESS.md](docs/PROGRESS.md).
 
@@ -36,7 +37,16 @@ doctor → pick a server-computed free time → book → check the patient in on
 starts and completes the visit from the daily queue. Appointments can be rescheduled or
 cancelled; no-shows are recorded after the start time. Owners and admins manage doctors'
 scheduling profiles, weekly hours per branch and date-specific closures/replacement hours. The
-home page shows today's real, scoped counts. No clinical records, billing or messaging exist.
+home page shows today's real, scoped counts. Billing and messaging do not exist.
+
+## Visit records (phase 5)
+
+The treating doctor writes a general visit record for an appointment in progress (or, with a
+reason, after it was completed): draft saves with conflict protection, explicit finalization,
+then append-only addenda. Owners and admins see only whether a visit is documented. Synthetic
+data only; sections pending clinician review. Details:
+[docs/architecture/CLINICAL.md](docs/architecture/CLINICAL.md),
+[docs/CLINICIAN_REVIEW.md](docs/CLINICIAN_REVIEW.md).
 
 ## Development environment (GitHub Codespaces)
 
@@ -137,6 +147,7 @@ The job is named `verify` and is a required check for `main`.
 - [docs/architecture/ONBOARDING.md](docs/architecture/ONBOARDING.md) — signup, resumable setup, safe completion, existing users
 - [docs/architecture/SPECIALTIES.md](docs/architecture/SPECIALTIES.md) — organization/branch/practitioner specialties, migration, workspace context
 - [docs/architecture/INQUIRIES.md](docs/architecture/INQUIRIES.md) — custom-project requests and the review script
+- [docs/architecture/CLINICAL.md](docs/architecture/CLINICAL.md) — visit records: clinical access, lifecycle, concurrency, audit and privacy; [docs/CLINICIAN_REVIEW.md](docs/CLINICIAN_REVIEW.md) — pending clinician review
 - [docs/BRAND.md](docs/BRAND.md) — raclinic assets, color tokens, usage rules; [docs/PUBLIC_COPY.md](docs/PUBLIC_COPY.md) — all public wording by page for review
 - [docs/PRODUCT_INVENTORY.md](docs/PRODUCT_INVENTORY.md), [docs/ROADMAP.md](docs/ROADMAP.md), [docs/DECISIONS.md](docs/DECISIONS.md), [docs/NEXT_PHASE_BRIEF.md](docs/NEXT_PHASE_BRIEF.md)
 - [docs/PROGRESS.md](docs/PROGRESS.md) — status, test evidence, production gaps
