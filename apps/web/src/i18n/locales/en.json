@@ -86,7 +86,9 @@
     "allBranches": "All branches",
     "createOrganization": "Create a new organization",
     "logout": "Sign out",
-    "loggingOut": "Signing out…"
+    "loggingOut": "Signing out…",
+    "dismissMessage": "Dismiss message",
+    "messages": "Messages"
   },
   "roles": {
     "owner": "Owner",
@@ -110,7 +112,7 @@
     "registerSubtitle": "Create your account, then add your first organization.",
     "displayName": "Display name",
     "passwordHint": "At least 10 characters.",
-    "verificationNote": "Email verification and password recovery are not available yet in this phase.",
+    "verificationNote": "Email verification and password recovery are available, but raclinic sends no real email yet: no email provider has been chosen at this stage.",
     "submitRegister": "Create account",
     "submittingRegister": "Creating account…",
     "haveAccount": "Already have an account?",
@@ -215,7 +217,8 @@
       "inProgress": "In progress",
       "completed": "Completed",
       "noShow": "No-show",
-      "cancelled": "Cancelled"
+      "cancelled": "Cancelled",
+      "open": "{{label}}: show these appointments"
     },
     "countsDefinition": "Actual counts of appointments starting today, by their current status, within the branches you can access.",
     "specialtySetupTitle": "Choose your organization's specialties",
@@ -223,7 +226,23 @@
     "specialtySetupLink": "Open settings",
     "specialtiesTitle": "Specialties",
     "offeredAt": "Offered at: {{branches}}",
-    "notOfferedHere": "Not offered at your branches"
+    "notOfferedHere": "Not offered at your branches",
+    "start": {
+      "title": "Get started",
+      "lead": "A few steps until your organization takes its first booking. The marks update from your organization's data.",
+      "progress": "{{done}} of {{total}} done",
+      "done": "Done",
+      "todo": "Not done yet",
+      "dismiss": "Hide these steps",
+      "steps": {
+        "currency": "Choose the clinic currency",
+        "service": "Add a service and its price",
+        "practitioner": "Add a doctor and their working hours",
+        "team": "Add your team (front desk, doctors, accountant)",
+        "patient": "Register the first patient",
+        "booking": "Book the first appointment"
+      }
+    }
   },
   "branches": {
     "title": "Branches",
@@ -752,7 +771,7 @@
       "check_in": "Check in",
       "start": "Start visit",
       "complete": "Complete visit",
-      "cancel": "Cancel",
+      "cancel": "Cancel appointment",
       "no_show": "No-show"
     },
     "actionLabel": {
@@ -761,6 +780,13 @@
       "complete": "Complete {{name}}'s visit",
       "cancel": "Cancel {{name}}'s appointment",
       "no_show": "Mark {{name}} as no-show"
+    },
+    "done": {
+      "check_in": "{{name}} checked in.",
+      "start": "Visit started for {{name}}.",
+      "complete": "Visit completed for {{name}}.",
+      "no_show": "{{name}} marked as no-show.",
+      "cancel": "Appointment of {{name}} cancelled."
     }
   },
   "booking": {
@@ -773,18 +799,27 @@
     "changePatient": "Change patient",
     "patient": "Patient",
     "searchResults": "Search results",
-    "notRegisteredHere": "The patient has no active registration at this branch. Register them there from their record first.",
+    "notRegisteredHere": "The patient is not actively registered in this branch, so it cannot be booked here yet. Register them in this branch or choose one they are registered in.",
     "branch": "Branch",
     "practitioner": "Doctor",
     "date": "Date",
     "duration": "Duration",
-    "minutes": "{{n}} min",
     "type": "Visit type",
     "confirm": "Confirm booking",
     "booked": "The appointment was booked.",
     "rescheduled": "The appointment was rescheduled.",
     "currentTime": "Current time: {{time}}",
-    "confirmReschedule": "Confirm new time"
+    "confirmReschedule": "Confirm new time",
+    "minutes_zero": "{{count}} min",
+    "minutes_one": "{{count}} min",
+    "minutes_two": "{{count}} min",
+    "minutes_few": "{{count}} min",
+    "minutes_many": "{{count}} min",
+    "minutes_other": "{{count}} min",
+    "morning": "Morning",
+    "afternoon": "Afternoon and evening",
+    "currentSlot": "Current time",
+    "registerHere": "Register the patient in this branch"
   },
   "queue": {
     "title": "Today's queue",
@@ -2153,7 +2188,7 @@
       "assessment": "The treating doctor's assessment.",
       "plan": "Plan, instructions and follow-up."
     },
-    "finalizeRule": "To finalize: the reason for the visit, plus at least one of examination findings, assessment or plan.",
+    "finalizeRule": "To finalize: the reason for the visit, plus at least one of examination findings, assessment or plan (the text fields above; tooth findings alone are not enough).",
     "notRecorded": "Not recorded",
     "start": "Start visit record",
     "starting": "Starting…",
@@ -2209,7 +2244,9 @@
     "patientHistory": "My visit records for this patient",
     "patientHistoryNote": "Only records you wrote are shown here.",
     "noHistory": "You have not written any visit records for this patient.",
-    "draftReadOnlyTitle": "Draft (read-only — not finalized by its author)"
+    "draftReadOnlyTitle": "Draft (read-only — not finalized by its author)",
+    "openRecord": "Open visit record",
+    "openRecordLabel": "Open the visit record of {{name}}"
   },
   "coverage": {
     "title": "Clinical coverage",
@@ -2355,7 +2392,7 @@
       "addProcedure": "Add procedure",
       "planItem": "Treatment-plan item",
       "addPlanItem": "Add to plan",
-      "findings": "Findings at this visit",
+      "findings": "Tooth findings at this visit",
       "procedures": "Procedures at this visit",
       "planItems": "New plan items",
       "planUpdates": "Plan changes at this visit",
@@ -2451,7 +2488,7 @@
       "refund": "Refunds"
     },
     "services": "Services and prices",
-    "servicesHint": "Prices are examples you set; issued invoices keep the price they were issued with.",
+    "servicesHint": "Set your services and prices; issued invoices keep the price they were issued with.",
     "noServices": "No services yet.",
     "newService": "New service",
     "serviceCode": "Code",
@@ -2466,7 +2503,7 @@
       "active": "Active",
       "inactive": "Inactive"
     },
-    "account": "Account",
+    "account": "Financial account",
     "accountOf": "Account of patient no. {{number}}",
     "patientFile": "Patient file",
     "balance": "Balance",
@@ -2591,7 +2628,13 @@
       "create": "Create charge"
     },
     "searchHint": "Type at least two characters of a name, or a file or phone number, to open a patient's account.",
-    "reportEmpty": "No financial activity in this period."
+    "reportEmpty": "No financial activity in this period.",
+    "currencySaved": "The clinic currency is saved.",
+    "invoiceDrafted": "Draft invoice created. Review it, then issue it.",
+    "chargeAdded": "Charge added to the patient's account.",
+    "invoiceIssued": "Invoice issued.",
+    "payThisInvoice": "Record a payment for this invoice",
+    "serviceCodeAuto": "Capital Latin letters, digits and hyphens. Leave it empty to use {{code}}."
   },
   "subscription": {
     "title": "Subscription",
@@ -2748,7 +2791,10 @@
       "idleMinutes": "after {{count}} minutes",
       "openSupport": "Open support requests",
       "latency": "{{ms}} ms",
-      "newContact": "New contact messages"
+      "newContact": "New contact messages",
+      "needsAction": "Needs action",
+      "platformStatus": "Platform status",
+      "openList": "{{label}}: open the list"
     },
     "reconcile": {
       "title": "Reconciliation",
@@ -2980,7 +3026,11 @@
           "contact_revealed": "Contact message details revealed",
           "status_changed": "Contact message status changed"
         }
-      }
+      },
+      "allActions": "All actions",
+      "allActors": "Everyone",
+      "hideSignIns": "Hide operator sign-ins",
+      "filterHint": "Filters apply to the entries loaded so far; “Load more” loads older ones."
     },
     "support": {
       "subtitle": "Requests from clinics. Requester contact is masked; reply in the conversation.",

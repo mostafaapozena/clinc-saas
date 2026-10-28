@@ -46,13 +46,19 @@ describe('platform audit', () => {
       },
     });
     renderRoute('/operator/audit');
-    const first = (await screen.findByText('فحص المطابقة مع مزوّد الدفع')).closest('tr')!;
+    // Scoped to the table: the action filter lists the same names as options.
+    const table = within(await screen.findByRole('table'));
+    const first = (await table.findByText('فحص المطابقة مع مزوّد الدفع')).closest('tr')!;
     expect(within(first).getByText('(تجريبي)')).toBeInTheDocument();
     expect(within(first).getByText('كل الاشتراكات')).toBeInTheDocument();
-    const second = screen.getByText('تسجيل دخول مشغّل').closest('tr')!;
+    const second = table.getByText('تسجيل دخول مشغّل').closest('tr')!;
     expect(within(second).queryByText('(تجريبي)')).not.toBeInTheDocument();
     expect(second).toHaveTextContent('مشغّل 8d1234'); // type in words, then the end of the id
-    expect(screen.getByText('some.new_code')).toBeInTheDocument();
+    expect(table.getByText('some.new_code')).toBeInTheDocument();
+    // UX-046: sign-ins can be hidden to read the rest.
+    fireEvent.click(screen.getByLabelText('إخفاء تسجيلات دخول المشغّلين'));
+    expect(table.queryByText('تسجيل دخول مشغّل')).not.toBeInTheDocument();
+    expect(table.getByText('some.new_code')).toBeInTheDocument();
     // Mobile cards label every value.
     expect([...first.querySelectorAll('td')].map((td) => td.dataset.label)).toEqual(['الوقت', 'بواسطة', 'الإجراء', 'الهدف']);
   });

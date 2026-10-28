@@ -34,8 +34,6 @@ export function BranchesPage() {
     <>
       <PageHeader title={t('branches.title')} subtitle={can('branch.update') ? undefined : t('branches.readOnlyNote')} />
       {notice && <Notice kind="success">{notice}</Notice>}
-      {can('branch.create') && <CreateBranchForm onCreated={(name) => setNotice(t('branches.created', { name }))} />}
-
       <section className="card" aria-labelledby="branch-list-title">
         <div className="section-header">
           <h2 id="branch-list-title">{t('branches.listTitle')}</h2>
@@ -55,7 +53,7 @@ export function BranchesPage() {
         {list.isPending && <Loading />}
         {list.isError && <ErrorState message={errorMessage(t, list.error)} onRetry={() => void list.refetch()} />}
         {list.isSuccess && list.data.length === 0 && (
-          <EmptyState>{query ? t('branches.noMatches') : t('branches.empty')}</EmptyState>
+          <EmptyState icon="building">{query ? t('branches.noMatches') : t('branches.empty')}</EmptyState>
         )}
         {list.isSuccess && list.data.length > 0 && (
           <ul className="data-list" aria-label={t('branches.listTitle')}>
@@ -80,6 +78,8 @@ export function BranchesPage() {
           </ul>
         )}
       </section>
+      {/* The list first; adding a branch comes after it (UX-038). */}
+      {can('branch.create') && <CreateBranchForm onCreated={(name) => setNotice(t('branches.created', { name }))} />}
     </>
   );
 }

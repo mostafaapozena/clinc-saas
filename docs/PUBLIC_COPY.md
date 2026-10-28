@@ -117,7 +117,7 @@ when asking for a change.
 | `site.home.facts.0.value` | 3 | 3 |
 | `site.home.facts.0.label` | تخصصات بأدوات خاصة: الأسنان والعلاج الطبيعي والأنف والأذن والحنجرة | Specialties with their own tools: dentistry, physiotherapy, ENT |
 | `site.home.facts.1.value` | 6 | 6 |
-| `site.home.facts.1.label` | أدوار بصلاحيات محددة: مالك، مدير، طبيب، استقبال، محاسب، مطّلع | Roles with defined permissions: owner, admin, doctor, receptionist, accountant, viewer |
+| `site.home.facts.1.label` | أدوار بصلاحيات محددة: مالك، مدير، طبيب، موظف استقبال، محاسب، مطّلع | Roles with defined permissions: owner, admin, doctor, receptionist, accountant, viewer |
 | `site.home.facts.2.value` | 2 | 2 |
 | `site.home.facts.2.label` | لغتان كاملتان: العربية من اليمين إلى اليسار، والإنجليزية | Complete languages: Arabic right to left, and English |
 | `site.home.facts.3.value` | 1 | 1 |
@@ -811,7 +811,7 @@ when asking for a change.
 | `auth.registerSubtitle` | أنشئ حسابك ثم أضف منشأتك الأولى. | Create your account, then add your first organization. |
 | `auth.displayName` | الاسم الظاهر | Display name |
 | `auth.passwordHint` | 10 أحرف على الأقل. | At least 10 characters. |
-| `auth.verificationNote` | التحقق من البريد الإلكتروني واستعادة كلمة المرور غير متاحين بعد في هذه المرحلة. | Email verification and password recovery are not available yet in this phase. |
+| `auth.verificationNote` | تأكيد البريد واستعادة كلمة المرور متاحان، لكن raclinic لا يرسل بريدًا حقيقيًا بعد: لم يُختر مزوّد بريد في هذه المرحلة. | Email verification and password recovery are available, but raclinic sends no real email yet: no email provider has been chosen at this stage. |
 | `auth.submitRegister` | إنشاء الحساب | Create account |
 | `auth.submittingRegister` | جارٍ إنشاء الحساب… | Creating account… |
 | `auth.haveAccount` | لديك حساب بالفعل؟ | Already have an account? |

@@ -28,9 +28,9 @@ describe('application shell', () => {
     const nav = screen.getByRole('navigation', { name: 'التنقل الرئيسي' });
     const labels = within(nav).getAllByRole('link').map((link) => link.textContent);
     expect(labels).toEqual(['الرئيسية', 'الفروع', 'الملف الشخصي']);
-    // A restricted scope gets no "all branches" option.
-    const branchSelect = await screen.findByLabelText('الفرع');
-    expect(within(branchSelect).getAllByRole('option').map((o) => o.textContent)).toEqual(['Alpha North']);
+    // A restricted scope with one branch has nothing to choose: the branch is shown as text (UX-027).
+    expect(await screen.findByText('Alpha North', { selector: '#branch-current' })).toBeInTheDocument();
+    expect(screen.queryByLabelText('الفرع')).not.toBeInTheDocument();
   });
 
   it('switching organization removes the previous organization from screen and cache', async () => {

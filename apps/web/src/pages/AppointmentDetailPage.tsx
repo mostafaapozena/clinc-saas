@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useLocation, useParams } from 'react-router';
 import { PageHeader } from '../components/PageHeader';
@@ -19,6 +20,8 @@ export function AppointmentDetailPage() {
   const { orgId, can, timeZone, branches } = useOrg();
   const fmt = useFormatters();
   useDocumentTitle(t('appointments.detailTitle'));
+  // The version the "booked"/"rescheduled" message was about; any later change hides it (UX-023).
+  const [announcedVersion, setAnnouncedVersion] = useState<number | null>(null);
   const appointment = useQuery({
     queryKey: orgKeys.appointment(orgId, appointmentId),
     queryFn: ({ signal }) => api<{ appointment: Appointment }>(`/orgs/${orgId}/appointments/${appointmentId}`, { signal }).then((r) => r.appointment),
@@ -42,6 +45,8 @@ export function AppointmentDetailPage() {
   }
   const a = appointment.data;
   const state = location.state as { booked?: boolean; rescheduled?: boolean } | null;
+  if (state && (state.booked || state.rescheduled) && announcedVersion === null) setAnnouncedVersion(a.version);
+  const fresh = announcedVersion === a.version;
   const stamp = (label: string, value: string | null) =>
     value && (
       <div>
@@ -55,8 +60,8 @@ export function AppointmentDetailPage() {
       <PageHeader title={t('appointments.detailTitle')} subtitle={fmt.dateTime(a.startAt, timeZone)}>
         <StatusBadge status={a.status} />
       </PageHeader>
-      {state?.booked && <Notice kind="success">{t('booking.booked')}</Notice>}
-      {state?.rescheduled && <Notice kind="success">{t('booking.rescheduled')}</Notice>}
+      {fresh && state?.booked && <Notice kind="success">{t('booking.booked')}</Notice>}
+      {fresh && state?.rescheduled && <Notice kind="success">{t('booking.rescheduled')}</Notice>}
       <div className="card-grid card-grid--wide">
         <section className="card" aria-labelledby="appointment-info-title">
           <h2 id="appointment-info-title">{t('appointments.information')}</h2>
@@ -93,7 +98,7 @@ export function AppointmentDetailPage() {
                 <bdi dir="ltr">
                   {fmt.time(a.startAt, timeZone)}–{fmt.time(a.endAt, timeZone)}
                 </bdi>{' '}
-                ({t('booking.minutes', { n: a.durationMinutes })})
+                ({t('booking.minutes', { count: a.durationMinutes })})
               </dd>
             </div>
             <div>

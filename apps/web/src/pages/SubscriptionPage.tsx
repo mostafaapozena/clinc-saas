@@ -148,7 +148,7 @@ export function SubscriptionPage() {
         <section className="card" aria-labelledby="subscription-current-title">
           <h2 id="subscription-current-title">{t('subscription.current')}</h2>
           {!sub ? (
-            <EmptyState>{t('subscription.none')}</EmptyState>
+            <EmptyState icon="card">{t('subscription.none')}</EmptyState>
           ) : (
             <dl className="details" data-testid="subscription-current">
               <dt>{t('subscription.kindLabel')}</dt>
@@ -247,7 +247,7 @@ export function SubscriptionPage() {
         {checkout.isError && <Notice kind="error">{errorMessage(t, checkout.error)}</Notice>}
         {plans.isPending && <Loading />}
         {plans.isError && <ErrorState message={errorMessage(t, plans.error)} onRetry={() => void plans.refetch()} />}
-        {plans.isSuccess && plans.data.data.length === 0 && <EmptyState>{t('subscription.noPlans')}</EmptyState>}
+        {plans.isSuccess && plans.data.data.length === 0 && <EmptyState icon="layers">{t('subscription.noPlans')}</EmptyState>}
         {plans.isSuccess && plans.data.data.length > 0 && (
           <ul className="data-list">
             {plans.data.data.map((plan) => (

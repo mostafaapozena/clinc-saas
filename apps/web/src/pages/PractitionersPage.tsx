@@ -45,7 +45,7 @@ export function PractitionersPage() {
         <h2 id="practitioners-list-title">{t('practitioners.listTitle')}</h2>
         {list.isPending && <Loading />}
         {list.isError && <ErrorState message={errorMessage(t, list.error)} onRetry={() => void list.refetch()} />}
-        {list.isSuccess && list.data.length === 0 && <EmptyState>{manage ? t('practitioners.emptyManage') : t('practitioners.empty')}</EmptyState>}
+        {list.isSuccess && list.data.length === 0 && <EmptyState icon="stethoscope">{manage ? t('practitioners.emptyManage') : t('practitioners.empty')}</EmptyState>}
         {list.isSuccess && list.data.length > 0 && (
           <ul className="data-list">
             {list.data.map((p) => (
@@ -113,7 +113,7 @@ function AddPractitioner({ onDone }: { onDone: () => void }) {
       <p className="muted small">{t('practitioners.addHint')}</p>
       {create.isError && <Notice kind="error">{errorMessage(t, create.error)}</Notice>}
       {candidates.isSuccess && candidates.data.length === 0 ? (
-        <EmptyState>{t('practitioners.noCandidates')}</EmptyState>
+        <EmptyState icon="stethoscope">{t('practitioners.noCandidates')}</EmptyState>
       ) : (
         <form onSubmit={onSubmit} noValidate>
           <div className="form-grid">

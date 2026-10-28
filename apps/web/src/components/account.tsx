@@ -170,7 +170,7 @@ export function InvitationsCard() {
         </button>
       </form>
       <h3>{t('account.pendingInvitations')}</h3>
-      {list.isSuccess && list.data.data.length === 0 && <EmptyState>{t('account.noInvitations')}</EmptyState>}
+      {list.isSuccess && list.data.data.length === 0 && <EmptyState icon="mail">{t('account.noInvitations')}</EmptyState>}
       {list.isSuccess && list.data.data.length > 0 && (
         <ul className="data-list" data-testid="invitations">
           {list.data.data.map((i) => (

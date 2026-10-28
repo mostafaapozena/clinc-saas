@@ -179,7 +179,7 @@ function Schedule({
               {day === todayIn(zone) && <span className="badge badge--today">{t('appointments.today')}</span>}
             </h2>
             {items.length === 0 ? (
-              <EmptyState>{t('appointments.emptyDay')}</EmptyState>
+              <EmptyState icon="calendar">{t('appointments.emptyDay')}</EmptyState>
             ) : view === 'day' ? (
               <table className="data-table" aria-label={t('appointments.dayTable')}>
                 <thead>

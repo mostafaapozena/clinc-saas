@@ -33,7 +33,7 @@ export function CoveragePage() {
           <section className="card" aria-labelledby="coverage-received-title">
             <h2 id="coverage-received-title">{t('coverage.received')}</h2>
             {list.data.received.length === 0 ? (
-              <EmptyState>{t('coverage.noneReceived')}</EmptyState>
+              <EmptyState icon="share">{t('coverage.noneReceived')}</EmptyState>
             ) : (
               <ul className="data-list">
                 {list.data.received.map((c) => (
@@ -46,7 +46,7 @@ export function CoveragePage() {
             <h2 id="coverage-granted-title">{t('coverage.granted')}</h2>
             <p className="muted small">{t('coverage.grantedHint')}</p>
             {list.data.granted.length === 0 ? (
-              <EmptyState>{t('coverage.noneGranted')}</EmptyState>
+              <EmptyState icon="share">{t('coverage.noneGranted')}</EmptyState>
             ) : (
               <ul className="data-list">
                 {list.data.granted.map((c) => (
@@ -103,7 +103,7 @@ export function CoverageRecordsPage() {
       <section className="card" aria-labelledby="covered-records-title">
         <h2 id="covered-records-title">{t('coverage.records')}</h2>
         {data.length === 0 ? (
-          <EmptyState>{t('coverage.noRecords')}</EmptyState>
+          <EmptyState icon="share">{t('coverage.noRecords')}</EmptyState>
         ) : (
           <ol className="timeline" data-testid="covered-records">
             {data.map((r) => (

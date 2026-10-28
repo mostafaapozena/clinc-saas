@@ -1,8 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { useSession } from '../auth/session';
-import { Icon } from '../components/Icon';
+import { Icon, type IconName } from '../components/Icon';
+import { Metric, type MetricTone } from '../components/Metric';
 import { PageHeader } from '../components/PageHeader';
 import { SpecialtySummaryCard } from '../components/specialty';
 import { TimeZoneRequired } from '../components/scheduling';
@@ -10,7 +12,8 @@ import { ErrorState, Loading } from '../components/ui';
 import { api, query } from '../lib/api';
 import { errorMessage } from '../lib/errors';
 import { useFormatters } from '../lib/format';
-import type { DashboardCounts } from '../lib/types';
+import { readStored, writeStored } from '../lib/storage';
+import type { DashboardCounts, Member, Page, PatientSummary, Practitioner } from '../lib/types';
 import { useSpecialtyNames } from '../lib/specialties';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { orgKeys, useBranchFilter, useOrg, useSpecialtyFilter } from '../org/context';
@@ -39,8 +42,33 @@ export function HomePage() {
     <>
       <PageHeader title={t('home.welcome', { name: user?.displayName ?? '' })} subtitle={organization.name} />
       <SpecialtySetupNotice />
+      {can('practitioner.manage') && can('member.read') && <GettingStarted />}
       {can('dashboard.read') && <TodayCounts />}
-      <div className="card-grid">
+      <div className="card-grid home-grid">
+        <section className="card" aria-labelledby="links-title">
+          <h2 id="links-title" className="card-title">
+            <Icon name="arrowForward" /> {t('home.quickLinks')}
+          </h2>
+          <ul className="link-list">
+            {links.map((link) => (
+              <li key={link.to}>
+                <Link to={link.to}>
+                  <span>{link.label}</span>
+                  <Icon name="arrowForward" />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+        <section className="card" aria-labelledby="overview-title">
+          <h2 id="overview-title" className="card-title">
+            <Icon name="chart" /> {t('home.overview')}
+          </h2>
+          <dl className="metrics metrics--compact">
+            <Metric icon="building" label={t('home.accessibleBranches')} value={stats.accessibleBranches} tone="brand" testId="stat-branches" />
+            {stats.activeMembers !== undefined && <Metric icon="users" label={t('home.activeMembers')} value={stats.activeMembers} tone="brand" testId="stat-members" />}
+          </dl>
+        </section>
         <SpecialtyOverview />
         <section className="card" aria-labelledby="access-title">
           <h2 id="access-title">{t('home.yourAccess')}</h2>
@@ -88,35 +116,6 @@ export function HomePage() {
           )}
         </section>
 
-        <section className="card" aria-labelledby="overview-title">
-          <h2 id="overview-title">{t('home.overview')}</h2>
-          <dl className="stats">
-            <div>
-              <dt>{t('home.accessibleBranches')}</dt>
-              <dd data-testid="stat-branches">{fmt.number(stats.accessibleBranches)}</dd>
-            </div>
-            {stats.activeMembers !== undefined && (
-              <div>
-                <dt>{t('home.activeMembers')}</dt>
-                <dd data-testid="stat-members">{fmt.number(stats.activeMembers)}</dd>
-              </div>
-            )}
-          </dl>
-        </section>
-
-        <section className="card" aria-labelledby="links-title">
-          <h2 id="links-title">{t('home.quickLinks')}</h2>
-          <ul className="link-list">
-            {links.map((link) => (
-              <li key={link.to}>
-                <Link to={link.to}>
-                  <span>{link.label}</span>
-                  <Icon name="arrowForward" />
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
         {can('clinical.documentation_status.read') && <SpecialtySummaryCard />}
       </div>
     </>
@@ -169,7 +168,15 @@ function SpecialtyOverview() {
   );
 }
 
-const COUNT_KEYS: (keyof DashboardCounts)[] =['scheduled', 'waiting', 'inProgress', 'completed', 'noShow', 'cancelled'];
+/** Today's counts, in the order of the working day, with the appointment status each one lists. */
+const COUNTS: { key: keyof DashboardCounts; icon: IconName; tone: MetricTone; status: string }[] = [
+  { key: 'scheduled', icon: 'calendar', tone: 'neutral', status: 'scheduled' },
+  { key: 'waiting', icon: 'queue', tone: 'warn', status: 'checked_in' },
+  { key: 'inProgress', icon: 'activity', tone: 'info', status: 'in_progress' },
+  { key: 'completed', icon: 'checkCircle', tone: 'ok', status: 'completed' },
+  { key: 'noShow', icon: 'userX', tone: 'muted', status: 'no_show' },
+  { key: 'cancelled', icon: 'ban', tone: 'bad', status: 'cancelled' },
+];
 
 /**
  * Real counts from the API for today's appointments (by their start on today's local date),
@@ -190,25 +197,126 @@ function TodayCounts() {
   });
   if (!timeZone) return <TimeZoneRequired />;
   const own = detail.membership.practitionerId && !detail.membership.permissions.includes('appointment.book');
+  // Viewers see numbers only; everyone who can read appointments can open the counted list.
+  const listable = detail.membership.permissions.includes('appointment.read');
   return (
     <section className="card today-card" aria-labelledby="today-title">
       <div className="section-header">
-        <h2 id="today-title">{own ? t('home.todayOwn') : t('home.today')}</h2>
+        <h2 id="today-title" className="card-title">
+          <Icon name="calendar" /> {own ? t('home.todayOwn') : t('home.today')}
+        </h2>
         {counts.isSuccess && <span className="muted small">{fmt.localDate(counts.data.date)}</span>}
       </div>
       {counts.isPending && <Loading />}
       {counts.isError && <ErrorState message={errorMessage(t, counts.error)} onRetry={() => void counts.refetch()} />}
       {counts.isSuccess && (
-        <dl className="stats stats--today">
-          {COUNT_KEYS.map((key) => (
-            <div key={key} className={`stat stat--${key}`}>
-              <dt>{t(`home.counts.${key}`)}</dt>
-              <dd data-testid={`today-${key}`}>{fmt.number(counts.data.counts[key])}</dd>
-            </div>
+        <dl className="metrics metrics--six">
+          {COUNTS.map(({ key, icon, tone, status }) => (
+            <Metric
+              key={key}
+              icon={icon}
+              tone={tone}
+              label={t(`home.counts.${key}`)}
+              value={counts.data.counts[key]}
+              testId={`today-${key}`}
+              to={listable ? `/app/${orgId}/appointments?status=${status}` : undefined}
+              linkLabel={t('home.counts.open', { label: t(`home.counts.${key}`) })}
+            />
           ))}
         </dl>
       )}
       <p className="muted small">{t('home.countsDefinition')}</p>
+    </section>
+  );
+}
+
+const startKey = (orgId: string) => `clinc.gettingStarted.${orgId}`;
+
+/**
+ * "Get started" for owners and admins of a new organization (UX-020): what a first booking
+ * needs, each step marked from the organization's own data and linked to where it is done.
+ * Hidden once everything is done, when dismissed (this browser), or if any check cannot load.
+ */
+function GettingStarted() {
+  const { t } = useTranslation();
+  const { orgId } = useOrg();
+  const [dismissed, setDismissed] = useState(() => readStored(startKey(orgId)) === 'dismissed');
+  const enabled = !dismissed;
+  const settings = useQuery({
+    queryKey: orgKeys.financeSettings(orgId),
+    queryFn: ({ signal }) => api<{ currency: string | null }>(`/orgs/${orgId}/finance/settings`, { signal }),
+    enabled,
+  });
+  const services = useQuery({
+    queryKey: orgKeys.financeServices(orgId),
+    queryFn: ({ signal }) => api<{ data: unknown[] }>(`/orgs/${orgId}/finance/services`, { signal }).then((r) => r.data),
+    enabled,
+  });
+  const practitioners = useQuery({
+    queryKey: orgKeys.practitioners(orgId),
+    queryFn: ({ signal }) => api<{ data: Practitioner[] }>(`/orgs/${orgId}/practitioners`, { signal }).then((r) => r.data),
+    enabled,
+  });
+  const members = useQuery({
+    queryKey: orgKeys.members(orgId),
+    queryFn: ({ signal }) => api<{ data: Member[] }>(`/orgs/${orgId}/members`, { signal }).then((r) => r.data),
+    enabled,
+  });
+  const patients = useQuery({
+    queryKey: orgKeys.patients(orgId, { pageSize: 1, start: true }),
+    queryFn: ({ signal }) => api<Page<PatientSummary>>(`/orgs/${orgId}/patients${query({ pageSize: 1 })}`, { signal }),
+    enabled,
+  });
+  const checks = [settings, services, practitioners, members, patients];
+  if (dismissed || checks.some((c) => !c.isSuccess)) return null;
+
+  const base = `/app/${orgId}`;
+  const steps = [
+    { key: 'currency', icon: 'wallet', to: `${base}/finance/services`, done: Boolean(settings.data?.currency) },
+    { key: 'service', icon: 'card', to: `${base}/finance/services`, done: (services.data?.length ?? 0) > 0 },
+    { key: 'practitioner', icon: 'stethoscope', to: `${base}/practitioners`, done: (practitioners.data?.length ?? 0) > 0 },
+    { key: 'team', icon: 'users', to: `${base}/team`, done: (members.data?.filter((m) => m.status === 'active').length ?? 0) > 1 },
+    { key: 'patient', icon: 'patients', to: `${base}/patients`, done: (patients.data?.total ?? 0) > 0 },
+  ] as const;
+  const done = steps.filter((step) => step.done).length;
+  if (done === steps.length) return null;
+  const dismiss = () => {
+    writeStored(startKey(orgId), 'dismissed');
+    setDismissed(true);
+  };
+
+  return (
+    <section className="card start-card" aria-labelledby="start-title" data-testid="getting-started">
+      <div className="section-header">
+        <div>
+          <h2 id="start-title" className="card-title">
+            <Icon name="checkCircle" /> {t('home.start.title')}
+          </h2>
+          <p className="muted small">{t('home.start.lead')}</p>
+        </div>
+        <span className="badge">{t('home.start.progress', { done, total: steps.length })}</span>
+      </div>
+      <ol className="start-steps">
+        {steps.map((step) => (
+          <li key={step.key} className={step.done ? 'start-step start-step--done' : 'start-step'}>
+            <span className="start-step-icon" aria-hidden="true">
+              <Icon name={step.done ? 'check' : step.icon} />
+            </span>
+            <Link to={step.to}>{t(`home.start.steps.${step.key}`)}</Link>
+            <span className={step.done ? 'badge badge--active' : 'badge'}>{step.done ? t('home.start.done') : t('home.start.todo')}</span>
+          </li>
+        ))}
+      </ol>
+      <div className="form-actions start-actions">
+        {(patients.data?.total ?? 0) > 0 && (
+          <Link className="button button--primary" to={`${base}/appointments/new`}>
+            <Icon name="calendar" /> {t('home.start.steps.booking')}
+          </Link>
+        )}
+        <button type="button" className="button button--ghost" onClick={dismiss}>
+          {t('home.start.dismiss')}
+        </button>
+      </div>
     </section>
   );
 }

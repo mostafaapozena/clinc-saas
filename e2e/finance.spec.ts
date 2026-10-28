@@ -26,13 +26,16 @@ test('front desk: charge → invoice → issue → partial and full payment → 
   await page.goto(`/app/${orgId}/finance/patients/${id}`);
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('فاطمة حسن');
 
+  // The forms open from their buttons; the account shows the records first.
+  await page.locator('summary', { hasText: 'إضافة رسم' }).click();
   await chooseService(page, 'charge-service', 'جلسة علاج طبيعي');
   await page.getByRole('form', { name: 'إضافة رسم' }).getByRole('button', { name: 'إضافة رسم' }).click();
   const pending = page.getByTestId('pending-charges');
   await expect(pending).toContainText('جلسة علاج طبيعي');
-  await pending.getByRole('checkbox').first().check();
+  // The charges of one branch are selected already; creating the invoice opens the draft.
+  await expect(pending.getByRole('checkbox').first()).toBeChecked();
   await page.getByRole('button', { name: 'إنشاء فاتورة من المحدد' }).click();
-  await page.getByTestId('invoice-list').getByRole('link', { name: 'مسودة فاتورة' }).click();
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('مسودة فاتورة');
 
   await page.getByRole('button', { name: 'إصدار الفاتورة' }).click();
   await page.getByRole('alertdialog').getByRole('button', { name: 'نعم، أصدرها' }).click();
@@ -41,7 +44,9 @@ test('front desk: charge → invoice → issue → partial and full payment → 
   const total = await page.getByTestId('invoice-total').textContent();
   expect(total).toContain('400'); // Latin digits in the Arabic UI too
 
-  await page.getByRole('link', { name: 'العودة إلى الحساب' }).click();
+  // From the issued invoice straight to a payment for it.
+  await page.getByRole('link', { name: 'تسجيل دفعة لهذه الفاتورة' }).click();
+  await expect(page.locator('#payment-amount')).toBeFocused();
   const recordPayment = async (amount: string) => {
     await page.locator('#payment-amount').fill(amount);
     await page.getByRole('form', { name: 'تسجيل دفعة' }).getByRole('button', { name: 'تسجيل دفعة' }).click();

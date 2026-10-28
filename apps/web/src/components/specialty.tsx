@@ -561,7 +561,7 @@ export function DentalChartCard({ patientId }: { patientId: string }) {
         <div data-testid="tooth-history">
           <h3>{t('specialty.dental.history', { n: tooth })}</h3>
           {entries.length === 0 ? (
-            <EmptyState>{t('specialty.dental.noHistory')}</EmptyState>
+            <EmptyState icon="tooth">{t('specialty.dental.noHistory')}</EmptyState>
           ) : (
             <ul className="plain-list">
               {entries.map((h, i) => (
@@ -576,7 +576,7 @@ export function DentalChartCard({ patientId }: { patientId: string }) {
       )}
       <h3>{t('specialty.dental.planTitle')}</h3>
       {chart.data.planItems.length === 0 ? (
-        <EmptyState>{t('specialty.dental.noPlan')}</EmptyState>
+        <EmptyState icon="layers">{t('specialty.dental.noPlan')}</EmptyState>
       ) : (
         <ul className="data-list" data-testid="dental-plan">
           {chart.data.planItems.map((item) => (
@@ -643,7 +643,7 @@ export function SpecialtySummaryCard() {
       <h2 id="specialty-summary-title">{t(summary.data.scope === 'own' ? 'specialty.summary.ownTitle' : 'specialty.summary.orgTitle')}</h2>
       <p className="muted small">{t('specialty.summary.hint')}</p>
       {rows.length === 0 ? (
-        <EmptyState>{t('specialty.summary.empty')}</EmptyState>
+        <EmptyState icon="chart">{t('specialty.summary.empty')}</EmptyState>
       ) : (
         <dl className="details">
           {rows.map((r) => (

@@ -31,14 +31,11 @@ export function TeamPage() {
     <>
       <PageHeader title={t('team.title')} subtitle={t('team.subtitle')} />
       {notice && <Notice kind="success">{notice}</Notice>}
-      {can('member.add') && <AddMemberForm onAdded={(name) => setNotice(t('team.added', { name }))} />}
-      {can('member.add') && <InvitationsCard />}
-
       <section className="card" aria-labelledby="members-title">
         <h2 id="members-title">{t('team.members')}</h2>
         {members.isPending && <Loading />}
         {members.isError && <ErrorState message={errorMessage(t, members.error)} onRetry={() => void members.refetch()} />}
-        {members.isSuccess && members.data.length === 0 && <EmptyState>{t('team.empty')}</EmptyState>}
+        {members.isSuccess && members.data.length === 0 && <EmptyState icon="users">{t('team.empty')}</EmptyState>}
         {members.isSuccess && members.data.length > 0 && (
           <ul className="data-list" aria-label={t('team.members')}>
             {members.data.map((member) =>
@@ -58,6 +55,9 @@ export function TeamPage() {
           </ul>
         )}
       </section>
+      {/* The list is what is used daily; adding comes after it (UX-038). */}
+      {can('member.add') && <AddMemberForm onAdded={(name) => setNotice(t('team.added', { name }))} />}
+      {can('member.add') && <InvitationsCard />}
     </>
   );
 }

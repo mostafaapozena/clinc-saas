@@ -1,10 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useDeferredValue, useRef, useState, type FormEvent } from 'react';
+import { useDeferredValue, useEffect, useRef, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, useParams } from 'react-router';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 import { BrandLogo } from '../components/BrandLogo';
+import { Icon, type IconName } from '../components/Icon';
 import { PageHeader } from '../components/PageHeader';
 import { EmptyState, ErrorState, Field, Loading, Notice } from '../components/ui';
+import { revealAndFocus } from '../lib/a11y';
 import { ApiError, api, query } from '../lib/api';
 import { newRequestKey } from '../lib/clinical';
 import { errorMessage, fieldErrors, fieldMessage } from '../lib/errors';
@@ -25,6 +27,7 @@ import {
 } from '../lib/finance';
 import { useFormatters } from '../lib/format';
 import { todayIn } from '../lib/time';
+import { showToast } from '../lib/toast';
 import type { Page, PatientSummary } from '../lib/types';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { orgKeys, useOrg } from '../org/context';
@@ -64,7 +67,10 @@ function CurrencySetup() {
   const [currency, setCurrency] = useState('EGP');
   const save = useMutation({
     mutationFn: () => api(`/orgs/${orgId}/finance/settings`, { method: 'PUT', body: { currency } }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: orgKeys.financeSettings(orgId) }),
+    onSuccess: () => {
+      showToast(t('finance.currencySaved'));
+      return queryClient.invalidateQueries({ queryKey: orgKeys.financeSettings(orgId) });
+    },
   });
   if (!settings.isSuccess || settings.data.currency) return null;
   return (
@@ -129,13 +135,13 @@ export function FinancePage() {
             <Field id="finance-search" label={t('patients.search')} hint={t('finance.searchHint')}>
               <input id="finance-search" type="search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('patients.searchPlaceholder')} />
             </Field>
-            {patients.isSuccess && patients.data.data.length === 0 && <EmptyState>{t('patients.noMatches')}</EmptyState>}
+            {patients.isSuccess && patients.data.data.length === 0 && <EmptyState icon="search">{t('patients.noMatches')}</EmptyState>}
             {patients.isSuccess && patients.data.data.length > 0 && (
               <ul className="data-list" data-testid="finance-patient-results">
                 {patients.data.data.map((p) => (
                   <li key={p.id} className="data-row">
                     <Link to={`/app/${orgId}/finance/patients/${p.id}`}>
-                      {p.fullName} (<bdi dir="ltr">#{p.patientNumber}</bdi>)
+                      <bdi>{p.fullName}</bdi> (<bdi dir="ltr">#{p.patientNumber}</bdi>)
                     </Link>
                   </li>
                 ))}
@@ -179,7 +185,7 @@ function FinanceReportCard() {
       </div>
       {report.isPending && <Loading />}
       {report.isError && <ErrorState message={errorMessage(t, report.error)} />}
-      {report.isSuccess && isEmptyReport(report.data) && <EmptyState>{t('finance.reportEmpty')}</EmptyState>}
+      {report.isSuccess && isEmptyReport(report.data) && <EmptyState icon="chart">{t('finance.reportEmpty')}</EmptyState>}
       {report.isSuccess && !isEmptyReport(report.data) && (
         <dl className="details">
           {report.data.invoiced.map((g) => (
@@ -246,7 +252,11 @@ export function ServicesPage() {
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');
   const create = useMutation({
-    mutationFn: () => api(`/orgs/${orgId}/finance/services`, { method: 'POST', body: { code, name, price: parseMoney(price) } }),
+    mutationFn: () =>
+      api(`/orgs/${orgId}/finance/services`, {
+        method: 'POST',
+        body: { code: code.trim() || nextServiceCode(services.data ?? []), name, price: parseMoney(price) },
+      }),
     onSuccess: async () => {
       setCode('');
       setName('');
@@ -260,7 +270,7 @@ export function ServicesPage() {
       <PageHeader title={t('finance.services')} subtitle={t('finance.servicesHint')} />
       <CurrencySetup />
       {services.isPending && <Loading />}
-      {services.isSuccess && services.data.length === 0 && <EmptyState>{t('finance.noServices')}</EmptyState>}
+      {services.isSuccess && services.data.length === 0 && <EmptyState icon="card">{t('finance.noServices')}</EmptyState>}
       {services.isSuccess && services.data.length > 0 && (
         <ul className="data-list" data-testid="service-list">
           {services.data.map((s) => (
@@ -279,7 +289,12 @@ export function ServicesPage() {
               if (parseMoney(price) !== null) create.mutate();
             }}
           >
-            <Field id="service-code" label={t('finance.serviceCode')} hint={t('finance.serviceCodeHint')} error={fieldMessage(t, 'code', fields.code)}>
+            <Field
+              id="service-code"
+              label={`${t('finance.serviceCode')} ${t('common.optional')}`}
+              hint={t('finance.serviceCodeAuto', { code: nextServiceCode(services.data ?? []) })}
+              error={fieldMessage(t, 'code', fields.code)}
+            >
               <input id="service-code" dir="ltr" maxLength={20} value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} />
             </Field>
             <Field id="service-name" label={t('finance.serviceName')} error={fieldMessage(t, 'name', fields.name)}>
@@ -296,6 +311,15 @@ export function ServicesPage() {
       )}
     </>
   );
+}
+
+/** The next free "SRV-001"-style code, for a service saved without one. */
+function nextServiceCode(services: FinanceService[]) {
+  const used = new Set(services.map((s) => s.code));
+  for (let n = services.length + 1; ; n++) {
+    const code = `SRV-${String(n).padStart(3, '0')}`;
+    if (!used.has(code)) return code;
+  }
 }
 
 function ServiceRow({ service, money }: { service: FinanceService; money: ReturnType<typeof useMoney> }) {
@@ -315,7 +339,7 @@ function ServiceRow({ service, money }: { service: FinanceService; money: Return
     <li className="data-row" data-testid="service-row">
       <div className="data-main">
         <strong>
-          <bdi dir="ltr">{service.code}</bdi> — {service.name}
+          <bdi dir="ltr">{service.code}</bdi> — <bdi>{service.name}</bdi>
         </strong>
         <span className="muted small">{money(service.price, service.currency)}</span>
       </div>
@@ -358,6 +382,9 @@ function ServiceRow({ service, money }: { service: FinanceService; money: Return
 export function PatientAccountPage() {
   const { t } = useTranslation();
   const { patientId = '' } = useParams();
+  const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const payInvoice = params.get('pay');
   const { orgId, can, branches, selectedBranchId } = useOrg();
   const money = useMoney();
   const fmt = useFormatters();
@@ -372,13 +399,17 @@ export function PatientAccountPage() {
     queryFn: ({ signal }) => api<Statement>(`/orgs/${orgId}/finance/patients/${patientId}/statement`, { signal }),
   });
   const refresh = () => queryClient.invalidateQueries({ queryKey: ['org', orgId, 'finance'] });
-  const [selected, setSelected] = useState<string[]>([]);
+  // null until the user changes the selection: then the default (all pending charges of the first
+  // charge's branch — one invoice is for one branch) applies.
+  const [picked, setSelected] = useState<string[] | null>(null);
   const makeInvoice = useMutation({
     mutationFn: (charges: Charge[]) =>
       api<{ invoice: Invoice }>(`/orgs/${orgId}/finance/invoices`, { method: 'POST', body: { patientId, branchId: charges[0]?.branchId, chargeIds: charges.map((c) => c.id) } }),
-    onSuccess: async () => {
-      setSelected([]);
+    onSuccess: async ({ invoice }) => {
+      setSelected(null);
+      showToast(t('finance.invoiceDrafted'));
       await refresh();
+      navigate(`/app/${orgId}/finance/invoices/${invoice.id}`);
     },
   });
 
@@ -390,6 +421,7 @@ export function PatientAccountPage() {
   const a = account.data;
   const branchName = new Map(branches.map((b) => [b.id, b.name]));
   const pending = a.charges.filter((c) => c.status === 'pending');
+  const selected = picked ?? pending.filter((c) => c.branchId === pending[0]?.branchId).map((c) => c.id);
   const chosen = pending.filter((c) => selected.includes(c.id));
   const sameBranch = new Set(chosen.map((c) => c.branchId)).size <= 1;
   const defaultBranch = selectedBranchId !== 'all' ? selectedBranchId : (branches[0]?.id ?? '');
@@ -424,7 +456,7 @@ export function PatientAccountPage() {
         <section className="card" aria-labelledby="charges-title">
           <h2 id="charges-title">{t('finance.pendingCharges')}</h2>
           {pending.length === 0 ? (
-            <EmptyState>{t('finance.noPendingCharges')}</EmptyState>
+            <EmptyState icon="wallet">{t('finance.noPendingCharges')}</EmptyState>
           ) : (
             <ul className="data-list" data-testid="pending-charges">
               {pending.map((c) => (
@@ -435,7 +467,7 @@ export function PatientAccountPage() {
                       checked={selected.includes(c.id)}
                       onChange={(e) => setSelected(e.target.checked ? [...selected, c.id] : selected.filter((x) => x !== c.id))}
                     />
-                    {c.description} × {c.quantity} — {money(c.amount, c.currency)}
+                    <bdi>{c.description}</bdi> × {c.quantity} — {money(c.amount, c.currency)}
                   </label>
                   <span className="muted small">
                     {branchName.get(c.branchId) ?? '—'}
@@ -454,13 +486,17 @@ export function PatientAccountPage() {
               </button>
             </>
           )}
-          {can('finance.charge.create') && <AddCharge patientId={patientId} defaultBranch={defaultBranch} onDone={refresh} />}
+          {can('finance.charge.create') && (
+            <ActionPanel title={t('finance.addCharge')} icon="plus">
+              <AddCharge patientId={patientId} defaultBranch={defaultBranch} onDone={refresh} />
+            </ActionPanel>
+          )}
         </section>
 
         <section className="card" aria-labelledby="invoices-title">
           <h2 id="invoices-title">{t('finance.invoices')}</h2>
           {a.invoices.length === 0 ? (
-            <EmptyState>{t('finance.noInvoices')}</EmptyState>
+            <EmptyState icon="file">{t('finance.noInvoices')}</EmptyState>
           ) : (
             <ul className="data-list" data-testid="invoice-list">
               {a.invoices.map((i) => (
@@ -485,7 +521,7 @@ export function PatientAccountPage() {
         <section className="card" aria-labelledby="payments-title">
           <h2 id="payments-title">{t('finance.payments')}</h2>
           {a.payments.length === 0 ? (
-            <EmptyState>{t('finance.noPayments')}</EmptyState>
+            <EmptyState icon="wallet">{t('finance.noPayments')}</EmptyState>
           ) : (
             <ul className="data-list" data-testid="payment-list">
               {a.payments.map((p) => (
@@ -493,12 +529,16 @@ export function PatientAccountPage() {
               ))}
             </ul>
           )}
-          {can('finance.payment.record') && a.currency && <RecordPayment patientId={patientId} defaultBranch={defaultBranch} invoices={a.invoices} onDone={refresh} />}
+          {can('finance.payment.record') && a.currency && (
+            <ActionPanel title={t('finance.recordPayment')} icon="wallet" open={Boolean(payInvoice)}>
+              <RecordPayment patientId={patientId} defaultBranch={defaultBranch} invoices={a.invoices} onDone={refresh} preferredInvoice={payInvoice} />
+            </ActionPanel>
+          )}
         </section>
 
         <section className="card" aria-labelledby="statement-title">
           <h2 id="statement-title">{t('finance.statement')}</h2>
-          {statement.isSuccess && statement.data.entries.length === 0 && <EmptyState>{t('finance.noEntries')}</EmptyState>}
+          {statement.isSuccess && statement.data.entries.length === 0 && <EmptyState icon="file">{t('finance.noEntries')}</EmptyState>}
           {statement.isSuccess && statement.data.entries.length > 0 && (
             <div className="table-wrap">
               <table className="data-table" data-testid="statement">
@@ -533,6 +573,18 @@ export function PatientAccountPage() {
   );
 }
 
+/** A form that opens from a button-like summary, so the account shows the records first (UX-036). */
+function ActionPanel({ title, icon, open, children }: { title: string; icon: IconName; open?: boolean; children: React.ReactNode }) {
+  return (
+    <details className="action-panel" open={open}>
+      <summary className="button button--secondary">
+        <Icon name={icon} /> {title}
+      </summary>
+      {children}
+    </details>
+  );
+}
+
 function AddCharge({ patientId, defaultBranch, onDone }: { patientId: string; defaultBranch: string; onDone: () => Promise<unknown> }) {
   const { t } = useTranslation();
   const { orgId, branches } = useOrg();
@@ -552,6 +604,7 @@ function AddCharge({ patientId, defaultBranch, onDone }: { patientId: string; de
       key.current = newRequestKey();
       setServiceId('');
       setQuantity(1);
+      showToast(t('finance.chargeAdded'));
       await onDone();
     },
   });
@@ -599,7 +652,20 @@ function AddCharge({ patientId, defaultBranch, onDone }: { patientId: string; de
   );
 }
 
-function RecordPayment({ patientId, defaultBranch, invoices, onDone }: { patientId: string; defaultBranch: string; invoices: Invoice[]; onDone: () => Promise<unknown> }) {
+function RecordPayment({
+  patientId,
+  defaultBranch,
+  invoices,
+  onDone,
+  preferredInvoice,
+}: {
+  patientId: string;
+  defaultBranch: string;
+  invoices: Invoice[];
+  onDone: () => Promise<unknown>;
+  /** From an invoice's "record a payment": that invoice is pre-selected and the amount focused (UX-035). */
+  preferredInvoice?: string | null;
+}) {
   const { t } = useTranslation();
   const { orgId, branches } = useOrg();
   const money = useMoney();
@@ -610,7 +676,11 @@ function RecordPayment({ patientId, defaultBranch, invoices, onDone }: { patient
   const [reference, setReference] = useState('');
   // null = automatic: the oldest open invoice, following the list as it refreshes; '' = keep as credit.
   const [chosenInvoice, setInvoiceId] = useState<string | null>(null);
-  const invoiceId = chosenInvoice ?? open.at(-1)?.id ?? '';
+  const invoiceId = chosenInvoice ?? (open.some((i) => i.id === preferredInvoice) ? preferredInvoice! : (open.at(-1)?.id ?? ''));
+  const amountRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (preferredInvoice) revealAndFocus(amountRef.current?.querySelector('input') ?? null);
+  }, [preferredInvoice]);
   const [done, setDone] = useState<string | null>(null);
   const key = useRef(newRequestKey());
   const minor = parseMoney(amount);
@@ -663,7 +733,9 @@ function RecordPayment({ patientId, defaultBranch, invoices, onDone }: { patient
           ))}
         </select>
       </Field>
-      <MoneyField id="payment-amount" label={t('finance.amount')} value={amount} onChange={change(setAmount)} />
+      <div ref={amountRef}>
+        <MoneyField id="payment-amount" label={t('finance.amount')} value={amount} onChange={change(setAmount)} />
+      </div>
       <Field id="payment-method" label={t('finance.method')}>
         <select id="payment-method" value={method} onChange={(e) => change(setMethod)(e.target.value as Payment['method'])}>
           {PAYMENT_METHODS.map((m) => (
@@ -821,6 +893,11 @@ export function InvoicePage() {
   const [creditReason, setCreditReason] = useState('');
   const issueKey = useRef(newRequestKey());
   const creditKey = useRef(newRequestKey());
+  const confirmRef = useRef<HTMLHeadingElement>(null);
+  // The confirmation appears below the buttons: bring it into view and onto it (UX-034).
+  useEffect(() => {
+    if (confirmIssue) revealAndFocus(confirmRef.current);
+  }, [confirmIssue]);
   const applyDiscount = useMutation({
     mutationFn: (inv: Invoice) =>
       api(`/orgs/${orgId}/finance/invoices/${inv.id}/discount`, { method: 'PUT', body: { amount: parseMoney(discount) ?? 0, reason: discountReason, version: inv.version } }),
@@ -830,6 +907,7 @@ export function InvoicePage() {
     mutationFn: (inv: Invoice) => api(`/orgs/${orgId}/finance/invoices/${inv.id}/issue`, { method: 'POST', headers: { 'Idempotency-Key': issueKey.current }, body: { version: inv.version } }),
     onSuccess: async () => {
       setConfirmIssue(false);
+      showToast(t('finance.invoiceIssued'));
       await refresh();
     },
     onError: () => {
@@ -852,7 +930,7 @@ export function InvoicePage() {
   const { invoice: inv, patient, payments, creditNotes } = view.data;
   return (
     <>
-      <PageHeader title={inv.number ?? t('finance.draftInvoice')} subtitle={patient ? `${patient.fullName} (#${fmt.number(patient.patientNumber)})` : undefined}>
+      <PageHeader title={inv.number ?? t('finance.draftInvoice')} subtitle={patient ? `\u2068${patient.fullName}\u2069 (#${fmt.number(patient.patientNumber)})` : undefined}>
         <span className={`badge badge--invoice-${inv.status}`} data-testid="invoice-status">
           {t(`finance.invoiceStatus.${inv.status}`)}
         </span>
@@ -866,6 +944,14 @@ export function InvoicePage() {
         <p className="muted small">
           <Link to={`/app/${orgId}/finance/patients/${patient.id}`}>{t('finance.backToAccount')}</Link>
         </p>
+      )}
+      {/* The natural next step for an issued invoice with something left to pay (UX-035). */}
+      {inv.status === 'issued' && inv.balance > 0 && patient && can('finance.payment.record') && (
+        <div className="form-actions invoice-next">
+          <Link className="button button--primary" to={`/app/${orgId}/finance/patients/${patient.id}?pay=${inv.id}`}>
+            <Icon name="wallet" /> {t('finance.payThisInvoice')}
+          </Link>
+        </div>
       )}
       <InvoiceTable invoice={inv} money={money} />
       {inv.status === 'draft' && (
@@ -890,7 +976,7 @@ export function InvoicePage() {
             </form>
           )}
           <div className="form-actions">
-            <button type="button" className="button button--primary" disabled={confirmIssue} onClick={() => setConfirmIssue(true)}>
+            <button type="button" id="issue-invoice" className="button button--primary" disabled={confirmIssue} onClick={() => setConfirmIssue(true)}>
               {t('finance.issue')}
             </button>
             <button type="button" className="button button--secondary" disabled={discard.isPending} onClick={() => discard.mutate(inv)}>
@@ -899,14 +985,23 @@ export function InvoicePage() {
           </div>
           {confirmIssue && (
             <div className="confirm-panel" role="alertdialog" aria-labelledby="confirm-issue-title">
-              <h3 id="confirm-issue-title">{t('finance.confirmIssueTitle')}</h3>
+              <h3 id="confirm-issue-title" ref={confirmRef} tabIndex={-1}>
+                {t('finance.confirmIssueTitle')}
+              </h3>
               <p>{t('finance.confirmIssueBody')}</p>
               {issue.isError && <Notice kind="error">{errorMessage(t, issue.error)}</Notice>}
               <div className="form-actions">
                 <button type="button" className="button button--primary" disabled={issue.isPending} onClick={() => issue.mutate(inv)}>
                   {t('finance.confirmIssue')}
                 </button>
-                <button type="button" className="button button--secondary" onClick={() => setConfirmIssue(false)}>
+                <button
+                  type="button"
+                  className="button button--secondary"
+                  onClick={() => {
+                    setConfirmIssue(false);
+                    document.getElementById('issue-invoice')?.focus();
+                  }}
+                >
                   {t('common.cancel')}
                 </button>
               </div>
@@ -919,7 +1014,7 @@ export function InvoicePage() {
           <section className="card" aria-labelledby="invoice-payments-title">
             <h2 id="invoice-payments-title">{t('finance.paymentsApplied')}</h2>
             {payments.length === 0 ? (
-              <EmptyState>{t('finance.noPayments')}</EmptyState>
+              <EmptyState icon="wallet">{t('finance.noPayments')}</EmptyState>
             ) : (
               <ul className="plain-list">
                 {payments.map((p) => (
@@ -947,7 +1042,8 @@ export function InvoicePage() {
             <section className="card" aria-labelledby="credit-note-title">
               <h2 id="credit-note-title">{t('finance.issueCreditNote')}</h2>
               <p className="muted small">{t('finance.creditNoteHint')}</p>
-              <form
+              <ActionPanel title={t('finance.issueCreditNote')} icon="file">
+                <form
                 onSubmit={(e) => {
                   e.preventDefault();
                   creditNote.mutate(inv);
@@ -962,6 +1058,7 @@ export function InvoicePage() {
                   {t('finance.issueCreditNote')}
                 </button>
               </form>
+              </ActionPanel>
             </section>
           )}
         </div>

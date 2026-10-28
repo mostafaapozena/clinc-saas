@@ -47,6 +47,10 @@ export function OnboardingPage() {
     queryFn: ({ signal }) => api<{ draft: OnboardingDraft | null }>('/onboarding', { signal }).then((r) => r.draft),
     staleTime: 0,
   });
+  // The draft found when the page opened. Saving a step puts the (new) draft in the cache; that must
+  // not restart the wizard as if an earlier setup were being resumed (UX-019).
+  const [opened, setOpened] = useState<{ draft: OnboardingDraft | null } | null>(null);
+  if (draft.isSuccess && !opened) setOpened({ draft: draft.data });
 
   const signOut = async () => {
     await logout();
@@ -58,7 +62,7 @@ export function OnboardingPage() {
   if (draft.isPending) body = <Loading />;
   else if (draft.isError) body = <ErrorState message={errorMessage(t, draft.error)} onRetry={() => void draft.refetch()} />;
   else if (!draft.data && memberships.length > 0 && !startNew) body = <ExistingWorkspaces onStartNew={() => setStartNew(true)} />;
-  else body = <Wizard key={draft.data?.id ?? 'new'} initial={draft.data} />;
+  else body = <Wizard key={opened?.draft?.id ?? 'new'} initial={opened?.draft ?? draft.data} />;
 
   return (
     <PublicLayout

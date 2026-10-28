@@ -433,3 +433,786 @@
     transition: none !important;
   }
 }
+
+/* ---------- UI polish (phase 15, docs/UI_POLISH_IMPLEMENTATION.md) ---------- */
+
+/* Layout rhythm: one gutter scale and one content width for the workspace and the console. The
+   content is centered in the space beside the sidebar, so wide screens are not empty on one side. */
+:root {
+  --gutter: clamp(16px, 2.4vw, 32px);
+  --content-max: 1280px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+}
+
+.content {
+  max-inline-size: var(--content-max);
+  margin-inline: auto;
+  padding: var(--space-6) var(--gutter) 40px;
+  padding-inline: max(var(--gutter), env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px));
+}
+
+.topbar {
+  padding-inline: max(var(--gutter), env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px));
+}
+
+.operator-main {
+  max-inline-size: var(--content-max);
+  padding-inline: var(--gutter);
+}
+
+.operator-header {
+  padding-inline: var(--gutter);
+}
+
+/* Page heading and its main action on one baseline; the action never squeezes the title. */
+:is(.content, .operator-main) > .page-header {
+  align-items: center;
+}
+
+:is(.content, .operator-main) > .page-header > div:first-child {
+  flex: 1 1 280px;
+  min-inline-size: 0;
+}
+
+/* Cards in one row share a height; their content starts at the top. */
+.card-grid {
+  align-items: stretch;
+  gap: var(--space-4);
+}
+
+.content > :is(.card, .notice, .today-card, .start-card, .card-grid) + :is(.card, .notice, .card-grid, .today-card) {
+  margin-block-start: 0;
+}
+
+.content > .card-grid {
+  margin-block-end: var(--space-4);
+}
+
+/* A card or section title with its icon. */
+.card-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+}
+
+.card-title > .icon {
+  inline-size: 20px;
+  block-size: 20px;
+  color: var(--link);
+}
+
+.card > .card-title:first-child,
+.card > .section-header:first-child .card-title {
+  margin-block-end: 0;
+}
+
+.card > .card-title:first-child {
+  margin-block-end: 14px;
+}
+
+.section-header .muted.small {
+  margin: 4px 0 0;
+}
+
+/* ---------- Metrics (dashboard numbers) ---------- */
+.metrics {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+}
+
+/* The block around a metrics list is the container its column count responds to. */
+:is(.card, .operator-main, section):has(> .metrics) {
+  container-type: inline-size;
+}
+
+.metrics--six {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* Six cards: one row when wide, two rows of three, or three rows of two — never an orphan. */
+@container (min-width: 520px) {
+  .metrics--six {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@container (min-width: 960px) {
+  .metrics--six {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+
+.metrics--compact {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
+}
+
+.metrics--auto {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 190px), 1fr));
+}
+
+.metric {
+  --metric-tone: var(--text);
+  position: relative;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 10px;
+  min-inline-size: 0;
+  padding: 14px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.metric--info {
+  --metric-tone: var(--info);
+}
+
+.metric--warn {
+  --metric-tone: var(--warn);
+}
+
+.metric--ok {
+  --metric-tone: var(--ok);
+}
+
+.metric--bad {
+  --metric-tone: var(--bad);
+}
+
+.metric--muted {
+  --metric-tone: var(--muted);
+}
+
+.metric--brand {
+  --metric-tone: var(--link);
+}
+
+.metric dt {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-inline-size: 0;
+  font-size: 0.88rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--muted);
+}
+
+.metric-icon {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  inline-size: 34px;
+  block-size: 34px;
+  color: var(--metric-tone);
+  background: color-mix(in srgb, var(--metric-tone) 12%, transparent);
+  border-radius: 10px;
+}
+
+.metric-icon > .icon {
+  display: block;
+  inline-size: 18px;
+  block-size: 18px;
+}
+
+.metric-label {
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+.metric dd {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  align-self: end;
+  gap: 4px 8px;
+  margin: 0;
+}
+
+.metric-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--metric-tone);
+  font-variant-numeric: tabular-nums;
+}
+
+.metric--neutral .metric-value,
+.metric--muted .metric-value {
+  color: var(--text);
+}
+
+.metric-hint {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+/* The whole card is the link to the list it counts. */
+.metric-target::after {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  content: '';
+}
+
+.metric--link {
+  transition:
+    border-color var(--ease),
+    box-shadow var(--ease),
+    transform var(--ease);
+}
+
+.metric--link:hover {
+  border-color: color-mix(in srgb, var(--metric-tone) 45%, var(--border));
+  box-shadow: var(--shadow-sm);
+}
+
+.metric--link:focus-within {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.metric-target:focus-visible {
+  outline: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .metric--link:hover {
+    transform: translateY(-1px);
+  }
+}
+
+/* ---------- Getting started (UX-020) ---------- */
+.start-card {
+  margin-block-end: var(--space-4);
+  border-inline-start: 4px solid var(--accent);
+}
+
+.start-steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: var(--space-2) var(--space-4);
+  margin: 0 0 var(--space-4);
+  padding: 0;
+  list-style: none;
+}
+
+.start-step {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--surface-muted);
+  border-radius: 10px;
+}
+
+.start-step-icon {
+  display: inline-grid;
+  place-items: center;
+  inline-size: 30px;
+  block-size: 30px;
+  color: var(--link);
+  background: var(--surface);
+  border-radius: 50%;
+}
+
+.start-step-icon > .icon {
+  inline-size: 16px;
+  block-size: 16px;
+}
+
+.start-step--done .start-step-icon {
+  color: var(--primary-contrast);
+  background: var(--ok);
+}
+
+.start-step--done a {
+  color: var(--muted);
+}
+
+.start-actions {
+  justify-content: flex-end;
+}
+
+/* ---------- Notices with an icon, so meaning never relies on color alone (ICN-07) ---------- */
+.notice {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  column-gap: 10px;
+  align-items: start;
+}
+
+.notice > * {
+  grid-column: 2;
+}
+
+.notice::before {
+  grid-row: 1 / span 20;
+  inline-size: 18px;
+  block-size: 18px;
+  margin-block-start: 2px;
+  content: '';
+  background: currentColor;
+  mask: var(--notice-icon) center / contain no-repeat;
+}
+
+.notice--info {
+  --notice-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M12 11v6M12 7.5h.01'/%3E%3C/svg%3E");
+}
+
+.notice--success {
+  --notice-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M8 12.5l2.7 2.7L16 10'/%3E%3C/svg%3E");
+}
+
+.notice--warning,
+.notice--error {
+  --notice-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10.3 3.9 2.4 17.5A2 2 0 0 0 4.1 20.5h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0zM12 9v4.5M12 17h.01'/%3E%3C/svg%3E");
+}
+
+.notice:not(.notice--info, .notice--success, .notice--warning, .notice--error) {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.notice:not(.notice--info, .notice--success, .notice--warning, .notice--error)::before {
+  display: none;
+}
+
+.notice:not(.notice--info, .notice--success, .notice--warning, .notice--error) > * {
+  grid-column: 1;
+}
+
+.notice > :last-child {
+  margin-block-end: 0;
+}
+
+/* Field errors start with the same warning mark (ICN-10). */
+.field-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.field-error::before {
+  flex: none;
+  inline-size: 15px;
+  block-size: 15px;
+  margin-block-start: 3px;
+  content: '';
+  background: currentColor;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M12 7v6M12 16.5h.01'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+}
+
+/* Empty states with a context icon (ICN-09); the generic mark stays for the others. */
+.empty-state--icon::before {
+  display: none;
+}
+
+.empty-state-icon {
+  display: grid;
+  place-items: center;
+  inline-size: 44px;
+  block-size: 44px;
+  margin: 0 auto 10px;
+  color: var(--link);
+  background: var(--mint);
+  border-radius: 50%;
+}
+
+:is(td, li, .data-row) > .empty-state--icon .empty-state-icon {
+  display: none;
+}
+
+/* Sections of the dashboard read in one column on phones, two or three columns when wide. */
+.home-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+}
+
+@media (max-width: 640px) {
+  .metric {
+    padding: 12px;
+  }
+
+  .metric-value {
+    font-size: 1.5rem;
+  }
+
+  .metric-icon {
+    inline-size: 30px;
+    block-size: 30px;
+  }
+}
+
+/* ---------- Action confirmations (UX-023, ANIM-10) ---------- */
+.toast-region {
+  position: fixed;
+  inset-inline-end: max(16px, env(safe-area-inset-right, 0px));
+  inset-block-end: max(16px, env(safe-area-inset-bottom, 0px));
+  z-index: 60;
+  display: grid;
+  gap: 8px;
+  inline-size: min(380px, calc(100vw - 32px));
+  pointer-events: none;
+}
+
+.toast {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 10px 10px 14px;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-inline-start: 4px solid var(--ok);
+  border-radius: 12px;
+  box-shadow: var(--shadow-md);
+  pointer-events: auto;
+}
+
+.toast > .icon {
+  color: var(--ok);
+}
+
+.toast .icon-button {
+  min-inline-size: 32px;
+  min-block-size: 32px;
+  padding: 4px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .toast {
+    animation: toast-in 0.16s ease-out both;
+  }
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+/* ---------- Queue cards (UX-024) ----------
+   The card, not the window, decides the layout: when it is narrow the actions move under the
+   details instead of covering them, and the details line wraps. */
+.queue-item {
+  container-type: inline-size;
+}
+
+.queue-main .muted.small {
+  overflow-wrap: anywhere;
+}
+
+@container (max-width: 520px) {
+  .queue-item > .queue-item-body {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .queue-item > .queue-item-body > :is(.row-actions, .stack-sm) {
+    grid-column: 1 / -1;
+  }
+}
+
+.queue-item-body {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+}
+
+.queue-item {
+  display: block;
+}
+
+/* ---------- Visit record: actions stay in reach on a long draft (UX-033) ---------- */
+.draft-actions {
+  position: sticky;
+  inset-block-end: 0;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  margin-inline: -20px;
+  padding: 12px 20px;
+  padding-block-end: max(12px, env(safe-area-inset-bottom, 0px));
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  border-block-start: 1px solid var(--border);
+  border-end-start-radius: var(--radius);
+  border-end-end-radius: var(--radius);
+}
+
+.draft-actions .form-actions {
+  margin: 0;
+}
+
+.draft-actions > p {
+  flex-basis: 100%;
+  margin: 0;
+}
+
+/* ---------- Booking times (UX-030) ---------- */
+.slot-group + .slot-group {
+  margin-block-start: 12px;
+}
+
+.slot-group-title {
+  margin: 0 0 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.slot--current {
+  display: grid;
+  place-items: center;
+  border-style: dashed;
+}
+
+.slot-current {
+  font-size: 0.7rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+/* ---------- Destructive actions read as such (UX-029) ---------- */
+.button--danger-outline {
+  color: var(--bad);
+  background: transparent;
+  border-color: color-mix(in srgb, var(--bad) 55%, var(--border));
+}
+
+:is(.shell, .public-layout) .button--danger-outline:hover:not(:disabled) {
+  background: var(--bad-bg);
+}
+
+/* Row and card actions wrap as a group instead of leaving one button alone on a line. */
+.row-actions {
+  align-items: center;
+}
+
+.card > .row-actions + .button,
+.card > .stack-sm + .button {
+  justify-self: start;
+  margin-block-start: 8px;
+}
+
+/* ---------- Disclosures: one chevron style everywhere in the workspace (UX-041) ---------- */
+:is(.shell, .public-layout) details > summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  list-style: none;
+}
+
+:is(.shell, .public-layout) details > summary::-webkit-details-marker {
+  display: none;
+}
+
+:is(.shell, .public-layout) details > summary::before {
+  flex: none;
+  inline-size: 16px;
+  block-size: 16px;
+  content: '';
+  background: currentColor;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+  opacity: 0.7;
+}
+
+:is(.shell, .public-layout) details[open] > summary::before {
+  transform: rotate(180deg);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :is(.shell, .public-layout) details > summary::before {
+    transition: transform var(--ease);
+  }
+
+  :is(.shell, .public-layout) details[open] > :not(summary) {
+    animation: toast-in 0.18s ease-out both;
+  }
+}
+
+/* ---------- Branch names are labels, not states (UX-042) ---------- */
+.badge--branch {
+  color: var(--text);
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+}
+
+.badge--branch-archived {
+  color: var(--muted);
+  border-style: dashed;
+}
+
+/* ---------- Form buttons keep their natural width (UX-040) ---------- */
+:is(.content, .operator-main) form > :is(button, .button) {
+  justify-self: start;
+}
+
+:is(.content, .operator-main) .card + .card,
+:is(.content, .operator-main) .details + form {
+  margin-block-start: 16px;
+}
+
+.details + form,
+.details + .notice {
+  margin-block-start: 16px;
+}
+
+/* ---------- Header choosers with one option show the value (UX-027) ---------- */
+.switcher--static .switcher-value {
+  display: block;
+  min-block-size: 36px;
+  padding-block: 6px;
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------- Phones: a lighter header so the page starts sooner (UX-044) ---------- */
+@media (max-width: 640px) {
+  .topbar {
+    gap: 6px 8px;
+    padding-block: 6px;
+  }
+
+  .topbar .switcher {
+    flex: 1 1 30%;
+  }
+
+  .topbar .switcher select,
+  .switcher--static .switcher-value {
+    min-block-size: 34px;
+    padding-inline: 8px 4px;
+    font-size: 0.85rem;
+  }
+
+  .topbar .language-switcher-label {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .topbar .language-switcher-code {
+    display: inline;
+  }
+
+  /* Stacked appointment cards: label and value side by side, closer together. */
+  .data-table td {
+    display: grid;
+    grid-template-columns: minmax(88px, 30%) minmax(0, 1fr);
+    align-items: center;
+    gap: 8px;
+  }
+
+  .data-table td > * {
+    justify-self: start;
+  }
+
+  .data-table tr {
+    padding: 6px 12px;
+  }
+}
+
+/* ---------- Forms that open from a button (patient account, credit note — UX-035/036) ---------- */
+.action-panel {
+  margin-block-start: 16px;
+}
+
+.action-panel > summary.button {
+  display: inline-flex;
+  inline-size: fit-content;
+  font-weight: 600;
+}
+
+/* The button already says what it does; no extra chevron. */
+:is(.shell, .public-layout) .action-panel > summary::before {
+  display: none;
+}
+
+.action-panel[open] > summary.button {
+  color: var(--primary-contrast);
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.action-panel > .specialty-subform,
+.action-panel > form {
+  margin-block-start: 12px;
+}
+
+.invoice-next {
+  margin-block-end: 16px;
+}
+
+/* ---------- Operator overview (UX-045) ---------- */
+.op-metrics {
+  margin-block-end: var(--space-4);
+}
+
+.metrics--four {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@container (min-width: 760px) {
+  .metrics--four {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.audit-filters {
+  align-items: end;
+}
+
+.audit-filters .choice {
+  min-block-size: 42px;
+}
+
+.audit-filters .field-hint {
+  grid-column: 1 / -1;
+}
+
+.metric--zero {
+  --metric-tone: var(--muted);
+}
+
+.metric--zero .metric-value {
+  color: var(--text);
+}
+
+/* Phones: filters side by side (two per row) instead of one full-width field each (UX-044). */
+@media (max-width: 640px) {
+  .content .filters {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 1fr));
+    gap: 10px;
+  }
+
+  .content .toolbar {
+    gap: 8px;
+  }
+
+  .content .date-nav {
+    flex-wrap: nowrap;
+  }
+
+  .content .date-nav input {
+    flex: 1;
+    min-inline-size: 0;
+  }
+}

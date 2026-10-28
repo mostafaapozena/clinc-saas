@@ -282,7 +282,7 @@ function PatientAppointments({ patientId }: { patientId: string }) {
       </div>
       {list.isPending && <Loading />}
       {list.isError && <ErrorState message={errorMessage(t, list.error)} onRetry={() => void list.refetch()} />}
-      {list.isSuccess && list.data.data.length === 0 && <EmptyState>{t(`patients.noAppointments.${when}`)}</EmptyState>}
+      {list.isSuccess && list.data.data.length === 0 && <EmptyState icon="calendar">{t(`patients.noAppointments.${when}`)}</EmptyState>}
       {list.isSuccess && list.data.data.length > 0 && timeZone && (
         <ul className="data-list">
           {list.data.data.map((a) => (
