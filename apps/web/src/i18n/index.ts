@@ -19,6 +19,23 @@ function storedLanguage(): Language | null {
 }
 
 /**
+ * `?lang=ar|en` on any page (the public site's hreflang URLs, links shared in English) selects the
+ * language on load and is remembered like a manual switch. Signing in still applies the account's
+ * saved preference.
+ */
+function urlLanguage(): Language | null {
+  try {
+    const value = new URLSearchParams(window.location.search).get('lang');
+    return value === 'ar' || value === 'en' ? value : null;
+  } catch {
+    return null;
+  }
+}
+
+const requestedLanguage = urlLanguage();
+if (requestedLanguage) writeStored(LANGUAGE_STORAGE_KEY, requestedLanguage);
+
+/**
  * Keeps <html lang/dir> in sync, which flips the layout (RTL/LTR) and selects the font:
  * the stylesheet uses Alexandria for :lang(ar) and Inter for :lang(en).
  */
@@ -31,7 +48,7 @@ i18n.on('languageChanged', applyDocumentLanguage);
 
 void i18n.use(initReactI18next).init({
   resources: { ar: { translation: ar }, en: { translation: en } },
-  lng: storedLanguage() ?? DEFAULT_LANGUAGE,
+  lng: requestedLanguage ?? storedLanguage() ?? DEFAULT_LANGUAGE,
   fallbackLng: DEFAULT_LANGUAGE,
   supportedLngs: SUPPORTED_LANGUAGES,
   initAsync: false,

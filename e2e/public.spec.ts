@@ -14,7 +14,7 @@ test('public site to workspace: solution → registration → multi-specialty se
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('عيادتك منظَّمة من أول حجز حتى آخر زيارة');
 
   // Choose a solution and start from it.
-  await page.getByRole('link', { name: 'عيادات الأسنان' }).click();
+  await page.locator('#main-content').getByRole('link', { name: 'عيادات الأسنان' }).first().click();
   await expect(page).toHaveURL(/\/solutions\/dentistry$/);
   await expect(page.getByTestId('planned-tools')).toContainText('نسخة أولى');
   await page.getByTestId('solution-create').click();
@@ -84,6 +84,22 @@ test('custom-ownership request: separate path, stored with a reference, nothing 
   errors.expectNone();
 });
 
+test('contact message: two steps, stored once with a reference, nothing readable back', async ({ page }) => {
+  const errors = watchBrowserErrors(page);
+  await page.goto('/');
+  await page.getByRole('button', { name: /^الشركة/ }).click();
+  await page.locator('#menu-company').getByRole('link', { name: /تواصل معنا/ }).click();
+  await expect(page).toHaveURL(/\/contact$/);
+  await page.getByLabel('اسمك').fill('سلمى التجربة');
+  await page.getByLabel(/البريد الإلكتروني/).fill(`contact.${Date.now()}@example.test`);
+  await page.getByRole('button', { name: /التالي/ }).click();
+  await page.getByLabel('رسالتك').fill('نريد عرضًا توضيحيًا لمركز بفرعين.');
+  await page.getByRole('button', { name: 'إرسال الرسالة' }).click();
+  await expect(page.getByTestId('contact-reference')).toHaveText(/C-[A-Z0-9]{8}/);
+  expect((await page.request.get('/api/v1/public/contact-messages')).status()).toBe(404);
+  errors.expectNone();
+});
+
 test('existing customers sign in directly and land in their workspace', async ({ page }) => {
   await page.goto('/solutions');
   await page.getByRole('link', { name: 'تسجيل الدخول' }).first().click();
@@ -135,7 +151,7 @@ test('keyboard: skip link first, then the main navigation', async ({ page }) => 
   await page.keyboard.press('Enter');
   await expect(page.locator('#main-content')).toBeFocused();
   // The solution cards are reachable and announce their destination.
-  const card = page.getByRole('link', { name: 'مراكز العلاج الطبيعي' });
+  const card = page.locator('#main-content').getByRole('link', { name: 'مراكز العلاج الطبيعي' }).first();
   await card.focus();
   await page.keyboard.press('Enter');
   await expect(page).toHaveURL(/\/solutions\/physiotherapy$/);
@@ -153,7 +169,7 @@ test('the preview is not indexable: robots.txt, no sitemap, noindex headers', as
 
 test('mobile public site: menu, journeys and no horizontal scroll @mobile', async ({ page }) => {
   const errors = watchBrowserErrors(page);
-  for (const path of ['/', '/solutions', '/solutions/medical-centers', '/custom-solutions', '/custom-solutions/request']) {
+  for (const path of ['/', '/solutions', '/solutions/medical-centers', '/custom-solutions', '/custom-solutions/request', '/tour', '/about', '/contact', '/faq', '/security', '/privacy']) {
     await page.goto(path);
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
     expect(await noHorizontalScroll(page), path).toBe(true);
@@ -162,7 +178,9 @@ test('mobile public site: menu, journeys and no horizontal scroll @mobile', asyn
   const menu = page.getByRole('button', { name: 'فتح القائمة' });
   await expect(menu).toHaveAttribute('aria-expanded', 'false');
   await menu.click();
-  await page.getByRole('navigation', { name: 'القائمة الرئيسية' }).getByRole('link', { name: 'الحلول' }).click();
+  const drawer = page.getByRole('navigation', { name: 'قائمة التنقل' });
+  await drawer.getByText('الحلول', { exact: true }).click();
+  await drawer.getByRole('link', { name: 'كل الحلول' }).click();
   await expect(page).toHaveURL(/\/solutions$/);
   await expect(page.getByRole('button', { name: 'فتح القائمة' })).toHaveAttribute('aria-expanded', 'false');
   errors.expectNone();
@@ -198,6 +216,6 @@ test('raclinic branding: supplied logos load everywhere, favicon and manifest, d
   await expect(darkPage.getByRole('heading', { level: 1 })).toBeVisible();
   const style = await darkPage.locator('.site-header img.brand-logo').evaluate((img) => getComputedStyle(img).backgroundColor);
   expect(style).toBe('rgb(255, 255, 255)');
-  expect(await darkPage.locator('.site-hero-inner').evaluate((el) => getComputedStyle(el).animationName)).toBe('none');
+  expect(await darkPage.locator('.site-hero-text').evaluate((el) => getComputedStyle(el).animationName)).toBe('none');
   await dark.close();
 });

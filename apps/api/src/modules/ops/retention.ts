@@ -8,6 +8,7 @@ import mongoose from 'mongoose';
 
 export const RETENTION_CLASSES = {
   ownership_inquiries: { collection: 'ownership_inquiries', dateField: 'updatedAt', env: 'RETENTION_INQUIRIES_DAYS' },
+  contact_messages: { collection: 'contact_messages', dateField: 'updatedAt', env: 'RETENTION_CONTACT_DAYS' },
   support_requests: { collection: 'support_requests', dateField: 'lastActivityAt', env: 'RETENTION_SUPPORT_DAYS' },
   audit_events: { collection: 'audit_events', dateField: 'createdAt', env: 'RETENTION_AUDIT_DAYS' },
   platform_audit_events: { collection: 'platform_audit_events', dateField: 'createdAt', env: 'RETENTION_PLATFORM_AUDIT_DAYS' },

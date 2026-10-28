@@ -123,6 +123,38 @@ describe('overview and plans', () => {
   });
 });
 
+describe('contact messages', () => {
+  it('lists public contact messages with masked details and reveals one with the operator CSRF header', async () => {
+    const row = {
+      reference: 'C-ABCDEFGH',
+      createdAt: '2026-10-27T08:00:00.000Z',
+      status: 'new',
+      intent: 'demo',
+      organizationName: 'عيادة الاختبار',
+      specialty: 'dentistry',
+      language: 'ar',
+      contactName: 'س•••',
+      phone: null,
+      email: 's•••@example.test',
+    };
+    const fetchMock = mockApi({
+      ...base,
+      'GET /api/v1/platform/contact-messages': { data: [row] },
+      'GET /api/v1/platform/contact-messages/C-ABCDEFGH': { message: { ...row, message: 'نريد عرضًا توضيحيًا.' } },
+      'POST /api/v1/platform/contact-messages/C-ABCDEFGH/reveal-contact': { contact: { name: 'سلمى', phone: null, email: 'salma@example.test' } },
+    });
+    const { router } = renderRoute('/operator/contact-messages');
+    fireEvent.click(await screen.findByRole('link', { name: 'عرض توضيحي' }));
+    await waitFor(() => expect(router.state.location.pathname).toBe('/operator/contact-messages/C-ABCDEFGH'));
+    expect(await screen.findByText('نريد عرضًا توضيحيًا.')).toBeInTheDocument();
+    expect(screen.getByTestId('contact-message-contact')).toHaveTextContent('s•••@example.test');
+    fireEvent.click(screen.getByRole('button', { name: 'كشف بيانات التواصل' }));
+    await waitFor(() => expect(screen.getByTestId('contact-message-contact')).toHaveTextContent('salma@example.test'));
+    const reveal = fetchMock.mock.calls.find(([u]) => String(u).endsWith('/reveal-contact'))!;
+    expect((reveal[1] as RequestInit).headers).toMatchObject({ 'X-Operator-CSRF': 'op-csrf' });
+  });
+});
+
 function renderRouteWith(table: Parameters<typeof mockApi>[0], path: string) {
   mockApi(table);
   return renderRoute(path);

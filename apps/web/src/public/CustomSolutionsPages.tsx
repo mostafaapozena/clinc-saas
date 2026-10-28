@@ -8,61 +8,76 @@ import { api } from '../lib/api';
 import { errorMessage, fieldErrors, fieldMessage } from '../lib/errors';
 import { usePageMeta } from '../lib/pageMeta';
 import { PHONE_COUNTRIES, type PhoneCountry } from '../lib/types';
-import { FeatureList } from './shared';
-import { useList } from './useList';
+import { Breadcrumb, CardGrid, CtaBlock, Faq, FeatureList, IconTile, SaasOwnershipComparison, SectionHeader, Steps } from './shared';
+import { useList, useObjects, type QuestionItem, type TitledItem } from './useList';
 import { INQUIRY_INTERESTS, inquiryPath } from './solutions';
 
 export function CustomSolutionsPage() {
   const { t } = useTranslation();
   usePageMeta({ title: t('site.custom.metaTitle'), description: t('site.custom.metaDescription'), path: '/custom-solutions' });
-  const saas = useList('site.compare.saas.points');
-  const ownership = useList('site.compare.ownership.points');
-  const process = useList('site.custom.process');
+  const uses = useObjects<TitledItem>('site.custom.uses', ['title', 'body']);
+  const steps = useObjects<TitledItem>('site.custom.steps', ['title', 'body']);
+  const faq = useObjects<QuestionItem>('site.custom.faq', ['q', 'a']);
+  const forPoints = useList('site.custom.forPoints');
   return (
-    <>
-      <section className="site-hero site-hero--compact" aria-labelledby="custom-title">
-        <div className="site-container site-hero-inner">
-          <h1 id="custom-title">{t('site.custom.title')}</h1>
-          <p className="site-lead">{t('site.custom.lead')}</p>
-          <div className="site-cta-row">
-            <Link className="button button--primary button--large" to={inquiryPath('custom')} data-testid="custom-request">
-              {t('site.cta.custom')}
-            </Link>
+    <div className="tone-custom">
+      <Breadcrumb items={[{ label: t('site.custom.title') }]} />
+      <section className="site-hero site-hero--page" aria-labelledby="custom-title">
+        <div className="site-container site-hero-grid">
+          <div className="site-hero-text">
+            <p className="site-pill site-pill--tone">{t('site.solutions.customCard.badge')}</p>
+            <h1 id="custom-title">{t('site.custom.title')}</h1>
+            <p className="site-lead">{t('site.custom.lead')}</p>
+            <div className="site-cta-row">
+              <Link className="button button--primary button--large" to={inquiryPath('custom')} data-testid="custom-request">
+                {t('site.cta.custom')}
+              </Link>
+              <Link className="button button--secondary button--large" to="/solutions">
+                {t('site.custom.seeSaas')}
+              </Link>
+            </div>
           </div>
+          <div className="site-card site-card--custom">
+            <IconTile name="scan" tone="custom" size="lg" />
+            <h2 className="site-card-title">{t('site.custom.forTitle')}</h2>
+            <FeatureList items={forPoints} />
+          </div>
+        </div>
+      </section>
+      <section className="site-section" aria-labelledby="uses-title">
+        <div className="site-container">
+          <SectionHeader id="uses-title" eyebrow={t('site.custom.usesEyebrow')} title={t('site.custom.usesTitle')} />
+          <CardGrid items={uses} columns={3} icon="scan" tone="custom" />
+        </div>
+      </section>
+      <section className="site-section site-section--light" aria-labelledby="process-title">
+        <div className="site-container">
+          <SectionHeader id="process-title" center eyebrow={t('site.custom.processEyebrow')} title={t('site.custom.processTitle')} />
+          <Steps items={steps} tone="custom" />
+          <p className="site-center-link">{t('site.custom.noPromise')}</p>
         </div>
       </section>
       <section className="site-section" aria-labelledby="difference-title">
         <div className="site-container">
-          <h2 id="difference-title">{t('site.custom.differenceTitle')}</h2>
-          <div className="site-compare">
-            <section className="site-card site-card--saas" aria-labelledby="diff-saas">
-              <h3 id="diff-saas">{t('site.compare.saas.title')}</h3>
-              <FeatureList items={saas} />
-            </section>
-            <section className="site-card site-card--ownership" aria-labelledby="diff-ownership">
-              <h3 id="diff-ownership">{t('site.compare.ownership.title')}</h3>
-              <FeatureList items={ownership} />
-            </section>
-          </div>
+          <SectionHeader id="difference-title" center eyebrow={t('site.compare.eyebrow')} title={t('site.custom.differenceTitle')} />
+          <SaasOwnershipComparison interest="custom" />
         </div>
       </section>
-      <section className="site-section site-section--muted" aria-labelledby="process-title">
+      <section className="site-section site-section--mint" aria-labelledby="custom-faq-title">
         <div className="site-container site-narrow">
-          <h2 id="process-title">{t('site.custom.processTitle')}</h2>
-          <ol className="site-steps site-steps--compact">
-            {process.map((item) => (
-              <li key={item}>
-                <p>{item}</p>
-              </li>
-            ))}
-          </ol>
-          <p className="site-planned-note">{t('site.custom.noPromise')}</p>
-          <Link className="button button--primary" to={inquiryPath('custom')}>
-            {t('site.cta.custom')}
-          </Link>
+          <SectionHeader id="custom-faq-title" center eyebrow={t('site.home.faqEyebrow')} title={t('site.custom.faqTitle')} />
+          <Faq items={faq} />
         </div>
       </section>
-    </>
+      <CtaBlock title={t('site.custom.closingTitle')} body={t('site.custom.closingBody')}>
+        <Link className="button button--accent button--large" to={inquiryPath('custom')}>
+          {t('site.cta.custom')}
+        </Link>
+        <Link className="button button--on-navy button--large" to="/contact">
+          {t('site.nav.contact')}
+        </Link>
+      </CtaBlock>
+    </div>
   );
 }
 
@@ -98,6 +113,7 @@ export function InquiryPage() {
     description: '',
   };
   const [form, setForm] = useState<InquiryForm>(initial);
+  const processSteps = useObjects<TitledItem>('site.custom.steps', ['title', 'body']).map((s) => s.title);
   // One key per submission attempt: a retry or double click stores the request once.
   const submissionKey = useRef(crypto.randomUUID());
 
@@ -176,13 +192,26 @@ export function InquiryPage() {
   }
 
   return (
-    <section className="site-section" aria-labelledby="inquiry-title">
-      <div className="site-container site-narrow" ref={formRef}>
-        <h1 id="inquiry-title">{t('site.inquiry.title')}</h1>
-        <p className="site-section-lead">{t('site.inquiry.lead')}</p>
+    <>
+    <Breadcrumb items={[{ to: '/custom-solutions', label: t('site.custom.title') }, { label: t('site.inquiry.title') }]} />
+    <section className="site-section site-section--light tone-custom" aria-labelledby="inquiry-title">
+      <div className="site-container site-contact" ref={formRef}>
+        <aside className="site-stack">
+          <div className="site-stack-sm">
+            <p className="site-pill site-pill--tone">{t('site.solutions.customCard.badge')}</p>
+            <h1 id="inquiry-title">{t('site.inquiry.title')}</h1>
+            <p className="site-lead">{t('site.inquiry.lead')}</p>
+          </div>
+          <div className="site-card">
+            <h2 className="site-card-title">{t('site.custom.processTitle')}</h2>
+            <FeatureList items={processSteps} compact />
+            <p>{t('site.custom.noPromise')}</p>
+          </div>
+        </aside>
+        <div className="site-contact-form site-stack">
         <Notice kind="info">{t('site.inquiry.privacy')}</Notice>
         {send.isError && <Notice kind="error">{hasFieldErrors ? t('errors.VALIDATION_ERROR') : errorMessage(t, send.error)}</Notice>}
-        <form className="site-form card" onSubmit={onSubmit} noValidate>
+        <form className="site-form card" onSubmit={onSubmit} noValidate aria-labelledby="inquiry-title">
           <Field id="inquiry-name" label={t('site.inquiry.contactName')} error={errors.contactName}>
             <input id="inquiry-name" autoComplete="name" required maxLength={80} value={form.contactName} onChange={update('contactName')} {...describedBy('inquiry-name', errors.contactName)} />
           </Field>
@@ -264,7 +293,9 @@ export function InquiryPage() {
             {send.isPending ? t('site.inquiry.submitting') : t('site.inquiry.submit')}
           </button>
         </form>
+        </div>
       </div>
     </section>
+    </>
   );
 }

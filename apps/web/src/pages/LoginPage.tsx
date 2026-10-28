@@ -34,7 +34,7 @@ export function LoginPage() {
   };
 
   return (
-    <PublicLayout brand>
+    <PublicLayout brand panel>
       <section className="card auth-card" aria-labelledby="login-title">
         <h1 id="login-title">{t('auth.loginTitle')}</h1>
         <p className="muted">{t('auth.loginSubtitle')}</p>

@@ -1,6 +1,33 @@
 # Progress
 
-_Last updated: 2026-10-27 (front-end audit fixes in review, stacked on the scalability checkpoint)._
+_Last updated: 2026-10-27 (public website redesign in review, stacked on the front-end audit fixes)._
+
+## Front-end redesign (in review)
+
+Branch `phase-14/public-redesign`, PR [#15](https://github.com/mostafaapozena/clinc-saas/pull/15), stacked on `phase-13/ui-audit-fixes`. Tracker: [FRONTEND_REDESIGN_IMPLEMENTATION.md](FRONTEND_REDESIGN_IMPLEMENTATION.md).
+
+- **Public site:**
+  - new header, mobile drawer and footer;
+  - home, solutions catalog and solution pages rebuilt;
+  - new pages: tour, about, contact, FAQ, security, privacy.
+- **Contact messages:**
+  - stored with a `C-` reference, validated, idempotent and rate limited;
+  - reviewed in the operator console, with masked details and an audited reveal;
+  - retention through `RETENTION_CONTACT_DAYS`.
+- **Accounts:** sign-in and registration sit beside a navy panel on wide screens.
+- **Workspace and operator console:**
+  - the sidebar is grouped by area;
+  - a shared design layer (`apps/web/src/workspace.css`) covers headings, cards, fields, filters, tables, status labels, empty states and notices;
+  - the operator console has a scrolling tab bar and stat tiles.
+- **Language links:** `?lang=en|ar` works on every page and is remembered; signing in applies the account's language.
+- **Finance:** the summary's default period ends on the organization's day, not UTC's.
+- **Product screenshots:** produced by `scripts/brand/product-shots.cjs` (synthetic data); rerun it after UI changes.
+- **Waiting on the owner:**
+  - pricing and trial terms;
+  - real contact channels;
+  - further company facts;
+  - legal policy text;
+  - a public demo.
 
 ## Front-end audit fixes (in review)
 

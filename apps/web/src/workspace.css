@@ -1,0 +1,437 @@
+/*
+ * Design layer for the clinic workspace (.shell), the operator console and the account pages
+ * (.public-layout), loaded after styles.css. Same identity as the public site (public.css):
+ * navy for text and primary actions, turquoise as a decorative accent only, teal for links,
+ * light mint tints for selected and informative surfaces. Public marketing pages are not
+ * affected (they live under .site). Every animation is a transition that reduced motion turns off.
+ */
+:root {
+  --mint: #e8f8f5; /* derived: turquoise tint for selected and informative surfaces */
+  --shadow-sm: 0 1px 2px rgb(18 38 64 / 6%);
+  --shadow-md: 0 8px 24px rgb(18 38 64 / 10%);
+  --ease: 0.15s ease;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --mint: #143a3d;
+    --shadow-sm: none;
+    --shadow-md: 0 8px 24px rgb(0 0 0 / 35%);
+  }
+}
+
+/* ---------- Page headings ---------- */
+:is(.content, .operator-main) > .page-header {
+  padding-block-end: 16px;
+  margin-block-end: 20px;
+  border-block-end: 1px solid var(--border);
+}
+
+:is(.content, .operator-main) h1 {
+  font-size: clamp(1.4rem, 1.15rem + 0.7vw, 1.75rem);
+  font-weight: 700;
+}
+
+.page-header .muted {
+  margin: 0;
+}
+
+/* ---------- Surfaces ---------- */
+:is(.shell, .public-layout) .card {
+  box-shadow: var(--shadow-sm);
+}
+
+:is(.shell, .public-layout) .card > h2:first-child {
+  margin-block-end: 14px;
+}
+
+/* ---------- Buttons ---------- */
+:is(.shell, .public-layout) :is(.button, .icon-button) {
+  font-weight: 600;
+  transition:
+    background-color var(--ease),
+    border-color var(--ease),
+    color var(--ease),
+    box-shadow var(--ease);
+}
+
+:is(.shell, .public-layout) .button--primary:hover:not(:disabled) {
+  box-shadow: var(--shadow-md);
+}
+
+:is(.shell, .public-layout) .button--secondary:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--primary) 8%, transparent);
+}
+
+:is(.shell, .public-layout) :is(.button--ghost, .icon-button):hover:not(:disabled) {
+  background: var(--surface-muted);
+}
+
+:is(.shell, .public-layout) .button--danger:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--bad) 88%, #000000);
+}
+
+/* ---------- Form controls ---------- */
+:is(.shell, .public-layout) :is(input:not([type='radio'], [type='checkbox']), select, textarea) {
+  transition:
+    border-color var(--ease),
+    box-shadow var(--ease);
+}
+
+:is(.shell, .public-layout) :is(input:not([type='radio'], [type='checkbox']), select, textarea):hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--text) 32%, var(--border));
+}
+
+/* Text areas match the other fields (styles.css styles inputs and selects only). */
+:is(.shell, .public-layout) textarea {
+  inline-size: 100%;
+  min-block-size: 96px;
+  padding: 10px 12px;
+  font: inherit;
+  line-height: 1.6;
+  color: inherit;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+/* The focus ring (styles.css) stays; the border also follows it. */
+:is(.shell, .public-layout) :is(input:not([type='radio'], [type='checkbox']), select, textarea):focus-visible {
+  border-color: var(--focus);
+}
+
+:is(.shell, .public-layout) ::placeholder {
+  color: var(--muted);
+  opacity: 0.85;
+}
+
+:is(.shell, .public-layout) :is(input, select, textarea):disabled {
+  color: var(--muted);
+  background: var(--surface-muted);
+  cursor: not-allowed;
+}
+
+:is(.shell, .public-layout) input[type='radio'],
+:is(.shell, .public-layout) input[type='checkbox'] {
+  inline-size: 18px;
+  block-size: 18px;
+  accent-color: var(--primary);
+}
+
+/* Filter bars: smaller muted labels, so the values stand out. */
+:is(.filters, .toolbar, .inline-form) .field label {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+/* ---------- Segmented filters (status, view) ---------- */
+:is(.shell, .public-layout) .segmented {
+  gap: 2px;
+  padding: 3px;
+  background: var(--surface-muted);
+  border: 0;
+  border-radius: 10px;
+}
+
+:is(.shell, .public-layout) .segment {
+  min-block-size: 34px;
+  font-weight: 600;
+  color: var(--muted);
+  background: transparent;
+  border-radius: 8px;
+  transition:
+    background-color var(--ease),
+    color var(--ease);
+}
+
+:is(.shell, .public-layout) .segment + .segment {
+  border-inline-start: 0;
+}
+
+:is(.shell, .public-layout) .segment:hover:not(.segment--active) {
+  color: var(--text);
+  background: var(--surface);
+}
+
+:is(.shell, .public-layout) .segment--active {
+  color: var(--primary-contrast);
+  background: var(--primary);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ---------- Tables ---------- */
+@media (min-width: 901px) {
+  .data-table thead th {
+    padding-block: 10px;
+    background: var(--surface-muted);
+    border-block-end: 0;
+  }
+
+  .data-table thead th:first-child {
+    border-start-start-radius: 8px;
+    border-end-start-radius: 8px;
+  }
+
+  .data-table thead th:last-child {
+    border-start-end-radius: 8px;
+    border-end-end-radius: 8px;
+  }
+
+  .data-table tbody tr > td {
+    transition: background-color var(--ease);
+  }
+
+  .data-table tbody tr:hover > td {
+    background: color-mix(in srgb, var(--mint) 60%, transparent);
+  }
+
+  .data-table tbody tr:last-child > td {
+    border-block-end: 0;
+  }
+}
+
+.data-table td,
+.stats dd,
+.stat strong {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Lists of rows (inquiries, support requests, contact messages). */
+.data-row {
+  background: var(--surface);
+  transition:
+    border-color var(--ease),
+    box-shadow var(--ease);
+}
+
+.data-row:hover {
+  border-color: color-mix(in srgb, var(--brand-turquoise) 55%, var(--border));
+  box-shadow: var(--shadow-sm);
+}
+
+/* ---------- Status labels ---------- */
+.badge {
+  font-weight: 600;
+  line-height: 1.7;
+  white-space: nowrap;
+}
+
+/* A dot before state badges, so the state is not carried by color and wording alone. */
+.badge:is([class*='badge--status-'], [class*='badge--subscription-'], [class*='badge--support-'], [class*='badge--coverage-'], .badge--active, .badge--inactive, .badge--suspended, .badge--connected, .badge--degraded, .badge--unreachable)::before {
+  display: inline-block;
+  inline-size: 6px;
+  block-size: 6px;
+  margin-inline-end: 6px;
+  vertical-align: 0.1em;
+  content: '';
+  background: currentColor;
+  border-radius: 50%;
+}
+
+.badge--operator {
+  color: #ffffff;
+  background: var(--brand-navy);
+}
+
+/* ---------- Feedback: notices, loading, empty ---------- */
+:is(.shell, .public-layout) .notice {
+  border-radius: 10px;
+}
+
+:is(.shell, .public-layout) .notice--info {
+  color: var(--text);
+  background: var(--mint);
+  border-inline-start-color: var(--brand-turquoise);
+}
+
+:is(.content, .operator-main) > .loading {
+  justify-content: center;
+  padding-block: 48px;
+}
+
+.empty-state {
+  padding: 28px 16px;
+  background: transparent;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+}
+
+/* A neutral "nothing here" mark above the message (decorative). */
+.empty-state::before {
+  display: block;
+  inline-size: 44px;
+  block-size: 44px;
+  margin: 0 auto 10px;
+  content: '';
+  background: var(--mint)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233ECABA' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 12h-6l-2 3h-4l-2-3H2'/%3E%3Cpath d='M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z'/%3E%3C/svg%3E")
+    center / 22px no-repeat;
+  border-radius: 50%;
+}
+
+/* Inside tables and compact lists the mark would be noise. */
+:is(td, li, .data-row) > .empty-state::before {
+  display: none;
+}
+
+/* Questions in the workspace help (support page): bordered rows that open in place. */
+#faq-search {
+  margin-block-end: 10px;
+}
+
+[data-testid='faq'] details {
+  padding: 4px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+[data-testid='faq'] details[open] {
+  background: var(--mint);
+  border-color: color-mix(in srgb, var(--brand-turquoise) 45%, var(--border));
+}
+
+[data-testid='faq'] details > summary {
+  padding-block: 8px;
+}
+
+[data-testid='faq'] details > p {
+  margin: 0 0 10px;
+  color: var(--muted);
+}
+
+/* Confirmation panels read as a dialog: a raised surface with the primary edge. */
+.confirm-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-inline-start: 4px solid var(--primary);
+  box-shadow: var(--shadow-md);
+}
+
+/* ---------- Workspace shell ---------- */
+.nav-link {
+  transition:
+    background-color var(--ease),
+    color var(--ease);
+}
+
+.nav-link.active {
+  color: var(--text);
+  background: var(--mint);
+}
+
+.nav-group-title {
+  letter-spacing: 0.02em;
+}
+
+:lang(en) .nav-group-title {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.topbar {
+  box-shadow: var(--shadow-sm);
+}
+
+.stat {
+  border: 1px solid transparent;
+}
+
+.stats--today .stat {
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+/* The brand mark in the compact header (phones and tablets), where the sidebar is hidden. */
+.topbar-brand {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  /* First row: brand at the start, account actions, then the menu button at the end. */
+  .topbar-brand {
+    display: inline-flex;
+    order: -2;
+    align-items: center;
+    border-radius: 8px;
+  }
+
+  .topbar .menu-button {
+    order: 0;
+  }
+
+  .topbar-brand .brand-logo--symbol {
+    block-size: 30px;
+  }
+}
+
+/* ---------- Operator console ---------- */
+.operator-header {
+  background: var(--surface);
+  border-block-end: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+.operator-main {
+  padding-block-start: 20px;
+}
+
+/* A tab bar: one row that scrolls sideways on narrow screens instead of wrapping. */
+.operator-nav {
+  flex-wrap: nowrap;
+  gap: 2px;
+  padding-block-end: 0;
+  margin-block-end: 20px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.operator-nav .nav-link {
+  flex-shrink: 0;
+  padding: 10px 14px;
+  font-weight: 600;
+  color: var(--muted);
+  white-space: nowrap;
+  background: transparent;
+  border-radius: 8px 8px 0 0;
+  box-shadow: none;
+}
+
+.operator-nav .nav-link:hover {
+  color: var(--text);
+  background: var(--surface-muted);
+}
+
+.operator-nav .nav-link:is(.active, [aria-current='page']) {
+  color: var(--text);
+  text-decoration: none;
+  background: transparent;
+  box-shadow: inset 0 -3px 0 var(--brand-turquoise);
+}
+
+.operator-main .stats {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 180px), 1fr));
+  gap: 12px;
+  margin-block-end: 20px;
+}
+
+.operator-main .stat {
+  padding: 14px 16px;
+  color: var(--muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+}
+
+.operator-main .stat > strong {
+  color: var(--text);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :is(.shell, .public-layout) *,
+  .data-row,
+  .nav-link {
+    transition: none !important;
+  }
+}

@@ -26,6 +26,21 @@ const PATHS = {
   card: 'M2 6h20v13H2zM2 10h20M6 15h4',
   help: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01',
   clock: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM12 7v5l3 2',
+  // Public website (specialties, contact, sections).
+  tooth: 'M8 3C5.5 3 4 5 4 7.5c0 2 1 3.2 1.6 5 .6 2 .9 4.5 1.6 6.6.4 1.2 1.8 1.2 2.2 0l1.1-4c.3-1 1.7-1 2 0l1.1 4c.4 1.2 1.8 1.2 2.2 0 .7-2.1 1-4.6 1.6-6.6.6-1.8 1.6-3 1.6-5C20 5 18.5 3 16 3c-1.6 0-2.4.9-4 .9S9.6 3 8 3z',
+  activity: 'M3 12h4l3-8 4 16 3-8h4',
+  ear: 'M7 9a5 5 0 0 1 10 0c0 3-3 4-3 7a3 3 0 0 1-6 0M10 9a2 2 0 0 1 4 0c0 1.5-2 2-2 3',
+  scan: 'M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M8 12h8M12 8v8',
+  layers: 'M12 3l9 5-9 5-9-5 9-5zM3 13l9 5 9-5M3 17.5l9 4.5 9-4.5',
+  mail: 'M3 5h18v14H3zM3 6l9 7 9-7',
+  phone: 'M5 3h4l2 5-3 2a11 11 0 0 0 6 6l2-3 5 2v4a2 2 0 0 1-2 2A17 17 0 0 1 3 5a2 2 0 0 1 2-2z',
+  lock: 'M6 11h12v10H6zM8 11V7a4 4 0 0 1 8 0v4',
+  file: 'M6 2h9l5 5v15H6zM14 2v6h6M9 13h6M9 17h6',
+  minus: 'M5 12h14',
+  chart: 'M4 20V10M10 20V4M16 20v-7M2 20h20',
+  message: 'M4 4h16v12H8l-4 4z',
+  image: 'M3 4h18v16H3zM3 16l5-5 4 4 3-3 6 6M15 9.5a1.5 1.5 0 1 0 0-.01z',
+  external: 'M14 4h6v6M20 4l-9 9M18 14v6H4V6h6',
 };
 
 export type IconName = keyof typeof PATHS;

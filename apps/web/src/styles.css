@@ -631,6 +631,99 @@ input[aria-invalid='true'] {
   text-align: center;
 }
 
+/* Sign-in and registration: the form beside a navy panel (P37). The panel is a wide-screen
+   extra; below 960px the form stands alone. */
+.public-layout--split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr);
+}
+
+.public-layout-form {
+  display: flex;
+  flex-direction: column;
+  min-block-size: 100vh;
+}
+
+.auth-panel {
+  position: sticky;
+  inset-block-start: 0;
+  display: grid;
+  align-items: center;
+  block-size: 100vh;
+  padding: 48px clamp(24px, 4vw, 64px);
+  overflow: hidden;
+  color: #ffffff;
+  background:
+    radial-gradient(120% 70% at 100% 0%, rgb(62 202 186 / 18%), transparent 60%),
+    var(--brand-navy);
+}
+
+.auth-panel-inner {
+  display: grid;
+  gap: 24px;
+  max-inline-size: 520px;
+}
+
+.auth-panel h2 {
+  margin: 0;
+  font-size: clamp(1.4rem, 1rem + 1.2vw, 2rem);
+  line-height: 1.3;
+  color: #ffffff;
+}
+
+.auth-panel-points {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.auth-panel-points li {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  color: rgb(255 255 255 / 88%);
+}
+
+.auth-panel-points .icon {
+  margin-block-start: 3px;
+  color: var(--brand-turquoise);
+}
+
+.auth-panel-shot {
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+  border: 1px solid rgb(255 255 255 / 14%);
+  border-radius: 12px;
+  box-shadow: 0 24px 48px rgb(0 0 0 / 30%);
+}
+
+.auth-panel-note {
+  margin: 0;
+  font-size: 0.85rem;
+  color: rgb(255 255 255 / 70%);
+}
+
+/* Short screens: the points stay, the screenshot goes, so nothing is cut off. */
+@media (max-height: 760px) {
+  .auth-panel-shot,
+  .auth-panel-note {
+    display: none;
+  }
+}
+
+@media (max-width: 960px) {
+  .public-layout--split {
+    display: block;
+  }
+
+  .auth-panel {
+    display: none;
+  }
+}
+
 .full-page {
   display: grid;
   place-items: center;
@@ -690,6 +783,26 @@ input[aria-invalid='true'] {
 .nav-list {
   display: grid;
   gap: 4px;
+}
+
+.nav-group + .nav-group {
+  margin-block-start: 14px;
+}
+
+.nav-group-title {
+  margin: 0 0 6px;
+  padding-inline: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.nav-link.active {
+  box-shadow: inset 3px 0 0 var(--brand-turquoise);
+}
+
+[dir='rtl'] .nav-link.active {
+  box-shadow: inset -3px 0 0 var(--brand-turquoise);
 }
 
 .nav-link {

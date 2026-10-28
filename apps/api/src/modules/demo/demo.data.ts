@@ -310,9 +310,38 @@ export const DEMO_ORGANIZATIONS: DemoOrganization[] = [
       { key: 's2', fullName: 'نورة سعد', phone: { country: 'SA', number: '0551234602' }, sex: 'female', registrations: [{ branch: JEDDAH }] },
     ],
     appointments: [
+      { key: 'c00', practitioner: 'multi@demo.test', patient: 's2', branch: JEDDAH, day: -1, time: '17:00', status: 'completed' },
       { key: 'c01', practitioner: 'multi@demo.test', patient: 's1', branch: JEDDAH, day: 0, time: '16:00', status: 'checked_in' },
       { key: 'c02', practitioner: 'multi@demo.test', patient: 's2', branch: JEDDAH, day: 0, time: '17:00', status: 'scheduled' },
       { key: 'c03', practitioner: 'multi@demo.test', patient: 's1', branch: JEDDAH, day: 1, time: '16:20', status: 'scheduled', type: 'follow_up' },
+    ],
+    // One synthetic ENT visit record, so the ENT tools can be seen as multi@demo.test.
+    encounters: [
+      {
+        key: 'e10',
+        appointment: 'c00',
+        status: 'finalized',
+        sections: {
+          reason: 'ألم في الأذن اليسرى منذ يومين (بيانات تجريبية)',
+          examination: 'نص فحص تجريبي للتوضيح فقط.',
+          assessment: 'تقييم تجريبي للتوضيح فقط.',
+          plan: 'متابعة بعد أسبوع (مثال تجريبي).',
+        },
+        specialty: {
+          template: 'ent.visit',
+          data: {
+            history: { ear: 'ألم وانسداد في الأذن اليسرى (مثال تجريبي)', nose: '', throat: 'لا شكوى (مثال تجريبي)' },
+            examination: {
+              rightEar: 'سليمة (مثال تجريبي)',
+              leftEar: 'احمرار بسيط في القناة (مثال تجريبي)',
+              nose: 'سليم (مثال تجريبي)',
+              throat: 'سليم (مثال تجريبي)',
+              neck: '',
+            },
+            followUp: 'مراجعة بعد أسبوع إذا استمر الألم (مثال تجريبي).',
+          },
+        },
+      },
     ],
   },
   {

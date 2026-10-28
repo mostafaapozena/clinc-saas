@@ -5,16 +5,37 @@
 type Tree = { [key: string]: unknown };
 
 const SECTIONS: { title: string; paths: string[] }[] = [
-  { title: 'Brand and navigation (every public page)', paths: ['app.name', 'app.tagline', 'site.nav', 'site.cta', 'site.notice', 'site.footer'] },
+  { title: 'Brand and navigation (every public page)', paths: ['app.name', 'app.tagline', 'site.nav', 'site.cta', 'site.notice', 'site.sticky', 'site.footer'] },
   { title: 'Home page (`/`)', paths: ['site.home', 'site.shared'] },
   { title: 'Hosted workspace vs custom project (home, solution pages, custom page)', paths: ['site.compare'] },
-  { title: 'Solutions catalog (`/solutions`) and shared solution labels', paths: ['site.solutions.metaTitle', 'site.solutions.metaDescription', 'site.solutions.title', 'site.solutions.lead', 'site.solutions.labels', 'site.solutions.customCard'] },
+  {
+    title: 'Solutions catalog (`/solutions`) and shared solution labels',
+    paths: [
+      'site.solutions.metaTitle',
+      'site.solutions.metaDescription',
+      'site.solutions.eyebrow',
+      'site.solutions.title',
+      'site.solutions.lead',
+      'site.solutions.previewLabel',
+      'site.solutions.catalogTitle',
+      'site.solutions.catalogLead',
+      'site.solutions.paper',
+      'site.solutions.closing',
+      'site.solutions.labels',
+      'site.solutions.customCard',
+    ],
+  },
   { title: 'Dental clinics (`/solutions/dentistry`)', paths: ['site.solutions.dentistry'] },
   { title: 'Physiotherapy centers (`/solutions/physiotherapy`)', paths: ['site.solutions.physiotherapy'] },
   { title: 'ENT clinics (`/solutions/ent`)', paths: ['site.solutions.ent'] },
   { title: 'Multi-specialty medical centers (`/solutions/medical-centers`)', paths: ['site.solutions.medicalCenters'] },
   { title: 'Custom projects (`/custom-solutions`)', paths: ['site.custom'] },
   { title: 'Custom-project request form (`/custom-solutions/request`)', paths: ['site.inquiry'] },
+  { title: 'Product tour (`/tour`)', paths: ['site.tour'] },
+  { title: 'About (`/about`)', paths: ['site.about'] },
+  { title: 'Contact (`/contact`)', paths: ['site.contact', 'validation.contact'] },
+  { title: 'FAQ (`/faq`)', paths: ['site.faqPage'] },
+  { title: 'Security and privacy (`/security`, `/privacy`)', paths: ['site.prose', 'site.security', 'site.privacy'] },
   { title: 'Workspace creation entry and not-found page', paths: ['site.start', 'site.notFound'] },
   { title: 'Sign in and registration', paths: ['auth'] },
   { title: 'Organization setup (onboarding)', paths: ['onboarding'] },
@@ -25,6 +46,10 @@ function at(tree: Tree, path: string): unknown {
 }
 
 function leaves(value: unknown, prefix: string): [string, unknown][] {
+  // Lists of cards or questions are listed entry by entry; lists of strings stay in one cell.
+  if (Array.isArray(value) && value.some((item) => typeof item === 'object' && item !== null)) {
+    return value.flatMap((item, index) => leaves(item, `${prefix}.${index}`));
+  }
   if (Array.isArray(value) || typeof value !== 'object' || value === null) return [[prefix, value]];
   return Object.entries(value as Tree).flatMap(([key, child]) => leaves(child, `${prefix}.${key}`));
 }

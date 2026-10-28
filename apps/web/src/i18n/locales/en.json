@@ -68,7 +68,13 @@
     "clinicalAudit": "Clinical audit",
     "finance": "Finance",
     "subscription": "Subscription",
-    "support": "Help & support"
+    "support": "Help & support",
+    "groups": {
+      "daily": "Daily work",
+      "records": "Records and billing",
+      "organization": "Administration",
+      "account": "Account"
+    }
   },
   "shell": {
     "skipToContent": "Skip to main content",
@@ -108,7 +114,19 @@
     "submitRegister": "Create account",
     "submittingRegister": "Creating account…",
     "haveAccount": "Already have an account?",
-    "loginLink": "Sign in"
+    "loginLink": "Sign in",
+    "panel": {
+      "title": "One workspace for appointments, records and billing",
+      "points": [
+        "Appointments and the day's list for every branch and practitioner",
+        "Clinical records by specialty: dentistry, physiotherapy and ENT",
+        "Invoices and payments linked to the visit",
+        "Permissions per role, and a log of changes",
+        "In Arabic and English"
+      ],
+      "shotAlt": "The raclinic appointments screen with synthetic data",
+      "note": "Screenshot of raclinic itself, with synthetic data."
+    }
   },
   "onboarding": {
     "title": "Set up your organization",
@@ -557,7 +575,23 @@
       "invalid_choice": "Choose another active doctor of this organization.",
       "required": "Choose a colleague."
     },
-    "invalid_reference": "This refers to a record or item that is not available."
+    "invalid_reference": "This refers to a record or item that is not available.",
+    "contact": {
+      "contactName": {
+        "empty": "Enter your name.",
+        "too_short": "Enter your name (at least two characters)."
+      },
+      "contact": {
+        "contact_required": "Enter an email or a phone number so we can reply."
+      },
+      "phone": {
+        "invalid_phone": "This phone number is not valid for the chosen country."
+      },
+      "message": {
+        "empty": "Write your message.",
+        "too_short": "Write at least 10 characters."
+      }
+    }
   },
   "countries": {
     "EG": "Egypt +20",
@@ -823,10 +857,30 @@
       "solutions": "Solutions",
       "custom": "Custom projects",
       "signIn": "Sign in",
-      "createWorkspace": "Create your clinic workspace",
+      "createWorkspace": "Create a workspace",
       "goToWorkspace": "Go to my workspace",
       "openMenu": "Open menu",
-      "closeMenu": "Close menu"
+      "closeMenu": "Close menu",
+      "tour": "Product tour",
+      "company": "Company",
+      "about": "About raclinic",
+      "contact": "Contact us",
+      "faq": "FAQ",
+      "security": "Security and data protection",
+      "privacy": "Privacy",
+      "solutionsMenu": "Hosted workspace specialties",
+      "customMenu": "Radiology and custom projects",
+      "allSolutions": "All solutions",
+      "breadcrumb": "Breadcrumb",
+      "homeLink": "raclinic — home",
+      "mobile": "Site menu",
+      "descriptions": {
+        "about": "Why raclinic exists and who builds it",
+        "contact": "A question or a demo request",
+        "security": "How data is protected in the workspace",
+        "privacy": "What this website collects and why",
+        "custom": "Radiology centers and separately run systems"
+      }
     },
     "cta": {
       "create": "Create your clinic workspace",
@@ -836,7 +890,16 @@
     "footer": {
       "about": "raclinic — a cloud workspace for clinics and medical centers in Egypt and Saudi Arabia.",
       "devNotice": "Development version: use test data only and do not enter real patient information.",
-      "status": "System status"
+      "status": "System status",
+      "byDevware": "raclinic is a product built by Devware.",
+      "groups": {
+        "solutions": "Solutions",
+        "product": "Product",
+        "company": "Company",
+        "account": "Account"
+      },
+      "customRequest": "Request a custom project",
+      "rights": "© {{year}} Devware. All rights reserved."
     },
     "shared": [
       "Patient registry with search by name, phone number or patient number",
@@ -853,7 +916,6 @@
       "metaTitle": "Appointments, front desk and patient records for clinics",
       "metaDescription": "raclinic is a bilingual cloud workspace for clinics and medical centers in Egypt and Saudi Arabia: patient registry, doctors' schedules, conflict-free booking, check-in and the daily queue.",
       "eyebrow": "Smart clinic management",
-      "title": "Your clinic, organized from the first booking to the last visit",
       "lead": "raclinic is a cloud workspace for clinics and medical centers in Egypt and Saudi Arabia. Register patients, set each doctor's working hours, book without clashes, and follow arrivals and the waiting queue — in Arabic or English, for one clinic or several branches.",
       "signInHint": "Already have a workspace?",
       "problemsTitle": "What changes in your day",
@@ -875,7 +937,7 @@
           "body": "Each team member sees only the branches and actions their role allows; doctors see their own appointments."
         }
       },
-      "pathsTitle": "Solutions",
+      "pathsTitle": "One platform,",
       "pathsLead": "Start from the solution closest to your clinic; all of them run on the same operational workspace today.",
       "availableTitle": "Available today",
       "availableLead": "These features work now in the shared workspace:",
@@ -900,7 +962,7 @@
           "body": "Check the details, create the workspace, then add your team, doctors and further branches."
         }
       },
-      "faqTitle": "Frequently asked questions",
+      "faqTitle": "Quick answers",
       "faq": {
         "price": {
           "q": "How much does it cost?",
@@ -934,6 +996,155 @@
           "q": "Which languages are supported?",
           "a": "Arabic and English, with right-to-left and left-to-right layouts. Each user chooses their language."
         }
+      },
+      "titleStart": "Your clinic, organized",
+      "titleEmphasis": "from the first booking to the last visit",
+      "tourCta": "Take the product tour",
+      "reassure": [
+        "Fully Arabic and English",
+        "One clinic or many branches",
+        "Permissions by role and branch"
+      ],
+      "floats": [
+        "No double bookings",
+        "Check-in and waiting queue"
+      ],
+      "previewAlt": "A real screenshot of the raclinic appointments page, with demo data",
+      "previewLabel": "Appointments — raclinic",
+      "factsLabel": "Product facts",
+      "facts": [
+        {
+          "value": "3",
+          "label": "Specialties with their own tools: dentistry, physiotherapy, ENT"
+        },
+        {
+          "value": "6",
+          "label": "Roles with defined permissions: owner, admin, doctor, receptionist, accountant, viewer"
+        },
+        {
+          "value": "2",
+          "label": "Complete languages: Arabic right to left, and English"
+        },
+        {
+          "value": "1",
+          "label": "Patient file shared by all of an organization’s branches"
+        }
+      ],
+      "pathsEyebrow": "Solutions",
+      "pathsEmphasis": "every specialty",
+      "problemsEyebrow": "What we solve",
+      "problemsLead": "Everyday problems in clinics and centers, and what raclinic does about each of them today.",
+      "featuresLabel": "Workspace highlights",
+      "features": {
+        "scheduling": {
+          "eyebrow": "Appointments and front desk",
+          "titleStart": "Your clinic schedule,",
+          "titleEmphasis": "organized per doctor",
+          "body": "Weekly working hours for every doctor with changes for specific days, free times calculated for you, and bookings checked again at the moment of confirmation, so the same time is never booked twice.",
+          "link": "See the scheduling screens",
+          "alt": "A real screenshot of the raclinic daily schedule, with demo data",
+          "points": [
+            "Day and 7-day views, for all doctors or one",
+            "Book, reschedule and cancel, with a cancellation reason",
+            "Check-in, and a queue in order of arrival",
+            "Times in your organization’s time zone, daylight-saving aware"
+          ]
+        },
+        "records": {
+          "eyebrow": "Visit record",
+          "titleStart": "A record the doctor writes,",
+          "titleEmphasis": "that stays as finalized",
+          "body": "Every visit has a record written by the treating doctor: reason, relevant history, examination, assessment and plan. It is saved as a draft, then finalized; any correction afterwards is a dated addendum.",
+          "link": "See the dental tools",
+          "alt": "A real screenshot of a raclinic visit record, with demo data",
+          "points": [
+            "Only the treating doctor, and colleagues they explicitly share with, can read it",
+            "Owners and admins see whether a visit is documented, never the content",
+            "Specialty tools as a first version: dental chart, physiotherapy course, ENT examination",
+            "No treatment suggestions and no generated text"
+          ]
+        },
+        "finance": {
+          "eyebrow": "Finance",
+          "titleStart": "From service to receipt,",
+          "titleEmphasis": "in one place",
+          "body": "A service list with prices per branch, charges on the patient account, invoices and receipts, partial or full payments, and a clear balance for every patient.",
+          "link": "See the finance screens",
+          "alt": "A real screenshot of the raclinic finance page, with demo data",
+          "points": [
+            "Different prices per branch when needed",
+            "Partial payments and printable receipts",
+            "A statement for every patient",
+            "Ordinary invoices; tax and e-invoicing are not supported yet"
+          ]
+        }
+      },
+      "workflow": {
+        "eyebrow": "A day at the clinic",
+        "title": "From booking",
+        "emphasis": "to receipt",
+        "lead": "Four steps your team works through every day, in the same workspace.",
+        "steps": [
+          {
+            "title": "Booking",
+            "body": "Reception picks the doctor, branch and a time that is actually free, or moves an existing appointment."
+          },
+          {
+            "title": "Arrival",
+            "body": "The patient is checked in on arrival and appears in the queue in order of arrival."
+          },
+          {
+            "title": "Visit",
+            "body": "The doctor starts the visit, writes its record with the specialty tools, then completes it."
+          },
+          {
+            "title": "Billing",
+            "body": "Services go on the patient account, the invoice is issued, the payment recorded and the receipt printed."
+          }
+        ]
+      },
+      "cases": {
+        "eyebrow": "Who raclinic is for",
+        "title": "One clinic, a center, or many branches",
+        "lead": "Your organization grows inside the same workspace: add specialties, branches and team members without moving data.",
+        "clinic": {
+          "title": "A single clinic",
+          "body": "One or more doctors in one place, with a clear schedule per doctor and an organized front desk.",
+          "link": "Clinic solutions",
+          "points": [
+            "Appointments and queue",
+            "A visit record for every appointment",
+            "Patient accounts and receipts"
+          ]
+        },
+        "center": {
+          "title": "A multi-specialty center",
+          "body": "Several specialties under one roof; each doctor works in their specialty while management sees the whole picture.",
+          "link": "Medical centers",
+          "points": [
+            "Several specialties enabled",
+            "Views filtered by specialty",
+            "One patient file across departments"
+          ]
+        },
+        "branches": {
+          "title": "A multi-branch organization",
+          "body": "Each branch with its own specialties and prices; each team member sees only their branches.",
+          "link": "Medical centers",
+          "points": [
+            "Specialties per branch",
+            "Branch-scoped permissions",
+            "Service prices per branch"
+          ]
+        }
+      },
+      "availableEyebrow": "Plainly",
+      "plannedLink": "Read the FAQ",
+      "faqEyebrow": "FAQ",
+      "faqMore": "All questions",
+      "closing": {
+        "title": "Ready to organize your clinic?",
+        "body": "Create your workspace in a few steps and try it with demo data, or contact us for a demo."
       }
     },
     "compare": {
@@ -955,7 +1166,9 @@
           "Scope, schedule, support terms and price agreed per project",
           "Nothing is promised before that agreement"
         ]
-      }
+      },
+      "eyebrow": "Two ways",
+      "lead": "A subscription to the hosted workspace for most clinics and centers, or a custom project scoped for special needs."
     },
     "solutions": {
       "metaTitle": "Solutions for clinics and medical centers",
@@ -969,7 +1182,13 @@
         "planned": "Specialty tools (first version)",
         "plannedNote": "Available in the workspace as a first version, for trying out with synthetic data. Not yet reviewed by practising clinicians.",
         "back": "All solutions",
-        "sharedBadge": "Shared workspace"
+        "sharedBadge": "Shared workspace",
+        "explore": "Explore",
+        "problemsEyebrow": "What your team faces",
+        "toolsEyebrow": "Specialty tools",
+        "workflowEyebrow": "How it works",
+        "faqTitle": "Questions about {{name}}",
+        "closingBody": "Create the workspace and try it with demo data; you can add specialties and branches later."
       },
       "dentistry": {
         "name": "Dental clinics",
@@ -984,7 +1203,100 @@
         "planned": [
           "Dental chart (FDI notation) with findings and procedures per visit",
           "Treatment-plan items and their status across visits"
-        ]
+        ],
+        "tagline": "Tooth chart and treatment-plan items",
+        "badge": "Dentistry solution",
+        "lead": "Organize each dentist’s appointments and patient arrivals, record findings and procedures on the tooth chart at every visit, and follow treatment-plan items from one visit to the next.",
+        "highlights": [
+          "Tooth chart in FDI notation",
+          "Treatment-plan items and their status across visits",
+          "Appointments of different lengths per dentist"
+        ],
+        "shotAlt": "A real screenshot of the raclinic tooth chart, with demo data",
+        "floats": [
+          "Tooth chart (FDI)",
+          "Treatment plan across visits"
+        ],
+        "problemsTitle": "What happens in a busy dental clinic",
+        "problems": [
+          {
+            "title": "Treatment over several visits",
+            "body": "Treatment spans visits, and remembering what is left of the plan is hard without one record."
+          },
+          {
+            "title": "Different lengths per procedure",
+            "body": "A short check-up and a long procedure on the same day; a paper schedule does not see the gaps."
+          },
+          {
+            "title": "The history of each tooth",
+            "body": "What was found on a tooth and what was done to it? An answer that means leafing through old files."
+          },
+          {
+            "title": "More than one dentist",
+            "body": "Each dentist has their own hours and days, and reception needs to see all of them."
+          },
+          {
+            "title": "Patients returning for follow-up",
+            "body": "Follow-up visits need booking without clashing with new cases."
+          },
+          {
+            "title": "The patient account",
+            "body": "Services over several visits and partial payments need a clear balance."
+          }
+        ],
+        "toolsTitle": "Dental tools in the visit record",
+        "tools": [
+          {
+            "title": "Tooth chart (FDI)",
+            "body": "Upper and lower jaw for permanent, primary and mixed dentition. Select a tooth to see its history from finalized visits you can read."
+          },
+          {
+            "title": "Findings and procedures",
+            "body": "Record the finding and the procedure performed per tooth and surface, in your own words; earlier findings are never overwritten."
+          },
+          {
+            "title": "Treatment-plan items",
+            "body": "Add plan items and change their status (planned, in progress, done, cancelled) at later visits."
+          },
+          {
+            "title": "The general visit record",
+            "body": "Reason, history, examination, assessment and plan, as a draft then finalized, with dated addenda."
+          }
+        ],
+        "workflowTitle": "A dental visit in raclinic",
+        "workflow": [
+          {
+            "title": "Booking the right length",
+            "body": "Reception books a slot as long as the procedure, with the right dentist."
+          },
+          {
+            "title": "Arrival and queue",
+            "body": "The patient is checked in; the dentist sees who is waiting, in order."
+          },
+          {
+            "title": "Chart and plan",
+            "body": "The dentist records findings and procedures on the chart and updates plan items."
+          },
+          {
+            "title": "Billing and follow-up",
+            "body": "Services go on the patient account, and the follow-up visit is booked."
+          }
+        ],
+        "faq": [
+          {
+            "q": "Does the chart support primary teeth?",
+            "a": "Yes. The chart supports permanent, primary and mixed dentition in FDI notation."
+          },
+          {
+            "q": "Can an earlier finding on a tooth be changed?",
+            "a": "Earlier findings are never overwritten; new ones go in a new visit, and a finalized record is corrected with a dated addendum."
+          },
+          {
+            "q": "Have dentists reviewed these tools?",
+            "a": "Not yet. They are a first version awaiting review by practicing clinicians, and are used with demo data only for now."
+          }
+        ],
+        "closingTitle": "Ready to organize your dental clinic?"
       },
       "physiotherapy": {
         "name": "Physiotherapy centers",
@@ -999,7 +1311,100 @@
         "planned": [
           "Initial assessment with goals and planned sessions",
           "Session notes linked to real appointments, and a discharge summary"
-        ]
+        ],
+        "tagline": "Assessment, course of sessions, discharge summary",
+        "badge": "Physiotherapy solution",
+        "lead": "Arrange recurring sessions per therapist across branches, start every course with an initial assessment with goals and a number of sessions, and follow the documented sessions through to the discharge summary.",
+        "highlights": [
+          "Initial assessment with goals and planned sessions",
+          "Sessions linked to real appointments",
+          "Discharge summary"
+        ],
+        "shotAlt": "A real screenshot of a raclinic physiotherapy course, with demo data",
+        "floats": [
+          "Course of sessions",
+          "Goals and notes"
+        ],
+        "problemsTitle": "What happens in a physiotherapy center",
+        "problems": [
+          {
+            "title": "Recurring sessions",
+            "body": "Patients come two or three times a week, usually with the same therapist."
+          },
+          {
+            "title": "How many sessions are left?",
+            "body": "Knowing how many planned sessions are documented means counting by hand."
+          },
+          {
+            "title": "Therapists in several branches",
+            "body": "The same therapist works in two branches, and the schedule must know."
+          },
+          {
+            "title": "Treatment goals",
+            "body": "Course goals get lost between sessions unless they are written in one place."
+          },
+          {
+            "title": "Discharge",
+            "body": "The discharge summary is written late, or not at all."
+          },
+          {
+            "title": "Billing over many sessions",
+            "body": "Many sessions and partial payments need a clear balance."
+          }
+        ],
+        "toolsTitle": "Physiotherapy tools in the visit record",
+        "tools": [
+          {
+            "title": "Initial assessment",
+            "body": "Functional limitations as you assess them (no calculated scores), goals, and planned sessions and frequency."
+          },
+          {
+            "title": "Treatment course",
+            "body": "Sessions are your real appointments; the record links each to its course and shows how many are documented."
+          },
+          {
+            "title": "Session",
+            "body": "Treatment performed and progress, with notes per goal."
+          },
+          {
+            "title": "Discharge summary",
+            "body": "Written when the course ends; the record cannot be finalized without it."
+          }
+        ],
+        "workflowTitle": "A physiotherapy course in raclinic",
+        "workflow": [
+          {
+            "title": "Assessment",
+            "body": "A first visit with an assessment, goals and planned sessions."
+          },
+          {
+            "title": "Booking sessions",
+            "body": "Reception books sessions with the same therapist, in the right branch."
+          },
+          {
+            "title": "Documenting each session",
+            "body": "The therapist writes what was done, progress and goal notes."
+          },
+          {
+            "title": "Discharge",
+            "body": "A discharge summary closes the course; the account shows the balance."
+          }
+        ],
+        "faq": [
+          {
+            "q": "Does raclinic calculate scores or scales?",
+            "a": "No. Limitations and progress are written by the therapist; no scores or scales are calculated."
+          },
+          {
+            "q": "Can a therapist work in more than one branch?",
+            "a": "Yes. Their hours are set per branch, and their sessions are booked where they work."
+          },
+          {
+            "q": "Have physiotherapists reviewed these tools?",
+            "a": "Not yet. They are a first version awaiting review by practitioners, used with demo data only for now."
+          }
+        ],
+        "closingTitle": "Ready to organize your physiotherapy center?"
       },
       "ent": {
         "name": "ENT clinics",
@@ -1013,7 +1418,100 @@
         ],
         "planned": [
           "Ear, nose and throat history and examination by region, with follow-up"
-        ]
+        ],
+        "tagline": "History and examination by region, follow-up",
+        "badge": "ENT solution",
+        "lead": "Short consultations, a busy waiting room and follow-ups, in one place: record history and examination per region — right and left ear, nose, throat and neck — and follow-up instructions.",
+        "highlights": [
+          "History by ear, nose and throat",
+          "Examination per region, right and left",
+          "Follow-up instructions"
+        ],
+        "shotAlt": "A real screenshot of the raclinic ENT examination, with demo data",
+        "floats": [
+          "Examination by region",
+          "Follow-up instructions"
+        ],
+        "problemsTitle": "What happens in an ENT clinic",
+        "problems": [
+          {
+            "title": "Many short consultations",
+            "body": "Short appointments back to back; any delay piles up for the rest of the day."
+          },
+          {
+            "title": "A busy waiting room",
+            "body": "Who arrived first? Seeing patients in order of arrival needs a clear list."
+          },
+          {
+            "title": "Right or left?",
+            "body": "Examining the ears means recording each side separately."
+          },
+          {
+            "title": "Follow-up",
+            "body": "Patients return days later, and the doctor needs what was written last time."
+          },
+          {
+            "title": "More than one doctor",
+            "body": "Each doctor has their own schedule; reception sees all of them."
+          },
+          {
+            "title": "The patient account",
+            "body": "A consultation and a procedure in the same visit need a clear invoice."
+          }
+        ],
+        "toolsTitle": "ENT tools in the visit record",
+        "tools": [
+          {
+            "title": "History by region",
+            "body": "Separate history for ear, nose and throat."
+          },
+          {
+            "title": "Examination by region",
+            "body": "Right ear, left ear, nose, throat and neck — each in its own field."
+          },
+          {
+            "title": "Follow-up instructions",
+            "body": "What the patient should do until the next visit."
+          },
+          {
+            "title": "The general visit record",
+            "body": "Reason, assessment and plan, as a draft then finalized, with dated addenda."
+          }
+        ],
+        "workflowTitle": "An ENT visit in raclinic",
+        "workflow": [
+          {
+            "title": "A short booking",
+            "body": "A short consultation slot with the right doctor, without clashes."
+          },
+          {
+            "title": "Seen in order",
+            "body": "A waiting queue in order of arrival."
+          },
+          {
+            "title": "Examination by region",
+            "body": "History and examination per region, and follow-up instructions."
+          },
+          {
+            "title": "Follow-up and billing",
+            "body": "A follow-up appointment, and the services on the patient account."
+          }
+        ],
+        "faq": [
+          {
+            "q": "Does raclinic support audiometry or devices?",
+            "a": "No. There are no measurement tools or device connections; the doctor writes history and examination."
+          },
+          {
+            "q": "Can the previous follow-up visit be seen?",
+            "a": "Yes, by the treating doctor and anyone the record is explicitly shared with."
+          },
+          {
+            "q": "Have doctors reviewed these tools?",
+            "a": "Not yet. They are a first version awaiting review by practicing clinicians, used with demo data only for now."
+          }
+        ],
+        "closingTitle": "Ready to organize your ENT clinic?"
       },
       "medicalCenters": {
         "name": "Multi-specialty medical centers",
@@ -1027,12 +1525,152 @@
         ],
         "planned": [
           "The specialty tools above, for each doctor’s specialty"
-        ]
+        ],
+        "tagline": "Several specialties and branches in one organization",
+        "badge": "Medical centers solution",
+        "lead": "Run several specialties and branches in one workspace: each branch offers the specialties you choose, patients share one file, and every team member sees only their branches and what their role allows.",
+        "highlights": [
+          "Different specialties per branch",
+          "One patient file across branches",
+          "Permissions by role and branch"
+        ],
+        "shotAlt": "A real screenshot of the raclinic 7-day appointments view, with demo data",
+        "floats": [
+          "Several branches",
+          "Filter by specialty"
+        ],
+        "problemsTitle": "What happens in a multi-specialty center",
+        "problems": [
+          {
+            "title": "Specialties in different branches",
+            "body": "Dentistry in one branch, physiotherapy in another, some doctors in both."
+          },
+          {
+            "title": "Duplicate files",
+            "body": "The same patient with a file in every department or branch."
+          },
+          {
+            "title": "Who sees what",
+            "body": "Reception in one branch does not need another branch; accountants do not need medical records."
+          },
+          {
+            "title": "The full picture for management",
+            "body": "Management wants today’s counts in every branch without clinical details."
+          },
+          {
+            "title": "Prices per branch",
+            "body": "The same service may cost differently between branches."
+          },
+          {
+            "title": "A changing team",
+            "body": "Adding or suspending a member must be quick and clear."
+          }
+        ],
+        "toolsTitle": "What raclinic gives centers",
+        "tools": [
+          {
+            "title": "Organization and branch specialties",
+            "body": "Enable the organization’s specialties, choose which each branch offers; doctors follow their specialties."
+          },
+          {
+            "title": "Specialty context",
+            "body": "Filter appointments and the queue by specialty, without changing anyone’s permissions."
+          },
+          {
+            "title": "Team and roles",
+            "body": "Six roles, each member with their branches; add, change and suspend from the team page."
+          },
+          {
+            "title": "Tools per specialty",
+            "body": "Dental, physiotherapy and ENT tools for each doctor according to their specialty."
+          }
+        ],
+        "workflowTitle": "Setting up a center in raclinic",
+        "workflow": [
+          {
+            "title": "Organization",
+            "body": "Define the center, its time zone and specialties."
+          },
+          {
+            "title": "Branches",
+            "body": "Add branches and choose each branch’s specialties."
+          },
+          {
+            "title": "Team",
+            "body": "Add doctors, reception and accountants, each with their branches."
+          },
+          {
+            "title": "Running",
+            "body": "Appointments, queue, records and finance across branches."
+          }
+        ],
+        "faq": [
+          {
+            "q": "Can a branch be added later?",
+            "a": "Yes. The owner or an admin adds branches and their specialties at any time."
+          },
+          {
+            "q": "Do accountants see medical records?",
+            "a": "No. Financial and administrative roles never see clinical record content."
+          },
+          {
+            "q": "Can a member work in only two branches?",
+            "a": "Yes. Each member is given the branches they can access."
+          }
+        ],
+        "closingTitle": "Ready to organize your medical center?"
       },
       "customCard": {
         "title": "Need something different?",
         "body": "Complex specialties such as radiology, or a system you run yourselves, are handled as separately scoped custom projects.",
-        "badge": "Custom project"
+        "badge": "Custom project",
+        "link": "Discuss your project"
+      },
+      "eyebrow": "Solutions",
+      "previewLabel": "Choose a solution to preview",
+      "catalogTitle": "All solutions",
+      "catalogLead": "Four solutions on the same hosted workspace, and a separate path for custom projects.",
+      "paper": {
+        "title": "Compared with paper and spreadsheets",
+        "lead": "What changes when you move from notebooks and spreadsheets to one workspace.",
+        "need": "Need",
+        "paperCol": "Paper and spreadsheets",
+        "rows": [
+          {
+            "need": "Preventing double bookings",
+            "paper": "Depends on attention",
+            "raclinic": "Checked at the moment of confirmation"
+          },
+          {
+            "need": "Who has arrived, who is waiting",
+            "paper": "Calling out, loose notes",
+            "raclinic": "A queue in order of arrival"
+          },
+          {
+            "need": "The patient file in every branch",
+            "paper": "Duplicate copies",
+            "raclinic": "One file shared by the branches"
+          },
+          {
+            "need": "Who sees what",
+            "paper": "The book is open to all",
+            "raclinic": "Permissions by role and branch"
+          },
+          {
+            "need": "Correcting a written record",
+            "paper": "Crossing out or rewriting",
+            "raclinic": "A dated addendum; the original stays"
+          },
+          {
+            "need": "Patient balance",
+            "paper": "Calculated by hand",
+            "raclinic": "A statement and balance per patient"
+          }
+        ]
+      },
+      "closing": {
+        "title": "Not quite what you need?",
+        "body": "Start with the hosted workspace, or tell us about your specific needs."
       }
     },
     "custom": {
@@ -1047,7 +1685,66 @@
         "The raclinic team reviews it.",
         "If a custom project can be discussed, you are contacted through the details you gave."
       ],
-      "noPromise": "Sending a request does not create an agreement. No delivery date, source-code transfer, support terms or price is promised on this site."
+      "noPromise": "Sending a request does not create an agreement. No delivery date, source-code transfer, support terms or price is promised on this site.",
+      "seeSaas": "The hosted workspace",
+      "forTitle": "Who custom projects are for",
+      "forPoints": [
+        "Radiology centers and similarly complex specialties",
+        "Organizations that want a separately run system",
+        "Needs the hosted workspace does not cover"
+      ],
+      "usesEyebrow": "Examples",
+      "usesTitle": "When a custom project fits",
+      "uses": [
+        {
+          "title": "Radiology centers",
+          "body": "A specialty with a different workflow, discussed as a separate project, not a subscription."
+        },
+        {
+          "title": "A system your organization runs",
+          "body": "When the organization needs its own system instead of the shared platform."
+        },
+        {
+          "title": "Specific requirements",
+          "body": "Needs the workspace does not cover today, scoped after review."
+        }
+      ],
+      "processEyebrow": "The steps",
+      "steps": [
+        {
+          "title": "Send the request",
+          "body": "Tell us about your organization and needs; it is stored with a reference."
+        },
+        {
+          "title": "Review",
+          "body": "The raclinic team reviews the request."
+        },
+        {
+          "title": "Discussion",
+          "body": "If a project can be discussed, we contact you using the details you gave."
+        },
+        {
+          "title": "A separate agreement",
+          "body": "Scope, schedule, support and price are set in an agreement for each project."
+        }
+      ],
+      "faqTitle": "Questions about custom projects",
+      "faq": [
+        {
+          "q": "Is radiology available in the hosted workspace?",
+          "a": "No. Radiology is discussed only as a separate custom project."
+        },
+        {
+          "q": "Does sending a request mean the project will happen?",
+          "a": "No. Sending a request is not an agreement and creates no commitment."
+        },
+        {
+          "q": "Will I get an automatic email?",
+          "a": "No automatic email is sent; you get a reference, and we contact you using the details you gave."
+        }
+      ],
+      "closingTitle": "Have a different project?",
+      "closingBody": "Tell us about it; there is no commitment before a separate agreement."
     },
     "inquiry": {
       "metaTitle": "Request a custom project",
@@ -1100,6 +1797,321 @@
       "title": "Page not found",
       "body": "This page does not exist. Browse the available solutions instead.",
       "solutions": "View solutions"
+    },
+    "sticky": {
+      "label": "Quick actions",
+      "text": "raclinic — a workspace for your clinic, in Arabic and English",
+      "dismiss": "Hide this bar"
+    },
+    "tour": {
+      "metaTitle": "raclinic product tour",
+      "metaDescription": "Real screenshots of the raclinic workspace with demo data: appointments, patients, visit records, specialty tools and finance.",
+      "eyebrow": "Product tour",
+      "title": "raclinic as it is",
+      "lead": "Real captures of the workspace, with demo data — not marketing drawings. Select any screenshot to see it full size.",
+      "statShots": "screenshots",
+      "statGroups": "areas",
+      "statLanguages": "languages",
+      "captured": "Screenshots last updated: {{date}}",
+      "related": "Related page",
+      "open": "Open the {{name}} screenshot full size",
+      "groups": {
+        "frontDesk": {
+          "title": "Front desk and appointments",
+          "body": "The daily schedule and the 7-day view."
+        },
+        "patients": {
+          "title": "Patients and home",
+          "body": "The patient registry and today’s dashboard."
+        },
+        "clinical": {
+          "title": "Clinical records",
+          "body": "The visit record and each specialty’s tools."
+        },
+        "finance": {
+          "title": "Finance",
+          "body": "Patient accounts, services and prices."
+        }
+      },
+      "shots": {
+        "appointments": {
+          "title": "Daily appointments",
+          "body": "Today’s appointments for all doctors, with statuses and actions.",
+          "alt": "Screenshot of the daily appointments page"
+        },
+        "week": {
+          "title": "7-day view",
+          "body": "The coming week in one view.",
+          "alt": "Screenshot of the 7-day appointments view"
+        },
+        "patients": {
+          "title": "Patient registry",
+          "body": "Search by name, file number or phone, with registration branches.",
+          "alt": "Screenshot of the patient registry"
+        },
+        "home": {
+          "title": "Home",
+          "body": "Today’s appointment counts by status, specialties and branches.",
+          "alt": "Screenshot of the workspace home page"
+        },
+        "record": {
+          "title": "Visit record",
+          "body": "A record written by the treating doctor, draft then finalized.",
+          "alt": "Screenshot of a visit record"
+        },
+        "dental": {
+          "title": "Tooth chart",
+          "body": "FDI notation, findings per tooth and plan items.",
+          "alt": "Screenshot of the tooth chart"
+        },
+        "physio": {
+          "title": "Physiotherapy course",
+          "body": "Goals and documented sessions out of the planned.",
+          "alt": "Screenshot of a physiotherapy course"
+        },
+        "ent": {
+          "title": "ENT examination",
+          "body": "History and examination by region.",
+          "alt": "Screenshot of the ENT examination"
+        },
+        "finance": {
+          "title": "Finance",
+          "body": "Finding a patient account and the period summary.",
+          "alt": "Screenshot of the finance page"
+        },
+        "services": {
+          "title": "Services and prices",
+          "body": "The service list with prices, per branch when needed.",
+          "alt": "Screenshot of the services and prices list"
+        }
+      },
+      "closingTitle": "Try it yourself",
+      "closingBody": "Create a workspace and try these screens with demo data."
+    },
+    "about": {
+      "metaTitle": "About raclinic",
+      "metaDescription": "raclinic is a cloud workspace for clinics and medical centers in Egypt and Saudi Arabia, built by Devware.",
+      "eyebrow": "About raclinic",
+      "title": "An Arabic-first workspace for clinics and medical centers",
+      "lead": "raclinic brings appointments, the front desk, patient files, visit records and finance into one workspace, for clinics and centers in Egypt and Saudi Arabia.",
+      "devwareTitle": "raclinic by Devware",
+      "devwareBody": "Devware builds and runs the raclinic platform. This page describes the product as it is today; we do not state customer numbers, certifications or results we have not measured.",
+      "purposeEyebrow": "Why raclinic",
+      "purposeTitle": "Organizing the clinic day, without complexity",
+      "purposeBody": "raclinic’s purpose is for the clinic team — reception, doctors, accountants and management — to work in one place, in their language, each seeing only what they need.",
+      "purposeBody2": "It starts with three specialties and multi-specialty centers; what the workspace does not cover — such as radiology — stays on a separate custom-project path.",
+      "principlesTitle": "Our principles",
+      "principles": [
+        {
+          "title": "Arabic first",
+          "body": "A complete right-to-left Arabic interface and complete English; each user picks their language."
+        },
+        {
+          "title": "Each organization’s data is its own",
+          "body": "Isolation between organizations and branches is enforced on the server, and every role has its permissions."
+        },
+        {
+          "title": "The doctor writes",
+          "body": "No automatic diagnosis or treatment suggestions; the treating doctor writes the record."
+        },
+        {
+          "title": "Clear about what exists",
+          "body": "We always separate what works today from what is planned."
+        }
+      ],
+      "offerEyebrow": "What we offer",
+      "offerTitle": "Solutions on one workspace, and a custom path",
+      "offerLead": "Four solutions on the hosted workspace; custom projects are separate.",
+      "statusEyebrow": "Current status",
+      "statusTitle": "A development version",
+      "statusBody": "raclinic is in development. These are not decided yet, and we will not announce them before they are.",
+      "statusPoints": [
+        "Prices and subscription plans",
+        "Hosting and where data is stored",
+        "Payment and email providers",
+        "Use of real patient data"
+      ],
+      "closingTitle": "Want to know more?",
+      "closingBody": "Try the workspace with demo data, or contact us."
+    },
+    "contact": {
+      "metaTitle": "Contact raclinic",
+      "metaDescription": "Request a demo of the raclinic workspace or send a question.",
+      "eyebrow": "Get in touch",
+      "title": "Let’s talk about your clinic",
+      "lead": "Request a demo or send a question. Your message is stored with a reference and reviewed by the raclinic team.",
+      "formLabel": "Contact form",
+      "infoLabel": "Contact information",
+      "channels": {
+        "email": "Email",
+        "phone": "Phone",
+        "hours": "Support hours"
+      },
+      "noChannelsTitle": "The form is the way to reach us for now",
+      "noChannelsBody": "No other contact channels are published yet; leave a way to reply to you in the form.",
+      "nextTitle": "What happens next",
+      "nextBody": "You get a reference; the raclinic team reviews your message and replies using the details you gave. No automatic email is sent.",
+      "customersTitle": "Already a raclinic customer?",
+      "customersBody": "For support, send a request from “Help & support” inside your workspace, so it reaches the team with your organization’s context.",
+      "customersLink": "Sign in to your workspace",
+      "customTitle": "A custom project or radiology?",
+      "customBody": "Custom-project requests have their own form that collects what we need to review them.",
+      "steps": {
+        "contact": "Contact",
+        "message": "Message"
+      },
+      "stepOf": "Step {{step}} of {{total}}",
+      "intentLegend": "What can we help you with?",
+      "intents": {
+        "demo": "A demo",
+        "question": "A question about raclinic",
+        "other": "Something else"
+      },
+      "specialty": "Specialty",
+      "message": "Your message",
+      "messageHint": "10 to 1500 characters, without any patient information.",
+      "next": "Continue",
+      "back": "Back",
+      "submit": "Send message",
+      "successTitle": "Your message has arrived",
+      "successBody": "Your message is stored with this reference. Keep it if you contact us about it.",
+      "successNoEmail": "No automatic email is sent; we will reply using the details you gave.",
+      "another": "Send another message"
+    },
+    "faqPage": {
+      "metaTitle": "Frequently asked questions",
+      "metaDescription": "Answers about raclinic: specialties, data, accounts, languages and custom projects.",
+      "eyebrow": "Help",
+      "title": "Frequently asked questions",
+      "lead": "Everything you need to know about raclinic. Can’t find your answer?",
+      "search": "Search the questions — e.g. branches, language, record",
+      "searchLabel": "Search the FAQ",
+      "categoriesLabel": "Question categories",
+      "all": "All",
+      "categories": {
+        "general": "General",
+        "specialties": "Specialties and records",
+        "data": "Data and privacy",
+        "account": "Account and subscription"
+      },
+      "showing": "Questions shown: {{count}}",
+      "noResults": "No questions match your search.",
+      "moreTitle": "Still have a question?",
+      "moreBody": "Send your question, and the raclinic team will review it.",
+      "items": [
+        {
+          "q": "Is raclinic suitable for a single-doctor clinic?",
+          "a": "Yes. Start with one branch and one doctor, and add doctors and branches later.",
+          "category": "general"
+        },
+        {
+          "q": "How are double bookings prevented?",
+          "a": "Free times come from the doctor’s hours and existing bookings, and the time is checked again when the booking is confirmed, in a single server-side operation.",
+          "category": "general"
+        },
+        {
+          "q": "Who can read a visit record?",
+          "a": "Only the treating doctor, and colleagues they explicitly share it with. Owners and admins see whether a visit is documented, not its content.",
+          "category": "specialties"
+        },
+        {
+          "q": "Are prescriptions and attachments available?",
+          "a": "Not yet. Prescriptions and attachments are planned and are not part of the workspace today.",
+          "category": "specialties"
+        },
+        {
+          "q": "Is my organization’s data separate from others?",
+          "a": "Yes. All of an organization’s data belongs to it, isolation is enforced on the server for every request, and members reach only their branches.",
+          "category": "data"
+        },
+        {
+          "q": "Where is data stored?",
+          "a": "Hosting and data location are not decided yet; this is a development version using demo data only.",
+          "category": "data"
+        },
+        {
+          "q": "Can the raclinic team see patient data?",
+          "a": "The platform operator console shows only metadata about organizations and subscriptions, never patients, appointments or records.",
+          "category": "data"
+        },
+        {
+          "q": "How do I get support?",
+          "a": "Customers send a support request from “Help & support” inside the workspace; others can use the contact page.",
+          "category": "account"
+        },
+        {
+          "q": "Can I add team members?",
+          "a": "Yes. The owner or an admin adds members with a role and branches, and can send an email invitation when email is configured.",
+          "category": "account"
+        }
+      ]
+    },
+    "prose": {
+      "questions": "A question about this page?"
+    },
+    "security": {
+      "metaTitle": "Security and data protection",
+      "metaDescription": "How the raclinic workspace protects data: isolation between organizations, permissions, sessions and audit logs.",
+      "title": "Security and data protection",
+      "lead": "What the workspace does today to protect data, plainly and without claims.",
+      "sections": [
+        {
+          "title": "Isolation between organizations and branches",
+          "body": "All of an organization’s data belongs to it, and the server checks the organization and allowed branches on every request. Any id that is not yours is answered as if it did not exist."
+        },
+        {
+          "title": "Permissions by role",
+          "body": "Each of the six roles has defined permissions enforced by the server; hiding buttons in the interface is not the protection."
+        },
+        {
+          "title": "Clinical record privacy",
+          "body": "A visit record is read only by the treating doctor and colleagues they explicitly share it with for a set period, and every access is logged."
+        },
+        {
+          "title": "Sign-in and sessions",
+          "body": "Passwords are stored as Argon2id hashes; sessions live on the server behind a secure cookie, with protection against cross-site requests, and end after a period of inactivity."
+        },
+        {
+          "title": "Rate limits",
+          "body": "Sign-in, password recovery and public forms are rate limited, with counters shared between application servers."
+        },
+        {
+          "title": "Audit logs",
+          "body": "Important administrative, financial and clinical actions, and platform operator actions, are recorded in logs that are never edited."
+        }
+      ],
+      "pendingTitle": "Not decided yet",
+      "pendingBody": "Hosting and data location, two-step verification and retention periods are not decided yet. We announce no certifications or compliance; this is a development version with demo data only."
+    },
+    "privacy": {
+      "metaTitle": "Privacy",
+      "metaDescription": "What the raclinic website collects, why, and who sees it.",
+      "title": "How this website handles your data",
+      "lead": "A plain description of what the website collects today. A formal privacy policy has not been adopted yet.",
+      "sections": [
+        {
+          "title": "Contact and project forms",
+          "body": "When you send the “Contact us” or “Request a custom project” form, we store what you write: your name, how to reach you and your message, only to reply to you. Do not include patient information."
+        },
+        {
+          "title": "Who sees your message",
+          "body": "Only authorized raclinic platform operators. Contact details are partly masked, and revealing them in full is recorded in the platform audit."
+        },
+        {
+          "title": "Cookies and storage",
+          "body": "We use no tracking, analytics or advertising tools. A session cookie is used only after you sign in, and your chosen language is kept in your browser."
+        },
+        {
+          "title": "Email",
+          "body": "The website sends no automatic email when your message arrives; we reply by hand."
+        },
+        {
+          "title": "Retention",
+          "body": "How long messages and requests are kept is not decided yet; until it is, records are kept."
+        }
+      ],
+      "pendingTitle": "A formal policy before commercial launch",
+      "pendingBody": "A formal privacy policy will be published before raclinic is commercially available or real patient data is used."
     }
   },
   "specialtyContext": {
@@ -1702,7 +2714,8 @@
       "operators": "Operators",
       "audit": "Platform audit",
       "support": "Support",
-      "devMail": "Development mail"
+      "devMail": "Development mail",
+      "contactMessages": "Contact messages"
     },
     "roles": {
       "platform_admin": "Platform administrator",
@@ -1727,7 +2740,8 @@
       "idle": "Operator idle sign-out",
       "idleMinutes": "after {{count}} minutes",
       "openSupport": "Open support requests",
-      "latency": "{{ms}} ms"
+      "latency": "{{ms}} ms",
+      "newContact": "New contact messages"
     },
     "reconcile": {
       "title": "Reconciliation",
@@ -1896,7 +2910,8 @@
         "operator": "Operator",
         "plan": "Plan",
         "inquiry": "Inquiry",
-        "support_request": "Support request"
+        "support_request": "Support request",
+        "contact_message": "Contact message"
       },
       "actions": {
         "billing": {
@@ -1953,6 +2968,10 @@
           "request_closed": "Support request closed",
           "request_created": "Support request created",
           "status_changed": "Support request status changed"
+        },
+        "contact": {
+          "contact_revealed": "Contact message details revealed",
+          "status_changed": "Contact message status changed"
         }
       }
     },
@@ -2007,6 +3026,14 @@
         "grace_ended": "Grace period ended",
         "awaiting_provider": "Period ended"
       }
+    },
+    "contact": {
+      "subtitle": "Messages from the public contact page. Contact details stay masked until revealed.",
+      "none": "No messages.",
+      "back": "Back to contact messages",
+      "organization": "Organization",
+      "specialty": "Specialty",
+      "message": "Message"
     }
   },
   "account": {

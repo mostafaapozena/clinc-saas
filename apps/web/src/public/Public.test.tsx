@@ -23,6 +23,7 @@ const KNOWN_ROUTES = [
   new RegExp(`^/solutions/(${SOLUTIONS.map((s) => s.slug).join('|')})$`),
   /^\/custom-solutions$/,
   /^\/custom-solutions\/request(\?interest=[a-z_]+)?$/,
+  /^\/(tour|about|contact|faq|security|privacy)$/,
   /^\/start(\?(specialty=[a-z]+|type=medical_center))?$/,
   /^\/login$/,
   /^\/status$/,

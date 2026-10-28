@@ -4,6 +4,8 @@ export {
   OperatorDevMailPage,
   OperatorSupportPage,
   OperatorSupportRequestPage,
+  OperatorContactMessagePage,
+  OperatorContactMessagesPage,
   OperatorInquiriesPage,
   OperatorInquiryPage,
   OperatorOperatorsPage,
