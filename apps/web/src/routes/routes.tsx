@@ -81,6 +81,7 @@ const BudgetsPage = named(workspace, 'BudgetsPage');
 const CashFlowPage = named(workspace, 'CashFlowPage');
 const CommitmentsPage = named(workspace, 'CommitmentsPage');
 const StaffFundsPage = named(workspace, 'StaffFundsPage');
+const InstallmentsPage = named(workspace, 'InstallmentsPage');
 const AssetPage = named(workspace, 'AssetPage');
 const ReportsHubPage = named(workspace, 'ReportsHubPage');
 const ServicesPage = named(workspace, 'ServicesPage');
@@ -186,6 +187,7 @@ export const routes: RouteObject[] = [
           guarded('finance/services', 'finance.catalog.read', <ServicesPage />),
           guarded('finance/patients/:patientId', 'finance.account.read', <PatientAccountPage />),
           guarded('finance/invoices/:invoiceId', 'finance.account.read', <InvoicePage />),
+          guarded('finance/installments', 'finance.account.read', <InstallmentsPage />),
           guarded('finance/invoices/:invoiceId/print', 'finance.account.read', <InvoicePrintPage />),
           guarded('finance/payments/:paymentId/print', 'finance.account.read', <ReceiptPrintPage />),
           guarded('accounting', 'accounting.read', <AccountingPage />),

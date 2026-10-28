@@ -15,6 +15,7 @@ import { SettlementModel } from '../compensation/compensation.model.js';
 import { ChargeModel, InvoiceModel, PaymentModel } from '../finance/finance.model.js';
 import { CommitmentModel } from '../planning/planning.model.js';
 import { overdueStaffFunds } from '../staff-funds/staff-funds.routes.js';
+import { overdueInstallmentPlans } from '../installments/installments.routes.js';
 import { StockBalanceModel, StockItemModel } from '../inventory/inventory.model.js';
 import { PatientModel } from '../patients/patient.model.js';
 import { PractitionerModel } from '../practitioners/practitioner.model.js';
@@ -298,6 +299,9 @@ export function createFocusRouter() {
         staffFundsOverdue,
       };
     }
+
+    // Installment plans with an installment past due (patient finance, branch scope).
+    if (tenantCan(tenant, 'finance.account.read') && today) body.installmentsOverdue = await overdueInstallmentPlans(tenant, today);
 
     // Approvals waiting for this user.
     const approvals: Record<string, number> = {};

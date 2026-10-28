@@ -62,6 +62,8 @@ export const PERMISSION_MATRIX = {
   'finance.payment.record': FINANCE_DESK,
   'finance.discount.apply': ['owner', 'admin', 'accountant'],
   'finance.adjustment.manage': ['owner', 'admin', 'accountant'],
+  // Bad-debt write-off of an invoice's open balance (ERP milestone H6): the owner decides.
+  'finance.writeoff': ['owner'],
   'finance.account.read': FINANCE_DESK,
   'finance.report.read': ['owner', 'admin', 'accountant'],
   // ERP milestone A — general ledger, cash and banks (docs/architecture/ACCOUNTING.md). Ledger-wide

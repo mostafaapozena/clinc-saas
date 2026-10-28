@@ -279,7 +279,8 @@ export interface Adjustment {
   organizationId: Types.ObjectId;
   branchId: Types.ObjectId;
   patientId: Types.ObjectId;
-  type: 'credit_note' | 'refund';
+  /** write_off: bad debt written off by the owner (docs/architecture/INSTALLMENTS.md). */
+  type: 'credit_note' | 'refund' | 'write_off';
   number: string;
   invoiceId: Types.ObjectId | null;
   paymentId: Types.ObjectId | null;
@@ -296,7 +297,7 @@ const adjustmentSchema = new Schema<Adjustment>(
     organizationId: ref('Organization'),
     branchId: ref('Branch'),
     patientId: ref('Patient'),
-    type: { type: String, enum: ['credit_note', 'refund'], required: true },
+    type: { type: String, enum: ['credit_note', 'refund', 'write_off'], required: true },
     number: { type: String, required: true },
     invoiceId: { type: Schema.Types.ObjectId, ref: 'Invoice', default: null },
     paymentId: { type: Schema.Types.ObjectId, ref: 'Payment', default: null },

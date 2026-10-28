@@ -604,7 +604,11 @@
     "NOT_CUSTODY": "Only custody is settled with receipts.",
     "ASSET_NOT_CAPITALIZED": "Only equipment capitalized through a supplier bill is depreciated.",
     "DEPRECIATION_STARTED": "Depreciation was already posted for this device; the method no longer changes.",
-    "UNSUPPORTED_IMAGE": "The file is not a PNG, JPEG or WebP image of its declared type."
+    "UNSUPPORTED_IMAGE": "The file is not a PNG, JPEG or WebP image of its declared type.",
+    "PLAN_EXISTS": "This invoice already has an active installment plan.",
+    "INVOICE_NOT_OPEN": "Only an issued invoice with an open balance can be put on installments.",
+    "PLAN_CANCELLED": "This plan was cancelled.",
+    "PLAN_COMPLETED": "Nothing is left to schedule."
   },
   "validation": {
     "required": "This field is required.",
@@ -2719,7 +2723,8 @@
       "payment": "Receipt",
       "payment_reversal": "Receipt reversed",
       "credit_note": "Credit note",
-      "refund": "Refund"
+      "refund": "Refund",
+      "write_off": "Written off"
     },
     "invoice": "Invoice",
     "receipt": "Receipt",
@@ -3594,6 +3599,9 @@
       },
       "staff_fund": {
         "default": "Advance or custody"
+      },
+      "write_off": {
+        "default": "Write-off"
       }
     },
     "chart": {
@@ -3640,7 +3648,8 @@
       "staffAdvances": "Employee advances",
       "staffCustody": "Petty cash custody",
       "accumulatedDepreciation": "Accumulated depreciation",
-      "depreciationExpense": "Depreciation"
+      "depreciationExpense": "Depreciation",
+      "badDebts": "Bad debts"
     }
   },
   "cash": {
@@ -4221,7 +4230,8 @@
       }
     },
     "commitmentsDue": "{{count}} recurring commitments due within 7 days or overdue",
-    "staffFundsOverdue": "{{count}} advances or custody amounts are past their settlement date"
+    "staffFundsOverdue": "{{count}} advances or custody amounts are past their settlement date",
+    "installmentsOverdue": "{{count}} installment plans have a missed installment"
   },
   "assets": {
     "title": "Equipment and maintenance",
@@ -4377,6 +4387,10 @@
       "staffFunds": {
         "title": "Open advances and custody",
         "body": "What each team member holds: returned, spent with receipts, written off, and overdue"
+      },
+      "installments": {
+        "title": "Installment plans",
+        "body": "Overdue, current and completed installments on patient invoices"
       }
     }
   },
@@ -4518,5 +4532,45 @@
     "writeOffNotice": "The rest ({{amount}}) becomes an expense; only a reversing entry undoes it. It is recorded in the audit log.",
     "confirm": "Confirm and post",
     "saved": "Posted."
+  },
+  "installments": {
+    "pageTitle": "Installment plans",
+    "subtitle": "The open balance of patient invoices, in installments. Receipts are recorded as usual and counted from the invoice itself.",
+    "plans": "Plans",
+    "noPlans": "No plans here.",
+    "title": "Installments",
+    "none": "The open balance of {{balance}} is not on installments.",
+    "count": "Number of installments",
+    "firstDue": "First due date",
+    "generate": "Split monthly",
+    "dueDate": "Due date",
+    "amount": "Amount",
+    "covered": "Paid",
+    "state": "Status",
+    "states": {
+      "paid": "Paid",
+      "partial": "Part paid",
+      "due": "Due",
+      "overdue": "Overdue"
+    },
+    "planStatus": {
+      "active": "Current",
+      "overdue": "Overdue",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "sumMismatch": "The installments add up to {{sum}}; they must equal {{total}}.",
+    "create": "Create installment plan",
+    "created": "Installment plan created.",
+    "progress": "{{settled}} of {{total}} paid · {{remaining}} left",
+    "revised": "Rescheduled {{count}} times",
+    "reschedule": "Reschedule what is left",
+    "saveSchedule": "Save new schedule",
+    "rescheduled": "Rescheduled.",
+    "reason": "Reason",
+    "nextDue": "next installment {{date}}",
+    "writeOff": "Write off as bad debt",
+    "writeOffNotice": "Owner only: it lowers the open balance ({{balance}}) and posts a bad-debt expense. Only a reversing entry undoes it; it is audited.",
+    "writtenOff": "Written off."
   }
 }

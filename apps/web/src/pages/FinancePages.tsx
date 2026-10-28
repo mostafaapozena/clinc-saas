@@ -3,6 +3,7 @@ import { useDeferredValue, useEffect, useRef, useState, type FormEvent } from 'r
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 import { OrganizationLetterhead } from '../components/OrganizationProfile';
+import { InvoiceInstallments } from './InstallmentPages';
 import { Icon, type IconName } from '../components/Icon';
 import { PageHeader } from '../components/PageHeader';
 import { EmptyState, ErrorState, Field, Loading, Notice } from '../components/ui';
@@ -954,6 +955,7 @@ export function InvoicePage() {
         </div>
       )}
       <InvoiceTable invoice={inv} money={money} />
+      <InvoiceInstallments invoice={inv} />
       {inv.status === 'draft' && (
         <section className="card" aria-labelledby="draft-actions-title">
           <h2 id="draft-actions-title">{t('finance.draftActions')}</h2>

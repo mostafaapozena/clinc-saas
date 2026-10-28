@@ -1165,7 +1165,7 @@ export function createFinanceRouter() {
         type: a.type,
         number: a.number,
         debit: a.type === 'refund' ? a.amount : 0,
-        credit: a.type === 'credit_note' ? a.amount : 0,
+        credit: a.type === 'refund' ? 0 : a.amount,
         currency: a.currency,
       })),
     ].sort((a, b) => a.at.getTime() - b.at.getTime());
