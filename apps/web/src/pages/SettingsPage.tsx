@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { SESSION_KEY } from '../auth/session';
 import { ModuleSettings } from '../components/ModuleSettings';
 import { OrganizationProfileSettings } from '../components/OrganizationProfile';
+import { SettingsReset } from '../components/SettingsReset';
 import { PageHeader } from '../components/PageHeader';
 import { SpecialtyCheckboxes } from '../components/SpecialtyCheckboxes';
 import { Field, Notice } from '../components/ui';
@@ -66,6 +67,7 @@ export function SettingsPage() {
       <SpecialtySettings />
       <OrganizationProfileSettings />
       <ModuleSettings />
+      <SettingsReset />
     </>
   );
 }
