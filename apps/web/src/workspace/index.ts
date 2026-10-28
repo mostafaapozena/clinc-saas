@@ -10,6 +10,7 @@ export { ClinicalAuditPage } from '../pages/ClinicalAuditPage';
 export { FinancePage, InvoicePage, InvoicePrintPage, PatientAccountPage, ReceiptPrintPage, ServicesPage } from '../pages/FinancePages';
 export { AccountingPage, ChartPage, EntryPage, JournalPage, PeriodsPage, ReportsPage } from '../pages/AccountingPages';
 export { BankStatementPage, CashPage, CashSessionPage } from '../pages/CashPages';
+export { InventoryItemsPage, InventoryMovesPage, InventoryPage } from '../pages/InventoryPages';
 export { HomePage } from '../pages/HomePage';
 export { NotFoundInShell } from '../pages/NotFoundPage';
 export { PatientDetailPage } from '../pages/PatientDetailPage';

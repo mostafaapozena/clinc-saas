@@ -34,7 +34,7 @@ Legend:
 | --- | --- | --- |
 | Clinical services with branch prices and price snapshots on charges | ✅ | `finance.test.ts` |
 | Effective-dated prices | 🟡 | Price changes apply from now on; there is no future-dated schedule |
-| Stock items, units and conversions | ⛔ → milestone B | |
+| Stock items, units and conversions | ✅ | Milestone B; `inventory.test.ts` (validated integer factors, immutable once used) |
 | Non-stock purchases | ⛔ → milestone C | Bill lines to expense accounts |
 | Treatment packages | ➖ (E-12) | Rules undefined |
 
@@ -61,8 +61,8 @@ Legend:
 
 | Capability | State | Plan |
 | --- | --- | --- |
-| Warehouses, stock ledger, lots and expiry, FEFO, counts, adjustments, valuation | ⛔ | Milestone B |
-| Consumption from performed procedures | ⛔ | Milestone B |
+| Warehouses, stock ledger, lots and expiry, FEFO, counts, adjustments, valuation | ✅ | Milestone B; `inventory.test.ts` (moving average, concurrency, FEFO, expired lots) |
+| Consumption from performed procedures | ✅ | Milestone B; treating doctor, finalized records, once per item, linked returns |
 | Suppliers, PR, approval, RFQ, quotations, PO, receipts, bills, payments, returns, credit notes | ⛔ | Milestone C |
 | Expenses with approval | 🟡 | Cash-out vouchers exist (milestone A); expense bills come in milestone C |
 | Practitioner compensation | ⛔ | Milestone D |
@@ -77,4 +77,4 @@ Legend:
 | Physiotherapy assessment, course, sessions, discharge | ✅ | `specialty-records.test.ts` |
 | ENT visit template | ✅ | `specialty-records.test.ts` |
 | Specialty and role-specific home and navigation | 🟡 → milestone E | The home page shows specialty counts; navigation is the same for every specialty |
-| Materials linked to procedures | ⛔ → milestone B | |
+| Materials linked to procedures | ✅ | "Materials used" on the finalized record (milestone B) |

@@ -19,6 +19,8 @@ const memberships = {} as Record<Role, string>;
 let doctorPractitioner: string;
 let linkedPatient: string;
 let serviceId: string;
+let stockItemId: string;
+let warehouseId: string;
 
 // Until midnight: every role books several of today's 15-minute slots in the matrix.
 const everyDayAtA = () => [0, 1, 2, 3, 4, 5, 6].map((weekday) => ({ branchId: branchA, weekday, start: '08:00', end: '24:00' }));
@@ -46,6 +48,9 @@ beforeAll(async () => {
   serviceId = service.body.service.id;
   // The general ledger (ERP milestone A).
   expect((await send(owner, 'post', `/api/v1/orgs/${orgId}/accounting/setup`, { cutoverDate: '2026-11-01' })).status).toBe(201);
+  // Inventory (ERP milestone B): an item and a warehouse at branch A.
+  stockItemId = (await send(owner, 'post', `/api/v1/orgs/${orgId}/inventory/items`, { code: 'MATRIX', name: 'Matrix gloves', baseUnit: 'piece' })).body.item.id;
+  warehouseId = (await send(owner, 'post', `/api/v1/orgs/${orgId}/inventory/warehouses`, { name: 'Matrix store', branchId: branchA })).body.warehouse.id;
   await bookOk(owner, orgId, { patientId: linkedPatient, practitionerId: doctorPractitioner, branchId: branchA, date: '2026-11-20', time: '09:00' });
 });
 afterAll(() => dropTestDatabase());
@@ -291,6 +296,24 @@ const ACTIONS: Action[] = [
   },
   { name: 'list cashier sessions', allowed: FINANCE_DESK, run: (c) => c.agent.get(`/api/v1/orgs/${orgId}/cash/sessions`) },
   { name: 'list cash vouchers', allowed: ['owner', 'admin', 'accountant'], run: (c) => c.agent.get(`/api/v1/orgs/${orgId}/cash/vouchers`) },
+  // ERP milestone B — inventory
+  { name: 'read stock items', allowed: ['owner', 'admin', 'receptionist', 'accountant', 'doctor'], run: (c) => c.agent.get(`/api/v1/orgs/${orgId}/inventory/items`) },
+  { name: 'read stock alerts', allowed: ['owner', 'admin', 'receptionist', 'accountant', 'doctor'], run: (c) => c.agent.get(`/api/v1/orgs/${orgId}/inventory/alerts`) },
+  {
+    name: 'add a stock item',
+    allowed: ['owner', 'admin'],
+    run: (c) => send(c, 'post', `/api/v1/orgs/${orgId}/inventory/items`, { code: `INV-${++seq}`, name: 'Matrix item', baseUnit: 'piece' }),
+  },
+  {
+    name: 'record a stock operation',
+    allowed: ['owner', 'admin'],
+    run: (c) =>
+      c.agent
+        .post(`/api/v1/orgs/${orgId}/inventory/operations`)
+        .set('X-CSRF-Token', c.csrf)
+        .set('Idempotency-Key', `matrix-stock-${++seq}`)
+        .send({ type: 'opening', warehouseId, lines: [{ itemId: stockItemId, qty: 1, unitCost: 100 }] }),
+  },
   // Milestone 1 — clinical coverage and the clinical audit (capability-only: no role has it)
   { name: 'list clinical coverage (given and received)', allowed: ['doctor'], run: (c) => c.agent.get(`/api/v1/orgs/${orgId}/clinical/coverage`) },
   { name: 'read the clinical audit log (capability only)', allowed: [], run: (c) => c.agent.get(`/api/v1/orgs/${orgId}/clinical/audit`) },

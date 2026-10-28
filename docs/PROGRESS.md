@@ -10,7 +10,8 @@ Branch `phase-16/erp-accounting`. Scope, matrix, plan and decisions: [MEDICAL_ER
 - **Periods:** months close in order once ended; postings into closed months refused server-side; owner-only reopen of the latest month with a reason.
 - **Statements:** trial balance, general ledger, income and expenses (result per ledger, by branch), balance sheet, receivables aging, sub-ledger reconciliation, cutover dry run for opening balances.
 - **Cash and banks:** branch cashboxes and bank accounts, cashier sessions with opening and closing counts and posted differences, vouchers and two-sided transfers, CSV bank-statement matching.
-- **Next:** milestone B (inventory and consumables), then C (purchasing and payables), D (practitioner compensation), E (specialty workspaces).
+- **Milestone B (branch `phase-16/erp-inventory`):** stock items with units, branch warehouses, lots and expiry, moving-average valuation without drift, first-expiring-first picking, counts, write-offs, issues and transfers, materials used on finalized visit records (once per item, linked returns), alerts and reorder suggestions, stock ledger; postings to the ledger. Design: [architecture/INVENTORY.md](architecture/INVENTORY.md).
+- **Next:** C (purchasing and payables), D (practitioner compensation), E (specialty workspaces).
 
 ## UI polish: light and dark themes, review findings (merged)
 

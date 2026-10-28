@@ -13,6 +13,10 @@ import { runTransaction } from '../../db/transaction.js';
 import { localDateOf } from '../../time/local-time.js';
 import { AccountingSettingsModel, CashAccountModel, LedgerAccountModel } from '../accounting/accounting.model.js';
 import { createLedger } from '../accounting/accounting.setup.js';
+import { StockItemModel, WarehouseModel } from '../inventory/inventory.model.js';
+import { lockItem, saveDocument, stockIn, newId } from '../inventory/inventory.stock.js';
+import { ensureCounter } from '../finance/finance.model.js';
+import { prepareLedger } from '../accounting/accounting.posting.js';
 import { latestTemplate, parseTemplateData } from '../clinical/templates.js';
 import { MembershipModel } from '../memberships/membership.model.js';
 import { OrganizationModel } from '../organizations/organization.model.js';
@@ -116,6 +120,7 @@ export async function seedDemoData(password: string, now = clock.now()) {
       );
     }
     if (org.finance?.currency) await seedLedger(organizationId, ownerId, org.finance.currency, org.timeZone, [...branchIds.values()], now);
+    if (org.finance?.currency) await seedStock(organizationId, ownerId, org.timeZone, [...branchIds.values()], now);
   }
 
   return {
@@ -406,5 +411,47 @@ async function seedLedger(organizationId: Types.ObjectId, ownerId: Types.ObjectI
       );
       await CashAccountModel.create([{ organizationId, name: `Branch cashbox ${i + 1}`, kind: 'cash', branchId, accountId: ledger!._id }], { session });
     }
+  });
+}
+
+/** Synthetic medical supplies (ERP milestone B): a store per branch, a few items, opening stock once. */
+const DEMO_STOCK = [
+  { code: 'GLV-M', name: 'Examination gloves (M)', category: 'Disposables', baseUnit: 'piece', purchaseUnits: [{ unit: 'box', factor: 100 }], tracking: 'none' as const, reorderLevel: 100, qty: 400, unitCost: 150 },
+  { code: 'ANS-2', name: 'Local anesthetic cartridge', category: 'Medicines', baseUnit: 'cartridge', purchaseUnits: [{ unit: 'box', factor: 50 }], tracking: 'lot' as const, reorderLevel: 40, qty: 60, unitCost: 1800 },
+  { code: 'CMP-A2', name: 'Composite resin A2', category: 'Dental materials', baseUnit: 'syringe', purchaseUnits: [], tracking: 'lot' as const, reorderLevel: 5, qty: 8, unitCost: 32000 },
+  { code: 'TIP-EAR', name: 'Disposable ear speculum tips', category: 'Disposables', baseUnit: 'piece', purchaseUnits: [{ unit: 'pack', factor: 50 }], tracking: 'none' as const, reorderLevel: 50, qty: 30, unitCost: 120 },
+];
+async function seedStock(organizationId: Types.ObjectId, ownerId: Types.ObjectId, timeZone: string, branchIds: Types.ObjectId[], now: Date) {
+  if (await WarehouseModel.exists({ organizationId })) return;
+  const today = localDateOf(now, timeZone);
+  const ctx = { organizationId, userId: ownerId };
+  await ensureCounter(organizationId, `SD:${today.slice(0, 4)}`);
+  await prepareLedger(organizationId);
+  for (const [i, branchId] of branchIds.entries()) {
+    await WarehouseModel.create({ organizationId, branchId, name: `Main store ${i + 1}` });
+  }
+  for (const s of DEMO_STOCK) {
+    await StockItemModel.updateOne(
+      { organizationId, code: s.code },
+      { $setOnInsert: { name: s.name, category: s.category, baseUnit: s.baseUnit, purchaseUnits: s.purchaseUnits, tracking: s.tracking, reorderLevel: s.reorderLevel, createdBy: ownerId } },
+      { upsert: true },
+    );
+  }
+  const store = await WarehouseModel.findOne({ organizationId, branchId: branchIds[0] }).lean();
+  if (!store) return;
+  await runTransaction(async (session) => {
+    const moves = [];
+    for (const s of DEMO_STOCK) {
+      const doc = await StockItemModel.findOne({ organizationId, code: s.code }).session(session).lean();
+      const item = await lockItem(ctx, doc!._id, session);
+      moves.push(await stockIn(ctx, item, store, { qty: s.qty, lot: s.tracking === 'lot' ? `DEMO-${s.code}` : '', expiry: s.tracking === 'lot' ? addDays(today, s.code === 'ANS-2' ? 45 : 400) : null, value: s.qty * s.unitCost }, session));
+    }
+    await saveDocument(
+      ctx,
+      { _id: newId(), type: 'opening', date: today, warehouseId: store._id, toWarehouseId: null, branchId: store.branchId, reason: 'Synthetic demo stock', source: { encounterId: null, recordItemId: null, documentId: null }, sourceKey: null, reversalOf: null, idempotencyKey: 'demo-opening-stock', requestHash: 'demo' },
+      moves,
+      { debit: 'inventory', credit: 'openingEquity' },
+      session,
+    );
   });
 }

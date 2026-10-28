@@ -61,6 +61,9 @@ const PeriodsPage = named(workspace, 'PeriodsPage');
 const CashPage = named(workspace, 'CashPage');
 const CashSessionPage = named(workspace, 'CashSessionPage');
 const BankStatementPage = named(workspace, 'BankStatementPage');
+const InventoryPage = named(workspace, 'InventoryPage');
+const InventoryItemsPage = named(workspace, 'InventoryItemsPage');
+const InventoryMovesPage = named(workspace, 'InventoryMovesPage');
 const ServicesPage = named(workspace, 'ServicesPage');
 const PatientAccountPage = named(workspace, 'PatientAccountPage');
 const InvoicePage = named(workspace, 'InvoicePage');
@@ -175,6 +178,9 @@ export const routes: RouteObject[] = [
           guarded('cash', 'cash.session.operate', <CashPage />),
           guarded('cash/sessions/:sessionId', 'cash.session.operate', <CashSessionPage />),
           guarded('cash/accounts/:cashAccountId/statement', 'accounting.manage', <BankStatementPage />),
+          guarded('inventory', 'inventory.read', <InventoryPage />),
+          guarded('inventory/items', 'inventory.read', <InventoryItemsPage />),
+          guarded('inventory/moves', 'inventory.read', <InventoryMovesPage />),
           guarded('queue', 'queue.read', <QueuePage />),
           guarded('patients', 'patient.list', <PatientsPage />),
           guarded('patients/:patientId', 'patient.read', <PatientDetailPage />),
