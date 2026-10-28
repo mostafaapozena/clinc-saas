@@ -55,6 +55,7 @@ export type Focus = {
   };
   approvals?: { purchaseRequests?: number; directBills?: number; settlements?: number };
   stock?: { reorder: number; expiring: number };
+  installmentsOverdue?: number;
   equipment?: { maintenanceDue: number; outOfService: number };
 };
 
@@ -252,6 +253,11 @@ export function FocusPanel() {
             </p>
           )}
         </div>
+      )}
+      {Boolean(f.installmentsOverdue) && (
+        <p>
+          <Link to={`/app/${orgId}/finance/installments`}>{t('workspace.installmentsOverdue', { count: f.installmentsOverdue })}</Link>
+        </p>
       )}
       {(approvals > 0 || f.stock || f.equipment) && (
         <div className="focus-group">

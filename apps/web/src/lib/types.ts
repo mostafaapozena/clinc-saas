@@ -36,6 +36,7 @@ export type Permission =
   | 'finance.payment.record'
   | 'finance.discount.apply'
   | 'finance.adjustment.manage'
+  | 'finance.writeoff'
   | 'finance.account.read'
   | 'finance.report.read'
   | 'accounting.read'

@@ -604,7 +604,11 @@
     "NOT_CUSTODY": "التسوية بالإيصالات للعهد فقط.",
     "ASSET_NOT_CAPITALIZED": "الإهلاك للأجهزة المرسملة عبر فاتورة مورد فقط.",
     "DEPRECIATION_STARTED": "تم ترحيل إهلاك لهذا الجهاز بالفعل؛ الطريقة لا تتغير.",
-    "UNSUPPORTED_IMAGE": "الملف ليس صورة PNG أو JPEG أو WebP مطابقة لنوعها."
+    "UNSUPPORTED_IMAGE": "الملف ليس صورة PNG أو JPEG أو WebP مطابقة لنوعها.",
+    "PLAN_EXISTS": "لهذه الفاتورة خطة تقسيط نشطة بالفعل.",
+    "INVOICE_NOT_OPEN": "التقسيط لفاتورة صادرة لها رصيد مفتوح فقط.",
+    "PLAN_CANCELLED": "هذه الخطة ملغاة.",
+    "PLAN_COMPLETED": "لا يوجد متبقٍ لجدولته."
   },
   "validation": {
     "required": "هذا الحقل مطلوب.",
@@ -2719,7 +2723,8 @@
       "payment": "إيصال",
       "payment_reversal": "عكس إيصال",
       "credit_note": "إشعار دائن",
-      "refund": "استرداد"
+      "refund": "استرداد",
+      "write_off": "شطب دين معدوم"
     },
     "invoice": "فاتورة",
     "receipt": "إيصال",
@@ -3594,6 +3599,9 @@
       },
       "staff_fund": {
         "default": "سلفة أو عهدة"
+      },
+      "write_off": {
+        "default": "شطب دين"
       }
     },
     "chart": {
@@ -3640,7 +3648,8 @@
       "staffAdvances": "سلف الموظفين",
       "staffCustody": "العهد النقدية",
       "accumulatedDepreciation": "مجمع الإهلاك",
-      "depreciationExpense": "مصروف الإهلاك"
+      "depreciationExpense": "مصروف الإهلاك",
+      "badDebts": "ديون معدومة"
     }
   },
   "cash": {
@@ -4221,7 +4230,8 @@
       }
     },
     "commitmentsDue": "{{count}} التزام دوري مستحق خلال 7 أيام أو متأخر",
-    "staffFundsOverdue": "{{count}} سلفة أو عهدة تجاوزت موعد التسوية"
+    "staffFundsOverdue": "{{count}} سلفة أو عهدة تجاوزت موعد التسوية",
+    "installmentsOverdue": "{{count}} خطة تقسيط بها قسط متأخر"
   },
   "assets": {
     "title": "الأجهزة والصيانة",
@@ -4377,6 +4387,10 @@
       "staffFunds": {
         "title": "السلف والعهد المفتوحة",
         "body": "المسلَّم لكل موظف، ما رُدّ وما صُرف بإيصالات وما تم شطبه، والمتأخر"
+      },
+      "installments": {
+        "title": "خطط التقسيط",
+        "body": "الأقساط المتأخرة والجارية والمكتملة لفواتير المرضى"
       }
     }
   },
@@ -4518,5 +4532,45 @@
     "writeOffNotice": "سيُسجَّل المتبقي ({{amount}}) مصروفًا ولا يمكن التراجع إلا بقيد عكسي. يُسجَّل في سجل التدقيق.",
     "confirm": "تأكيد وترحيل",
     "saved": "تم الترحيل."
+  },
+  "installments": {
+    "pageTitle": "خطط التقسيط",
+    "subtitle": "تقسيط الرصيد المفتوح لفواتير المرضى. الدفعات تُسجَّل كالمعتاد وتُحتسب من الفاتورة نفسها.",
+    "plans": "الخطط",
+    "noPlans": "لا توجد خطط هنا.",
+    "title": "التقسيط",
+    "none": "الرصيد المفتوح {{balance}} غير مقسط.",
+    "count": "عدد الأقساط",
+    "firstDue": "أول استحقاق",
+    "generate": "توزيع شهري متساوٍ",
+    "dueDate": "تاريخ الاستحقاق",
+    "amount": "المبلغ",
+    "covered": "المسدد",
+    "state": "الحالة",
+    "states": {
+      "paid": "مسدد",
+      "partial": "مسدد جزئيًا",
+      "due": "مستحق",
+      "overdue": "متأخر"
+    },
+    "planStatus": {
+      "active": "جارية",
+      "overdue": "بها تأخير",
+      "completed": "مكتملة",
+      "cancelled": "ملغاة"
+    },
+    "sumMismatch": "مجموع الأقساط {{sum}} ويجب أن يساوي {{total}}.",
+    "create": "إنشاء خطة التقسيط",
+    "created": "تم إنشاء خطة التقسيط.",
+    "progress": "سُدد {{settled}} من {{total}} · المتبقي {{remaining}}",
+    "revised": "أعيدت جدولتها {{count}} مرة",
+    "reschedule": "إعادة جدولة المتبقي",
+    "saveSchedule": "حفظ الجدول الجديد",
+    "rescheduled": "تمت إعادة الجدولة.",
+    "reason": "السبب",
+    "nextDue": "القسط القادم {{date}}",
+    "writeOff": "شطب كدين معدوم",
+    "writeOffNotice": "الشطب للمالك فقط: يُخفض الرصيد المفتوح ({{balance}}) ويُرحَّل مصروف ديون معدومة. لا يُلغى إلا بقيد عكسي ويُسجَّل في التدقيق.",
+    "writtenOff": "تم الشطب."
   }
 }

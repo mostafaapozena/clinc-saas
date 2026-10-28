@@ -30,6 +30,7 @@ const GROUPS: { key: string; reports: Report[] }[] = [
     key: 'cash',
     reports: [
       { key: 'cashSessions', to: 'cash', icon: 'cash', permission: 'cash.session.review' },
+      { key: 'installments', to: 'finance/installments', icon: 'calendar', permission: 'finance.account.read' },
       { key: 'payables', to: 'purchasing/bills', icon: 'cart', permission: 'purchase.bill.manage', orgWide: true },
       { key: 'settlements', to: 'compensation', icon: 'users', permission: 'compensation.read', orgWide: true },
     ],

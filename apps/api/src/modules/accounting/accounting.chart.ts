@@ -264,6 +264,8 @@ export const CHART_TEMPLATE: readonly TemplateAccount[] = [
     name: 'Marketing',
   },
   { code: '6700', key: 'depreciationExpense', type: 'expense', parent: '6000', name: 'Depreciation' },
+  // Patient invoices written off by the owner (ERP milestone H6).
+  { code: '6950', key: 'badDebts', type: 'expense', parent: '6000', name: 'Bad debts' },
   {
     code: '6800',
     key: 'bankCharges',
