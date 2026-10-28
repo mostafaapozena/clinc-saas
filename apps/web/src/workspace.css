@@ -1461,3 +1461,18 @@
   inline-size: 100%;
   min-inline-size: 7rem;
 }
+
+/* Today's focus (role and specialty workspace): groups separated, metrics then their list. */
+.focus-group + .focus-group {
+  padding-block-start: var(--stack-group);
+  border-block-start: 1px solid var(--border);
+}
+
+.focus-group > * + * {
+  margin-block-start: var(--stack-related);
+}
+
+.focus-group h3 {
+  margin: 0;
+  font-size: 1rem;
+}

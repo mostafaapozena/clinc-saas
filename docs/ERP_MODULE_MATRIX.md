@@ -65,7 +65,7 @@ Legend:
 | Consumption from performed procedures | ✅ | Milestone B; treating doctor, finalized records, once per item, linked returns |
 | Suppliers, PR, approval, RFQ, quotations, PO, receipts, bills, payments, returns, credit notes | ✅ | Milestone C (`purchasing.test.ts`, full chain) |
 | Expenses with approval | ✅ | Direct expense bills with threshold approval (milestone C); cash-out vouchers (milestone A) |
-| Practitioner compensation | ⛔ | Milestone D |
+| Practitioner compensation | ✅ | Milestone D (`compensation.test.ts`: performed and invoiced bases, approval once, payments) |
 | Assets and maintenance | ⛔ | Milestone F |
 | People / payroll | ➖ (E-13) | Non-statutory employee records could be added later |
 
@@ -76,5 +76,5 @@ Legend:
 | Dentistry chart, per-tooth history, plan items and status | ✅ | `specialty-records.test.ts` |
 | Physiotherapy assessment, course, sessions, discharge | ✅ | `specialty-records.test.ts` |
 | ENT visit template | ✅ | `specialty-records.test.ts` |
-| Specialty and role-specific home and navigation | 🟡 → milestone E | The home page shows specialty counts; navigation is the same for every specialty |
+| Specialty and role-specific home and navigation | ✅ | Milestone E: "Today's focus" per role and the doctor's specialty worklist (`workspace-focus.test.ts`) |
 | Materials linked to procedures | ✅ | "Materials used" on the finalized record (milestone B) |

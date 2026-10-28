@@ -125,6 +125,7 @@ function Shell({ orgId, detail, branches }: { orgId: string; detail: OrgDetail; 
   // A doctor sees only their own schedule there; front desk and admins see every practitioner.
   const ownScheduleOnly = !value.can('appointment.book') && !value.can('practitioner.manage');
   type NavItem = { to: string; icon: IconName; label: string; end?: boolean };
+  const worklistIcon = ({ dentistry: 'tooth', physiotherapy: 'activity', ent: 'ear' } as Record<string, IconName>)[value.detail.membership.practitionerSpecialty ?? ''];
   // Grouped by area; permissions alone decide which items appear, and empty groups are dropped.
   const navGroups: { key: string; items: NavItem[] }[] = [
     { key: 'start', items: [{ to: `/app/${orgId}`, icon: 'home', label: t('nav.home'), end: true }] },
@@ -143,6 +144,10 @@ function Shell({ orgId, detail, branches }: { orgId: string; detail: OrgDetail; 
       key: 'records',
       items: [
         ...(value.can('finance.account.read') ? [{ to: `/app/${orgId}/finance`, icon: 'wallet' as const, label: t('nav.finance') }] : []),
+        // The doctor's specialty worklist: open plans (dentistry), active courses (physiotherapy), follow-ups (ENT).
+        ...(value.can('clinical.encounter.own') && worklistIcon
+          ? [{ to: `/app/${orgId}/worklist`, icon: worklistIcon, label: t(`nav.worklist.${value.detail.membership.practitionerSpecialty}`) }]
+          : []),
         ...(value.can('clinical.encounter.own') ? [{ to: `/app/${orgId}/coverage`, icon: 'share' as const, label: t('nav.coverage') }] : []),
         ...(value.can('clinical.audit.read') ? [{ to: `/app/${orgId}/clinical-audit`, icon: 'shield' as const, label: t('nav.clinicalAudit') }] : []),
       ],
@@ -155,6 +160,7 @@ function Shell({ orgId, detail, branches }: { orgId: string; detail: OrgDetail; 
         ...(value.can('inventory.read') ? [{ to: `/app/${orgId}/inventory`, icon: 'box' as const, label: t('nav.inventory') }] : []),
         // Purchasing in the menu for those who run it; anyone may still raise a request from the stock pages.
         ...(value.can('purchase.read') ? [{ to: `/app/${orgId}/purchasing`, icon: 'cart' as const, label: t('nav.purchasing') }] : []),
+        ...(value.can('compensation.read') || value.can('compensation.own.read') ? [{ to: `/app/${orgId}/compensation`, icon: 'users' as const, label: t('nav.compensation') }] : []),
       ],
     },
     {

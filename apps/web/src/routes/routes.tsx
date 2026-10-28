@@ -2,7 +2,7 @@ import { lazy, type ComponentType, type ReactNode } from 'react';
 import type { RouteObject } from 'react-router';
 import type { Permission } from '../lib/types';
 import { NotFoundPage } from '../pages/NotFoundPage';
-import { PublicOnly, RequireAuth, RequirePermission, WorkspaceRedirect } from './guards';
+import { PublicOnly, RequireAnyPermission, RequireAuth, RequirePermission, WorkspaceRedirect } from './guards';
 import { Loadable } from './Loadable';
 
 // Four lazily loaded chunks, so each audience downloads only its own code:
@@ -73,6 +73,9 @@ const PurchaseOrderPrintPage = named(workspace, 'PurchaseOrderPrintPage');
 const BillsPage = named(workspace, 'BillsPage');
 const BillPage = named(workspace, 'BillPage');
 const SuppliersPage = named(workspace, 'SuppliersPage');
+const CompensationPage = named(workspace, 'CompensationPage');
+const SettlementPage = named(workspace, 'SettlementPage');
+const WorklistPage = named(workspace, 'WorklistPage');
 const ServicesPage = named(workspace, 'ServicesPage');
 const PatientAccountPage = named(workspace, 'PatientAccountPage');
 const InvoicePage = named(workspace, 'InvoicePage');
@@ -199,6 +202,14 @@ export const routes: RouteObject[] = [
           guarded('purchasing/bills', 'purchase.bill.manage', <BillsPage />),
           guarded('purchasing/bills/:billId', 'purchase.bill.manage', <BillPage />),
           guarded('purchasing/suppliers', 'purchase.request', <SuppliersPage />),
+          {
+            path: 'compensation',
+            element: (
+              <RequireAnyPermission permissions={['compensation.read', 'compensation.own.read']}>{load(<CompensationPage />)}</RequireAnyPermission>
+            ),
+          },
+          guarded('compensation/settlements/:settlementId', 'compensation.read', <SettlementPage />),
+          guarded('worklist', 'clinical.encounter.own', <WorklistPage />),
           guarded('queue', 'queue.read', <QueuePage />),
           guarded('patients', 'patient.list', <PatientsPage />),
           guarded('patients/:patientId', 'patient.read', <PatientDetailPage />),

@@ -60,6 +60,11 @@ export type Permission =
   | 'purchase.receive'
   | 'purchase.bill.manage'
   | 'purchase.pay'
+  | 'compensation.read'
+  | 'compensation.manage'
+  | 'compensation.approve'
+  | 'compensation.pay'
+  | 'compensation.own.read'
   | 'subscription.read'
   | 'subscription.manage'
   | 'support.request'
@@ -124,6 +129,8 @@ export type OrgDetail = {
     permissions: Permission[];
     capabilities: Capability[];
     practitionerId: string | null;
+    /** Specialty of the member's own practitioner profile (shapes the doctor's workspace). */
+    practitionerSpecialty?: string | null;
   };
   stats: { accessibleBranches: number; activeMembers?: number };
 };

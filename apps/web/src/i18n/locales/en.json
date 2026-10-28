@@ -79,7 +79,13 @@
     "accounting": "Accounting",
     "cash": "Cash and banks",
     "inventory": "Inventory",
-    "purchasing": "Purchasing"
+    "purchasing": "Purchasing",
+    "compensation": "Practitioner fees",
+    "worklist": {
+      "dentistry": "Treatment plans",
+      "physiotherapy": "Treatment courses",
+      "ent": "Follow-ups"
+    }
   },
   "shell": {
     "skipToContent": "Skip to main content",
@@ -530,7 +536,11 @@
     "OVER_BILLING": "More than received and not yet billed.",
     "BILL_ALREADY_RECORDED": "This supplier invoice is already recorded.",
     "BILL_NOT_PENDING": "This bill is not waiting for approval.",
-    "OVER_PAYMENT": "This amount is more than the bill still asks for."
+    "OVER_PAYMENT": "This amount is more than the bill still asks for.",
+    "PERIOD_SETTLED": "Settled periods cannot be re-priced.",
+    "AGREEMENT_OVERLAP": "Another agreement starts on or after this date.",
+    "SETTLEMENT_NOT_DRAFT": "Approved settlements are never recomputed or changed.",
+    "ITEMS_ALREADY_SETTLED": "Some items were settled meanwhile; recompute this draft."
   },
   "validation": {
     "required": "This field is required.",
@@ -3974,5 +3984,134 @@
     "supplierName": "Supplier name",
     "phone": "Phone",
     "paymentTerms": "Payment terms (days)"
+  },
+  "compensation": {
+    "title": "Practitioner fees",
+    "subtitle": "Dated agreements, settlements from real work, approval, then payment",
+    "notPayroll": "These are practitioner fees under agreements, not payroll: no taxes, insurance or statutory deductions.",
+    "myStatements": "My fee statements",
+    "noStatements": "No approved settlements for you yet.",
+    "totalPaid": "Due {{total}} · paid {{paid}}",
+    "items": "{{count}} items",
+    "agreements": "Agreements",
+    "noAgreements": "No agreements.",
+    "terms": "{{percent}}% + {{fixed}} per unit",
+    "ended": "Ended",
+    "current": "Current",
+    "newAgreement": "New agreement",
+    "agreementHint": "It ends the current agreement the day before, and cannot start inside a settled period.",
+    "practitioner": "Practitioner",
+    "effectiveFrom": "Effective from",
+    "basis": "Basis",
+    "bases": {
+      "performed": "Services performed",
+      "invoiced": "Invoiced",
+      "collected": "Collected"
+    },
+    "percent": "Percentage %",
+    "fixedPerUnit": "Fixed amount per unit",
+    "saveAgreement": "Save agreement",
+    "agreementSaved": "Agreement saved.",
+    "newSettlement": "New settlement",
+    "settlementHint": "Computed from the period's data (up to yesterday) as a draft; nothing posts before approval.",
+    "from": "From",
+    "to": "To",
+    "compute": "Compute draft",
+    "settlements": "Settlements",
+    "noSettlements": "No settlements.",
+    "status": {
+      "draft": "Draft",
+      "approved": "Approved",
+      "paid": "Paid",
+      "cancelled": "Cancelled"
+    },
+    "settlement": "Settlement",
+    "settlementTitle": "Settlement {{number}}",
+    "back": "Back",
+    "lines": "Lines",
+    "noLines": "No items in this period.",
+    "date": "Date",
+    "item": "Item",
+    "base": "Base",
+    "fee": "Fee",
+    "sources": {
+      "charge": "Service performed",
+      "charge_void": "Service voided",
+      "invoice_line": "Invoice line",
+      "credit_note": "Credit note",
+      "allocation": "Collection",
+      "allocation_reversal": "Collection reversed"
+    },
+    "computed": "Computed",
+    "adjustment": "Adjustment",
+    "total": "Total",
+    "paidLabel": "Paid",
+    "draftNote": "A draft can be recomputed; once approved it is frozen and never recomputed.",
+    "recompute": "Recompute",
+    "approve": "Approve",
+    "cancel": "Cancel draft",
+    "addAdjustment": "Add adjustment",
+    "amount": "Amount",
+    "adjustmentHint": "Use a minus sign for a deduction, e.g. -50.",
+    "reason": "Reason",
+    "pay": "Pay fees",
+    "payFrom": "Pay from",
+    "paid": "Payment recorded."
+  },
+  "workspace": {
+    "focusTitle": "Today's focus",
+    "clinicalTitle": {
+      "dentistry": "My clinic — dentistry",
+      "physiotherapy": "My clinic — physiotherapy",
+      "ent": "My clinic — ENT",
+      "general": "My clinic"
+    },
+    "myVisitsToday": "My visits left today",
+    "waitingForMe": "Waiting for me",
+    "draftRecords": "Records to finalize",
+    "worklist": {
+      "metric": {
+        "dentistry": "Patients with open plans",
+        "physiotherapy": "Active treatment courses",
+        "ent": "Follow-ups not booked"
+      },
+      "empty": {
+        "dentistry": "No open treatment plans.",
+        "physiotherapy": "No active treatment courses.",
+        "ent": "Every follow-up is booked."
+      },
+      "openItems": "{{count}} open plan items",
+      "sessions": "{{done}} of {{planned}} sessions · {{upcoming}} booked",
+      "lastVisit": "Last visit {{date}}",
+      "nextVisit": "Next visit {{date}}",
+      "noFollowUpBooked": "No follow-up booked",
+      "seeAll": "See all ({{count}})",
+      "subtitle": {
+        "dentistry": "Your patients with unfinished plan items, from your finalized records",
+        "physiotherapy": "Open treatment courses: sessions done and booked",
+        "ent": "Visits of the last 60 days with follow-up instructions and no upcoming appointment"
+      }
+    },
+    "worklistTitle": "My worklist",
+    "noWorklist": "There is no worklist for your specialty yet.",
+    "frontDeskTitle": "Front desk today",
+    "expectedArrivals": "Expected arrivals",
+    "inQueue": "In the queue",
+    "chargesToInvoice": "Charges to invoice",
+    "sessionOpen": "Your session {{number}} is open",
+    "noSession": "Your cashier session is not open",
+    "financeTitle": "Finance",
+    "openReceivables": "Owed by patients",
+    "unallocated": "Unallocated receipts",
+    "payablesDue": "Due to suppliers within 7 days",
+    "openSessions": "Open cashier sessions",
+    "monthToClose": "{{month}} has ended and is not closed yet",
+    "managementTitle": "Waiting for you",
+    "requestsToApprove": "{{count}} purchase requests to approve",
+    "billsToApprove": "{{count}} expense bills to approve",
+    "settlementsToApprove": "{{count}} practitioner settlements in draft",
+    "itemsToReorder": "{{count}} items to reorder",
+    "lotsExpiring": "{{count}} lots expiring within 30 days",
+    "nothingWaiting": "Nothing is waiting for you."
   }
 }

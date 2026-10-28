@@ -109,7 +109,7 @@ payables aging.
 **Tests.** Over-receipt and over-billing refused; partial flows; the approval threshold; separation
 of duties; the end-to-end journey.
 
-## D. Practitioner compensation
+## D. Practitioner compensation — ✅ built (branch `phase-16/erp-compensation`)
 
 **Outcome.** Practitioner fees are computed from explicit, effective-dated agreements, then
 reviewed, approved and paid.
@@ -131,7 +131,7 @@ reviewed, approved and paid.
 | Approval | Practitioner fees | Practitioner fees payable |
 | Payment | Practitioner fees payable | Cashbox or bank |
 
-## E. Specialty-aware workspaces
+## E. Specialty-aware workspaces — ✅ built (with milestone D, branch `phase-16/erp-compensation`)
 
 **Outcome.** Doctors of each specialty see their priorities first:
 

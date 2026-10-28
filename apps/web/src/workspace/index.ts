@@ -12,6 +12,8 @@ export { AccountingPage, ChartPage, EntryPage, JournalPage, PeriodsPage, Reports
 export { BankStatementPage, CashPage, CashSessionPage } from '../pages/CashPages';
 export { InventoryItemsPage, InventoryMovesPage, InventoryPage } from '../pages/InventoryPages';
 export { BillPage, BillsPage, PurchaseOrderPage, PurchaseOrderPrintPage, PurchaseOrdersPage, PurchasingPage, RfqPage, RfqPrintPage, SuppliersPage } from '../pages/PurchasingPages';
+export { CompensationPage, SettlementPage } from '../pages/CompensationPages';
+export { WorklistPage } from '../pages/WorkspacePages';
 export { HomePage } from '../pages/HomePage';
 export { NotFoundInShell } from '../pages/NotFoundPage';
 export { PatientDetailPage } from '../pages/PatientDetailPage';

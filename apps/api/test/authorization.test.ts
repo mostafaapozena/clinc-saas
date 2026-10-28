@@ -296,6 +296,9 @@ const ACTIONS: Action[] = [
   },
   { name: 'list cashier sessions', allowed: FINANCE_DESK, run: (c) => c.agent.get(`/api/v1/orgs/${orgId}/cash/sessions`) },
   { name: 'list cash vouchers', allowed: ['owner', 'admin', 'accountant'], run: (c) => c.agent.get(`/api/v1/orgs/${orgId}/cash/vouchers`) },
+  // ERP milestone D — practitioner compensation (finance only; a doctor reads their own statements)
+  { name: 'list practitioner agreements', allowed: ['owner', 'admin'], run: (c) => c.agent.get(`/api/v1/orgs/${orgId}/compensation/agreements`) },
+  { name: 'read own fee statements', allowed: ['doctor'], run: (c) => c.agent.get(`/api/v1/orgs/${orgId}/compensation/my-settlements`) },
   // ERP milestone C — purchasing (requests by anyone who works; payables need the org-wide accountant/owner)
   { name: 'list suppliers', allowed: ['owner', 'admin', 'receptionist', 'accountant', 'doctor'], run: (c) => c.agent.get(`/api/v1/orgs/${orgId}/purchasing/suppliers`) },
   {

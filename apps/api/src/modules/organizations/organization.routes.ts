@@ -29,6 +29,8 @@ import { patientsRouter } from '../patients/patient.routes.js';
 import { practitionersRouter } from '../practitioners/practitioner.routes.js';
 import { futureActiveAppointments } from '../scheduling/schedule.service.js';
 import { ownPractitionerId } from '../scheduling/scheduling-context.js';
+import { PractitionerModel } from '../practitioners/practitioner.model.js';
+import { createFocusRouter } from '../workspace/focus.routes.js';
 import { assertCatalogSpecialties, specialtyListSchema } from '../specialties/specialty.service.js';
 import { createClinicalRouter } from '../clinical/clinical.routes.js';
 import { createCoverageRouter } from '../clinical/coverage.routes.js';
@@ -38,6 +40,7 @@ import { createAccountingRouter } from '../accounting/accounting.routes.js';
 import { createCashRouter } from '../accounting/cash.routes.js';
 import { createInventoryRouter } from '../inventory/inventory.routes.js';
 import { createPurchasingRouter } from '../purchasing/purchasing.routes.js';
+import { createCompensationRouter } from '../compensation/compensation.routes.js';
 import { createSubscriptionRouter } from '../platform/subscription.routes.js';
 import { restrictedWriteGuard } from '../platform/subscription.lifecycle.js';
 import type { Mailer } from '../mail/mailer.js';
@@ -106,6 +109,10 @@ async function membershipView(tenant: TenantContext) {
     permissions: effectivePermissions(tenant.role, tenant.capabilities),
     capabilities: tenant.capabilities,
     practitionerId: practitionerId ? String(practitionerId) : null,
+    // The own practitioner profile's specialty shapes the doctor's workspace (never their access).
+    practitionerSpecialty: practitionerId
+      ? ((await PractitionerModel.findOne({ organizationId: tenant.organizationId, _id: practitionerId }).select('specialtyCode').lean())?.specialtyCode ?? null)
+      : null,
   };
 }
 
@@ -271,6 +278,8 @@ export function createOrganizationsRouter(config: AppConfig, mailer: Mailer = { 
   router.use('/:orgId', createCashRouter());
   router.use('/:orgId', createInventoryRouter());
   router.use('/:orgId', createPurchasingRouter());
+  router.use('/:orgId', createCompensationRouter());
+  router.use('/:orgId', createFocusRouter());
   router.use('/:orgId', createSubscriptionRouter(config));
   router.use('/:orgId', createClinicalRouter());
   router.use('/:orgId/branches', branchesRouter);
