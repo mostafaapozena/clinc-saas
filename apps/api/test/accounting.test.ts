@@ -550,6 +550,20 @@ describe('cash and banks', () => {
 });
 
 describe('cutover and isolation', () => {
+  it('refuses a ledger start date before documents that were never posted', async () => {
+    const e = await buildClinic(app, 'acct3');
+    const o = (p: string) => `/api/v1/orgs/${e.orgId}${p}`;
+    await send(e.owner, 'put', o('/finance/settings'), { currency: 'EGP' });
+    const svc = (await send(e.owner, 'post', o('/finance/services'), { code: 'EXAM', name: 'Consultation', price: 10000 })).body.service.id;
+    const pat = await createPatient(e.receptionist, e.orgId, e.branchA);
+    const ch = await withKey(e.receptionist, '/finance/charges', { patientId: pat, branchId: e.branchA, serviceId: svc }, randomUUID(), e.orgId);
+    const draft = await send(e.receptionist, 'post', o('/finance/invoices'), { patientId: pat, branchId: e.branchA, chargeIds: [ch.body.charge.id] });
+    await withKey(e.receptionist, `/finance/invoices/${draft.body.invoice.id}/issue`, { version: draft.body.invoice.version }, randomUUID(), e.orgId);
+    const early = await send(e.owner, 'post', o('/accounting/setup'), { cutoverDate: '2026-11-01' });
+    expect(early.body.error.code).toBe('DOCUMENTS_AFTER_CUTOVER');
+    expect((await send(e.owner, 'post', o('/accounting/setup'), { cutoverDate: '2026-11-11' })).status).toBe(201);
+  });
+
   it('posts nothing before the cutover and proposes opening balances from the documents', async () => {
     const d = await buildClinic(app, 'acct2');
     const o = (p: string) => `/api/v1/orgs/${d.orgId}${p}`;

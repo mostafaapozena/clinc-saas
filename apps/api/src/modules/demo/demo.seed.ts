@@ -10,9 +10,9 @@ import { AddendumModel, EncounterModel } from '../clinical/clinical.model.js';
 import { CoverageModel } from '../clinical/coverage.model.js';
 import { FinanceServiceModel } from '../finance/finance.model.js';
 import { runTransaction } from '../../db/transaction.js';
-import { localDateOf } from '../../time/local-time.js';
+import { dayRange, localDateOf } from '../../time/local-time.js';
 import { AccountingSettingsModel, CashAccountModel, LedgerAccountModel } from '../accounting/accounting.model.js';
-import { createLedger } from '../accounting/accounting.setup.js';
+import { createLedger, documentsSince } from '../accounting/accounting.setup.js';
 import { StockItemModel, WarehouseModel } from '../inventory/inventory.model.js';
 import { SupplierModel } from '../purchasing/purchasing.model.js';
 import { lockItem, saveDocument, stockIn, newId } from '../inventory/inventory.stock.js';
@@ -405,7 +405,9 @@ function seedSpecialty(specialty: NonNullable<DemoEncounter['specialty']>, seede
  */
 async function seedLedger(organizationId: Types.ObjectId, ownerId: Types.ObjectId, currency: 'EGP' | 'SAR', timeZone: string, branchIds: Types.ObjectId[], now: Date) {
   if (await AccountingSettingsModel.exists({ organizationId })) return;
-  const cutoverDate = `${localDateOf(now, timeZone).slice(0, 7)}-01`;
+  // From the first day of the month, unless documents of this month exist already (then today).
+  const monthStart = `${localDateOf(now, timeZone).slice(0, 7)}-01`;
+  const cutoverDate = (await documentsSince(organizationId, dayRange(monthStart, timeZone).start)) ? localDateOf(now, timeZone) : monthStart;
   await runTransaction(async (session) => {
     await createLedger({ organizationId, userId: ownerId, currency, cutoverDate, requireCashSession: false }, session);
     const group = await LedgerAccountModel.findOne({ organizationId, templateKey: 'cashAndBanks' }).session(session).lean();

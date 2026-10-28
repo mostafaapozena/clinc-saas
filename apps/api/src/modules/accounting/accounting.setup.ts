@@ -3,6 +3,23 @@ import type { Currency } from '../finance/finance.model.js';
 import { CHART_TEMPLATE, CHART_TEMPLATE_ID, TEMPLATE_MAPPINGS } from './accounting.chart.js';
 import { AccountingSettingsModel, CashAccountModel, LedgerAccountModel, MAPPING_KEYS, type AccountingSettings } from './accounting.model.js';
 import type { Lean } from './accounting.posting.js';
+import { AdjustmentModel, InvoiceModel, PaymentModel } from '../finance/finance.model.js';
+import { StockDocumentModel } from '../inventory/inventory.model.js';
+
+/**
+ * Whether business documents already exist on or after the cutover instant. They were recorded
+ * before the ledger existed, so they were never posted: a cutover before them would leave the
+ * ledger short of them (opening entries only cover what came before the cutover).
+ */
+export async function documentsSince(organizationId: Types.ObjectId, since: Date): Promise<boolean> {
+  const found = await Promise.all([
+    InvoiceModel.exists({ organizationId, status: 'issued', issuedAt: { $gte: since } }),
+    PaymentModel.exists({ organizationId, receivedAt: { $gte: since } }),
+    AdjustmentModel.exists({ organizationId, createdAt: { $gte: since } }),
+    StockDocumentModel.exists({ organizationId, createdAt: { $gte: since } }),
+  ]);
+  return found.some(Boolean);
+}
 
 /**
  * Creates the template chart, the posting map and the organization-level cashbox and bank account,
