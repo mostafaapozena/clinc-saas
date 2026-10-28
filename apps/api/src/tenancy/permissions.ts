@@ -64,6 +64,16 @@ export const PERMISSION_MATRIX = {
   'finance.adjustment.manage': ['owner', 'admin', 'accountant'],
   'finance.account.read': FINANCE_DESK,
   'finance.report.read': ['owner', 'admin', 'accountant'],
+  // ERP milestone A — general ledger, cash and banks (docs/architecture/ACCOUNTING.md). Ledger-wide
+  // views also need organization-wide branch scope (checked in the routes).
+  'accounting.read': ['owner', 'admin', 'accountant'],
+  'accounting.manage': ['owner', 'accountant'],
+  'accounting.settings.manage': ['owner'],
+  'accounting.period.close': ['owner', 'accountant'],
+  'accounting.period.reopen': ['owner'],
+  'cash.session.operate': FINANCE_DESK,
+  'cash.session.review': ['owner', 'admin', 'accountant'],
+  'cash.voucher.create': ['owner', 'admin', 'accountant'],
   // Milestone 4 — the organization's platform subscription (what the clinic pays raclinic).
   'subscription.read': ['owner', 'admin'],
   'subscription.manage': ['owner'],

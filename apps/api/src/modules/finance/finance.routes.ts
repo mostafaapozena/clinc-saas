@@ -9,6 +9,16 @@ import { parseInput } from '../../http/validate.js';
 import { branchOwnedFilter, canAccessBranch } from '../../tenancy/scope.js';
 import { parseObjectId, requirePermission, tenantCan, tenantOf, type TenantContext } from '../../tenancy/tenant-context.js';
 import { clock } from '../../time/clock.js';
+import { prepareLedger } from '../accounting/accounting.posting.js';
+import {
+  postAllocation,
+  postCreditNote,
+  postInvoiceIssued,
+  postReceipt,
+  postReceiptReversal,
+  postRefund,
+  receiptDestination,
+} from '../accounting/finance-postings.js';
 import { AppointmentModel } from '../appointments/appointment.model.js';
 import { recordAudit, type AuditAction } from '../audit/audit-event.model.js';
 import { BranchModel } from '../branches/branch.model.js';
@@ -232,7 +242,12 @@ async function allocate(tenant: TenantContext, payment: Lean<Payment>, invoiceId
     { session, returnDocument: 'after' },
   ).lean<Lean<Payment>>();
   if (!updated) throw conflict('OVER_ALLOCATION', 'This receipt has no unallocated amount left for this');
+  // The ledger entry of this allocation (no-op without accounting or before its cutover).
+  await postAllocation(ledgerCtx(tenant), updated, updated.allocations.length, invoice.branchId, session);
   return updated;
+}
+function ledgerCtx(tenant: TenantContext) {
+  return { organizationId: tenant.organizationId, userId: tenant.userId };
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -702,6 +717,7 @@ export function createFinanceRouter() {
     const input = parseInput(issueSchema, req.body);
     const now = clock.now();
     await ensureCounter(tenant.organizationId, `INV:${yearOf(now)}`);
+    await prepareLedger(tenant.organizationId);
     const issued = await inTx(async (session) => {
       const current = await InvoiceModel.findOne(branchOwnedFilter(tenant, { _id: id }))
         .session(session)
@@ -723,6 +739,7 @@ export function createFinanceRouter() {
         { session, returnDocument: 'after' },
       ).lean<Lean<Invoice>>();
       if (!updated) throw conflict('VERSION_CONFLICT', 'This invoice was changed meanwhile');
+      await postInvoiceIssued(ledgerCtx(tenant), updated, session);
       await audit(
         tenant,
         'invoice.issued',
@@ -782,6 +799,7 @@ export function createFinanceRouter() {
     }
     const now = clock.now();
     await ensureCounter(tenant.organizationId, `CN:${yearOf(now)}`);
+    await prepareLedger(tenant.organizationId);
     try {
       const note = await inTx(async (session) => {
         const invoice = await InvoiceModel.findOneAndUpdate(
@@ -820,6 +838,7 @@ export function createFinanceRouter() {
           { session },
         );
         if (!created) throw new Error('Expected a credit note');
+        await postCreditNote(ledgerCtx(tenant), invoice, created.toObject() as Lean<Adjustment>, session);
         await audit(
           tenant,
           'credit_note.issued',
@@ -864,8 +883,10 @@ export function createFinanceRouter() {
     const currency = await organizationCurrency(tenant);
     const now = clock.now();
     await ensureCounter(tenant.organizationId, `RCPT:${yearOf(now)}`);
+    await prepareLedger(tenant.organizationId);
     try {
       const payment = await inTx(async (session) => {
+        const destination = await receiptDestination(ledgerCtx(tenant), branch._id, input.method, session);
         const seq = await nextNumber(tenant.organizationId, `RCPT:${yearOf(now)}`, session);
         const [created] = await PaymentModel.create(
           [
@@ -879,6 +900,7 @@ export function createFinanceRouter() {
               method: input.method,
               reference: input.reference,
               receivedAt: now,
+              ...destination,
               createdBy: tenant.userId,
               idempotencyKey: key,
               requestHash,
@@ -888,6 +910,7 @@ export function createFinanceRouter() {
         );
         if (!created) throw new Error('Expected a receipt');
         let current = created.toObject() as Lean<Payment>;
+        await postReceipt(ledgerCtx(tenant), current, session);
         for (const a of input.allocations) current = await allocate(tenant, current, new Types.ObjectId(a.invoiceId), a.amount, session);
         await audit(
           tenant,
@@ -948,6 +971,7 @@ export function createFinanceRouter() {
     const id = parseObjectId(req.params.paymentId);
     if (!id) throw notFound();
     const input = parseInput(allocationSchema, req.body);
+    await prepareLedger(tenant.organizationId);
     const updated = await inTx(async (session) => {
       const payment = await PaymentModel.findOne(branchOwnedFilter(tenant, { _id: id }))
         .session(session)
@@ -968,6 +992,7 @@ export function createFinanceRouter() {
     const id = parseObjectId(req.params.paymentId);
     if (!id) throw notFound();
     const { reason } = parseInput(z.object({ reason: reasonSchema }), req.body);
+    await prepareLedger(tenant.organizationId);
     const reversed = await inTx(async (session) => {
       const payment = await PaymentModel.findOneAndUpdate(
         branchOwnedFilter(tenant, { _id: id, status: 'active' as const, refunded: 0 }),
@@ -991,6 +1016,7 @@ export function createFinanceRouter() {
         );
         if (r.modifiedCount !== 1) throw new Error('Inconsistent invoice balance');
       }
+      await postReceiptReversal(ledgerCtx(tenant), payment, session);
       await audit(tenant, 'payment.reversed', { type: 'payment', id }, { amount: payment.amount, currency: payment.currency }, session);
       return payment;
     });
@@ -1017,6 +1043,7 @@ export function createFinanceRouter() {
     }
     const now = clock.now();
     await ensureCounter(tenant.organizationId, `REF:${yearOf(now)}`);
+    await prepareLedger(tenant.organizationId);
     try {
       const refund = await inTx(async (session) => {
         const payment = await PaymentModel.findOneAndUpdate(
@@ -1055,6 +1082,7 @@ export function createFinanceRouter() {
           { session },
         );
         if (!created) throw new Error('Expected a refund');
+        await postRefund(ledgerCtx(tenant), payment, created.toObject() as Lean<Adjustment>, session);
         await audit(
           tenant,
           'refund.recorded',

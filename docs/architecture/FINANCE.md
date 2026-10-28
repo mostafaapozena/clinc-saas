@@ -89,5 +89,5 @@ label; the browser's print dialog saves a PDF. No PDF is generated server-side.
 
 - Tax, VAT, e-invoicing, legal invoice numbering and retention periods (Q9, E4).
 - Insurance, installments, online payments for patients, multi-currency organizations.
-- Cash-drawer sessions, end-of-day closing and export to accounting software are not built.
+- Cashier sessions, the general ledger and period closing are built in ERP milestone A ([ACCOUNTING.md](ACCOUNTING.md)): from the ledger cutover, every invoice, credit note, receipt, allocation, refund and reversal posts a balanced entry in the same transaction. Export to external accounting software is not built.
 - Prices in the demo seed are synthetic examples, not tariffs.

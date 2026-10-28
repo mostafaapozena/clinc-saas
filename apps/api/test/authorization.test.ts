@@ -44,6 +44,8 @@ beforeAll(async () => {
   const service = await send(owner, 'post', `/api/v1/orgs/${orgId}/finance/services`, { code: 'MATRIX', name: 'Matrix service', price: 10000 });
   expect(service.status).toBe(201);
   serviceId = service.body.service.id;
+  // The general ledger (ERP milestone A).
+  expect((await send(owner, 'post', `/api/v1/orgs/${orgId}/accounting/setup`, { cutoverDate: '2026-11-01' })).status).toBe(201);
   await bookOk(owner, orgId, { patientId: linkedPatient, practitionerId: doctorPractitioner, branchId: branchA, date: '2026-11-20', time: '09:00' });
 });
 afterAll(() => dropTestDatabase());
@@ -270,6 +272,25 @@ const ACTIONS: Action[] = [
   },
   { name: "read a patient's account", allowed: FINANCE_DESK, run: (c) => c.agent.get(`/api/v1/orgs/${orgId}/finance/patients/${linkedPatient}/account`) },
   { name: 'read finance reports', allowed: ['owner', 'admin', 'accountant'], run: (c) => c.agent.get(`/api/v1/orgs/${orgId}/finance/reports/summary?from=2026-11-01&to=2026-11-30`) },
+  // ERP milestone A — general ledger, cash and banks
+  { name: 'read the accounting settings', allowed: FINANCE_DESK, run: (c) => c.agent.get(`/api/v1/orgs/${orgId}/accounting/settings`) },
+  { name: 'read the accounting periods', allowed: ['owner', 'admin', 'accountant'], run: (c) => c.agent.get(`/api/v1/orgs/${orgId}/accounting/periods`) },
+  { name: 'read receivables aging', allowed: ['owner', 'admin', 'accountant'], run: (c) => c.agent.get(`/api/v1/orgs/${orgId}/accounting/reports/receivables-aging`) },
+  {
+    name: 'add a ledger account',
+    allowed: ['owner', 'accountant'],
+    run: (c) => send(c, 'post', `/api/v1/orgs/${orgId}/accounting/accounts`, { code: `7${String(++seq).padStart(3, '0')}`, name: 'Matrix account', type: 'expense' }),
+  },
+  {
+    name: 'change the posting settings',
+    allowed: ['owner'],
+    run: async (c) => {
+      const { version } = (await owner.agent.get(`/api/v1/orgs/${orgId}/accounting/settings`)).body.settings;
+      return send(c, 'patch', `/api/v1/orgs/${orgId}/accounting/settings`, { requireCashSession: false, version });
+    },
+  },
+  { name: 'list cashier sessions', allowed: FINANCE_DESK, run: (c) => c.agent.get(`/api/v1/orgs/${orgId}/cash/sessions`) },
+  { name: 'list cash vouchers', allowed: ['owner', 'admin', 'accountant'], run: (c) => c.agent.get(`/api/v1/orgs/${orgId}/cash/vouchers`) },
   // Milestone 1 — clinical coverage and the clinical audit (capability-only: no role has it)
   { name: 'list clinical coverage (given and received)', allowed: ['doctor'], run: (c) => c.agent.get(`/api/v1/orgs/${orgId}/clinical/coverage`) },
   { name: 'read the clinical audit log (capability only)', allowed: [], run: (c) => c.agent.get(`/api/v1/orgs/${orgId}/clinical/audit`) },

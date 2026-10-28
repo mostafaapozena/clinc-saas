@@ -148,6 +148,13 @@ function Shell({ orgId, detail, branches }: { orgId: string; detail: OrgDetail; 
       ],
     },
     {
+      key: 'erp',
+      items: [
+        ...(value.can('accounting.read') ? [{ to: `/app/${orgId}/accounting`, icon: 'book' as const, label: t('nav.accounting') }] : []),
+        ...(value.can('cash.session.operate') ? [{ to: `/app/${orgId}/cash`, icon: 'cash' as const, label: t('nav.cash') }] : []),
+      ],
+    },
+    {
       key: 'organization',
       items: [
         { to: `/app/${orgId}/branches`, icon: 'building', label: t('nav.branches') },

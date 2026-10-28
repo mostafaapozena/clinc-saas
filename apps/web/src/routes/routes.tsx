@@ -52,6 +52,15 @@ const CoveragePage = named(workspace, 'CoveragePage');
 const CoverageRecordsPage = named(workspace, 'CoverageRecordsPage');
 const ClinicalAuditPage = named(workspace, 'ClinicalAuditPage');
 const FinancePage = named(workspace, 'FinancePage');
+const AccountingPage = named(workspace, 'AccountingPage');
+const JournalPage = named(workspace, 'JournalPage');
+const EntryPage = named(workspace, 'EntryPage');
+const ChartPage = named(workspace, 'ChartPage');
+const ReportsPage = named(workspace, 'ReportsPage');
+const PeriodsPage = named(workspace, 'PeriodsPage');
+const CashPage = named(workspace, 'CashPage');
+const CashSessionPage = named(workspace, 'CashSessionPage');
+const BankStatementPage = named(workspace, 'BankStatementPage');
 const ServicesPage = named(workspace, 'ServicesPage');
 const PatientAccountPage = named(workspace, 'PatientAccountPage');
 const InvoicePage = named(workspace, 'InvoicePage');
@@ -157,6 +166,15 @@ export const routes: RouteObject[] = [
           guarded('finance/invoices/:invoiceId', 'finance.account.read', <InvoicePage />),
           guarded('finance/invoices/:invoiceId/print', 'finance.account.read', <InvoicePrintPage />),
           guarded('finance/payments/:paymentId/print', 'finance.account.read', <ReceiptPrintPage />),
+          guarded('accounting', 'accounting.read', <AccountingPage />),
+          guarded('accounting/entries', 'accounting.read', <JournalPage />),
+          guarded('accounting/entries/:entryId', 'accounting.read', <EntryPage />),
+          guarded('accounting/accounts', 'accounting.read', <ChartPage />),
+          guarded('accounting/reports', 'accounting.read', <ReportsPage />),
+          guarded('accounting/periods', 'accounting.read', <PeriodsPage />),
+          guarded('cash', 'cash.session.operate', <CashPage />),
+          guarded('cash/sessions/:sessionId', 'cash.session.operate', <CashSessionPage />),
+          guarded('cash/accounts/:cashAccountId/statement', 'accounting.manage', <BankStatementPage />),
           guarded('queue', 'queue.read', <QueuePage />),
           guarded('patients', 'patient.list', <PatientsPage />),
           guarded('patients/:patientId', 'patient.read', <PatientDetailPage />),
