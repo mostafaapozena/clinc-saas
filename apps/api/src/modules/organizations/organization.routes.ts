@@ -35,6 +35,7 @@ import { ERP_MODULES, MODULE_REQUIRES, enabledModulesOf, requireModule, type Erp
 import { createAssetsRouter } from '../assets/assets.routes.js';
 import { createDepreciationRouter } from '../assets/depreciation.routes.js';
 import { createProfileRouter } from './profile.routes.js';
+import { createSettingsResetRouter } from './settings-reset.routes.js';
 import { createInstallmentsRouter } from '../installments/installments.routes.js';
 import { createPlanningRouter } from '../planning/planning.routes.js';
 import { createStaffFundsRouter } from '../staff-funds/staff-funds.routes.js';
@@ -321,6 +322,7 @@ export function createOrganizationsRouter(config: AppConfig, mailer: Mailer = { 
   router.use('/:orgId', createCompensationRouter());
   router.use('/:orgId', createFocusRouter());
   router.use('/:orgId', createProfileRouter());
+  router.use('/:orgId', createSettingsResetRouter());
   router.use('/:orgId', createInstallmentsRouter());
   router.use('/:orgId', createDepreciationRouter());
   router.use('/:orgId', createAssetsRouter());

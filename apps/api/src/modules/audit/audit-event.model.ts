@@ -5,6 +5,8 @@ export const AUDIT_ACTIONS = [
   'organization.created',
   'organization.updated',
   'organization.profile_updated',
+  'organization.settings_reset',
+  'organization.settings_restored',
   'organization.specialties_updated',
   'branch.created',
   'branch.updated',

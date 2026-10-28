@@ -608,7 +608,9 @@
     "PLAN_EXISTS": "This invoice already has an active installment plan.",
     "INVOICE_NOT_OPEN": "Only an issued invoice with an open balance can be put on installments.",
     "PLAN_CANCELLED": "This plan was cancelled.",
-    "PLAN_COMPLETED": "Nothing is left to schedule."
+    "PLAN_COMPLETED": "Nothing is left to schedule.",
+    "SETTINGS_CHANGED": "The settings changed since the preview; preview again.",
+    "ALREADY_RESTORED": "This copy was already restored."
   },
   "validation": {
     "required": "This field is required.",
@@ -4572,5 +4574,39 @@
     "writeOff": "Write off as bad debt",
     "writeOffNotice": "Owner only: it lowers the open balance ({{balance}}) and posts a bad-debt expense. Only a reversing entry undoes it; it is audited.",
     "writtenOff": "Written off."
+  },
+  "settingsReset": {
+    "title": "Reset settings",
+    "intro": "Puts the chosen settings back to their defaults only. Patients, invoices, entries and other records are never touched. A copy of the settings is kept first and can be restored.",
+    "sections": "What do you want to reset?",
+    "section": {
+      "modules": "Organization modules",
+      "accounting": "Posting accounts and cashier-session rule"
+    },
+    "sectionHint": {
+      "modules": "Your organization type's default modules",
+      "accounting": "The template chart's posting accounts; no session required"
+    },
+    "preview": "Preview changes",
+    "nothing": "The chosen settings are already at their defaults.",
+    "willChange": "{{count}} settings will change:",
+    "keys": {
+      "modules": "Enabled modules",
+      "mapping": "Posting account"
+    },
+    "skipped": "{{count}} default accounts are archived; their current mapping stays as it is.",
+    "warning": "The change applies to new documents at once. You can restore it from the history below.",
+    "typeName": "To confirm, type the organization's name: {{name}}",
+    "confirm": "Reset now",
+    "done": "Settings reset; the previous copy was kept.",
+    "history": "Reset history",
+    "kind": {
+      "reset": "Reset",
+      "restore": "Restore"
+    },
+    "changes": "{{count}} changes",
+    "restore": "Restore previous settings",
+    "restored": "Previous settings restored.",
+    "wasRestored": "Restored"
   }
 }
