@@ -21,6 +21,33 @@ not verified behaviour.
 | R6 | ERPNext, *POS opening and closing* (workflow pages) | An opening entry starts a session, with optional opening cash; the closing entry gathers the session's transactions and posts. Exactly how the difference is computed is not documented on the page we read (**not verified**). | Cash accountability per shift. | Cashier sessions: the counted opening is checked against the ledger, expected = opening + session movements, and the counted closing posts any difference with a note. | Expected and difference tested; one open session per cashbox (race tested). |
 | R7 | Odoo and ERPNext journals (**inferred** from general documentation) | Documents post to journals; entries are reversed rather than deleted. | Auditability. | Immutable entries, linked reversals, unique source keys. | Database hooks refuse edits and deletes (tested). |
 
+## Patterns adopted in brief 2
+
+These are common ERP practices, adapted to raclinic. No product's code, data or wording was reused.
+
+- **Sub-ledger documents for money held by people.**
+  - Advances and custody are documents with movements, the usual practice for employee advances
+    and petty-cash custody.
+  - Their accounts take no direct postings, so the open documents always equal the ledger balance.
+- **Plan against actual from the posted ledger only.**
+  - Budgets never post, and never block a posting unless the owner asks for it.
+  - Actual figures are the posted net per account and month.
+- **Direct-method cash flow by counter account.** Each cash entry is split exactly by its other
+  lines, so no allocation keys or estimates are needed.
+- **Straight-line depreciation with the rounding in the last period.**
+  - Inputs come per asset from the accountant.
+  - One posting per asset and month, keyed so that reruns are safe.
+  - Disposal clears accumulated depreciation and writes off the book value.
+- **Installments as a schedule on the receivable, not a new receivable.** Progress is read from
+  the invoice's settled amount, which avoids a second balance that could drift.
+- **Preview, confirmation and snapshot before a reset**, as for destructive admin actions:
+  - a state token rejects stale previews;
+  - typing the name confirms;
+  - restoring is possible.
+- **Uploads checked by content, not by name or declared type.**
+  - Raster images only.
+  - Served with `nosniff` and a sandbox CSP.
+
 ## What we deliberately did not adopt
 
 - Multi-company or intercompany accounting, and multi-currency revaluation. These are out of

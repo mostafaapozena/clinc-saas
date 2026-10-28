@@ -30,3 +30,33 @@ accountant or clinicians.
 3. Validate stock valuation and the write-off rules before real use (E-8).
 4. Define the treatment-package rules, if packages are wanted (E-12).
 5. Tax: VAT, e-invoicing and statutory numbering (existing items Q9 and E4).
+
+## Brief 2 decisions
+
+| Id | Decision | Status | Notes |
+| --- | --- | --- | --- |
+| M-1 | Module defaults per organization type (clinic: accounting, cash, inventory, purchasing; center: all) | Built (H1) | Older organizations keep everything on; the owner can change modules |
+| P-1 | Fiscal year = calendar year | Open | Needed for budgets and closing |
+| P-2 | No budget revisions beyond draft/approved (audit log keeps every change) | Open | |
+| P-3 | No budget availability check on purchases or vouchers | Open | |
+| P-4 | Cash-flow activity by account class (fixed assets, equity) | Open | Explicit mapping per account is possible later |
+| P-5 | Commitments do not create vouchers or bills by themselves | Open | |
+| S-1 | Advance deduction from pay waits for payroll | Open | |
+| S-2 | Custody shortfalls are written off or returned, not turned into advances | Open | |
+| S-3 | No approval step or limit before handing out advances | Open | |
+| S-4 | No self-service view of a member's own advances | Open | |
+| I-1 | No interest, late fees or down-payment rules on installments | Open | |
+| I-2 | No installment reminders (no messaging provider) | Open | |
+| I-3 | Write-offs do not reduce practitioner fees | Open | |
+| I-4 | One invoice per installment plan | Open | |
+| O-1 | Registration and tax numbers stored as entered; no statutory format | Built (H5) | Legal adviser to confirm formats if validation is wanted |
+| O-2 | Logo storage in MongoDB behind a replaceable adapter | Built (H5) | An object store would need a provider and cost decision |
+| R-1 | Settings reset covers modules and the accounting posting map only | Built (H7) | The identity, chart, cutover, currency and specialties are records, not defaults |
+
+### Open items added by brief 2
+
+1. The decisions marked *Open* above.
+2. Cheque layouts and lifecycle rules (cheques milestone).
+3. Consignment settlement cycle and pricing.
+4. Products to sell to patients, and price lists.
+5. Payroll components and approvals, from the owner's adviser.

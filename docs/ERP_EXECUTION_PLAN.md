@@ -164,3 +164,45 @@ journeys A to E from brief §18:
 ## Order and dependencies
 
 A → B → C (receipts need stock) → D → E → F → G. Each milestone keeps the full verify suite green.
+
+## Brief 2 (milestones H1–H7)
+
+| Milestone | Scope | PR | State |
+| --- | --- | --- | --- |
+| H1 | Specialty workspaces, preparation screen, context chooser, module activation | #23 | ✅ merged |
+| H2 | Budgets, budget against actual, cash flow, recurring commitments | #24 | ✅ merged |
+| H3 | Employee advances and petty-cash custody | #25 | ✅ merged |
+| H4 | Straight-line depreciation with a monthly run | #26 | ✅ merged |
+| H5 | Identity and legal profile, logo storage, letterhead | #27 | ✅ merged |
+| H6 | Installment plans, rescheduling, bad-debt write-offs | #28 | ✅ merged |
+| H7 | Safe settings reset with preview, snapshot and restore | #29 | merged after CI |
+| H8 | Requirements, acceptance and posting matrix documents | this PR | — |
+
+### Not built yet (next milestones, in order)
+
+1. **Cheques.**
+   - Received and issued cheques, with a lifecycle: under collection, cleared, bounced; issued,
+     presented, cleared, voided.
+   - Two document-only accounts (cheques under collection, cheques payable).
+   - Per-bank print templates with positions in millimetres.
+   - Owner input needed: the banks' cheque layouts, and whether amounts in words are required.
+2. **Consignment in and out.**
+   - Separate *ownership* from *custody* on stock balances: a consignor's goods are held and
+     consumed, but not owned.
+   - Consumption creates a payable to the consignor at the agreed price; returns go back without
+     postings.
+   - Consignment out works the other way round (goods at a partner, still owned).
+   - Owner input needed: settlement cycle and pricing.
+3. **Product sales and quotations.**
+   - Stock items on patient invoices: revenue from goods, cost of goods sold at moving average.
+   - Quotations that convert into invoices.
+   - Owner input needed: which products are sold, and any price lists.
+4. **HR and payroll foundations.**
+   - Employee records linked to memberships, configurable pay components, and monthly payroll
+     drafts approved by the owner.
+   - Advances deducted through the H3 documents (S-1).
+   - No statutory tax or insurance rules until the owner's adviser provides them.
+5. **Effective-dated prices.** Future-dated price lists per branch, with the price snapshot kept on
+   each charge.
+6. **Unified patient file.** One timeline of visits, records, charges, invoices, receipts and
+   installments, each under its existing permission.
