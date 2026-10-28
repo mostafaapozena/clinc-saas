@@ -16,7 +16,7 @@ import { AdjustmentModel, InvoiceModel, MAX_AMOUNT, PaymentModel } from '../fina
 import { OrganizationModel } from '../organizations/organization.model.js';
 import { PatientModel } from '../patients/patient.model.js';
 import { CHART_TEMPLATE_ID, MAPPING_TYPES } from './accounting.chart.js';
-import { createLedger } from './accounting.setup.js';
+import { createLedger, documentsSince } from './accounting.setup.js';
 import {
   ACCOUNT_TYPES,
   AccountingSettingsModel,
@@ -265,6 +265,10 @@ export function createAccountingRouter() {
     if (!org?.currency) throw conflict('CURRENCY_REQUIRED', 'An owner must choose the organization’s currency first');
     if (!org.timeZone) throw conflict('TIME_ZONE_REQUIRED', 'An owner must choose the organization’s time zone first');
     const currency = org.currency;
+    if (await documentsSince(tenant.organizationId, dayRange(input.cutoverDate, org.timeZone).start))
+      throw conflict('DOCUMENTS_AFTER_CUTOVER', 'Documents were recorded on or after this date; choose a later start date', {
+        earliest: await ledgerToday(tenant.organizationId),
+      });
     try {
       const settings = await runTransaction(async (session) => {
         if (

@@ -544,7 +544,8 @@
     "SETTLEMENT_NOT_DRAFT": "Approved settlements are never recomputed or changed.",
     "ITEMS_ALREADY_SETTLED": "Some items were settled meanwhile; recompute this draft.",
     "ASSET_CODE_TAKEN": "Another asset has this code.",
-    "ASSET_RETIRED": "This equipment is retired."
+    "ASSET_RETIRED": "This equipment is retired.",
+    "DOCUMENTS_AFTER_CUTOVER": "Documents were recorded on or after this date and never posted; choose a later start date (for example today)."
   },
   "validation": {
     "required": "This field is required.",

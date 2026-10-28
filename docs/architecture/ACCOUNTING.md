@@ -102,6 +102,10 @@ The receipt stores the chosen account and session (`ledgerAccountId`, `cashSessi
 
 - Setup takes a **cutover date**, preferably the first day of a month. Business events on or after
   it are posted; earlier documents are never reposted.
+- The cutover cannot be earlier than documents already recorded (invoices, receipts, credit notes,
+  refunds, stock documents): those were never posted, so setup refuses with
+  `409 DOCUMENTS_AFTER_CUTOVER`. The demo seed starts the ledger on the first day of the month,
+  or on today when documents of the month exist already.
 - `GET /accounting/migration/preview` is a dry run. It recomputes patient receivables and
   unallocated advances **at the start of the cutover date** from the documents, as of that instant:
   - credit notes, allocations and refunds after the cutover are excluded;
