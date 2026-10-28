@@ -32,7 +32,7 @@ export function Field({
   );
 }
 
-export function Notice({ kind, children }: { kind: 'success' | 'error' | 'info'; children: ReactNode }) {
+export function Notice({ kind, children }: { kind: 'success' | 'error' | 'info' | 'warning'; children: ReactNode }) {
   return (
     <div className={`notice notice--${kind}`} role={kind === 'error' ? 'alert' : 'status'}>
       {children}

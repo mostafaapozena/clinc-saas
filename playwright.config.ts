@@ -42,6 +42,8 @@ export default defineConfig({
         AUTH_RATE_LIMIT_MAX: '1000',
         SETUP_RATE_LIMIT_MAX: '1000',
         INQUIRY_RATE_LIMIT_MAX: '1000',
+        // The clearly labelled payment simulator (milestone 4); never a real provider in tests.
+        BILLING_PROVIDER: 'simulator',
       },
       reuseExistingServer: false,
       timeout: 90_000,

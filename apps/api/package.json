@@ -9,7 +9,8 @@
     "start": "node dist/server.js",
     "seed": "tsx src/scripts/seed.ts",
     "db:check": "tsx src/scripts/db-check.ts",
-    "inquiries": "tsx src/scripts/inquiries.ts"
+    "inquiries": "tsx src/scripts/inquiries.ts",
+    "operators": "tsx src/scripts/operators.ts"
   },
   "dependencies": {
     "@node-rs/argon2": "^2.2.2",

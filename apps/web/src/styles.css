@@ -1783,3 +1783,14 @@ input[aria-invalid='true'] {
     padding: 0;
   }
 }
+
+/* Platform operator console (milestone 4) */
+.operator-brand { display: inline-flex; align-items: center; gap: 0.75rem; }
+.operator-main { max-width: 72rem; width: 100%; margin-inline: auto; }
+.operator-nav { display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; margin-block-end: 1rem; border-block-end: 1px solid var(--border, #d9dee5); padding-block-end: 0.5rem; }
+.operator-nav .nav-link[aria-current='page'] { font-weight: 700; text-decoration: underline; }
+.badge--operator { background: #1f2a44; color: #fff; }
+.badge--subscription-active, .badge--checkout-completed, .badge--plan-status-active { background: #e3f4ea; color: #145c32; }
+.badge--subscription-past_due, .badge--subscription-restricted, .badge--checkout-failed { background: #fdf0d9; color: #7a4b00; }
+.badge--subscription-canceled, .badge--subscription-expired, .badge--subscription-none, .badge--checkout-expired, .badge--plan-status-retired { background: #eceff3; color: #3d4654; }
+.badge--checkout-open, .badge--plan-status-draft { background: #e6effc; color: #1d4b8f; }

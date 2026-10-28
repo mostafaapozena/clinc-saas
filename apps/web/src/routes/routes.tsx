@@ -5,14 +5,16 @@ import { NotFoundPage } from '../pages/NotFoundPage';
 import { PublicOnly, RequireAuth, RequirePermission, WorkspaceRedirect } from './guards';
 import { Loadable } from './Loadable';
 
-// Three lazily loaded chunks, so each audience downloads only its own code:
+// Four lazily loaded chunks, so each audience downloads only its own code:
 // - public website (home, solutions, custom projects) — no workspace code;
 // - account (sign-in, registration, onboarding, status);
-// - clinic workspace (everything under /app/:orgId).
+// - clinic workspace (everything under /app/:orgId);
+// - platform operator console (/operator), with its own sign-in and session.
 // The router, session handling, translations and fonts are shared by all of them.
 const publicSite = () => import('../public');
 const account = () => import('../account');
 const workspace = () => import('../workspace');
+const operatorConsole = () => import('../operator');
 
 function named<M extends Record<string, unknown>>(load: () => Promise<M>, name: keyof M) {
   return lazy(async () => ({ default: (await load())[name] as ComponentType }));
@@ -59,6 +61,18 @@ const TeamPage = named(workspace, 'TeamPage');
 const SettingsPage = named(workspace, 'SettingsPage');
 const ProfilePage = named(workspace, 'ProfilePage');
 const NotFoundInShell = named(workspace, 'NotFoundInShell');
+const SubscriptionPage = named(workspace, 'SubscriptionPage');
+const SimulatorCheckoutPage = named(workspace, 'SimulatorCheckoutPage');
+
+const OperatorRoot = named(operatorConsole, 'OperatorRoot');
+const OperatorOverviewPage = named(operatorConsole, 'OperatorOverviewPage');
+const OperatorOrganizationsPage = named(operatorConsole, 'OperatorOrganizationsPage');
+const OperatorOrganizationPage = named(operatorConsole, 'OperatorOrganizationPage');
+const OperatorPlansPage = named(operatorConsole, 'OperatorPlansPage');
+const OperatorInquiriesPage = named(operatorConsole, 'OperatorInquiriesPage');
+const OperatorInquiryPage = named(operatorConsole, 'OperatorInquiryPage');
+const OperatorOperatorsPage = named(operatorConsole, 'OperatorOperatorsPage');
+const OperatorAuditPage = named(operatorConsole, 'OperatorAuditPage');
 
 const load = (element: ReactNode) => <Loadable>{element}</Loadable>;
 
@@ -123,10 +137,27 @@ export const routes: RouteObject[] = [
           { path: 'branches', element: load(<BranchesPage />) },
           guarded('team', 'member.read', <TeamPage />),
           guarded('settings', 'organization.update', <SettingsPage />),
+          guarded('subscription', 'subscription.read', <SubscriptionPage />),
+          guarded('subscription/checkout/:checkoutId', 'subscription.manage', <SimulatorCheckoutPage />),
           { path: 'profile', element: load(<ProfilePage />) },
           { path: '*', element: load(<NotFoundInShell />) },
         ],
       },
+    ],
+  },
+  {
+    path: '/operator',
+    element: load(<OperatorRoot />),
+    children: [
+      { index: true, element: load(<OperatorOverviewPage />) },
+      { path: 'organizations', element: load(<OperatorOrganizationsPage />) },
+      { path: 'organizations/:orgId', element: load(<OperatorOrganizationPage />) },
+      { path: 'plans', element: load(<OperatorPlansPage />) },
+      { path: 'inquiries', element: load(<OperatorInquiriesPage />) },
+      { path: 'inquiries/:reference', element: load(<OperatorInquiryPage />) },
+      { path: 'operators', element: load(<OperatorOperatorsPage />) },
+      { path: 'audit', element: load(<OperatorAuditPage />) },
+      { path: '*', element: <NotFoundPage /> },
     ],
   },
   { path: '*', element: <NotFoundPage /> },

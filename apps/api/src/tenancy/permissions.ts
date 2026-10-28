@@ -64,6 +64,9 @@ export const PERMISSION_MATRIX = {
   'finance.adjustment.manage': ['owner', 'admin', 'accountant'],
   'finance.account.read': FINANCE_DESK,
   'finance.report.read': ['owner', 'admin', 'accountant'],
+  // Milestone 4 — the organization's platform subscription (what the clinic pays raclinic).
+  'subscription.read': ['owner', 'admin'],
+  'subscription.manage': ['owner'],
 } as const satisfies Record<string, readonly Role[]>;
 
 export type Permission = keyof typeof PERMISSION_MATRIX;

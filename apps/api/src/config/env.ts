@@ -45,6 +45,11 @@ const envSchema = z
     INQUIRY_RATE_LIMIT_MAX: z.coerce.number().int().min(1).max(10_000).default(5),
     // Off until the owner decides who may grant coverage for an unavailable doctor (B1).
     CLINICAL_LEAD_GRANTS_ENABLED: z.stringbool().default(false),
+    // Platform subscriptions (milestone 4). The simulator is for development and tests only.
+    BILLING_PROVIDER: z.enum(['none', 'simulator']).default('none'),
+    BILLING_SIMULATOR_SECRET: z.string().min(32).optional(),
+    // Stays "off" until the owner decides the commercial enforcement policy (B4).
+    SUBSCRIPTION_ENFORCEMENT: z.enum(['off', 'log', 'on']).default('off'),
   })
   .superRefine((env, ctx) => {
     if (env.NODE_ENV === 'production' && !env.SESSION_COOKIE_SECURE) {
@@ -52,6 +57,13 @@ const envSchema = z
         code: 'custom',
         path: ['SESSION_COOKIE_SECURE'],
         message: 'must be true in production (cookies may only travel over HTTPS)',
+      });
+    }
+    if (env.NODE_ENV === 'production' && env.BILLING_PROVIDER === 'simulator') {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['BILLING_PROVIDER'],
+        message: 'the payment simulator is refused in production',
       });
     }
   });

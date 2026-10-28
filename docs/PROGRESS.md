@@ -15,9 +15,35 @@ Decisions: [DECISIONS.md](DECISIONS.md). Next phase: [NEXT_PHASE_BRIEF.md](NEXT_
 | Planning docs | [#4](https://github.com/mostafaapozena/clinc-saas/pull/4) | `d8b93b9` | Merged 2026-10-20 (docs only, CI green) |
 | 4 — public site & onboarding | [#5](https://github.com/mostafaapozena/clinc-saas/pull/5) | — | Open, `phase-4/public-onboarding` → `main`; awaiting owner review of the public copy and the raclinic identity; not merged |
 | 5 — clinical visit records | [#6](https://github.com/mostafaapozena/clinc-saas/pull/6) | — | Open, `phase-5/visit-records` → `phase-4/public-onboarding` (stacked); awaiting owner review and clinician review; not merged |
+| M4 — subscriptions & operator console | [#10](https://github.com/mostafaapozena/clinc-saas/pull/10) | — | Open, `phase-9/subscriptions-operator` → `phase-8/clinic-finance` (stacked); awaiting review; payments simulated, enforcement off; not merged |
 | M3 — clinic finances | [#9](https://github.com/mostafaapozena/clinc-saas/pull/9) | — | Open, `phase-8/clinic-finance` → `phase-7/specialty-workspaces` (stacked); awaiting review; tax/e-invoicing not included; not merged |
 | M2 — specialty workspaces | [#8](https://github.com/mostafaapozena/clinc-saas/pull/8) | — | Open, `phase-7/specialty-workspaces` → `phase-6/clinical-continuity` (stacked); awaiting review and clinician review; not merged |
 | M1 — clinical coverage & audit view | [#7](https://github.com/mostafaapozena/clinc-saas/pull/7) | — | Open, `phase-6/clinical-continuity` → `phase-5/visit-records` (stacked); awaiting review and decision Q17; not merged |
+
+## Platform completion — milestone 4: subscriptions and operator console (in review)
+
+Branch `phase-9/subscriptions-operator` (PR [#10](https://github.com/mostafaapozena/clinc-saas/pull/10)), stacked on milestone 3. Design:
+[architecture/SUBSCRIPTIONS.md](architecture/SUBSCRIPTIONS.md),
+[architecture/PLATFORM.md](architecture/PLATFORM.md).
+
+Delivered: versioned plans without invented terms; development grants vs commercial
+subscriptions; subscription state machine with history and platform audit; customer subscription
+page; payment-provider boundary with a clearly labelled simulator (signed webhooks, ±300 s
+tolerance, event-id dedupe in the applying transaction, out-of-order handling, reconciliation);
+entitlement enforcement off/log/on (default off, B4); separate operator identity (accounts,
+cookie, CSRF, idle timeout, CLI provisioning, platform_admin/support) and an operator console
+(overview and health, organization metadata, plans, subscriptions, inquiries replacing the
+script for daily work, operators, platform audit). No patient/clinical access, no impersonation.
+
+Evidence (Codespace): `platform.test.ts` 21 tests (operator/tenant separation both ways, CSRF,
+idle and suspension, role limits, metadata-only, plan versioning, grant state machine, owner-only
+checkout priced from the plan, signature/timestamp/malformed rejection, 5 concurrent duplicate
+deliveries → one applied, out-of-order ignored, lost webhook found and applied by reconciliation,
+enforcement off/log/on, masked inquiries with audited reveal, CLI provisioning, production refuses
+the simulator); web `Subscription.test.tsx` 8 tests; `e2e/subscription.spec.ts` 2 journeys
+(desktop, Arabic → English; mobile support operator); 12/12 mutation checks caught. Bug found by a
+web test and fixed: operator sign-in/out did not refresh the console (session query removed while
+observed).
 
 ## Platform completion — milestone 3: clinic finances (in review)
 
