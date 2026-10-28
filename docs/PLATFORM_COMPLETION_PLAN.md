@@ -135,6 +135,8 @@ its diff re-checked and CI re-run.
 
 ## M6 — Integrated acceptance and delivery
 
+**Status: journeys 1–10 mapped and passing in the Codespace ([ACCEPTANCE.md](ACCEPTANCE.md)); completion matrix in [COMPLETION_MATRIX.md](COMPLETION_MATRIX.md); PR [#12](https://github.com/mostafaapozena/clinc-saas/pull/12) in review.**
+
 - **Outcome:** the connected journeys run end to end in the private preview as the right roles.
 - **Scope:** the browser journeys 1–10 of the brief, both languages, desktop and mobile;
   unauthorized attempts; completion matrix; final docs, inventory, decisions and handoff.

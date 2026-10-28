@@ -15,11 +15,37 @@ Decisions: [DECISIONS.md](DECISIONS.md). Next phase: [NEXT_PHASE_BRIEF.md](NEXT_
 | Planning docs | [#4](https://github.com/mostafaapozena/clinc-saas/pull/4) | `d8b93b9` | Merged 2026-10-20 (docs only, CI green) |
 | 4 — public site & onboarding | [#5](https://github.com/mostafaapozena/clinc-saas/pull/5) | — | Open, `phase-4/public-onboarding` → `main`; awaiting owner review of the public copy and the raclinic identity; not merged |
 | 5 — clinical visit records | [#6](https://github.com/mostafaapozena/clinc-saas/pull/6) | — | Open, `phase-5/visit-records` → `phase-4/public-onboarding` (stacked); awaiting owner review and clinician review; not merged |
+| M6 — integrated acceptance | [#12](https://github.com/mostafaapozena/clinc-saas/pull/12) | — | Open, `phase-11/acceptance` → `phase-10/support-operations` (stacked); awaiting review; not merged |
 | M5 — support & operations | [#11](https://github.com/mostafaapozena/clinc-saas/pull/11) | — | Open, `phase-10/support-operations` → `phase-9/subscriptions-operator` (stacked); awaiting review; email via development sink only; not merged |
 | M4 — subscriptions & operator console | [#10](https://github.com/mostafaapozena/clinc-saas/pull/10) | — | Open, `phase-9/subscriptions-operator` → `phase-8/clinic-finance` (stacked); awaiting review; payments simulated, enforcement off; not merged |
 | M3 — clinic finances | [#9](https://github.com/mostafaapozena/clinc-saas/pull/9) | — | Open, `phase-8/clinic-finance` → `phase-7/specialty-workspaces` (stacked); awaiting review; tax/e-invoicing not included; not merged |
 | M2 — specialty workspaces | [#8](https://github.com/mostafaapozena/clinc-saas/pull/8) | — | Open, `phase-7/specialty-workspaces` → `phase-6/clinical-continuity` (stacked); awaiting review and clinician review; not merged |
 | M1 — clinical coverage & audit view | [#7](https://github.com/mostafaapozena/clinc-saas/pull/7) | — | Open, `phase-6/clinical-continuity` → `phase-5/visit-records` (stacked); awaiting review and decision Q17; not merged |
+
+## Platform completion — milestone 6: integrated acceptance (in review)
+
+Branch `phase-11/acceptance` (PR [#12](https://github.com/mostafaapozena/clinc-saas/pull/12)), stacked on milestone 5.
+[ACCEPTANCE.md](ACCEPTANCE.md) maps the ten browser journeys of the brief to tests (language and
+device per journey); [COMPLETION_MATRIX.md](COMPLETION_MATRIX.md) states every capability as
+implemented and verified, simulated, awaiting credentials or decision, or deferred — nothing is
+sandbox-verified because no provider accounts exist.
+
+New `e2e/acceptance.spec.ts`: J2 (new patient → booking → arrival → dentistry record finalized;
+the desk sees status only), J6 (operator inquiry handling with audited reveal, no clinic routes),
+J7 (invitation → registration from the mail-sink link → membership with the invited role), J10
+(other organization, branch, role and console boundaries, in English), J9 (mobile pages). Bug
+found and fixed: the read-only invitation preview sat behind session CSRF, so a signed-in browser
+opening a link before its token loaded got 403 (regression API test added).
+
+Private preview (headless check from inside the Codespace, 2026-10-25, branch
+`phase-11/acceptance`, ports private): 15/15 read-only checks passed — public home, API readiness,
+owner subscription page (development grant, simulator labelled), help page (FAQ labelled as not
+AI, no invented contact), finance and profile sessions, no tokens or clinical text in browser
+storage, English subscription page (LTR), operator console overview and organization list,
+operator session refused by tenant routes, development mail page, mobile help page without
+horizontal scroll. The development database was seeded without `--reset` (manually created
+records kept) with `BILLING_PROVIDER=simulator` and `MAIL_PROVIDER=dev_sink` in the Codespace
+`.env` only. This is not a check in the owner's own browser.
 
 ## Platform completion — milestone 5: support and operational readiness (in review)
 
@@ -386,16 +412,16 @@ management, bilingual shell (Arabic/RTL/Alexandria, English/LTR/Inter). Details:
 
 ## Next
 
-Phase 4 (PR #5) and phase 5 (stacked on it) are in review. After both merge, the next phase in
-[ROADMAP.md](ROADMAP.md) is phase 6 (specialty workspaces), which needs clinician input first.
-The full remaining order (specialty workspaces, clinic finances, platform subscriptions, launch
-readiness) is in
-[ROADMAP.md](ROADMAP.md). Hosting, email, legal and clinical-advisor decisions run on a parallel
-owner-led decision track ([DECISIONS.md](DECISIONS.md) §4).
+All six platform-completion milestones are open as stacked PRs (#7 → #12, on top of #5 and #6);
+none is merged. Merge order: #5, #6, then #7 … #12, retargeting each to `main` after its base
+merges. Owner decisions that unblock the remaining work are listed below and in
+[COMPLETION_MATRIX.md](COMPLETION_MATRIX.md).
 
 ## Blockers
 
-PR #5 waits on the owner's review of the public copy. Phase 5 waits on owner review and a
-clinician reviewer (Q6, [CLINICIAN_REVIEW.md](CLINICIAN_REVIEW.md)); merge order: #5 first, then
-retarget the phase 5 PR to `main`. Later phases depend on the open
-questions and external setup in DECISIONS.md.
+Owner decisions (see the blocker register in
+[PLATFORM_COMPLETION_PLAN.md](PLATFORM_COMPLETION_PLAN.md)): B1 clinical-lead authority (Q17),
+B2 clinician reviewers, B3 currency/tax/e-invoicing, B4 plans, prices and enforcement policy, B5
+payment provider and sandbox credentials, B6 MFA policy, B7 email provider and sending domain, B8
+hosting, residency and budget, B9 support channel and hours. Nothing in this repository is
+production-ready or clinically validated.

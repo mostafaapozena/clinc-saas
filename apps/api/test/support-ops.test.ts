@@ -129,6 +129,8 @@ describe('invitations', () => {
     expect(preview.body).toMatchObject({ organizationName: 'Ops Clinic', role: 'receptionist', email });
 
     const stranger = await register(app, 'not-invited');
+    // The read-only preview works for a signed-in browser without its CSRF token (found by e2e).
+    expect((await stranger.agent.post('/api/v1/invitations/preview').send({ token })).status).toBe(200);
     expect((await send(stranger, 'post', '/api/v1/invitations/accept', { token })).body.error.code).toBe('INVITATION_EMAIL_MISMATCH');
 
     const agent = request.agent(app);

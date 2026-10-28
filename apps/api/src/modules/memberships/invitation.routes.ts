@@ -88,12 +88,10 @@ export function createInvitationsRouter(config: AppConfig, mailer: Mailer) {
       target: { type: 'organization', id: tenant.organizationId },
       changes: { role: input.role, branchScope: branchScope.type, branchCount: branchScope.branchIds.length },
     });
-    res
-      .status(201)
-      .json({
-        invitation: { id: String(id), email: input.email, role: input.role, expiresAt: expiresAt.toISOString() },
-        mailer: mailer.name,
-      });
+    res.status(201).json({
+      invitation: { id: String(id), email: input.email, role: input.role, expiresAt: expiresAt.toISOString() },
+      mailer: mailer.name,
+    });
   });
 
   router.post('/:invitationId/revoke', requirePermission('member.add'), async (req, res) => {
@@ -119,10 +117,12 @@ export function createInvitationsRouter(config: AppConfig, mailer: Mailer) {
   return router;
 }
 
-/** Public preview and signed-in acceptance: /api/v1/invitations. */
-export function createInvitationAcceptRouter() {
+/**
+ * Public, read-only preview of an invitation (/api/v1/invitations/preview). Mounted before CSRF
+ * protection: it changes nothing, and a signed-in browser may call it before its CSRF token is loaded.
+ */
+export function createInvitationPreviewRouter() {
   const router = Router();
-
   router.post('/preview', async (req, res) => {
     const { token } = parseInput(tokenSchema, req.body);
     const invitation = await findUsableToken('invitation', token);
@@ -135,6 +135,13 @@ export function createInvitationAcceptRouter() {
       expiresAt: invitation.expiresAt.toISOString(),
     });
   });
+
+  return router;
+}
+
+/** Signed-in acceptance (/api/v1/invitations/accept), behind session CSRF protection. */
+export function createInvitationAcceptRouter() {
+  const router = Router();
 
   router.post('/accept', requireAuth, async (req, res) => {
     const { token } = parseInput(tokenSchema, req.body);
