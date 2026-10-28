@@ -56,7 +56,9 @@ export function SupportConversation({
               <strong>{m.author === 'operator' ? t('support.fromRaclinic') : m.displayName}</strong>
               <span className="muted small">{fmt.dateTime(m.at, zone)}</span>
             </div>
-            <p className="record-text">{m.body}</p>
+            <p className="record-text" dir="auto">
+              {m.body}
+            </p>
           </li>
         ))}
       </ol>

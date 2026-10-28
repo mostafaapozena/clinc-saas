@@ -537,9 +537,11 @@ input[aria-invalid='true'] {
   gap: 10px;
 }
 
+/* Main content takes the space; the state (badges, metadata) and the actions hug the end, so a
+   status label sits at a predictable place instead of floating mid-row. */
 .data-row {
   display: grid;
-  grid-template-columns: minmax(0, 2fr) minmax(0, 2fr) auto;
+  grid-template-columns: minmax(0, 1fr) fit-content(45%) auto;
   align-items: center;
   gap: 8px 16px;
   padding: 12px 14px;

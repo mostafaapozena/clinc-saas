@@ -485,14 +485,6 @@
   gap: var(--space-4);
 }
 
-.content > :is(.card, .notice, .today-card, .start-card, .card-grid) + :is(.card, .notice, .card-grid, .today-card) {
-  margin-block-start: 0;
-}
-
-.content > .card-grid {
-  margin-block-end: var(--space-4);
-}
-
 /* A card or section title with its icon. */
 .card-title {
   display: flex;
@@ -691,7 +683,6 @@
 
 /* ---------- Getting started (UX-020) ---------- */
 .start-card {
-  margin-block-end: var(--space-4);
   border-inline-start: 4px solid var(--accent);
 }
 
@@ -1061,15 +1052,6 @@
   justify-self: start;
 }
 
-:is(.content, .operator-main) .card + .card,
-:is(.content, .operator-main) .details + form {
-  margin-block-start: 16px;
-}
-
-.details + form,
-.details + .notice {
-  margin-block-start: 16px;
-}
 
 /* ---------- Header choosers with one option show the value (UX-027) ---------- */
 .switcher--static .switcher-value {
@@ -1162,10 +1144,6 @@
 }
 
 /* ---------- Operator overview (UX-045) ---------- */
-.op-metrics {
-  margin-block-end: var(--space-4);
-}
-
 .metrics--four {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
@@ -1222,3 +1200,192 @@
 .form-grid {
   align-items: start;
 }
+
+/* ======================================================================================
+   Spacing system (docs/SPACING_ALIGNMENT_POLISH.md)
+   One scale (4/8/12/16/20/24/32) and four roles:
+   - inside a component ........... --space-inset (card padding) and a component's own gap;
+   - between related controls ..... --stack-related (a label and its field, buttons in a row);
+   - between independent groups ... --stack-group (a heading and its content, a toolbar and its
+                                    results, fields groups inside a card);
+   - between page sections ........ --stack-page (header, notices, cards, lists of a page).
+   Vertical space between siblings comes from these rules only. Grid and flex containers use
+   `gap`; no sibling-margin rule targets their items (a `.card + .card` margin had pushed the
+   second card of every card row 16px lower).
+   ====================================================================================== */
+:root {
+  --space-8: 32px;
+  --space-inset: var(--space-5);
+  --stack-related: var(--space-2);
+  --stack-group: var(--space-4);
+  --stack-page: var(--space-5);
+}
+
+/* Page level: the direct children of the workspace and operator content are separated by one
+   page gap — header, notices, toolbars, results, cards, pagination. */
+.shell .content > *,
+.operator-layout .operator-main > * {
+  margin-block: 0;
+}
+
+.shell .content > * + *,
+.operator-layout .operator-main > * + * {
+  margin-block-start: var(--stack-page);
+}
+
+/* Inside a card (block flow): related items close together, a heading with room under it, a
+   new group inside the card with more room above it. Cards that are grid forms keep their gap. */
+:is(.shell, .public-layout) .card:not(form) > * {
+  margin-block: 0;
+}
+
+:is(.shell, .public-layout) .card:not(form) > * + * {
+  margin-block-start: var(--space-3);
+}
+
+:is(.shell, .public-layout) .card:not(form) > :is(h2, .section-header, .card-title) + * {
+  margin-block-start: var(--stack-group);
+}
+
+:is(.shell, .public-layout) .card:not(form) > * + :is(h3, .section-header, form, .action-panel, .specialty-subform, .table-wrap, .data-list, .data-table, .filters, .metrics, .details, .inline-form) {
+  margin-block-start: var(--stack-group);
+}
+
+:is(.shell, .public-layout) .card:not(form) > * + h3 {
+  margin-block-start: var(--space-6);
+}
+
+/* Card rows: every card of a row starts on the same line and has the same height; the content
+   starts at the top (no stretched interiors pushing content apart). */
+.card-grid > .card {
+  margin: 0;
+}
+
+/* Label | value lists. Pairs written as <div><dt/><dd/></div> keep their row layout; lists of
+   bare dt/dd become a two-column grid, so a label sits beside its own value instead of every line
+   being spaced alike (operator health, policy, subscription details). */
+.details:has(> dt) {
+  grid-template-columns: minmax(0, 40%) minmax(0, 1fr);
+  align-items: baseline;
+  gap: var(--space-3) var(--space-4);
+}
+
+.details:has(> dt) > dt {
+  grid-column: 1;
+}
+
+.details:has(> dt) > dd {
+  grid-column: 2;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.details:has(> dt) > div {
+  grid-column: 1 / -1;
+}
+
+/* Rows of cards and results: the same inner padding everywhere, room between the title line and
+   the metadata line, and the end column aligned. */
+.data-row {
+  padding: var(--space-3) var(--space-4);
+  column-gap: var(--space-4);
+}
+
+.data-main {
+  gap: var(--space-1);
+}
+
+/* A segmented filter and a toolbar are groups of their own: never glued to the results. */
+.segmented + :is(.data-list, .empty-state, .table-wrap, .data-table, .loading, .notice) {
+  margin-block-start: var(--stack-group);
+}
+
+/* Actions: buttons in a row keep related spacing and wrap as a group; an action row after the
+   content it acts on gets group spacing (handled by the card rhythm above). */
+.form-actions,
+.row-actions {
+  gap: var(--stack-related);
+}
+
+/* Section headers inside cards: title and its action on one line, the action never touching. */
+.section-header {
+  gap: var(--space-3) var(--space-4);
+  margin-block-end: 0;
+}
+
+/* Operator header and tab bar follow the same gutter as the page. */
+.operator-header {
+  padding-block: var(--space-3);
+}
+
+.operator-nav {
+  margin-block-end: 0;
+}
+
+@media (max-width: 640px) {
+  :root {
+    --space-inset: var(--space-4);
+    --stack-page: var(--space-4);
+  }
+
+  .card {
+    padding: var(--space-inset);
+  }
+
+  .details:has(> dt) {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: var(--space-1);
+  }
+
+  .details:has(> dt) > dd {
+    grid-column: 1;
+    margin-block-end: var(--space-2);
+  }
+}
+
+/* Text inside result rows: the row's own gap spaces it (browser paragraph margins doubled it). */
+.data-row :is(p, h3),
+.data-main > * {
+  margin-block: 0;
+}
+
+/* The operator header lines up with the content column below it, not with the window edges. */
+.operator-header {
+  padding-inline: max(var(--gutter), calc((100% - var(--content-max)) / 2 + var(--gutter)));
+}
+
+/* Metric cards narrower than ~170px (phones, six-up rows): icon above the label, and labels wrap
+   between words, never inside one. */
+.metric {
+  container-type: inline-size;
+}
+
+.metric-label {
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+@container (max-width: 170px) {
+  .metric dt {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+}
+
+/* Label | value lists keep values near their labels on wide cards. */
+.details {
+  max-inline-size: 32rem;
+}
+
+/* Card titles line up with the control beside them (Edit, a segmented filter). */
+.section-header {
+  align-items: center;
+}
+
+/* Reference numbers (invoice, receipt, request) never break inside; the words around them wrap. */
+.data-table bdi[dir='ltr'],
+.data-row bdi[dir='ltr'] {
+  white-space: nowrap;
+}
+
