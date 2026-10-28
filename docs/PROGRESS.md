@@ -11,6 +11,7 @@ Branch `phase-15/ui-polish`, PR [#16](https://github.com/mostafaapozena/clinc-sa
 - **Dashboards:** metric cards with icons, real values counting up once, links to the filtered lists; getting-started checklist for new organizations; operator overview grouped by what needs action.
 - **Workflows:** booking branch safeguards, action confirmations, doctor goes straight to the record, finalize pre-check and autosave, payment from the invoice, preselected charges.
 - **Public site:** motion (reveals, hero float, cross-fade, lightbox) off with reduced motion; product screenshots at 2x.
+- **Spacing and alignment:** one spacing system for the workspace and operator console (root cause: a sibling margin pushed the second card of every row down); tracker [SPACING_ALIGNMENT_POLISH.md](SPACING_ALIGNMENT_POLISH.md).
 - **Waiting on the owner:** D-2 (merge home sections), D-4 (count specialty findings for finalizing), D-6 (sign-in language after logout).
 
 
@@ -483,19 +484,21 @@ management, bilingual shell (Arabic/RTL/Alexandria, English/LTR/Inter). Details:
 
 ## Production gaps (must be resolved before real data or deployment)
 
+The current, categorized list (missing / incomplete / awaiting configuration / awaiting a provider / optional / out of scope, with what blocks a demo, a pilot or production) is [PLATFORM_REMAINING_GAPS_AR.md](PLATFORM_REMAINING_GAPS_AR.md). Summary:
+
 - **Hosting and data residency for Egypt and Saudi Arabia — undecided**; backups, monitoring,
   incident response, secrets management.
 - Legal/regulatory review for processing patient administrative data; retention and deletion
   policy; data-subject requests.
 - A real email provider for verification, recovery and invitations (flows built; development sink only).
 - MFA (options documented, not built).
-- Shared rate-limit store for multiple instances; abuse monitoring.
+- Abuse monitoring (the shared rate-limit store exists).
 - Audit viewer, retention and export; ownership transfer, organization deletion, member removal.
 - Patient duplicate reconciliation policy; time-zone migration workflow.
 - Independent security review / penetration test, including the concurrency design under load.
 - Clinical records: clinician review, legal review of record keeping, delegation/break-glass policy,
   clinical audit viewer and retention ([CLINICAL.md](architecture/CLINICAL.md#known-limitations-and-production-gates)).
-- No specialty clinical tools, billing, subscriptions, payments, messaging or public booking exist.
+- Real payment provider, tax and e-invoicing; no messaging/reminders or public booking (specialty tools, clinic finances and subscriptions exist, payments simulated).
 
 ## Next
 
