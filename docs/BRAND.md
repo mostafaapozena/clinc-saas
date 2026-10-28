@@ -65,7 +65,11 @@ text or for conveying status. Therefore:
 - Validation and status colors (green/amber/red), and the blue focus ring, are unchanged so states
   stay unambiguous.
 - Dark mode (derived from the navy): background `#0D1B2E`, surfaces `#13253C`; turquoise becomes
-  the primary color with navy text on it (7.5:1), links `#7FDFD4`.
+  the primary color with navy text on it (7.5:1), links `#7FDFD4`. Since phase 15 the theme is a
+  user choice for the whole product, public site included (`<html data-theme>`, header switch,
+  profile setting; the system preference when nothing is chosen). The public site's dark palette
+  makes navy bands a deeper navy (`#081322`) and specialty tones their light tints (≥ 7:1).
+  Product screenshots stay light images in a frame; printouts always use the light palette.
 - Derived neutrals: background `#F5F8FA`, muted surface `#EDF3F6`, border `#D8E1E8`, muted text
   `#556677` (5.9:1).
 

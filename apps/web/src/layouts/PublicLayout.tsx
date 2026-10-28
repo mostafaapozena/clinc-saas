@@ -67,7 +67,8 @@ function AuthPanel() {
             </li>
           ))}
         </ul>
-        <img className="auth-panel-shot" src={`/product/${language}/appointments.jpg`} alt={t('auth.panel.shotAlt')} loading="lazy" decoding="async" />
+        <img className="auth-panel-shot" src={`/product/${language}/appointments.jpg`}
+          srcSet={`/product/${language}/appointments.jpg 1x, /product/${language}/appointments@2x.jpg 2x`} alt={t('auth.panel.shotAlt')} loading="lazy" decoding="async" />
         <p className="auth-panel-note">{t('auth.panel.note')}</p>
       </div>
     </aside>

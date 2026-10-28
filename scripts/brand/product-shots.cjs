@@ -1,4 +1,5 @@
-// Product screenshots for the public website (apps/web/public/product/{ar,en}/*.jpg).
+// Product screenshots for the public website (apps/web/public/product/{ar,en}/*.jpg), each in two
+// densities: <name>.jpg (1280×800) and <name>@2x.jpg (2560×1600) for high-density screens (srcset).
 //
 // Real workspace screens with the synthetic demo data — never real patient data. Run against an
 // ISOLATED database seeded with `npm run seed` (not the database you work in), for example:
@@ -41,7 +42,10 @@ async function firstDocumentedAppointment(page, orgId, documentation = 'finalize
 (async () => {
   const browser = await chromium.launch();
   for (const [email, orgName, shots] of PLAN) {
-    const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, colorScheme: 'light', reducedMotion: 'reduce' });
+    // Rendered at 2x; the 1x file is the same frame captured in CSS pixels. Light theme (the shots are
+    // framed, never recolored, in the dark site); reduced motion so counters show final values.
+    const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, deviceScaleFactor: 2, colorScheme: 'light', reducedMotion: 'reduce' });
+    await context.addInitScript(() => localStorage.setItem('clinc.theme', 'light'));
     const page = await context.newPage();
     console.log(`signing in: ${email}`);
     await page.goto(`${BASE}/login`);
@@ -80,7 +84,8 @@ async function firstDocumentedAppointment(page, orgId, documentation = 'finalize
         }
         await page.waitForTimeout(500);
         const file = path.join(OUT, language, `${name}.jpg`);
-        await page.screenshot({ path: file, type: 'jpeg', quality: 80 });
+        await page.screenshot({ path: file, type: 'jpeg', quality: 80, scale: 'css' });
+        await page.screenshot({ path: path.join(OUT, language, `${name}@2x.jpg`), type: 'jpeg', quality: 72, scale: 'device' });
         console.log(file);
       }
     }

@@ -34,7 +34,10 @@ describe('every public page', () => {
   it('uses only product screenshots that exist, in both languages', () => {
     const shots = new Set(['appointments', 'record', 'finance', 'week', 'patients', 'home', 'services', ...SOLUTIONS.map((s) => s.shot)]);
     for (const language of ['ar', 'en']) {
-      for (const shot of shots) expect(existsSync(path.resolve(__dirname, `../../public/product/${language}/${shot}.jpg`)), `${language}/${shot}`).toBe(true);
+      for (const shot of shots) {
+        // Each in two densities (UX-008): 1280×800 and 2560×1600 for the srcset.
+        for (const file of [`${shot}.jpg`, `${shot}@2x.jpg`]) expect(existsSync(path.resolve(__dirname, `../../public/product/${language}/${file}`)), `${language}/${file}`).toBe(true);
+      }
     }
   });
 });

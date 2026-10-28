@@ -1,6 +1,18 @@
 # Progress
 
-_Last updated: 2026-10-27 (public website redesign in review, stacked on the front-end audit fixes)._
+_Last updated: 2026-10-28 (UI polish in review, stacked on the public website redesign)._
+
+## UI polish: light and dark themes, review findings (in review)
+
+Branch `phase-15/ui-polish`, PR [#16](https://github.com/mostafaapozena/clinc-saas/pull/16), stacked on `phase-14/public-redesign`. Tracker: [UI_POLISH_IMPLEMENTATION.md](UI_POLISH_IMPLEMENTATION.md) (every finding UX-001…049, ICN, ANIM and brief requirement with status and evidence).
+
+- **Themes:** light and dark everywhere, one switch per layout and a light/dark/system choice on the profile; saved per device; applied before the first paint (`public/theme-init.js`).
+- **Header:** dropdown icons centered and tinted, keyboard focus return, no horizontal scroll 1024–1920px in Arabic or English, sign-in always visible.
+- **Dashboards:** metric cards with icons, real values counting up once, links to the filtered lists; getting-started checklist for new organizations; operator overview grouped by what needs action.
+- **Workflows:** booking branch safeguards, action confirmations, doctor goes straight to the record, finalize pre-check and autosave, payment from the invoice, preselected charges.
+- **Public site:** motion (reveals, hero float, cross-fade, lightbox) off with reduced motion; product screenshots at 2x.
+- **Waiting on the owner:** D-2 (merge home sections), D-4 (count specialty findings for finalizing), D-6 (sign-in language after logout).
+
 
 ## Front-end redesign (in review)
 

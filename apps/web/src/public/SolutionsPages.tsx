@@ -19,7 +19,7 @@ import {
   Steps,
 } from './shared';
 import { useList, useObjects, type QuestionItem, type TitledItem } from './useList';
-import { SOLUTIONS, findSolution, inquiryPath, productShot } from './solutions';
+import { SOLUTIONS, findSolution, inquiryPath, productShot, productShotSet } from './solutions';
 
 export function SolutionsPage() {
   const { t } = useTranslation();
@@ -143,6 +143,7 @@ function SolutionPreview({ current }: { current: string }) {
               key={s.slug}
               className={s.slug === active.slug ? 'is-current' : undefined}
               src={productShot(s.shot, language)}
+              srcSet={productShotSet(s.shot, language)}
               alt={s.slug === active.slug ? t(`site.solutions.${s.key}.shotAlt`) : ''}
               aria-hidden={s.slug === active.slug ? undefined : true}
               width={1280}

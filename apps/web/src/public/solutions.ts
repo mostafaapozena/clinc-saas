@@ -73,3 +73,5 @@ export const PUBLIC_PATHS: readonly string[] = [
 
 /** A real workspace screenshot (synthetic demo data) in the page language. */
 export const productShot = (name: string, language: string) => `/product/${language === 'en' ? 'en' : 'ar'}/${name}.jpg`;
+/** 1x and 2x files of a screenshot, for <img srcSet> (UX-008: readable on high-density screens). */
+export const productShotSet = (name: string, language: string) => `${productShot(name, language)} 1x, ${productShot(name, language).replace(/\.jpg$/, '@2x.jpg')} 2x`;

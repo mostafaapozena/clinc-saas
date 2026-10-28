@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { CountUp } from '../components/CountUp';
 import { Icon, type IconName } from '../components/Icon';
-import { SOLUTIONS, inquiryPath, productShot, startPath, type Solution } from './solutions';
+import { SOLUTIONS, inquiryPath, productShot, productShotSet, startPath, type Solution } from './solutions';
 import { useList, type QuestionItem, type TitledItem } from './useList';
 
 // Building blocks of the public website (docs/FRONTEND_REDESIGN_IMPLEMENTATION.md). Content comes
@@ -80,6 +80,7 @@ export function ProductFrame({ shot, alt, label, floats = [], priority }: { shot
         </div>
         <img
           src={productShot(shot, i18n.resolvedLanguage ?? 'ar')}
+          srcSet={productShotSet(shot, i18n.resolvedLanguage ?? 'ar')}
           alt={alt}
           width={1280}
           height={800}

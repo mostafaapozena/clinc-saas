@@ -5,14 +5,14 @@ import { CountUp } from '../components/CountUp';
 import { Icon } from '../components/Icon';
 import { usePageMeta } from '../lib/pageMeta';
 import { Breadcrumb, CtaBlock } from './shared';
-import { productShot } from './solutions';
+import { productShot, productShotSet } from './solutions';
 
 /**
  * Product tour (reference P36): real screenshots of the workspace, taken with the synthetic demo
  * data, grouped by area. Each links to the page that describes that area. The capture date is the
  * date the images were last regenerated (scripts/brand/product-shots.cjs).
  */
-export const TOUR_CAPTURED = '2026-10-27';
+export const TOUR_CAPTURED = '2026-10-28';
 const GROUPS = [
   { key: 'frontDesk', shots: [{ shot: 'appointments', to: '/solutions/dentistry' }, { shot: 'week', to: '/solutions/medical-centers' }] },
   { key: 'patients', shots: [{ shot: 'patients', to: '/solutions/medical-centers' }, { shot: 'home', to: '/solutions/medical-centers' }] },
@@ -81,7 +81,7 @@ export function TourPage() {
                         setOpen(ALL_SHOTS.indexOf(shot));
                       }}
                     >
-                      <img src={productShot(shot, language)} alt={t(`site.tour.shots.${shot}.alt`)} width={1280} height={800} loading="lazy" decoding="async" />
+                      <img src={productShot(shot, language)} srcSet={productShotSet(shot, language)} alt={t(`site.tour.shots.${shot}.alt`)} width={1280} height={800} loading="lazy" decoding="async" />
                     </button>
                     <div className="site-shot-body">
                       <h3>{t(`site.tour.shots.${shot}.title`)}</h3>
@@ -149,7 +149,7 @@ function ShotDialog({ index, language, onMove, onClose }: { index: number; langu
             </button>
           </form>
         </header>
-        <img src={productShot(shot, language)} alt={t(`site.tour.shots.${shot}.alt`)} width={1280} height={800} />
+        <img src={productShot(shot, language)} srcSet={productShotSet(shot, language)} alt={t(`site.tour.shots.${shot}.alt`)} width={1280} height={800} />
         <footer className="site-lightbox-foot">
           <button type="button" className="button button--secondary" disabled={index === 0} onClick={() => onMove(index - 1)}>
             <Icon name="arrowBack" /> {t('site.tour.dialog.previous')}

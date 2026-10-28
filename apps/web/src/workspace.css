@@ -1216,3 +1216,9 @@
     min-inline-size: 0;
   }
 }
+
+/* Form grids align their fields at the top, so a hint under one field (a date spelled out) does not
+   push its label out of line with the others. Filter bars keep bottom alignment for their buttons. */
+.form-grid {
+  align-items: start;
+}
