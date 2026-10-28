@@ -96,6 +96,7 @@ export const AUDIT_ACTIONS = [
   'asset.maintained',
   'asset.retired',
   'asset.disposed',
+  'asset.depreciated',
   'budget.saved',
   'budget.approved',
   'budget.reopened',

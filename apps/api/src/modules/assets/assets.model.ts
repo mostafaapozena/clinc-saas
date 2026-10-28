@@ -3,8 +3,9 @@ import { tenantGuardPlugin } from '../../tenancy/tenant-guard.plugin.js';
 import { clock } from '../../time/clock.js';
 import { MAX_AMOUNT } from '../finance/finance.model.js';
 
-// Equipment register and maintenance (docs/architecture/ASSETS.md). No depreciation until the
-// clinic's accountant defines a method (decision E-15); no calibration certificates (E-13).
+// Equipment register and maintenance (docs/architecture/ASSETS.md). Depreciation is straight-line
+// with the useful life and residual value the clinic's accountant enters per asset (milestone H4);
+// no calibration certificates (E-13).
 
 const currentTime = () => clock.now();
 const ref = (name: string, required = true) => ({ type: Schema.Types.ObjectId, ref: name, required });
@@ -42,6 +43,15 @@ export interface Asset {
   nextMaintenanceDue: string | null;
   status: AssetStatus;
   disposal: { date: string; reason: string; entryId: Types.ObjectId | null } | null;
+  depreciation: {
+    method: 'straight_line';
+    usefulLifeMonths: number;
+    residualValue: number;
+    /** First month depreciated (YYYY-MM). */
+    startMonth: string;
+    accumulated: number;
+    lastMonth: string | null;
+  } | null;
   version: number;
   createdBy: Types.ObjectId;
   createdAt: Date;
@@ -70,6 +80,20 @@ const assetSchema = new Schema<Asset>(
     disposal: {
       type: new Schema(
         { date: { type: String, required: true }, reason: { type: String, required: true, maxlength: 300 }, entryId: optionalRef('JournalEntry') },
+        { _id: false },
+      ),
+      default: null,
+    },
+    depreciation: {
+      type: new Schema(
+        {
+          method: { type: String, enum: ['straight_line'], required: true },
+          usefulLifeMonths: { type: Number, required: true, min: 1, max: 600 },
+          residualValue: money,
+          startMonth: { type: String, required: true, match: /^\d{4}-\d{2}$/ },
+          accumulated: money,
+          lastMonth: { type: String, default: null },
+        },
         { _id: false },
       ),
       default: null,
