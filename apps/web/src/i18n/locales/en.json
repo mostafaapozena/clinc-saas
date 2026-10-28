@@ -574,7 +574,10 @@
     "ASSET_CODE_TAKEN": "Another asset has this code.",
     "ASSET_RETIRED": "This equipment is retired.",
     "DOCUMENTS_AFTER_CUTOVER": "Documents were recorded on or after this date and never posted; choose a later start date (for example today).",
-    "MODULE_DISABLED": "This module is switched off for your organization. The owner can switch it on in settings."
+    "MODULE_DISABLED": "This module is switched off for your organization. The owner can switch it on in settings.",
+    "BUDGET_APPROVED": "This budget is approved. The owner reopens it before it changes.",
+    "COMMITMENT_ENDED": "This commitment has ended.",
+    "ALREADY_LINKED": "This voucher or bill is already linked to a commitment."
   },
   "validation": {
     "required": "This field is required.",
@@ -3341,7 +3344,10 @@
       "chart": "Chart of accounts",
       "reports": "Statements",
       "periods": "Periods",
-      "cash": "Cash and banks"
+      "cash": "Cash and banks",
+      "cashFlow": "Cash flow",
+      "budgets": "Budgets",
+      "commitments": "Recurring commitments"
     },
     "notSetUp": "Accounting is not set up for this organization yet.",
     "goToSetup": "Go to setup",
@@ -4178,7 +4184,8 @@
         "book": "Book a visit",
         "patients": "Patient files and examinations"
       }
-    }
+    },
+    "commitmentsDue": "{{count}} recurring commitments due within 7 days or overdue"
   },
   "assets": {
     "title": "Equipment and maintenance",
@@ -4295,7 +4302,111 @@
       "appointments": {
         "title": "Appointments and activity",
         "body": "Today's and the week's appointments by doctor and status"
+      },
+      "budgetVsActual": {
+        "title": "Budget against actual",
+        "body": "Each income and expense account's budget against what was posted, the variance and how much is used"
+      },
+      "cashFlow": {
+        "title": "Cash flow statement",
+        "body": "Cashbox and bank movements by operating, investing and financing activity, reconciled with the balances"
+      },
+      "commitments": {
+        "title": "Recurring commitments",
+        "body": "Rent, utilities and subscriptions: due soon, overdue and paid"
       }
+    }
+  },
+  "planning": {
+    "budget": {
+      "pageTitle": "Budgets",
+      "subtitle": "Plan the year's income and expenses month by month and compare them with what was actually posted. A budget is a plan only; it posts nothing.",
+      "title": "{{year}} budget",
+      "year": "Year",
+      "wholeOrganization": "Whole organization",
+      "hint": "Type an annual amount to spread it evenly over the months (the remainder goes to December), or open “By month” to set each month. All-zero rows are not saved.",
+      "approvedHint": "This budget is approved and does not change. The owner can reopen it for changes; that is recorded in the audit log.",
+      "annual": "Annual amount",
+      "annualFor": "Annual amount for {{account}}",
+      "months": "Months",
+      "byMonth": "By month",
+      "plannedResult": "Planned result (income minus expenses):",
+      "save": "Save draft",
+      "saved": "Budget saved.",
+      "approve": "Approve budget",
+      "reopen": "Reopen for changes",
+      "status": {
+        "none": "Not created yet",
+        "draft": "Draft",
+        "approved": "Approved"
+      }
+    },
+    "variance": {
+      "title": "Budget against actual",
+      "through": "January through",
+      "noBudget": "There is no budget for this year; actual figures are shown on their own.",
+      "budget": "Budget",
+      "actual": "Actual",
+      "variance": "Variance (actual − budget)",
+      "used": "Used",
+      "unbudgeted": "Not budgeted",
+      "favourable": "Favourable variance",
+      "unfavourable": "Unfavourable variance",
+      "resultBudget": "Planned result",
+      "resultActual": "Actual result"
+    },
+    "cashFlow": {
+      "title": "Cash flow statement",
+      "subtitle": "Direct method: every posted movement of the cashboxes and banks, classified by the account on the other side. Transfers between the organization's own cash accounts are left out.",
+      "statement": "Cash flow for the period",
+      "activity": "Activity",
+      "operating": "Operating activities",
+      "investing": "Investing activities",
+      "financing": "Financing activities",
+      "inflow": "Cash in",
+      "outflow": "Cash out",
+      "netOf": "Net {{activity}}",
+      "none": "No movements.",
+      "opening": "Cash at start",
+      "net": "Net change",
+      "closing": "Cash at end",
+      "reconciled": "Matches the cash and bank balances",
+      "notReconciled": "Does not match — check the entries"
+    },
+    "commitments": {
+      "title": "Recurring commitments",
+      "subtitle": "Rent, utilities, subscriptions and service contracts: when they fall due, and which voucher or bill paid them.",
+      "onceNotice": "A commitment posts nothing. Pay with a cash-out voucher or supplier bill as usual, then link it here to the installment due, once.",
+      "register": "Commitments",
+      "monthlyTotal": "{{amount}} a month across active commitments",
+      "none": "No recurring commitments yet.",
+      "add": "Add commitment",
+      "added": "Commitment added.",
+      "name": "Name",
+      "amount": "Amount per installment",
+      "frequency": "Frequency",
+      "frequencies": {
+        "monthly": "Monthly",
+        "quarterly": "Quarterly",
+        "yearly": "Yearly"
+      },
+      "firstDue": "First due date",
+      "endDate": "Ends on (optional)",
+      "nextDue": "next due {{date}}",
+      "due": {
+        "overdue": "Overdue",
+        "soon": "Due soon"
+      },
+      "status": {
+        "active": "Active",
+        "ended": "Ended"
+      },
+      "record": "Record payment",
+      "recorded": "Payment linked to the installment due.",
+      "paidBy": "Paid by",
+      "paidByHint": "Only cash-out vouchers and posted supplier bills on the same account.",
+      "choose": "Choose a voucher or bill",
+      "noDocuments": "No voucher or bill on this account yet"
     }
   }
 }

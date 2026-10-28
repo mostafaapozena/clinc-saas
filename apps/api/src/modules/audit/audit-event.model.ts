@@ -96,10 +96,16 @@ export const AUDIT_ACTIONS = [
   'asset.maintained',
   'asset.retired',
   'asset.disposed',
+  'budget.saved',
+  'budget.approved',
+  'budget.reopened',
+  'commitment.created',
+  'commitment.updated',
+  'commitment.recorded',
 ] as const;
 export type AuditAction = (typeof AUDIT_ACTIONS)[number];
 
-export const AUDIT_TARGET_TYPES = ['organization', 'branch', 'membership', 'patient', 'practitioner', 'appointment', 'service', 'charge', 'invoice', 'payment', 'adjustment', 'ledger_account', 'journal_entry', 'cash_account', 'cash_session', 'cash_voucher', 'stock_item', 'warehouse', 'stock_document', 'purchase_document', 'settlement', 'asset'] as const;
+export const AUDIT_TARGET_TYPES = ['organization', 'branch', 'membership', 'patient', 'practitioner', 'appointment', 'service', 'charge', 'invoice', 'payment', 'adjustment', 'ledger_account', 'journal_entry', 'cash_account', 'cash_session', 'cash_voucher', 'stock_item', 'warehouse', 'stock_document', 'purchase_document', 'settlement', 'asset', 'budget', 'commitment'] as const;
 export type AuditTargetType = (typeof AUDIT_TARGET_TYPES)[number];
 
 /**

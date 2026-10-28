@@ -18,6 +18,7 @@ import { SupplierModel } from '../purchasing/purchasing.model.js';
 import { lockItem, saveDocument, stockIn, newId } from '../inventory/inventory.stock.js';
 import { ensureCounter } from '../finance/finance.model.js';
 import { prepareLedger } from '../accounting/accounting.posting.js';
+import { BudgetModel, CommitmentModel } from '../planning/planning.model.js';
 import { latestTemplate, parseTemplateData } from '../clinical/templates.js';
 import { MembershipModel } from '../memberships/membership.model.js';
 import { OrganizationModel } from '../organizations/organization.model.js';
@@ -122,6 +123,7 @@ export async function seedDemoData(password: string, now = clock.now()) {
     }
     if (org.finance?.currency) await seedLedger(organizationId, ownerId, org.finance.currency, org.timeZone, [...branchIds.values()], now);
     if (org.finance?.currency) await seedStock(organizationId, ownerId, org.timeZone, [...branchIds.values()], now);
+    if (org.finance?.currency) await seedPlanning(organizationId, ownerId, org.timeZone, now);
     // Synthetic suppliers (ERP milestone C); upserted by code.
     for (const s of DEMO_SUPPLIERS) {
       await SupplierModel.updateOne({ organizationId, code: s.code }, { $setOnInsert: { name: s.name, phone: s.phone, paymentTermsDays: s.paymentTermsDays } }, { upsert: true });
@@ -419,6 +421,37 @@ async function seedLedger(organizationId: Types.ObjectId, ownerId: Types.ObjectI
       await CashAccountModel.create([{ organizationId, name: `Branch cashbox ${i + 1}`, kind: 'cash', branchId, accountId: ledger!._id }], { session });
     }
   });
+}
+
+/**
+ * A synthetic draft budget for this year and three recurring commitments (ERP milestone H2), once.
+ * Amounts are examples in minor units, not advice.
+ */
+const DEMO_BUDGET: { key: string; monthly: number }[] = [
+  { key: 'serviceRevenue', monthly: 20_000_000 },
+  { key: 'rent', monthly: 2_500_000 },
+  { key: 'salaries', monthly: 8_000_000 },
+  { key: 'utilities', monthly: 400_000 },
+  { key: 'consumablesUsed', monthly: 1_500_000 },
+];
+async function seedPlanning(organizationId: Types.ObjectId, ownerId: Types.ObjectId, timeZone: string, now: Date) {
+  if (!(await AccountingSettingsModel.exists({ organizationId })) || (await BudgetModel.exists({ organizationId }))) return;
+  const today = localDateOf(now, timeZone);
+  const accounts = await LedgerAccountModel.find({ organizationId, templateKey: { $in: [...DEMO_BUDGET.map((b) => b.key), 'otherExpenses'] } }).lean();
+  const account = (key: string) => required(accounts.find((a) => a.templateKey === key), key)._id;
+  await BudgetModel.create({
+    organizationId,
+    year: Number(today.slice(0, 4)),
+    branchId: null,
+    lines: DEMO_BUDGET.map((b) => ({ accountId: account(b.key), months: Array<number>(12).fill(b.monthly) })),
+    createdBy: ownerId,
+  });
+  const month = today.slice(0, 7);
+  await CommitmentModel.create([
+    { organizationId, name: 'Clinic rent (synthetic)', accountId: account('rent'), amount: 2_500_000, frequency: 'monthly', dayOfMonth: 1, nextDue: `${month}-01`, createdBy: ownerId },
+    { organizationId, name: 'Electricity and water (synthetic)', accountId: account('utilities'), amount: 400_000, frequency: 'monthly', dayOfMonth: 20, nextDue: `${month}-20`, createdBy: ownerId },
+    { organizationId, name: 'Practice software subscription (synthetic)', accountId: account('otherExpenses'), amount: 1_800_000, frequency: 'yearly', dayOfMonth: 15, nextDue: `${Number(today.slice(0, 4)) + 1}-01-15`, createdBy: ownerId },
+  ]);
 }
 
 /** Synthetic medical supplies (ERP milestone B): a store per branch, a few items, opening stock once. */
