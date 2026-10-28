@@ -33,7 +33,7 @@ Legend:
 | Capability | State | Evidence / gap |
 | --- | --- | --- |
 | Clinical services with branch prices and price snapshots on charges | ✅ | `finance.test.ts` |
-| Effective-dated prices | 🟡 | Price changes apply from now on; there is no future-dated schedule |
+| Effective-dated prices | 🟡 | Price changes apply from now on; there is no future-dated schedule (brief 2, not built) |
 | Stock items, units and conversions | ✅ | Milestone B; `inventory.test.ts` (validated integer factors, immutable once used) |
 | Non-stock purchases | ✅ | Milestone C: order and bill lines to expense accounts |
 | Treatment packages | ➖ (E-12) | Rules undefined |
@@ -45,7 +45,7 @@ Legend:
 | Charges, invoices, discounts, receipts, partial payments, credit notes, refunds, reversals, statements | ✅ | Milestone 3; `finance.test.ts` |
 | Patient advances / unallocated receipts, allocation | ✅ | `finance.test.ts` (allocation races) |
 | Deallocation | ⛔ | Today, a receipt reversal returns its allocations. Partial deallocation is not built. |
-| Write-offs | 🟡 | Credit notes with a reason cover write-offs; there is no separate write-off account |
+| Write-offs | ✅ | H6: owner-only bad-debt write-off (`WO-`, bad debts 6950); `installments.test.ts` |
 | Chart, journals, entries, reversals, opening balances | ✅ | Milestone A; `accounting.test.ts` |
 | Periods, close, reopen, server-side locks | ✅ | `accounting.test.ts` |
 | Trial balance, ledger, income and expenses, balance sheet, receivables aging | ✅ | `accounting.test.ts`, `Accounting.test.tsx` |
@@ -66,8 +66,8 @@ Legend:
 | Suppliers, PR, approval, RFQ, quotations, PO, receipts, bills, payments, returns, credit notes | ✅ | Milestone C (`purchasing.test.ts`, full chain) |
 | Expenses with approval | ✅ | Direct expense bills with threshold approval (milestone C); cash-out vouchers (milestone A) |
 | Practitioner compensation | ✅ | Milestone D (`compensation.test.ts`: performed and invoiced bases, approval once, payments) |
-| Assets and maintenance | ✅ | Milestone F (`assets.test.ts`: capitalized purchase, maintenance status, disposal write-off); no depreciation (E-15) |
-| People / payroll | ➖ (E-13) | Non-statutory employee records could be added later |
+| Assets and maintenance | ✅ | Milestone F (`assets.test.ts`); straight-line depreciation and disposal at book value (H4, `depreciation.test.ts`) |
+| People / payroll | ⛔ ⚙️ | Brief 2 asks for configurable foundations; not built. Statutory rules excluded; waits for owner rules |
 
 ## Specialty workspaces
 
@@ -78,3 +78,20 @@ Legend:
 | ENT visit template | ✅ | `specialty-records.test.ts` |
 | Specialty and role-specific home and navigation | ✅ | Milestone E: "Today's focus" per role and the doctor's specialty worklist (`workspace-focus.test.ts`) |
 | Materials linked to procedures | ✅ | "Materials used" on the finalized record (milestone B) |
+
+## Brief 2 modules (milestones H1–H7)
+
+| Capability | State | Evidence / gap |
+| --- | --- | --- |
+| Specialty workspaces, context chooser, preparation screen, module activation | ✅ | H1: docs/architecture/MODULES.md; `workspace-setup.test.ts`, `e2e/specialty-setup.spec.ts` |
+| Budgets, budget against actual, cash flow, recurring commitments | ✅ | H2: docs/architecture/PLANNING.md; `planning.test.ts` |
+| Employee advances and petty-cash custody | ✅ | H3: docs/architecture/STAFF_FUNDS.md; `staff-funds.test.ts` |
+| Depreciation schedules and postings | ✅ | H4: docs/architecture/ASSETS.md; `depreciation.test.ts` |
+| Clinic identity and legal profile, secure logo storage, letterhead | ✅ | H5: docs/architecture/ORGANIZATION_PROFILE.md; `organization-profile.test.ts` |
+| Installment plans, rescheduling, write-offs | ✅ | H6: docs/architecture/INSTALLMENTS.md; `installments.test.ts` |
+| Safe settings reset with snapshot and restore | ✅ | H7: docs/architecture/SETTINGS_RESET.md; `settings-reset.test.ts` |
+| Consignment in and out | ⛔ | Not built (see docs/ERP_EXECUTION_PLAN.md, "Not built yet") |
+| Cheques and print templates | ⛔ | Not built |
+| Product sales and quotations to patients | ⛔ | Not built |
+| HR and payroll foundations | ⛔ ⚙️ | Not built |
+| Unified patient file (one timeline) | 🟡 | The parts exist separately |
