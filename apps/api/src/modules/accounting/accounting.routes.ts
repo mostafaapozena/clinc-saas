@@ -15,7 +15,7 @@ import { BranchModel } from '../branches/branch.model.js';
 import { AdjustmentModel, InvoiceModel, MAX_AMOUNT, PaymentModel } from '../finance/finance.model.js';
 import { OrganizationModel } from '../organizations/organization.model.js';
 import { PatientModel } from '../patients/patient.model.js';
-import { CHART_TEMPLATE_ID, MAPPING_TYPES } from './accounting.chart.js';
+import { CHART_TEMPLATE_ID, DOCUMENT_ONLY_KEYS, MAPPING_TYPES } from './accounting.chart.js';
 import { createLedger, documentsSince } from './accounting.setup.js';
 import {
   ACCOUNT_TYPES,
@@ -522,6 +522,12 @@ export function createAccountingRouter() {
     const control = new Set(CONTROL_KEYS.map((k) => String(settings.mappings[k])));
     if (input.journal !== 'opening' && input.lines.some((l) => control.has(l.accountId)))
       throw conflict('CONTROL_ACCOUNT', 'Receivables, payables, advances and stock change only through their documents (or opening entries)');
+    const documentOnly = await LedgerAccountModel.exists({
+      organizationId: tenant.organizationId,
+      _id: { $in: input.lines.map((l) => new Types.ObjectId(l.accountId)) },
+      templateKey: { $in: DOCUMENT_ONLY_KEYS },
+    });
+    if (documentOnly) throw conflict('CONTROL_ACCOUNT', 'Staff advances and custody change only through their documents');
     for (const l of input.lines) {
       if (
         l.branchId &&

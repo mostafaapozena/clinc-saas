@@ -14,6 +14,7 @@ import { EncounterModel, type Encounter } from '../clinical/clinical.model.js';
 import { SettlementModel } from '../compensation/compensation.model.js';
 import { ChargeModel, InvoiceModel, PaymentModel } from '../finance/finance.model.js';
 import { CommitmentModel } from '../planning/planning.model.js';
+import { overdueStaffFunds } from '../staff-funds/staff-funds.routes.js';
 import { StockBalanceModel, StockItemModel } from '../inventory/inventory.model.js';
 import { PatientModel } from '../patients/patient.model.js';
 import { PractitionerModel } from '../practitioners/practitioner.model.js';
@@ -284,6 +285,7 @@ export function createFocusRouter() {
       const commitmentsDue = today
         ? await CommitmentModel.countDocuments({ organizationId: tenant.organizationId, status: 'active', nextDue: { $lte: addDays(today, 7) } })
         : 0;
+      const staffFundsOverdue = today ? await overdueStaffFunds(tenant.organizationId, today) : 0;
       body.finance = {
         ledger: Boolean(settings),
         openReceivables: receivable[0]?.v ?? 0,
@@ -293,6 +295,7 @@ export function createFocusRouter() {
         monthToClose,
         entriesToday,
         commitmentsDue,
+        staffFundsOverdue,
       };
     }
 

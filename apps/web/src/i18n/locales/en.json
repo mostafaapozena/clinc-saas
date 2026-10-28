@@ -577,7 +577,9 @@
     "MODULE_DISABLED": "This module is switched off for your organization. The owner can switch it on in settings.",
     "BUDGET_APPROVED": "This budget is approved. The owner reopens it before it changes.",
     "COMMITMENT_ENDED": "This commitment has ended.",
-    "ALREADY_LINKED": "This voucher or bill is already linked to a commitment."
+    "ALREADY_LINKED": "This voucher or bill is already linked to a commitment.",
+    "STAFF_FUND_SETTLED": "This amount is already settled.",
+    "NOT_CUSTODY": "Only custody is settled with receipts."
   },
   "validation": {
     "required": "This field is required.",
@@ -3347,7 +3349,8 @@
       "cash": "Cash and banks",
       "cashFlow": "Cash flow",
       "budgets": "Budgets",
-      "commitments": "Recurring commitments"
+      "commitments": "Recurring commitments",
+      "staffFunds": "Advances and custody"
     },
     "notSetUp": "Accounting is not set up for this organization yet.",
     "goToSetup": "Go to setup",
@@ -3563,6 +3566,9 @@
         "opening-difference": "Opening count difference",
         "closing-difference": "Closing count difference",
         "default": "Cash session"
+      },
+      "staff_fund": {
+        "default": "Advance or custody"
       }
     },
     "chart": {
@@ -3605,7 +3611,9 @@
       "marketing": "Marketing",
       "bankCharges": "Bank charges",
       "cashOverShort": "Cash over and short",
-      "otherExpenses": "Other expenses"
+      "otherExpenses": "Other expenses",
+      "staffAdvances": "Employee advances",
+      "staffCustody": "Petty cash custody"
     }
   },
   "cash": {
@@ -4185,7 +4193,8 @@
         "patients": "Patient files and examinations"
       }
     },
-    "commitmentsDue": "{{count}} recurring commitments due within 7 days or overdue"
+    "commitmentsDue": "{{count}} recurring commitments due within 7 days or overdue",
+    "staffFundsOverdue": "{{count}} advances or custody amounts are past their settlement date"
   },
   "assets": {
     "title": "Equipment and maintenance",
@@ -4314,6 +4323,10 @@
       "commitments": {
         "title": "Recurring commitments",
         "body": "Rent, utilities and subscriptions: due soon, overdue and paid"
+      },
+      "staffFunds": {
+        "title": "Open advances and custody",
+        "body": "What each team member holds: returned, spent with receipts, written off, and overdue"
       }
     }
   },
@@ -4408,5 +4421,52 @@
       "choose": "Choose a voucher or bill",
       "noDocuments": "No voucher or bill on this account yet"
     }
+  },
+  "staffFunds": {
+    "title": "Advances and custody",
+    "subtitle": "Employee advances and petty-cash custody: what each team member received and how it was settled. Every movement posts a balanced entry.",
+    "register": "Register",
+    "status": "Status",
+    "statuses": {
+      "open": "Open",
+      "settled": "Settled"
+    },
+    "totals": "Open: advances {{advance}} · custody {{custody}}",
+    "none": "No advances or custody here.",
+    "issue": "Hand out an advance or custody",
+    "issued": "Handed out and posted.",
+    "kind": "Kind",
+    "kinds": {
+      "advance": "Advance",
+      "custody": "Custody"
+    },
+    "kindHint": {
+      "advance": "An amount the team member pays back in cash (or, once payroll is set up, from their pay).",
+      "custody": "Petty cash settled with expense receipts and whatever is left in cash."
+    },
+    "member": "Team member",
+    "chooseMember": "Choose a team member",
+    "cashAccount": "Cashbox or bank",
+    "chooseCashAccount": "Choose a cashbox or bank",
+    "amount": "Amount",
+    "purpose": "Purpose",
+    "dueDate": "Settle by (optional)",
+    "issuedAmount": "handed out {{amount}}",
+    "due": "settle by {{date}}",
+    "breakdown": "returned {{returned}} · receipts {{expensed}} · written off {{writtenOff}}",
+    "outstanding": "{{amount}} outstanding",
+    "overdue": "Overdue",
+    "actions": {
+      "return": "Cash returned",
+      "expenses": "Settle with receipts",
+      "write-off": "Write off the rest"
+    },
+    "upTo": "up to {{amount}}",
+    "receipt": "Receipt note",
+    "addReceipt": "Add receipt",
+    "reason": "Reason",
+    "writeOffNotice": "The rest ({{amount}}) becomes an expense; only a reversing entry undoes it. It is recorded in the audit log.",
+    "confirm": "Confirm and post",
+    "saved": "Posted."
   }
 }
