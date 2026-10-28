@@ -90,6 +90,8 @@ export const CHART_TEMPLATE: readonly TemplateAccount[] = [
     parent: '1500',
     name: 'Furniture and fit-out',
   },
+  // Depreciation (ERP milestone H4): a contra-asset changed only by the monthly depreciation run.
+  { code: '1590', key: 'accumulatedDepreciation', type: 'asset', parent: '1500', name: 'Accumulated depreciation' },
   {
     code: '2000',
     key: 'liabilities',
@@ -261,6 +263,7 @@ export const CHART_TEMPLATE: readonly TemplateAccount[] = [
     parent: '6000',
     name: 'Marketing',
   },
+  { code: '6700', key: 'depreciationExpense', type: 'expense', parent: '6000', name: 'Depreciation' },
   {
     code: '6800',
     key: 'bankCharges',
@@ -285,7 +288,7 @@ export const CHART_TEMPLATE: readonly TemplateAccount[] = [
 ];
 
 /** Accounts with their own documents that vouchers and manual entries never post to. */
-export const DOCUMENT_ONLY_KEYS: readonly string[] = ['staffAdvances', 'staffCustody'];
+export const DOCUMENT_ONLY_KEYS: readonly string[] = ['staffAdvances', 'staffCustody', 'accumulatedDepreciation'];
 
 /** Default posting map of the template (accountants can repoint each key to another account). */
 export const TEMPLATE_MAPPINGS: Record<MappingKey, string> = {

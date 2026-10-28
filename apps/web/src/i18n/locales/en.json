@@ -579,7 +579,9 @@
     "COMMITMENT_ENDED": "This commitment has ended.",
     "ALREADY_LINKED": "This voucher or bill is already linked to a commitment.",
     "STAFF_FUND_SETTLED": "This amount is already settled.",
-    "NOT_CUSTODY": "Only custody is settled with receipts."
+    "NOT_CUSTODY": "Only custody is settled with receipts.",
+    "ASSET_NOT_CAPITALIZED": "Only equipment capitalized through a supplier bill is depreciated.",
+    "DEPRECIATION_STARTED": "Depreciation was already posted for this device; the method no longer changes."
   },
   "validation": {
     "required": "This field is required.",
@@ -3613,7 +3615,9 @@
       "cashOverShort": "Cash over and short",
       "otherExpenses": "Other expenses",
       "staffAdvances": "Employee advances",
-      "staffCustody": "Petty cash custody"
+      "staffCustody": "Petty cash custody",
+      "accumulatedDepreciation": "Accumulated depreciation",
+      "depreciationExpense": "Depreciation"
     }
   },
   "cash": {
@@ -4199,7 +4203,6 @@
   "assets": {
     "title": "Equipment and maintenance",
     "subtitle": "The equipment register with location and maintenance schedule",
-    "noDepreciation": "No depreciation is computed until the clinic accountant defines a method. Costs are recorded once, from the supplier bill or cash voucher.",
     "dueNotice": "{{count}} devices are due for maintenance within 14 days.",
     "register": "Equipment register",
     "none": "No equipment registered.",
@@ -4250,7 +4253,31 @@
     "disposeHintCapitalized": "On disposal its capitalized cost is written off to other expenses.",
     "reason": "Reason",
     "retire": "Retire (kept on record)",
-    "dispose": "Dispose"
+    "dispose": "Dispose",
+    "depreciationNotice": "Depreciation is straight-line, with the useful life and residual value the clinic's accountant sets for each capitalized device; no tax rates are assumed.",
+    "depreciation": {
+      "title": "Depreciation",
+      "none": "No depreciation is set for this device yet.",
+      "setupHint": "The accountant sets the useful life in months, the residual value and the first month. They cannot change once a month is posted.",
+      "life": "Useful life (months)",
+      "residual": "Residual value",
+      "start": "First month",
+      "save": "Save depreciation method",
+      "saved": "Depreciation method saved.",
+      "method": "Method",
+      "straightLine": "Straight-line over {{months}} months",
+      "monthly": "Monthly amount",
+      "accumulated": "Accumulated",
+      "posted": "{{done}} of {{total}} months",
+      "bookValue": "Book value",
+      "runTitle": "Monthly depreciation run",
+      "runHint": "Posts every ended month not yet posted, one entry per device and month, dated the month end. Running it again posts nothing twice.",
+      "through": "Through month",
+      "run": "Post depreciation",
+      "due": "{{count}} monthly amounts due, {{amount}} in total",
+      "nothingDue": "Nothing is due through this month.",
+      "ran": "Depreciation of {{amount}} posted."
+    }
   },
   "reportsHub": {
     "title": "Reports",

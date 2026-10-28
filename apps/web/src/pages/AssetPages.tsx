@@ -30,7 +30,19 @@ type Asset = {
   maintenanceDue: boolean;
   status: 'active' | 'out_of_service' | 'retired' | 'disposed';
   disposal: { date: string; reason: string } | null;
+  depreciation: Depreciation | null;
   version: number;
+};
+type Depreciation = {
+  usefulLifeMonths: number;
+  residualValue: number;
+  startMonth: string;
+  monthly: number;
+  accumulated: number;
+  bookValue: number;
+  lastMonth: string | null;
+  monthsPosted: number;
+  fullyDepreciated: boolean;
 };
 type MaintenanceRecord = {
   id: string;
@@ -145,9 +157,131 @@ function AddAssetForm() {
   );
 }
 
+/** Posts every ended month not yet posted for each depreciated asset (accountants). */
+function DepreciationRun() {
+  const { t } = useTranslation();
+  const { orgId } = useOrg();
+  const money = useMoney();
+  const queryClient = useQueryClient();
+  const schedule = useQuery({
+    queryKey: [...keys.all(orgId), 'depreciation'],
+    queryFn: ({ signal }) =>
+      api<{ through: string; assets: { id: string; code: string; name: string; due: { month: string; amount: number }[] }[] }>(
+        `/orgs/${orgId}/assets/depreciation/schedule`,
+        { signal },
+      ),
+  });
+  const [month, setMonth] = useState('');
+  const through = month || schedule.data?.through || '';
+  const due = (schedule.data?.assets ?? []).flatMap((a) => a.due.filter((d) => d.month <= through).map((d) => ({ ...d, code: a.code })));
+  const run = useMutation({
+    mutationFn: () => api<{ total: number }>(`/orgs/${orgId}/assets/depreciation/run`, { method: 'POST', body: { month: through } }),
+    onSuccess: (r) => (
+      showToast(t('assets.depreciation.ran', { amount: money(r.total) })),
+      queryClient.invalidateQueries({ queryKey: ['org', orgId] })
+    ),
+  });
+  if (!schedule.data || schedule.data.assets.length === 0) return null;
+  return (
+    <section className="card" aria-labelledby="dep-run-title" data-testid="depreciation-run">
+      <h2 id="dep-run-title">{t('assets.depreciation.runTitle')}</h2>
+      <p className="muted small">{t('assets.depreciation.runHint')}</p>
+      <div className="inline-form">
+        <Field id="dep-month" label={t('assets.depreciation.through')}>
+          <input id="dep-month" type="month" value={through} max={schedule.data.through} onChange={(e) => setMonth(e.target.value)} />
+        </Field>
+        <button type="button" className="button button--primary" disabled={run.isPending || due.length === 0} onClick={() => run.mutate()}>
+          {t('assets.depreciation.run')}
+        </button>
+      </div>
+      <p>
+        {due.length
+          ? t('assets.depreciation.due', { count: due.length, amount: money(due.reduce((s, d) => s + d.amount, 0)) })
+          : t('assets.depreciation.nothingDue')}
+      </p>
+      {run.isError && <Notice kind="error">{errorMessage(t, run.error)}</Notice>}
+    </section>
+  );
+}
+
+function DepreciationCard({ asset }: { asset: Asset }) {
+  const { t } = useTranslation();
+  const { orgId, can } = useOrg();
+  const money = useMoney();
+  const queryClient = useQueryClient();
+  const [life, setLife] = useState('');
+  const [residual, setResidual] = useState('');
+  const [start, setStart] = useState(asset.purchase.date?.slice(0, 7) ?? '');
+  const save = useMutation({
+    mutationFn: () =>
+      api(`/orgs/${orgId}/assets/${asset.id}/depreciation`, {
+        method: 'PUT',
+        body: {
+          usefulLifeMonths: Number(life),
+          residualValue: residual ? (parseMoney(residual) ?? 0) : 0,
+          startMonth: start,
+          version: asset.version,
+        },
+      }),
+    onSuccess: () => (showToast(t('assets.depreciation.saved')), queryClient.invalidateQueries({ queryKey: keys.all(orgId) })),
+  });
+  const d = asset.depreciation;
+  if (!asset.capitalized) return null;
+  const editable = can('accounting.manage') && (!d || !d.lastMonth) && (asset.status === 'active' || asset.status === 'out_of_service');
+  return (
+    <section className="card" aria-labelledby="dep-title" data-testid="depreciation">
+      <h2 id="dep-title">{t('assets.depreciation.title')}</h2>
+      {d ? (
+        <dl className="details">
+          <dt>{t('assets.depreciation.method')}</dt>
+          <dd>{t('assets.depreciation.straightLine', { months: d.usefulLifeMonths })}</dd>
+          <dt>{t('assets.depreciation.monthly')}</dt>
+          <dd>{money(d.monthly)}</dd>
+          <dt>{t('assets.depreciation.accumulated')}</dt>
+          <dd>
+            {money(d.accumulated)} · {t('assets.depreciation.posted', { done: d.monthsPosted, total: d.usefulLifeMonths })}
+          </dd>
+          <dt>{t('assets.depreciation.bookValue')}</dt>
+          <dd>{money(d.bookValue)}</dd>
+        </dl>
+      ) : (
+        <p className="muted">{t('assets.depreciation.none')}</p>
+      )}
+      {editable && (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            save.mutate();
+          }}
+        >
+          <p className="muted small">{t('assets.depreciation.setupHint')}</p>
+          <div className="form-grid">
+            <Field id="dep-life" label={t('assets.depreciation.life')}>
+              <input id="dep-life" required inputMode="numeric" value={life} onChange={(e) => setLife(e.target.value)} />
+            </Field>
+            <Field id="dep-residual" label={t('assets.depreciation.residual')}>
+              <input id="dep-residual" inputMode="decimal" value={residual} onChange={(e) => setResidual(e.target.value)} />
+            </Field>
+            <Field id="dep-start" label={t('assets.depreciation.start')}>
+              <input id="dep-start" type="month" required value={start} onChange={(e) => setStart(e.target.value)} />
+            </Field>
+          </div>
+          {save.isError && <Notice kind="error">{errorMessage(t, save.error)}</Notice>}
+          <div className="form-actions">
+            <button type="submit" className="button button--primary" disabled={save.isPending}>
+              {t('assets.depreciation.save')}
+            </button>
+          </div>
+        </form>
+      )}
+    </section>
+  );
+}
+
 export function AssetsPage() {
   const { t } = useTranslation();
-  const { orgId, can, branches } = useOrg();
+  const { orgId, can, branches, detail } = useOrg();
+  const orgWide = detail.membership.branchScope.type === 'all';
   useDocumentTitle(t('assets.title'));
   const list = useQuery({
     queryKey: keys.all(orgId),
@@ -158,7 +292,7 @@ export function AssetsPage() {
   return (
     <>
       <PageHeader title={t('assets.title')} subtitle={t('assets.subtitle')} />
-      <Notice kind="info">{t('assets.noDepreciation')}</Notice>
+      <Notice kind="info">{t('assets.depreciationNotice')}</Notice>
       {due.length > 0 && <Notice kind="warning">{t('assets.dueNotice', { count: due.length })}</Notice>}
       <section className="card" aria-labelledby="assets-title">
         <h2 id="assets-title">{t('assets.register')}</h2>
@@ -186,6 +320,7 @@ export function AssetsPage() {
           </ul>
         )}
       </section>
+      {can('accounting.manage') && orgWide && <DepreciationRun />}
       {can('asset.manage') && <AddAssetForm />}
     </>
   );
@@ -267,6 +402,7 @@ export function AssetPage() {
           )}
         </dl>
       </section>
+      <DepreciationCard asset={a} />
       {live && can('asset.maintain') && (
         <form
           className="card"

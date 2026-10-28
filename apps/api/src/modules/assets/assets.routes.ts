@@ -16,6 +16,7 @@ import { MAX_AMOUNT } from '../finance/finance.model.js';
 import { MembershipModel } from '../memberships/membership.model.js';
 import { SupplierBillModel, SupplierModel } from '../purchasing/purchasing.model.js';
 import { AssetModel, MaintenanceRecordModel, type Asset, type MaintenanceRecord } from './assets.model.js';
+import { depreciationDto } from './depreciation.routes.js';
 
 // Equipment register and maintenance (docs/architecture/ASSETS.md). Assets belong to a branch and
 // follow branch scope. Costs are recorded once, by the supplier bill or cash voucher they came
@@ -45,6 +46,7 @@ const assetDto = (a: Lean<Asset>, today: string) => ({
   ),
   status: a.status,
   disposal: a.disposal ? { date: a.disposal.date, reason: a.disposal.reason, entryId: id(a.disposal.entryId) } : null,
+  depreciation: depreciationDto(a),
   version: a.version,
 });
 const recordDto = (r: Lean<MaintenanceRecord>) => ({
@@ -286,6 +288,12 @@ export function createAssetsRouter() {
           .session(session)
           .lean();
         if (!writeOff) throw conflict('CHART_INCOMPLETE', 'The other expenses account is missing');
+        // Depreciation already posted comes off the accumulated account; the book value is written off.
+        const accumulated = a.depreciation?.accumulated ?? 0;
+        const accumulatedAccount = accumulated
+          ? await LedgerAccountModel.findOne({ organizationId: tenant.organizationId, templateKey: 'accumulatedDepreciation' }).session(session).lean()
+          : null;
+        if (accumulated && !accumulatedAccount) throw conflict('CHART_INCOMPLETE', 'The accumulated depreciation account is missing');
         const entry = await postEntry(
           {
             organizationId: tenant.organizationId,
@@ -294,7 +302,8 @@ export function createAssetsRouter() {
             journal: 'general',
             memo: `${a.code} disposal`,
             lines: [
-              { accountId: writeOff._id, debit: a.purchase.cost, branchId: a.branchId },
+              ...(accumulatedAccount ? [{ accountId: accumulatedAccount._id, debit: accumulated, branchId: a.branchId }] : []),
+              ...(a.purchase.cost > accumulated ? [{ accountId: writeOff._id, debit: a.purchase.cost - accumulated, branchId: a.branchId }] : []),
               { accountId: a.ledgerAccountId, credit: a.purchase.cost, branchId: a.branchId },
             ],
             source: { type: 'asset', id: a._id, event: 'disposed' },

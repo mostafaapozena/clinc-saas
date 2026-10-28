@@ -21,7 +21,7 @@ accountant or clinicians.
 | E-12 | Packages / courses with prepaid sessions | **Not built** | Payment, use, cancellation and refund rules are not defined (brief §8). Needs an owner decision. |
 | E-13 | Statutory payroll, insurance deductions, tax tables, device calibration certificates | **Not built** | Local rules are needed. Only non-statutory foundations may be added. |
 | E-14 | Supplier messages (RFQ, PO) are prepared for download or print and never sent by email. | Decided | No real external messages. |
-| E-15 | No depreciation of equipment until the accountant defines the method, useful lives and accounts | **Not built** | Capitalized costs stay at cost; disposal writes them off once. |
+| E-15 | Depreciation of equipment: method inputs per asset from the accountant | **Built (H4)**: straight-line only, useful life and residual value entered per asset, no defaults | Other methods (declining balance, units of use) and tax depreciation wait for the accountant. |
 
 ## Open items for the owner and the accountant
 

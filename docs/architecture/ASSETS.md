@@ -26,8 +26,29 @@ Code: `apps/api/src/modules/assets/` (`assets.model.ts`, `assets.routes.ts`); we
   - **Disposal** (the equipment is gone) writes off a capitalized cost: *other expenses* (debit)
     against the asset account (credit), once.
   - Proceeds from a sale are recorded as a cash-in voucher.
-- **No depreciation** until the accountant defines a method and accounts (decision E-15), and no
-  calibration certificates (E-13).
+- **Depreciation (milestone H4):** straight-line, for capitalized equipment only. Code:
+  `assets/depreciation.routes.ts`. Test: `apps/api/test/depreciation.test.ts`.
+  - **Method inputs:** the clinic's accountant (`accounting.manage`) enters, per asset, the useful
+    life in months, the residual value (below cost) and the first month (not before the ledger
+    start). Nothing is assumed: there are no default lives and no tax rates.
+  - **Method fixed after posting:** once a month is posted the method cannot change
+    (`DEPRECIATION_STARTED`).
+  - **Monthly amount:** (cost − residual) ÷ life. The last month takes the rounding, so the total
+    is exact.
+  - **Run:** `POST /assets/depreciation/run { month }` posts every **ended** month not yet posted
+    for each active or out-of-service asset (`not_ended` otherwise). It posts one entry per asset
+    and month, dated the month end: Dr *Depreciation* (6700), Cr *Accumulated depreciation*
+    (1590). Both lines carry the asset's branch.
+  - **Run safety:**
+    - The source key `asset:<id>:depreciation-YYYY-MM` makes reruns post nothing twice.
+    - A closed month is refused.
+    - The run is audited (`asset.depreciated`).
+  - **Schedule:** `GET /assets/depreciation/schedule?month` shows what each asset posted and what
+    is due.
+  - **Accumulated depreciation is document-only:** vouchers and manual entries cannot post to it.
+  - **Disposal** clears it: Dr accumulated depreciation, Dr *other expenses* (book value),
+    Cr the asset account (cost).
+- No calibration certificates (E-13).
 
 | Permission | Roles |
 | --- | --- |
