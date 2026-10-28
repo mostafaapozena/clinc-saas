@@ -222,6 +222,9 @@ export interface Payment {
   reference: string;
   receivedAt: Date;
   allocations: { invoiceId: Types.ObjectId; amount: number; at: Date }[];
+  /** Ledger cash/bank account and cashier session the money went to (null before accounting). */
+  ledgerAccountId: Types.ObjectId | null;
+  cashSessionId: Types.ObjectId | null;
   allocated: number;
   refunded: number;
   status: 'active' | 'reversed';
@@ -246,6 +249,8 @@ const paymentSchema = new Schema<Payment>(
       type: [new Schema({ invoiceId: ref('Invoice'), amount: { ...money, min: 1 }, at: { type: Date, required: true } }, { _id: false })],
       default: [],
     },
+    ledgerAccountId: { type: Schema.Types.ObjectId, ref: 'LedgerAccount', default: null },
+    cashSessionId: { type: Schema.Types.ObjectId, ref: 'CashSession', default: null },
     allocated: { ...money, default: 0 },
     refunded: { ...money, default: 0 },
     status: { type: String, enum: ['active', 'reversed'], required: true, default: 'active' },

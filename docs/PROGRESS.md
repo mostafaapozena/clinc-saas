@@ -1,8 +1,18 @@
 # Progress
 
-_Last updated: 2026-10-28 (UI polish in review, stacked on the public website redesign)._
+_Last updated: 2026-10-28 (ERP milestone A — general ledger, cash and banks; phases 14–15 merged into main)._
 
-## UI polish: light and dark themes, review findings (in review)
+## ERP milestone A: general ledger, cash and banks (in review)
+
+Branch `phase-16/erp-accounting`. Scope, matrix, plan and decisions: [MEDICAL_ERP_SCOPE.md](MEDICAL_ERP_SCOPE.md), [ERP_MODULE_MATRIX.md](ERP_MODULE_MATRIX.md), [ERP_EXECUTION_PLAN.md](ERP_EXECUTION_PLAN.md), [ERP_DECISIONS.md](ERP_DECISIONS.md), research [ERP_REFERENCE_RESEARCH.md](ERP_REFERENCE_RESEARCH.md). Design: [architecture/ACCOUNTING.md](architecture/ACCOUNTING.md).
+
+- **Ledger:** template chart (pending accountant review), balanced immutable entries with unique source keys, automatic postings from invoices, credit notes, receipts, allocations, refunds and reversals in the same transaction; manual and opening entries; linked reversals.
+- **Periods:** months close in order once ended; postings into closed months refused server-side; owner-only reopen of the latest month with a reason.
+- **Statements:** trial balance, general ledger, income and expenses (result per ledger, by branch), balance sheet, receivables aging, sub-ledger reconciliation, cutover dry run for opening balances.
+- **Cash and banks:** branch cashboxes and bank accounts, cashier sessions with opening and closing counts and posted differences, vouchers and two-sided transfers, CSV bank-statement matching.
+- **Next:** milestone B (inventory and consumables), then C (purchasing and payables), D (practitioner compensation), E (specialty workspaces).
+
+## UI polish: light and dark themes, review findings (merged)
 
 Branch `phase-15/ui-polish`, PR [#16](https://github.com/mostafaapozena/clinc-saas/pull/16), stacked on `phase-14/public-redesign`. Tracker: [UI_POLISH_IMPLEMENTATION.md](UI_POLISH_IMPLEMENTATION.md) (every finding UX-001…049, ICN, ANIM and brief requirement with status and evidence).
 

@@ -1389,3 +1389,75 @@
   white-space: nowrap;
 }
 
+
+/* ERP module sub-navigation (accounting, cash and banks, later purchasing and stock). */
+.module-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--stack-related);
+}
+
+.module-nav-link {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 36px;
+  padding: 4px 14px;
+  color: var(--text);
+  text-decoration: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+}
+
+.module-nav-link:hover {
+  border-color: var(--primary);
+}
+
+.module-nav-link.active {
+  color: var(--primary-contrast);
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.segmented--wrap {
+  flex-wrap: wrap;
+}
+
+.data-table .row-total th,
+.data-table .row-total td {
+  font-weight: 700;
+  border-block-start: 2px solid var(--border);
+}
+
+.data-table .row-group td {
+  font-weight: 600;
+  background: var(--surface-muted);
+}
+
+.data-table .row-muted td {
+  color: var(--muted);
+}
+
+.data-table caption {
+  padding-block-end: 8px;
+  font-weight: 600;
+  text-align: start;
+}
+
+.entry-totals {
+  margin: 0;
+  font-weight: 600;
+}
+
+.entry-totals--off {
+  color: var(--bad);
+}
+
+.report-result {
+  font-size: 1.1rem;
+}
+
+.entry-lines :is(select, input) {
+  inline-size: 100%;
+  min-inline-size: 7rem;
+}

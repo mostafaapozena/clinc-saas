@@ -9,6 +9,10 @@ import { BranchModel } from '../branches/branch.model.js';
 import { AddendumModel, EncounterModel } from '../clinical/clinical.model.js';
 import { CoverageModel } from '../clinical/coverage.model.js';
 import { FinanceServiceModel } from '../finance/finance.model.js';
+import { runTransaction } from '../../db/transaction.js';
+import { localDateOf } from '../../time/local-time.js';
+import { AccountingSettingsModel, CashAccountModel, LedgerAccountModel } from '../accounting/accounting.model.js';
+import { createLedger } from '../accounting/accounting.setup.js';
 import { latestTemplate, parseTemplateData } from '../clinical/templates.js';
 import { MembershipModel } from '../memberships/membership.model.js';
 import { OrganizationModel } from '../organizations/organization.model.js';
@@ -111,6 +115,7 @@ export async function seedDemoData(password: string, now = clock.now()) {
         { upsert: true },
       );
     }
+    if (org.finance?.currency) await seedLedger(organizationId, ownerId, org.finance.currency, org.timeZone, [...branchIds.values()], now);
   }
 
   return {
@@ -382,4 +387,24 @@ function seedSpecialty(specialty: NonNullable<DemoEncounter['specialty']>, seede
   const parsed = parseTemplateData(template, resolved);
   if (!parsed.ok) throw new Error(`Demo seed: invalid specialty data (${Object.keys(parsed.fields).join(', ')})`);
   return { template: template.id, version: template.version, data: parsed.data };
+}
+
+/**
+ * The demo ledger (ERP milestone A): template chart from the first day of the seed's month, and one
+ * cashbox per branch so cashier sessions can be tried. Created once; reruns leave it as it is.
+ */
+async function seedLedger(organizationId: Types.ObjectId, ownerId: Types.ObjectId, currency: 'EGP' | 'SAR', timeZone: string, branchIds: Types.ObjectId[], now: Date) {
+  if (await AccountingSettingsModel.exists({ organizationId })) return;
+  const cutoverDate = `${localDateOf(now, timeZone).slice(0, 7)}-01`;
+  await runTransaction(async (session) => {
+    await createLedger({ organizationId, userId: ownerId, currency, cutoverDate, requireCashSession: false }, session);
+    const group = await LedgerAccountModel.findOne({ organizationId, templateKey: 'cashAndBanks' }).session(session).lean();
+    for (const [i, branchId] of branchIds.entries()) {
+      const [ledger] = await LedgerAccountModel.create(
+        [{ organizationId, code: String(1131 + i), name: `Branch cashbox ${i + 1}`, type: 'asset', parentId: group?._id ?? null, role: 'cash' }],
+        { session },
+      );
+      await CashAccountModel.create([{ organizationId, name: `Branch cashbox ${i + 1}`, kind: 'cash', branchId, accountId: ledger!._id }], { session });
+    }
+  });
 }
