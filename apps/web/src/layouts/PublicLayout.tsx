@@ -4,6 +4,7 @@ import { Link } from 'react-router';
 import { BrandLogo } from '../components/BrandLogo';
 import { Icon } from '../components/Icon';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
+import { ThemeSwitcher } from '../components/ThemeSwitcher';
 
 /**
  * Layout of sign-in, registration, onboarding and simple standalone pages. With `brand`, the
@@ -25,6 +26,7 @@ export function PublicLayout({ children, actions, brand = false, panel = false }
           )}
           <div className="public-header-actions">
             {actions}
+            <ThemeSwitcher />
             <LanguageSwitcher />
           </div>
         </header>

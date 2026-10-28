@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Link, NavLink, Outlet, useParams, useSearchParams } from 'react-router';
 import { BrandLogo } from '../components/BrandLogo';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
+import { ThemeSwitcher } from '../components/ThemeSwitcher';
 import { PageHeader } from '../components/PageHeader';
 import { EmptyState, ErrorState, Field, Loading, Notice } from '../components/ui';
 import { useFocusOnError } from '../lib/a11y';
@@ -81,6 +82,7 @@ function OperatorShellFrame({ children, actions }: { children: ReactNode; action
         </span>
         <div className="public-header-actions operator-header-actions">
           {actions}
+          <ThemeSwitcher />
           <LanguageSwitcher />
         </div>
       </header>

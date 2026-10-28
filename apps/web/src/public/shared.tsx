@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
+import { CountUp } from '../components/CountUp';
 import { Icon, type IconName } from '../components/Icon';
 import { SOLUTIONS, inquiryPath, productShot, startPath, type Solution } from './solutions';
 import { useList, type QuestionItem, type TitledItem } from './useList';
@@ -52,7 +53,7 @@ export function SectionHeader({
   center?: boolean;
 }) {
   return (
-    <div className={center ? 'site-section-header site-section-header--center' : 'site-section-header'}>
+    <div className={center ? 'site-section-header site-section-header--center' : 'site-section-header'} data-reveal>
       {eyebrow && <p className="site-eyebrow">{eyebrow}</p>}
       <h2 id={id}>
         <Headline start={title} emphasis={emphasis} />
@@ -62,8 +63,11 @@ export function SectionHeader({
   );
 }
 
-/** A real workspace screenshot (synthetic data) in a window frame, optionally with floating labels. */
-export function ProductFrame({ shot, alt, label, floats = [] }: { shot: string; alt: string; label?: string; floats?: string[] }) {
+/**
+ * A real workspace screenshot (synthetic data) in a window frame, optionally with floating labels.
+ * `priority` for the hero image: loaded at once and early (it is the largest paint), never lazily.
+ */
+export function ProductFrame({ shot, alt, label, floats = [], priority }: { shot: string; alt: string; label?: string; floats?: string[]; priority?: boolean }) {
   const { i18n } = useTranslation();
   return (
     <figure className="site-frame">
@@ -74,7 +78,15 @@ export function ProductFrame({ shot, alt, label, floats = [] }: { shot: string; 
           <span />
           {label && <em>{label}</em>}
         </div>
-        <img src={productShot(shot, i18n.resolvedLanguage ?? 'ar')} alt={alt} width={1280} height={800} loading="lazy" decoding="async" />
+        <img
+          src={productShot(shot, i18n.resolvedLanguage ?? 'ar')}
+          alt={alt}
+          width={1280}
+          height={800}
+          loading={priority ? 'eager' : 'lazy'}
+          fetchPriority={priority ? 'high' : undefined}
+          decoding="async"
+        />
       </div>
       {floats[0] && <span className="site-float site-float--top">{floats[0]}</span>}
       {floats[1] && <span className="site-float site-float--bottom">{floats[1]}</span>}
@@ -99,7 +111,7 @@ export function SolutionCards() {
   const { t } = useTranslation();
   return (
     <div className="site-stack">
-      <ul className="site-grid site-grid--4">
+      <ul className="site-grid site-grid--4" data-reveal>
         {SOLUTIONS.map((solution) => (
           <li key={solution.slug} className={`site-card site-card--link site-card--toned tone-${solution.tone}`} data-testid="solution-card">
             <SolutionIcon solution={solution} size="lg" />
@@ -138,18 +150,18 @@ export function CustomCard() {
 }
 
 /** Hosted subscription workspace versus a separately scoped custom project. */
-export function SaasOwnershipComparison({ interest }: { interest?: string }) {
+export function SaasOwnershipComparison({ interest, start }: { interest?: string; start?: Solution['start'] }) {
   const { t } = useTranslation();
   const saas = useList('site.compare.saas.points');
   const ownership = useList('site.compare.ownership.points');
   return (
-    <div className="site-compare">
+    <div className="site-compare" data-reveal>
       <section className="site-card site-card--saas" aria-labelledby="compare-saas">
         <IconTile name="layers" />
         <h3 id="compare-saas">{t('site.compare.saas.title')}</h3>
         <p>{t('site.compare.saas.body')}</p>
         <FeatureList items={saas} />
-        <CreateLink className="button button--primary" />
+        <CreateLink className="button button--primary" start={start} />
       </section>
       <section className="site-card site-card--ownership tone-custom" aria-labelledby="compare-ownership">
         <IconTile name="scan" tone="custom" />
@@ -187,12 +199,16 @@ export function Faq({ items, testId }: { items: QuestionItem[]; testId?: string 
   );
 }
 
-export function Steps({ items, tone }: { items: TitledItem[]; tone?: string }) {
+/** Numbered steps; `icons` (one per step) sit beside each title, the number stays. */
+export function Steps({ items, tone, icons }: { items: TitledItem[]; tone?: string; icons?: readonly IconName[] }) {
   return (
-    <ol className={`site-steps${tone ? ` tone-${tone}` : ''}`}>
-      {items.map((item) => (
+    <ol className={`site-steps${tone ? ` tone-${tone}` : ''}`} data-reveal>
+      {items.map((item, index) => (
         <li key={item.title}>
-          <h3>{item.title}</h3>
+          <h3>
+            {icons?.[index] && <Icon name={icons[index]} />}
+            <span>{item.title}</span>
+          </h3>
           <p>{item.body}</p>
         </li>
       ))}
@@ -200,16 +216,32 @@ export function Steps({ items, tone }: { items: TitledItem[]; tone?: string }) {
   );
 }
 
-export function CardGrid({ items, columns = 3, icon, tone }: { items: TitledItem[]; columns?: 2 | 3 | 4; icon?: IconName; tone?: string }) {
+/** Cards with a title and text; `icon` for all cards, or `icons` with one per card. */
+export function CardGrid({
+  items,
+  columns = 3,
+  icon,
+  icons,
+  tone,
+}: {
+  items: TitledItem[];
+  columns?: 2 | 3 | 4;
+  icon?: IconName;
+  icons?: readonly IconName[];
+  tone?: string;
+}) {
   return (
-    <ul className={`site-grid site-grid--${columns}`}>
-      {items.map((item) => (
-        <li key={item.title} className={`site-card${tone ? ` tone-${tone}` : ''}`}>
-          {icon && <IconTile name={icon} tone={tone} />}
-          <h3>{item.title}</h3>
-          <p>{item.body}</p>
-        </li>
-      ))}
+    <ul className={`site-grid site-grid--${columns}`} data-reveal>
+      {items.map((item, index) => {
+        const name = icons?.[index] ?? icon;
+        return (
+          <li key={item.title} className={`site-card${tone ? ` tone-${tone}` : ''}`}>
+            {name && <IconTile name={name} tone={tone} />}
+            <h3>{item.title}</h3>
+            <p>{item.body}</p>
+          </li>
+        );
+      })}
     </ul>
   );
 }
@@ -231,7 +263,7 @@ export function Breadcrumb({ items }: { items: { to?: string; label: string }[] 
 }
 
 /** One closing block per page (navy), never two in a row (reference P11 adapted). */
-export function CtaBlock({ title, body, children }: { title: string; body?: string; children?: ReactNode }) {
+export function CtaBlock({ title, body, children, start }: { title: string; body?: string; children?: ReactNode; start?: Solution['start'] }) {
   const { t } = useTranslation();
   return (
     <section className="site-section site-section--tight" aria-labelledby="closing-title">
@@ -244,7 +276,7 @@ export function CtaBlock({ title, body, children }: { title: string; body?: stri
           <div className="site-cta-row">
             {children ?? (
               <>
-                <CreateLink className="button button--accent button--large" />
+                <CreateLink className="button button--accent button--large" start={start} />
                 <Link className="button button--on-navy button--large" to="/contact">
                   {t('site.nav.contact')}
                 </Link>
@@ -255,6 +287,11 @@ export function CtaBlock({ title, body, children }: { title: string; body?: stri
       </div>
     </section>
   );
+}
+
+/** Product facts from the locale ("3", "6"…): numeric ones count up once when scrolled into view. */
+export function FactValue({ value }: { value: string }) {
+  return /^\d+$/.test(value) ? <CountUp value={Number(value)} when="visible" /> : <>{value}</>;
 }
 
 export function DevNotice() {

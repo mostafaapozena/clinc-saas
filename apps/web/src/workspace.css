@@ -12,12 +12,10 @@
   --ease: 0.15s ease;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --mint: #143a3d;
-    --shadow-sm: none;
-    --shadow-md: 0 8px 24px rgb(0 0 0 / 35%);
-  }
+:root[data-theme='dark'] {
+  --mint: #143a3d;
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 30%);
+  --shadow-md: 0 8px 24px rgb(0 0 0 / 35%);
 }
 
 /* ---------- Page headings ---------- */

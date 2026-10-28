@@ -1,14 +1,14 @@
 /*
  * Public website only (loaded with the public chunk). Logical properties only, so the layout
- * mirrors for Arabic (RTL) and English (LTR). The public site is always presented in the light
- * brand palette (docs/BRAND.md); the workspace keeps following the system preference.
+ * mirrors for Arabic (RTL) and English (LTR). Light and dark palettes follow the one product-wide
+ * theme (<html data-theme>, src/lib/theme.ts); components use the tokens below, never raw colors.
  *
  * Composition follows the reference audit (docs/FRONTEND_REDESIGN_IMPLEMENTATION.md): a 1200px
  * container, sections alternating white / light / mint / navy, a two-column hero with a framed
  * product preview, grouped navigation with descriptions, and a dark navy footer.
  */
 .site {
-  /* Light palette, independent of the visitor's dark-mode preference. */
+  /* Light palette (the site keeps its own copy so the workspace tokens can evolve separately). */
   --bg: #f5f8fa;
   --surface: #ffffff;
   --surface-muted: #edf3f6;
@@ -18,7 +18,7 @@
   --primary: var(--brand-navy-symbol);
   --primary-strong: var(--brand-navy);
   --primary-contrast: #ffffff;
-  --link: var(--brand-teal-text);
+  --link: var(--site-em);
   --accent: var(--brand-turquoise);
   --ok: #15803d;
   --ok-bg: #dcfce7;
@@ -52,13 +52,68 @@
   --tone-centers-bg: #e2f1f6;
   --tone-custom: #b4432a;
   --tone-custom-bg: #fff1ec;
+  /* Emphasis text on light surfaces and its counterpart on filled backgrounds. */
+  --site-em: var(--brand-teal-text);
+  --site-on-em: #ffffff;
+  --site-notice: #7a4b00;
+  --site-notice-bg: #fff7e0;
+  --site-notice-border: #f5dfa5;
+  --site-header-bg: var(--surface);
 
-  color-scheme: light;
   display: flex;
   flex-direction: column;
   min-block-size: 100vh;
   color: var(--text);
   background: var(--surface);
+}
+
+/*
+ * Dark palette, derived from the brand navy like the workspace (styles.css). Navy bands become a
+ * deeper navy than the page so they still read as bands; specialty tones become their light tints
+ * (≥ 7:1 on --surface) with dark tinted tiles. Product screenshots stay light images in a frame.
+ */
+[data-theme='dark'] .site {
+  --bg: #0d1b2e;
+  --surface: #11223a;
+  --surface-muted: #192f4a;
+  --text: #e6eef5;
+  --muted: #a5b7c8;
+  --border: #284060;
+  --primary: var(--brand-turquoise);
+  --primary-strong: #7fdfd4;
+  --primary-contrast: var(--brand-navy);
+  --link: #7fdfd4;
+  --ok: #4ade80;
+  --ok-bg: #12331f;
+  --warn: #facc15;
+  --warn-bg: #3a3110;
+  --bad: #f87171;
+  --bad-bg: #3d1717;
+  --neutral-bg: #22354d;
+  --focus: #93c5fd;
+
+  --site-mint: #10323a;
+  --site-navy: #081322;
+  --site-navy-2: #10223a;
+  --site-on-navy-muted: #b0c2d2;
+  --site-shadow: 0 1px 2px rgb(0 0 0 / 30%), 0 8px 24px rgb(0 0 0 / 28%);
+  --site-shadow-lg: 0 18px 48px rgb(0 0 0 / 45%);
+  --tone-dentistry: #6fdccf;
+  --tone-dentistry-bg: #12383a;
+  --tone-physiotherapy: #ffa48c;
+  --tone-physiotherapy-bg: #3a221d;
+  --tone-ent: #a9c6ea;
+  --tone-ent-bg: #1b3150;
+  --tone-centers: #85cfe6;
+  --tone-centers-bg: #11344a;
+  --tone-custom: #ffa48c;
+  --tone-custom-bg: #34211d;
+  --site-em: #6fdccf;
+  --site-on-em: var(--brand-navy);
+  --site-notice: #f7d77c;
+  --site-notice-bg: #2f2710;
+  --site-notice-border: #5c4a17;
+  --site-header-bg: #0f1f35;
 }
 
 .site-container {
@@ -86,7 +141,7 @@
 
 /* Emphasized half of a headline: turquoise family text (5.2:1) with a turquoise underline. */
 .site-em {
-  color: var(--brand-teal-text);
+  color: var(--site-em);
   background: linear-gradient(transparent 82%, color-mix(in srgb, var(--accent) 45%, transparent) 82%);
 }
 
@@ -102,14 +157,13 @@
   inset-block-start: 0;
   z-index: 30;
   /* Solid, no backdrop-filter: a filter would make the header the containing block of the fixed mobile drawer. */
-  background: var(--surface);
+  background: var(--site-header-bg);
   border-block-end: 1px solid var(--border);
 }
 
 .site-header-inner {
   display: flex;
   align-items: center;
-  gap: 8px 20px;
   inline-size: min(var(--site-max), 100%);
   min-block-size: 68px;
   margin-inline: auto;
@@ -164,7 +218,7 @@
 
 .site-nav-link.active,
 .site-nav-trigger--active {
-  color: var(--brand-teal-text);
+  color: var(--site-em);
 }
 
 .site-nav-trigger .icon {
@@ -245,15 +299,28 @@
   background: var(--surface-muted);
 }
 
-.site-menu-item strong {
-  display: block;
-  font-size: 0.95rem;
+/* Explicit classes for the text, so nothing here can restyle the icon tile (UX-001). */
+.site-menu-item-text {
+  display: grid;
+  gap: 2px;
+  min-inline-size: 0;
+  color: var(--text);
 }
 
-.site-menu-item span {
-  display: block;
+.site-menu-item-text strong {
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.site-menu-item-desc {
   font-size: 0.82rem;
+  line-height: 1.5;
   color: var(--muted);
+}
+
+/* The tile is as tall as the first text line pair, so it lines up with the name. */
+.site-menu-item .site-icon-tile {
+  margin-block-start: 1px;
 }
 
 .site-dropdown-footer {
@@ -275,16 +342,25 @@
   text-decoration: none;
 }
 
-/* Specialty icon tile, tinted per specialty (reference P07). */
+/* Specialty icon tile, tinted per specialty (reference P07). Self-contained: display, centering,
+   line height and color are set here so a surrounding context cannot shift the icon (UX-001). */
 .site-icon-tile {
   display: inline-grid;
-  flex-shrink: 0;
+  flex: none;
   place-items: center;
   inline-size: 40px;
   block-size: 40px;
-  color: var(--tone, var(--brand-teal-text));
+  font-size: 1rem;
+  line-height: 1;
+  color: var(--tone, var(--site-em));
   background: var(--tone-bg, var(--site-mint));
   border-radius: 12px;
+}
+
+.site-icon-tile > .icon {
+  display: block;
+  inline-size: 20px;
+  block-size: 20px;
 }
 
 .site-icon-tile--sm {
@@ -293,13 +369,18 @@
   border-radius: 9px;
 }
 
+.site-icon-tile--sm > .icon {
+  inline-size: 18px;
+  block-size: 18px;
+}
+
 .site-icon-tile--lg {
   inline-size: 52px;
   block-size: 52px;
   border-radius: 14px;
 }
 
-.site-icon-tile--lg .icon {
+.site-icon-tile--lg > .icon {
   inline-size: 26px;
   block-size: 26px;
 }
@@ -409,7 +490,7 @@
   margin: 0;
   font-size: 0.85rem;
   font-weight: 700;
-  color: var(--brand-teal-text);
+  color: var(--site-em);
 }
 
 .site:lang(en) .site-eyebrow {
@@ -540,7 +621,7 @@
 .site-reassure .icon {
   inline-size: 16px;
   block-size: 16px;
-  color: var(--brand-teal-text);
+  color: var(--site-em);
 }
 
 .site-dev-notice {
@@ -550,9 +631,9 @@
   margin: 0;
   padding: 10px 14px;
   font-size: 0.88rem;
-  color: #7a4b00;
-  background: #fff7e0;
-  border: 1px solid #f5dfa5;
+  color: var(--site-notice);
+  background: var(--site-notice-bg);
+  border: 1px solid var(--site-notice-border);
   border-radius: var(--site-radius-sm);
 }
 
@@ -570,13 +651,13 @@
 }
 
 .site .button--primary {
-  color: #ffffff;
-  background: var(--brand-navy-symbol);
-  box-shadow: 0 2px 0 var(--brand-navy);
+  color: var(--primary-contrast);
+  background: var(--primary);
+  box-shadow: 0 2px 0 color-mix(in srgb, var(--primary) 65%, #000000);
 }
 
 .site .button--primary:hover:not(:disabled) {
-  background: var(--brand-navy);
+  background: var(--primary-strong);
 }
 
 .site .button--accent {
@@ -616,7 +697,7 @@
   align-items: center;
   gap: 6px;
   font-weight: 700;
-  color: var(--tone, var(--brand-teal-text));
+  color: var(--tone, var(--site-em));
   text-decoration: none;
 }
 
@@ -648,14 +729,14 @@
   align-items: center;
   gap: 6px;
   padding: 10px 14px;
-  background: #f1f5f8;
+  background: var(--surface-muted);
   border-block-end: 1px solid var(--border);
 }
 
 .site-frame-bar span {
   inline-size: 10px;
   block-size: 10px;
-  background: #cfd9e2;
+  background: var(--border);
   border-radius: 50%;
 }
 
@@ -724,14 +805,25 @@
   inset-inline-start: -18px;
 }
 
-/* ---------- Sticky conversion bar (desktop, after the hero; dismissible) ---------- */
+/* ---------- Conversion bar after the hero (dismissible) ----------
+   Only where the header has no "create" button (the drawer widths, < 1200px), as a bar at the
+   bottom of the screen that respects the device safe area (UX-011). On desktop the header button
+   is always visible, so the bar would only repeat it and cover headings. */
 .site-sticky-cta {
-  position: sticky;
-  inset-block-start: 68px;
+  position: fixed;
+  inset-inline: 0;
+  inset-block-end: 0;
   z-index: 25;
-  background: rgb(255 255 255 / 96%);
-  border-block-end: 1px solid var(--border);
-  box-shadow: 0 6px 18px rgb(18 38 64 / 6%);
+  padding-block-end: env(safe-area-inset-bottom, 0px);
+  border-block-start: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 96%, transparent);
+  box-shadow: 0 -8px 24px rgb(0 0 0 / 10%);
+}
+
+@media (min-width: 1200px) {
+  .site-sticky-cta {
+    display: none;
+  }
 }
 
 .site-sticky-cta-inner {
@@ -823,7 +915,7 @@
 
 .site-chip:hover,
 .site-chip[aria-pressed='true'] {
-  border-color: var(--tone, var(--brand-teal-text));
+  border-color: var(--tone, var(--site-em));
   box-shadow: 0 0 0 3px var(--tone-bg, var(--site-mint));
 }
 
@@ -910,7 +1002,7 @@
 }
 
 .site-card--link:hover {
-  border-color: var(--tone, var(--brand-teal-text));
+  border-color: var(--tone, var(--site-em));
 }
 
 .site-card--link:focus-within {
@@ -934,8 +1026,8 @@
 }
 
 .site-card--planned {
-  background: #fffbeb;
-  border-color: #f5dfa5;
+  background: var(--site-notice-bg);
+  border-color: var(--site-notice-border);
 }
 
 .site-card--planned h2,
@@ -956,7 +1048,7 @@
   padding: 3px 10px;
   font-size: 0.74rem;
   font-weight: 700;
-  color: var(--tone, var(--brand-teal-text));
+  color: var(--tone, var(--site-em));
   background: var(--tone-bg, var(--site-mint));
   border-radius: 999px;
 }
@@ -996,7 +1088,7 @@
   inline-size: 18px;
   block-size: 18px;
   margin-block-start: 4px;
-  color: var(--tone, var(--brand-teal-text));
+  color: var(--tone, var(--site-em));
 }
 
 .site-checklist--compact li {
@@ -1025,8 +1117,9 @@
   justify-items: start;
 }
 
-.site-split-text h2,
-.site-split-text h3 {
+/* Direct children only: a card inside the text column keeps its own heading size (UX-015). */
+.site-split-text > h2,
+.site-split-text > h3 {
   margin: 0;
   font-size: clamp(1.5rem, 1.1rem + 1.4vw, 2.2rem);
   line-height: 1.3;
@@ -1080,14 +1173,26 @@
   border-color: rgb(255 255 255 / 10%);
 }
 
+[data-theme='dark'] .site-steps li::before {
+  color: var(--brand-navy);
+  background: var(--tone, var(--accent));
+}
+
 .site-section--navy .site-steps li::before {
   color: var(--brand-navy);
   background: var(--accent);
 }
 
 .site-steps h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin: 0;
   font-size: 1.05rem;
+}
+
+.site-steps h3 .icon {
+  color: var(--tone, var(--site-em));
 }
 
 .site-steps p {
@@ -1095,6 +1200,15 @@
   font-size: 0.95rem;
   line-height: 1.7;
   color: var(--muted);
+}
+
+/* On navy the step text uses the on-navy tones (UX-006: the muted gray was 2.2:1 here). */
+.site-section--navy .site-steps p {
+  color: var(--site-on-navy-muted);
+}
+
+.site-section--navy .site-steps h3 .icon {
+  color: var(--accent);
 }
 
 /* ---------- Comparison ---------- */
@@ -1157,7 +1271,7 @@
 }
 
 .site-table thead .site-table-us {
-  color: var(--brand-teal-text);
+  color: var(--site-em);
 }
 
 .site-yes {
@@ -1209,15 +1323,15 @@
   block-size: 28px;
   font-size: 1.1rem;
   line-height: 1;
-  color: var(--brand-teal-text);
+  color: var(--site-em);
   background: var(--site-mint);
   border-radius: 50%;
   content: '+';
 }
 
 .site-faq details[open] summary::after {
-  color: #ffffff;
-  background: var(--brand-teal-text);
+  color: var(--site-on-em);
+  background: var(--site-em);
   content: '×';
 }
 
@@ -1290,21 +1404,21 @@
 }
 
 .site-tab[aria-pressed='true'] {
-  color: #ffffff;
-  background: var(--brand-navy-symbol);
-  border-color: var(--brand-navy-symbol);
+  color: var(--primary-contrast);
+  background: var(--primary);
+  border-color: var(--primary);
 }
 
 .site-tab span {
   padding: 0 7px;
   font-size: 0.75rem;
-  color: var(--brand-teal-text);
+  color: var(--site-em);
   background: var(--site-mint);
   border-radius: 999px;
 }
 
 .site-tab[aria-pressed='true'] span {
-  color: var(--brand-navy);
+  color: var(--text);
 }
 
 /* ---------- Closing call to action (P11: one block, navy) ---------- */
@@ -1404,7 +1518,7 @@
 
 .site-stat-row strong {
   font-size: 1.5rem;
-  color: var(--brand-teal-text);
+  color: var(--site-em);
 }
 
 .site-stat-row span {
@@ -1441,11 +1555,21 @@
   padding: 0;
 }
 
-.site-shot > a:first-child {
+.site-shot-open {
   display: block;
+  inline-size: 100%;
+  padding: 0;
   overflow: hidden;
+  font: inherit;
   background: var(--bg);
+  border: 0;
   border-block-end: 1px solid var(--border);
+  cursor: zoom-in;
+}
+
+.site-shot-open:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: -3px;
 }
 
 .site-shot img {
@@ -1464,11 +1588,16 @@
 }
 
 /* ---------- Contact ---------- */
+/* The form — the task — comes first in reading order on every width (UX-016). */
 .site-contact {
   display: grid;
-  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
   gap: 32px;
   align-items: start;
+}
+
+.site-contact > .site-contact-form {
+  order: -1;
 }
 
 .site-info-list {
@@ -1516,7 +1645,7 @@
 .site-progress span {
   display: block;
   block-size: 100%;
-  background: var(--brand-teal-text);
+  background: var(--site-em);
   border-radius: 999px;
 }
 
@@ -1579,13 +1708,13 @@
 }
 
 .site-intent input {
-  accent-color: var(--brand-teal-text);
+  accent-color: var(--site-em);
 }
 
 .site-intent:has(input:checked) {
-  color: var(--brand-teal-text);
+  color: var(--site-em);
   background: var(--site-mint);
-  border-color: var(--brand-teal-text);
+  border-color: var(--site-em);
 }
 
 .site-intent:has(input:focus-visible) {
@@ -1796,23 +1925,54 @@
   white-space: nowrap;
 }
 
-@media (max-width: 1240px) {
-  .site-nav-link,
-  .site-nav-trigger {
-    padding-inline: 8px;
-  }
-
-  .site-header-actions .site-signin {
-    display: none;
-  }
+/* Every entry — sign-in included — stays in the bar at desktop widths without a horizontal
+   scroll (UX-002, UX-003): compact spacing and a short language label ("EN" / "ع"), whose full name
+   stays the accessible label. Measured in Arabic, the wider language: 9 px to spare at 1200 px. */
+.site-header-inner {
+  gap: 8px 10px;
 }
 
-@media (max-width: 1060px) {
-  /* Only the language button stays in the bar; navigation and actions move to the drawer. */
-  .site-nav,
+.site-nav {
+  margin-inline-start: 0;
+}
+
+.site-nav-link,
+.site-nav-trigger {
+  padding-inline: 8px;
+}
+
+.site-header-actions {
+  gap: 6px;
+}
+
+.site-header-actions .button {
+  padding-inline: 12px;
+}
+
+.site-header .language-switcher-label {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.site-header .language-switcher-code {
+  display: inline;
+}
+
+@media (max-width: 1199px) {
+  /* The language and theme buttons stay in the bar; navigation and actions move to the drawer.
+     The whole <nav> is hidden, so it no longer takes a gap and pushes the menu button (UX-005). */
+  .site-header-inner > nav,
   .site-header-actions .site-signin,
   .site-header-actions .button--primary {
     display: none;
+  }
+
+  .site-header-actions {
+    margin-inline-start: auto;
   }
 
   .site-menu-button {
@@ -1888,6 +2048,9 @@
     justify-content: center;
   }
 
+}
+
+@media (max-width: 1060px) {
   .site-hero-grid,
   .site-split,
   .site-contact {
@@ -1934,18 +2097,10 @@
     justify-content: flex-start;
   }
 
-  .site-sticky-cta {
-    display: none;
-  }
-
   .site-float--bottom {
     inset-inline-start: 8px;
   }
 
-  /* Contact on small screens: the form first, then the channels (avoid P45). */
-  .site-contact > .site-contact-form {
-    order: -1;
-  }
 }
 
 @media (max-width: 640px) {
@@ -2050,7 +2205,7 @@
 
 @keyframes site-slide {
   from {
-    transform: translateY(-100%);
+    transform: translateY(100%);
   }
 }
 
@@ -2094,4 +2249,302 @@
 .site-cta-block--compact {
   margin-block-start: 48px;
   padding: 36px;
+}
+
+/* ---------- UI polish (phase 15, docs/UI_POLISH_IMPLEMENTATION.md) ---------- */
+
+/* The conversion bar never hides the end of the page, and stays one row on phones. */
+.site:has(.site-sticky-cta) .site-footer-inner {
+  padding-block-end: 88px;
+}
+
+@media (max-width: 640px) {
+  .site-sticky-cta-inner > span,
+  .site-sticky-cta .button--secondary {
+    display: none;
+  }
+
+  .site-sticky-cta .button--primary {
+    flex: 1;
+  }
+}
+
+/* Device safe areas (notches, rounded corners) in landscape: content never sits under them. */
+.site-container,
+.site-header-inner,
+.site-footer-inner,
+.site-breadcrumb ol {
+  padding-inline: max(var(--site-gutter), env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px));
+}
+
+/* Security and privacy sections: icon, title and text on a grid so long titles wrap cleanly. */
+.site-card--prose {
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 16px;
+}
+
+.site-card--prose > :not(.site-icon-tile) {
+  grid-column: 2;
+}
+
+.site-card--prose > .site-icon-tile {
+  grid-row: span 2;
+}
+
+@media (max-width: 640px) {
+  .site-card--prose {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .site-card--prose > :not(.site-icon-tile) {
+    grid-column: auto;
+  }
+
+  .site-card--prose > .site-icon-tile {
+    grid-row: auto;
+  }
+}
+
+/* Cards with an icon tile before the title (specialty tools). */
+.site-card > .site-icon-tile {
+  margin-block-end: 2px;
+}
+
+/* FAQ page: the categories follow the search directly (UX-017). */
+.site-section--after-hero {
+  padding-block-start: 32px;
+}
+
+/* Solutions preview: all screenshots stacked in one frame, the current one visible (UX-009). */
+.site-frame-stack {
+  display: grid;
+  background: var(--bg);
+}
+
+.site-frame-stack > img {
+  grid-area: 1 / 1;
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+  opacity: 0;
+  visibility: hidden;
+}
+
+.site-frame-stack > img.is-current {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Product tour lightbox (UX-010). */
+.site-lightbox {
+  inline-size: min(1180px, calc(100vw - 32px));
+  max-block-size: calc(100dvh - 32px);
+  padding: 0;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--site-radius);
+  box-shadow: var(--site-shadow-lg);
+}
+
+.site-lightbox::backdrop {
+  background: rgb(8 19 34 / 72%);
+}
+
+.site-lightbox-body {
+  display: grid;
+  gap: 14px;
+  padding: 16px 20px 20px;
+}
+
+.site-lightbox-head,
+.site-lightbox-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.site-lightbox-head h2 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.site-lightbox-head p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.site-lightbox-head form {
+  display: block;
+}
+
+.site-lightbox img {
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+  max-block-size: calc(100dvh - 190px);
+  object-fit: contain;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+/* Product screenshots are light images; in the dark theme their frame gives them a lit edge
+   instead of recoloring them. */
+[data-theme='dark'] .site-frame-window,
+[data-theme='dark'] .site-shot-open,
+[data-theme='dark'] .site-lightbox img {
+  border-color: #33507a;
+}
+
+[data-theme='dark'] .site-frame-window {
+  box-shadow:
+    0 0 0 1px rgb(127 223 212 / 10%),
+    var(--site-shadow-lg);
+}
+
+/* ---------- Motion (ANIM-01…09), only without a reduced-motion preference ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  /* Reveal once on entering the screen (ANIM-02). Hidden only after motion.ts set it up; lists
+     reveal their items one after another instead of the list itself. */
+  .site--motion [data-reveal]:not(.site-grid, .site-steps, .site-facts, .site-split, .is-visible),
+  .site--motion :is(.site-grid, .site-steps, .site-facts)[data-reveal]:not(.is-visible) > * {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  .site--motion [data-reveal]:not(.site-grid, .site-steps, .site-facts, .site-split),
+  .site--motion :is(.site-grid, .site-steps, .site-facts)[data-reveal] > * {
+    transition:
+      opacity 0.45s cubic-bezier(0.2, 0.7, 0.2, 1),
+      transform 0.45s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+
+  .site--motion :is(.site-grid, .site-steps, .site-facts)[data-reveal] > :nth-child(2) {
+    transition-delay: 60ms;
+  }
+
+  .site--motion :is(.site-grid, .site-steps, .site-facts)[data-reveal] > :nth-child(3) {
+    transition-delay: 120ms;
+  }
+
+  .site--motion :is(.site-grid, .site-steps, .site-facts)[data-reveal] > :nth-child(n + 4) {
+    transition-delay: 180ms;
+  }
+
+  /* Feature splits: the screenshot slides in from its own side (ANIM-03); the start side in
+     reading order, so RTL mirrors. */
+  .site--motion .site-split[data-reveal] > .site-frame {
+    transition:
+      opacity 0.5s ease-out 0.1s,
+      transform 0.5s ease-out 0.1s;
+  }
+
+  .site--motion .site-split[data-reveal]:not(.is-visible) > .site-frame {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+
+  [dir='rtl'] .site--motion .site-split[data-reveal]:not(.is-visible) > .site-frame {
+    transform: translateX(-16px);
+  }
+
+  /* Hero screenshot floats slowly while the hero is on screen (ANIM-01), desktop only; the two
+     labels drift on their own phase. Paused off screen or in a hidden tab (motion.ts). */
+  @media (min-width: 1061px) {
+    .site-hero .site-frame-window,
+    .site-hero .site-float {
+      animation: site-float 6.5s ease-in-out 0.7s infinite alternate;
+      animation-play-state: paused;
+    }
+
+    .site-hero .site-float--top {
+      animation-name: site-float-small;
+      animation-delay: -1.5s;
+    }
+
+    .site-hero .site-float--bottom {
+      animation-name: site-float-small-down;
+      animation-delay: -3s;
+    }
+
+    .site-hero.is-floating :is(.site-frame-window, .site-float) {
+      animation-play-state: running;
+    }
+
+    /* Tour thumbnails hint that they open (ANIM-05). */
+    .site-shot:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--site-shadow-lg);
+    }
+  }
+
+  .site-shot {
+    transition:
+      transform 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+
+  /* Solutions preview cross-fade (ANIM-04). */
+  .site-frame-stack > img {
+    transition:
+      opacity 0.2s ease,
+      visibility 0.2s;
+  }
+
+  /* Lightbox (ANIM-06). */
+  .site-lightbox[open] {
+    animation: site-zoom 0.18s ease-out both;
+  }
+
+  .site-lightbox[open]::backdrop {
+    animation: site-fade 0.18s ease-out both;
+  }
+
+  /* Accordions open with their answer easing in (ANIM-07). */
+  .site-faq details[open] > p,
+  .site-drawer details[open] > ul {
+    animation: site-rise 0.2s ease-out both;
+  }
+
+  /* Pressed buttons give a short tactile response (ANIM-09). */
+  .site .button:active:not(:disabled),
+  .site-chip:active,
+  .site-tab:active {
+    transform: scale(0.98);
+  }
+}
+
+@keyframes site-float {
+  to {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes site-float-small {
+  to {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes site-float-small-down {
+  to {
+    transform: translateY(4px);
+  }
+}
+
+@keyframes site-zoom {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+}
+
+@keyframes site-fade {
+  from {
+    opacity: 0;
+  }
 }

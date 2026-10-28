@@ -8,6 +8,7 @@ import {
   CtaBlock,
   DevNotice,
   Faq,
+  FactValue,
   FeatureList,
   Headline,
   IconTile,
@@ -19,9 +20,9 @@ import {
 } from './shared';
 import { useList, useObjects, type QuestionItem, type TitledItem } from './useList';
 
-
 const FAQ = ['price', 'clinical', 'specialties', 'ai', 'branches', 'ownership', 'data', 'languages'] as const;
 const PROBLEM_ICONS: Record<string, IconName> = { booking: 'calendar', queue: 'queue', records: 'file', branches: 'building' };
+const WORKFLOW_ICONS: IconName[] = ['calendar', 'queue', 'stethoscope', 'wallet'];
 const FEATURES = [
   { key: 'scheduling', shot: 'appointments', icon: 'calendar', link: '/tour' },
   { key: 'records', shot: 'record', icon: 'file', link: '/solutions/dentistry' },
@@ -82,17 +83,19 @@ export function PublicHomePage() {
             </span>
             <DevNotice />
           </div>
-          <ProductFrame shot="appointments" alt={t('site.home.previewAlt')} label={t('site.home.previewLabel')} floats={floats} />
+          <ProductFrame shot="appointments" alt={t('site.home.previewAlt')} label={t('site.home.previewLabel')} floats={floats} priority />
         </div>
       </section>
       <StickyCta watch={heroRef} />
 
       <section className="site-section site-section--navy site-section--tight" aria-label={t('site.home.factsLabel')}>
         <div className="site-container">
-          <ul className="site-facts">
+          <ul className="site-facts" data-reveal>
             {facts.map((fact) => (
               <li key={fact.label}>
-                <strong>{fact.value}</strong>
+                <strong>
+                  <FactValue value={fact.value} />
+                </strong>
                 <span>{fact.label}</span>
               </li>
             ))}
@@ -117,7 +120,7 @@ export function PublicHomePage() {
       <section className="site-section" aria-labelledby="problems-title">
         <div className="site-container">
           <SectionHeader id="problems-title" eyebrow={t('site.home.problemsEyebrow')} title={t('site.home.problemsTitle')} lead={t('site.home.problemsLead')} />
-          <ul className="site-grid site-grid--4">
+          <ul className="site-grid site-grid--4" data-reveal>
             {(['booking', 'queue', 'records', 'branches'] as const).map((key) => (
               <li key={key} className="site-card">
                 <IconTile name={PROBLEM_ICONS[key]!} />
@@ -147,14 +150,14 @@ export function PublicHomePage() {
             emphasis={t('site.home.workflow.emphasis')}
             lead={t('site.home.workflow.lead')}
           />
-          <Steps items={workflow} />
+          <Steps items={workflow} icons={WORKFLOW_ICONS} />
         </div>
       </section>
 
       <section className="site-section" aria-labelledby="cases-title">
         <div className="site-container">
           <SectionHeader id="cases-title" center eyebrow={t('site.home.cases.eyebrow')} title={t('site.home.cases.title')} lead={t('site.home.cases.lead')} />
-          <ul className="site-grid site-grid--3">
+          <ul className="site-grid site-grid--3" data-reveal>
             {USE_CASES.map((useCase) => (
               <UseCase key={useCase.key} name={useCase.key} icon={useCase.icon} to={useCase.to} />
             ))}
@@ -211,7 +214,7 @@ function FeatureSplit({ feature, reverse }: { feature: (typeof FEATURES)[number]
   const base = `site.home.features.${feature.key}`;
   const points = useList(`${base}.points`);
   return (
-    <div className={reverse ? 'site-split site-split--reverse' : 'site-split'}>
+    <div className={reverse ? 'site-split site-split--reverse' : 'site-split'} data-reveal>
       <div className="site-split-text">
         <p className="site-eyebrow">
           <Icon name={feature.icon} /> {t(`${base}.eyebrow`)}

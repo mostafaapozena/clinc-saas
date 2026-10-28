@@ -915,7 +915,7 @@
     "home": {
       "metaTitle": "Appointments, front desk and patient records for clinics",
       "metaDescription": "raclinic is a bilingual cloud workspace for clinics and medical centers in Egypt and Saudi Arabia: patient registry, doctors' schedules, conflict-free booking, check-in and the daily queue.",
-      "eyebrow": "Smart clinic management",
+      "eyebrow": "Clinic management in Arabic and English",
       "lead": "raclinic is a cloud workspace for clinics and medical centers in Egypt and Saudi Arabia. Register patients, set each doctor's working hours, book without clashes, and follow arrivals and the waiting queue — in Arabic or English, for one clinic or several branches.",
       "signInHint": "Already have a workspace?",
       "problemsTitle": "What changes in your day",
@@ -1167,7 +1167,7 @@
           "Nothing is promised before that agreement"
         ]
       },
-      "eyebrow": "Two ways",
+      "eyebrow": "Subscription or custom project",
       "lead": "A subscription to the hosted workspace for most clinics and centers, or a custom project scoped for special needs."
     },
     "solutions": {
@@ -1626,7 +1626,7 @@
         "badge": "Custom project",
         "link": "Discuss your project"
       },
-      "eyebrow": "Solutions",
+      "eyebrow": "Four solutions, one platform",
       "previewLabel": "Choose a solution to preview",
       "catalogTitle": "All solutions",
       "catalogLead": "Four solutions on the same hosted workspace, and a separate path for custom projects.",
@@ -1886,7 +1886,14 @@
         }
       },
       "closingTitle": "Try it yourself",
-      "closingBody": "Create a workspace and try these screens with demo data."
+      "closingBody": "Create a workspace and try these screens with demo data.",
+      "dialog": {
+        "close": "Close",
+        "previous": "Previous screenshot",
+        "next": "Next screenshot",
+        "original": "Open the original image",
+        "position": "{{current}} of {{total}}"
+      }
     },
     "about": {
       "metaTitle": "About raclinic",
@@ -3149,5 +3156,16 @@
     "sendReply": "Send reply",
     "close": "Close request",
     "closedHint": "This request is closed. Replying reopens it."
+  },
+  "theme": {
+    "toDark": "Switch to dark theme",
+    "toLight": "Switch to light theme",
+    "label": "Appearance",
+    "hint": "Saved on this device only; it applies to the website, the workspace and the operator console.",
+    "options": {
+      "system": "Same as the device",
+      "light": "Light",
+      "dark": "Dark"
+    }
   }
 }

@@ -3,6 +3,7 @@ import { useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SESSION_KEY, useSession } from '../auth/session';
 import { PageHeader } from '../components/PageHeader';
+import { ThemeSelect } from '../components/ThemeSwitcher';
 import { EmailVerificationCard, SessionsCard } from '../components/account';
 import { Field, Notice } from '../components/ui';
 import { setLanguage } from '../i18n';
@@ -71,6 +72,10 @@ export function ProfilePage() {
             {save.isPending ? t('common.saving') : t('common.save')}
           </button>
         </form>
+      </section>
+      <section className="card" aria-labelledby="profile-appearance-title">
+        <h2 id="profile-appearance-title">{t('theme.label')}</h2>
+        <ThemeSelect id="profile-theme" />
       </section>
       <EmailVerificationCard />
       <SessionsCard />

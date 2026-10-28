@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router';
 import { Icon } from '../components/Icon';
@@ -10,6 +10,7 @@ import {
   CtaBlock,
   Faq,
   FeatureList,
+  IconTile,
   ProductFrame,
   SaasOwnershipComparison,
   SectionHeader,
@@ -18,7 +19,7 @@ import {
   Steps,
 } from './shared';
 import { useList, useObjects, type QuestionItem, type TitledItem } from './useList';
-import { SOLUTIONS, findSolution, inquiryPath } from './solutions';
+import { SOLUTIONS, findSolution, inquiryPath, productShot } from './solutions';
 
 export function SolutionsPage() {
   const { t } = useTranslation();
@@ -60,7 +61,7 @@ export function SolutionsPage() {
               </Link>
             </div>
           </div>
-          <ProductFrame key={current.slug} shot={current.shot} alt={t(`site.solutions.${current.key}.shotAlt`)} label={t(`site.solutions.${current.key}.name`)} />
+          <SolutionPreview current={current.slug} />
         </div>
       </section>
 
@@ -113,6 +114,49 @@ export function SolutionsPage() {
   );
 }
 
+/**
+ * The chip-driven preview: all four screenshots share one frame and cross-fade, so switching never
+ * shows an empty frame while an image loads (UX-009, ANIM-04). Only the current one is announced.
+ */
+function SolutionPreview({ current }: { current: string }) {
+  const { t, i18n } = useTranslation();
+  const language = i18n.resolvedLanguage ?? 'ar';
+  const active = findSolution(current) ?? SOLUTIONS[0]!;
+  // Warm the other screenshots once the page is idle, before anyone clicks a chip.
+  useEffect(() => {
+    const preload = () => SOLUTIONS.forEach((s) => (new Image().src = productShot(s.shot, language)));
+    const idle = window.requestIdleCallback?.(preload) ?? window.setTimeout(preload, 800);
+    return () => (window.cancelIdleCallback ? window.cancelIdleCallback(idle) : window.clearTimeout(idle));
+  }, [language]);
+  return (
+    <figure className="site-frame">
+      <div className="site-frame-window">
+        <div className="site-frame-bar" aria-hidden="true">
+          <span />
+          <span />
+          <span />
+          <em>{t(`site.solutions.${active.key}.name`)}</em>
+        </div>
+        <div className="site-frame-stack">
+          {SOLUTIONS.map((s) => (
+            <img
+              key={s.slug}
+              className={s.slug === active.slug ? 'is-current' : undefined}
+              src={productShot(s.shot, language)}
+              alt={s.slug === active.slug ? t(`site.solutions.${s.key}.shotAlt`) : ''}
+              aria-hidden={s.slug === active.slug ? undefined : true}
+              width={1280}
+              height={800}
+              loading={s.slug === active.slug ? 'eager' : 'lazy'}
+              decoding="async"
+            />
+          ))}
+        </div>
+      </div>
+    </figure>
+  );
+}
+
 export function SolutionDetailPage() {
   const { slug } = useParams();
   const solution = findSolution(slug);
@@ -162,14 +206,14 @@ function SolutionDetail({ slug }: { slug: string }) {
             </div>
             <p className="site-signin-hint">{t(`${base}.audience`)}</p>
           </div>
-          <ProductFrame shot={solution.shot} alt={t(`${base}.shotAlt`)} label={t(`${base}.name`)} floats={useList(`${base}.floats`)} />
+          <ProductFrame shot={solution.shot} alt={t(`${base}.shotAlt`)} label={t(`${base}.name`)} floats={useList(`${base}.floats`)} priority />
         </div>
       </section>
 
       <section className="site-section" aria-labelledby="problems-title">
         <div className="site-container">
           <SectionHeader id="problems-title" eyebrow={t('site.solutions.labels.problemsEyebrow')} title={t(`${base}.problemsTitle`)} />
-          <CardGrid items={problems} columns={3} tone={tone} />
+          <CardGrid items={problems} columns={3} tone={tone} icons={solution.icons.problems} />
         </div>
       </section>
 
@@ -193,9 +237,10 @@ function SolutionDetail({ slug }: { slug: string }) {
               </ul>
             </div>
           </div>
-          <ul className="site-grid site-grid--2">
-            {tools.map((tool) => (
+          <ul className="site-grid site-grid--2" data-reveal>
+            {tools.map((tool, index) => (
               <li key={tool.title} className="site-card site-card--toned">
+                {solution.icons.tools[index] && <IconTile name={solution.icons.tools[index]} tone={tone} size="sm" />}
                 <h3>{tool.title}</h3>
                 <p>{tool.body}</p>
               </li>
@@ -207,7 +252,7 @@ function SolutionDetail({ slug }: { slug: string }) {
       <section className="site-section" aria-labelledby="workflow-title">
         <div className="site-container">
           <SectionHeader id="workflow-title" center eyebrow={t('site.solutions.labels.workflowEyebrow')} title={t(`${base}.workflowTitle`)} />
-          <Steps items={workflow} tone={tone} />
+          <Steps items={workflow} tone={tone} icons={solution.icons.workflow} />
         </div>
       </section>
 
@@ -237,11 +282,11 @@ function SolutionDetail({ slug }: { slug: string }) {
       <section className="site-section site-section--light" aria-labelledby="compare-title">
         <div className="site-container">
           <SectionHeader id="compare-title" center eyebrow={t('site.compare.eyebrow')} title={t('site.compare.title')} lead={t('site.compare.lead')} />
-          <SaasOwnershipComparison interest={solution.inquiryInterest} />
+          <SaasOwnershipComparison interest={solution.inquiryInterest} start={solution.start} />
         </div>
       </section>
 
-      <CtaBlock title={t(`${base}.closingTitle`)} body={t('site.solutions.labels.closingBody')} />
+      <CtaBlock title={t(`${base}.closingTitle`)} body={t('site.solutions.labels.closingBody')} start={solution.start} />
     </div>
   );
 }

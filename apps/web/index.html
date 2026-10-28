@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <!-- Rewritten to "index, follow" only for builds with VITE_PUBLIC_SITE_URL and VITE_PUBLIC_INDEXING=true. -->
     <meta name="robots" content="noindex, nofollow" />
     <meta name="description" content="raclinic — مساعدك الذكي في كل تفاصيل العيادة. مساحة عمل سحابية للعيادات والمراكز الطبية في مصر والسعودية: سجل المرضى، جداول الأطباء، الحجز، تسجيل الوصول وقائمة الانتظار." />
@@ -12,10 +12,12 @@
     <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png" />
     <!-- With credentials: behind an authenticating proxy (private previews) the manifest request needs the cookies too. -->
     <link rel="manifest" href="/site.webmanifest" crossorigin="use-credentials" />
+    <!-- Sets data-theme (saved choice or system) before anything paints; blocking on purpose. -->
+    <script src="/theme-init.js"></script>
     <!-- The page colour before the stylesheet loads (no white flash in the dark theme); matches --bg. -->
     <style>
       html { background: #f5f8fa; }
-      @media (prefers-color-scheme: dark) { html { background: #0d1b2e; } }
+      html[data-theme='dark'] { background: #0d1b2e; }
     </style>
     <title>raclinic</title>
   </head>

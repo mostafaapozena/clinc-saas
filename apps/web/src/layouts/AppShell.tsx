@@ -6,6 +6,7 @@ import { SESSION_KEY, useAuthActions, useSession } from '../auth/session';
 import { BrandLogo } from '../components/BrandLogo';
 import { Icon, type IconName } from '../components/Icon';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
+import { ThemeSwitcher } from '../components/ThemeSwitcher';
 import { ErrorState, Loading } from '../components/ui';
 import { useRouteFocus } from '../lib/a11y';
 import { ApiError, api } from '../lib/api';
@@ -234,6 +235,7 @@ function Shell({ orgId, detail, branches }: { orgId: string; detail: OrgDetail; 
             <BranchSwitcher />
             <SpecialtySwitcher />
             <div className="topbar-end">
+              <ThemeSwitcher />
               <LanguageSwitcher />
               <UserMenu orgId={orgId} />
             </div>

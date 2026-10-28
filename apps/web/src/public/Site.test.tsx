@@ -55,6 +55,45 @@ describe('header and footer', () => {
     ]);
     fireEvent.keyDown(document, { key: 'Escape' });
     expect(trigger).toHaveAttribute('aria-expanded', 'false');
+    // UX-004: focus goes back to the button that opened the menu.
+    expect(trigger).toHaveFocus();
+  });
+
+  it('closes a menu when keyboard focus leaves it, and keeps it open while focus stays inside', async () => {
+    site();
+    renderRoute('/');
+    const trigger = await screen.findByRole('button', { name: /^الشركة/ });
+    fireEvent.click(trigger);
+    const links = within(document.getElementById('menu-company')!).getAllByRole('link');
+    fireEvent.blur(trigger, { relatedTarget: links[0] });
+    expect(trigger).toHaveAttribute('aria-expanded', 'true');
+    fireEvent.blur(links.at(-1)!, { relatedTarget: screen.getAllByRole('link', { name: 'الأسئلة الشائعة' })[0] });
+    expect(trigger).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('menu entries mark their text, so the icon tile keeps its own centered layout (UX-001)', async () => {
+    site();
+    renderRoute('/');
+    fireEvent.click(await screen.findByRole('button', { name: /^الحلول/ }));
+    const item = document.querySelector('#menu-solutions .site-menu-item')!;
+    expect(item.querySelector(':scope > .site-icon-tile')).not.toBeNull();
+    expect(item.querySelector(':scope > .site-menu-item-text > strong')).not.toBeNull();
+    expect(item.querySelector(':scope > .site-menu-item-text > .site-menu-item-desc')).not.toBeNull();
+  });
+
+  it('keeps the solution pre-selection on every create action of a solution page (UX-014)', async () => {
+    site();
+    renderRoute('/solutions/physiotherapy');
+    await screen.findByRole('heading', { level: 1 });
+    const creates = [...document.querySelectorAll('a[href^="/start"]')].map((a) => a.getAttribute('href'));
+    expect(creates.length).toBeGreaterThan(2);
+    expect(new Set(creates)).toEqual(new Set(['/start?specialty=physiotherapy']));
+  });
+
+  it('every page header offers the theme switch next to the language', async () => {
+    site();
+    renderRoute('/');
+    expect(await screen.findByRole('button', { name: 'التبديل إلى الوضع الداكن' })).toBeInTheDocument();
   });
 
   it('has grouped footer links to real pages, and the company menu lists the company pages', async () => {

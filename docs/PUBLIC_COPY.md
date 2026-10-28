@@ -62,7 +62,7 @@ when asking for a change.
 | --- | --- | --- |
 | `site.home.metaTitle` | إدارة المواعيد والاستقبال وملفات المرضى | Appointments, front desk and patient records for clinics |
 | `site.home.metaDescription` | raclinic مساحة عمل سحابية بالعربية والإنجليزية للعيادات والمراكز الطبية في مصر والسعودية: سجل المرضى، وجداول الأطباء، والحجز دون تعارض، وتسجيل الوصول، وقائمة الانتظار. | raclinic is a bilingual cloud workspace for clinics and medical centers in Egypt and Saudi Arabia: patient registry, doctors' schedules, conflict-free booking, check-in and the daily queue. |
-| `site.home.eyebrow` | مساعدك الذكي في كل تفاصيل العيادة | Smart clinic management |
+| `site.home.eyebrow` | إدارة العيادات بالعربية والإنجليزية | Clinic management in Arabic and English |
 | `site.home.lead` | raclinic مساحة عمل سحابية للعيادات والمراكز الطبية في مصر والسعودية. سجّل المرضى، وحدّد مواعيد عمل كل طبيب، واحجز دون تعارض، وتابع وصول المرضى وقائمة الانتظار — بالعربية أو الإنجليزية، لعيادة واحدة أو لعدة فروع. | raclinic is a cloud workspace for clinics and medical centers in Egypt and Saudi Arabia. Register patients, set each doctor's working hours, book without clashes, and follow arrivals and the waiting queue — in Arabic or English, for one clinic or several branches. |
 | `site.home.signInHint` | لديك مساحة عمل بالفعل؟ | Already have a workspace? |
 | `site.home.problemsTitle` | ما يتغيّر في يومك | What changes in your day |
@@ -194,7 +194,7 @@ when asking for a change.
 | `site.compare.ownership.title` | مشروع مخصص | Custom project |
 | `site.compare.ownership.body` | للاحتياجات التي لا تغطيها مساحة العمل المستضافة، مثل مراكز الأشعة أو نظام تديره منشأتك بشكل منفصل. | For needs the hosted workspace does not cover, such as radiology centers or a separately run system. |
 | `site.compare.ownership.points` | • يُحدَّد نطاقه لمنشأتك بعد مراجعة احتياجاتك<br>• يُتفق على النطاق والجدول الزمني وشروط الدعم والسعر لكل مشروع<br>• لا توجد أي التزامات قبل هذا الاتفاق | • Scoped for your organization after a review of your needs<br>• Scope, schedule, support terms and price agreed per project<br>• Nothing is promised before that agreement |
-| `site.compare.eyebrow` | طريقتان | Two ways |
+| `site.compare.eyebrow` | اشتراك أو مشروع مخصص | Subscription or custom project |
 | `site.compare.lead` | اشتراك في مساحة العمل المستضافة لمعظم العيادات والمراكز، أو مشروع مخصص يُحدَّد نطاقه لاحتياجات خاصة. | A subscription to the hosted workspace for most clinics and centers, or a custom project scoped for special needs. |
 
 ## Solutions catalog (`/solutions`) and shared solution labels
@@ -203,7 +203,7 @@ when asking for a change.
 | --- | --- | --- |
 | `site.solutions.metaTitle` | حلول للعيادات والمراكز الطبية | Solutions for clinics and medical centers |
 | `site.solutions.metaDescription` | حلول raclinic لعيادات الأسنان ومراكز العلاج الطبيعي وعيادات الأنف والأذن والحنجرة والمراكز الطبية متعددة التخصصات، على مساحة عمل تشغيلية مشتركة. | raclinic solutions for dental clinics, physiotherapy centers, ENT clinics and multi-specialty medical centers, on a shared operational workspace. |
-| `site.solutions.eyebrow` | الحلول | Solutions |
+| `site.solutions.eyebrow` | أربعة حلول على منصة واحدة | Four solutions, one platform |
 | `site.solutions.title` | الحلول | Solutions |
 | `site.solutions.lead` | كل الحلول تعمل على مساحة العمل التشغيلية نفسها، مع نسخة أولى من أدوات كل تخصص بانتظار مراجعة أطباء ممارسين. | Every solution runs on the same operational workspace, with a first version of each specialty’s tools, pending review by practising clinicians. |
 | `site.solutions.previewLabel` | اختر حلًا لمعاينته | Choose a solution to preview |
@@ -608,6 +608,11 @@ when asking for a change.
 | `site.tour.shots.services.alt` | لقطة لقائمة الخدمات والأسعار | Screenshot of the services and prices list |
 | `site.tour.closingTitle` | جرّبه بنفسك | Try it yourself |
 | `site.tour.closingBody` | أنشئ مساحة عمل وجرّب هذه الشاشات ببيانات تجريبية. | Create a workspace and try these screens with demo data. |
+| `site.tour.dialog.close` | إغلاق | Close |
+| `site.tour.dialog.previous` | اللقطة السابقة | Previous screenshot |
+| `site.tour.dialog.next` | اللقطة التالية | Next screenshot |
+| `site.tour.dialog.original` | فتح الصورة الأصلية | Open the original image |
+| `site.tour.dialog.position` | {{current}} من {{total}} | {{current}} of {{total}} |
 
 ## About (`/about`)
 
