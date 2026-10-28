@@ -2153,3 +2153,24 @@ h1[tabindex='-1']:focus {
 .data-row--stack > .inline-form {
   flex-basis: 100%;
 }
+
+/* Organization letterhead on printed documents (ERP milestone H5). */
+.letterhead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3, 12px);
+}
+.letterhead p {
+  margin: 0;
+}
+.letterhead-logo {
+  max-height: 64px;
+  max-width: 180px;
+  object-fit: contain;
+}
+.letterhead-preview {
+  border: 1px dashed var(--border, #d0d7de);
+  border-radius: 8px;
+  padding: var(--space-3, 12px);
+  margin-block: var(--space-3, 12px);
+}

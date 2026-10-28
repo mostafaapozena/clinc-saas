@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useDeferredValue, useEffect, useRef, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
-import { BrandLogo } from '../components/BrandLogo';
+import { OrganizationLetterhead } from '../components/OrganizationProfile';
 import { Icon, type IconName } from '../components/Icon';
 import { PageHeader } from '../components/PageHeader';
 import { EmptyState, ErrorState, Field, Loading, Notice } from '../components/ui';
@@ -1148,7 +1148,7 @@ function PrintFrame({ title, number, context, date, children }: { title: string;
         <span className="muted small">{t('finance.printHint')}</span>
       </div>
       <header className="print-header">
-        <BrandLogo variant="wordmark" />
+        <OrganizationLetterhead />
         <div>
           <h1>
             {title} <bdi dir="ltr">{number}</bdi>

@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, NavLink, useNavigate, useParams, useSearchParams } from 'react-router';
-import { BrandLogo } from '../components/BrandLogo';
+import { OrganizationLetterhead } from '../components/OrganizationProfile';
 import { PageHeader } from '../components/PageHeader';
 import { EmptyState, ErrorState, Field, Loading, Notice } from '../components/ui';
 import { accountName, type CashAccount, type LedgerAccount } from '../lib/accounting';
@@ -1239,7 +1239,7 @@ function PrintFrame({ title, children }: { title: string; children: ReactNode })
   return (
     <article className="print-document">
       <header className="print-header">
-        <BrandLogo variant="wordmark" />
+        <OrganizationLetterhead />
         <div>
           <h1>{title}</h1>
           <p>{detail.organization.name}</p>

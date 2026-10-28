@@ -34,6 +34,7 @@ import { createFocusRouter } from '../workspace/focus.routes.js';
 import { ERP_MODULES, MODULE_REQUIRES, enabledModulesOf, requireModule, type ErpModule } from './modules.js';
 import { createAssetsRouter } from '../assets/assets.routes.js';
 import { createDepreciationRouter } from '../assets/depreciation.routes.js';
+import { createProfileRouter } from './profile.routes.js';
 import { createPlanningRouter } from '../planning/planning.routes.js';
 import { createStaffFundsRouter } from '../staff-funds/staff-funds.routes.js';
 import { assertCatalogSpecialties, specialtyListSchema } from '../specialties/specialty.service.js';
@@ -318,6 +319,7 @@ export function createOrganizationsRouter(config: AppConfig, mailer: Mailer = { 
   router.use('/:orgId', createPurchasingRouter());
   router.use('/:orgId', createCompensationRouter());
   router.use('/:orgId', createFocusRouter());
+  router.use('/:orgId', createProfileRouter());
   router.use('/:orgId', createDepreciationRouter());
   router.use('/:orgId', createAssetsRouter());
   router.use('/:orgId', createSubscriptionRouter(config));

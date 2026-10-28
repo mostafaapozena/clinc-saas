@@ -4,6 +4,7 @@ import { tenantGuardPlugin } from '../../tenancy/tenant-guard.plugin.js';
 export const AUDIT_ACTIONS = [
   'organization.created',
   'organization.updated',
+  'organization.profile_updated',
   'organization.specialties_updated',
   'branch.created',
   'branch.updated',
