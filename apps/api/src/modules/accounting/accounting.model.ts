@@ -138,7 +138,7 @@ accountSchema.index({ organizationId: 1, code: 1 }, { unique: true });
 accountSchema.plugin(tenantGuardPlugin);
 
 // ---------------------------------------------------------------------------------------------
-export const PARTNER_TYPES = ['patient', 'supplier', 'practitioner'] as const;
+export const PARTNER_TYPES = ['patient', 'supplier', 'practitioner', 'member'] as const;
 export type PartnerType = (typeof PARTNER_TYPES)[number];
 export interface EntryLine {
   accountId: Types.ObjectId;

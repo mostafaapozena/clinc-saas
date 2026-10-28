@@ -16,6 +16,7 @@ export { CompensationPage, SettlementPage } from '../pages/CompensationPages';
 export { WorklistPage } from '../pages/WorkspacePages';
 export { AssetPage, AssetsPage } from '../pages/AssetPages';
 export { BudgetsPage, CashFlowPage, CommitmentsPage } from '../pages/PlanningPages';
+export { StaffFundsPage } from '../pages/StaffFundsPages';
 export { ReportsHubPage } from '../pages/ReportsHubPage';
 export { HomePage } from '../pages/HomePage';
 export { NotFoundInShell } from '../pages/NotFoundPage';

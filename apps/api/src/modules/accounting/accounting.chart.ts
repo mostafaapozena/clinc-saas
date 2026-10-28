@@ -65,6 +65,9 @@ export const CHART_TEMPLATE: readonly TemplateAccount[] = [
     parent: '1000',
     name: 'Advances to suppliers',
   },
+  // Staff funds (ERP milestone H3): changed only through advance and custody documents.
+  { code: '1250', key: 'staffAdvances', type: 'asset', parent: '1000', name: 'Employee advances' },
+  { code: '1260', key: 'staffCustody', type: 'asset', parent: '1000', name: 'Petty cash custody' },
   {
     code: '1500',
     key: 'fixedAssets',
@@ -280,6 +283,9 @@ export const CHART_TEMPLATE: readonly TemplateAccount[] = [
     name: 'Other expenses',
   },
 ];
+
+/** Accounts with their own documents that vouchers and manual entries never post to. */
+export const DOCUMENT_ONLY_KEYS: readonly string[] = ['staffAdvances', 'staffCustody'];
 
 /** Default posting map of the template (accountants can repoint each key to another account). */
 export const TEMPLATE_MAPPINGS: Record<MappingKey, string> = {

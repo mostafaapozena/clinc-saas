@@ -51,6 +51,7 @@ export type Focus = {
     openCashSessions: number;
     monthToClose: string | null;
     commitmentsDue?: number;
+    staffFundsOverdue?: number;
   };
   approvals?: { purchaseRequests?: number; directBills?: number; settlements?: number };
   stock?: { reorder: number; expiring: number };
@@ -243,6 +244,11 @@ export function FocusPanel() {
           {Boolean(f.finance.commitmentsDue) && (
             <p>
               <Link to={`/app/${orgId}/accounting/commitments`}>{t('workspace.commitmentsDue', { count: f.finance.commitmentsDue })}</Link>
+            </p>
+          )}
+          {Boolean(f.finance.staffFundsOverdue) && (
+            <p>
+              <Link to={`/app/${orgId}/accounting/staff-funds`}>{t('workspace.staffFundsOverdue', { count: f.finance.staffFundsOverdue })}</Link>
             </p>
           )}
         </div>

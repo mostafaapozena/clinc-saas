@@ -22,6 +22,26 @@ export async function documentsSince(organizationId: Types.ObjectId, since: Date
 }
 
 /**
+ * A template account added after a ledger was created (for example staff advances): created on
+ * first use with the template's code (or the next free one) under the template's parent.
+ */
+export async function ensureTemplateAccount(organizationId: Types.ObjectId, key: string, session: ClientSession) {
+  const existing = await LedgerAccountModel.findOne({ organizationId, templateKey: key }).session(session).lean();
+  if (existing) return existing;
+  const t = CHART_TEMPLATE.find((a) => a.key === key);
+  if (!t) throw new Error(`Unknown template account ${key}`);
+  const parentKey = t.parent ? CHART_TEMPLATE.find((a) => a.code === t.parent)?.key : undefined;
+  const parent = parentKey ? await LedgerAccountModel.findOne({ organizationId, templateKey: parentKey }).session(session).lean() : null;
+  let code = t.code;
+  while (await LedgerAccountModel.exists({ organizationId, code }).session(session)) code = String(Number(code) + 1);
+  const [created] = await LedgerAccountModel.create(
+    [{ organizationId, code, name: t.name, templateKey: key, type: t.type, isGroup: false, parentId: parent?._id ?? null, role: null }],
+    { session },
+  );
+  return created!.toObject();
+}
+
+/**
  * Creates the template chart, the posting map and the organization-level cashbox and bank account,
  * inside the caller's transaction (the setup route and the demo seed).
  */

@@ -22,6 +22,7 @@ const GROUPS: { key: string; reports: Report[] }[] = [
       { key: 'budgetVsActual', to: 'accounting/budgets', icon: 'chart', permission: 'accounting.read', orgWide: true },
       { key: 'cashFlow', to: 'accounting/cash-flow', icon: 'cash', permission: 'accounting.read', orgWide: true },
       { key: 'commitments', to: 'accounting/commitments', icon: 'calendar', permission: 'accounting.read', orgWide: true },
+      { key: 'staffFunds', to: 'accounting/staff-funds', icon: 'wallet', permission: 'accounting.read', orgWide: true },
       { key: 'financeSummary', to: 'finance', icon: 'wallet', permission: 'finance.report.read' },
     ],
   },

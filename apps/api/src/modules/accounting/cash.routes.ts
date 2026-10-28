@@ -2,6 +2,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import { Router, type Request } from 'express';
 import { Types, type ClientSession } from 'mongoose';
 import { z } from 'zod';
+import { DOCUMENT_ONLY_KEYS } from './accounting.chart.js';
 import { runTransaction } from '../../db/transaction.js';
 import { HttpError, conflict, isDuplicateKeyError, notFound, validationError } from '../../http/errors.js';
 import { objectIdSchema } from '../../http/schemas.js';
@@ -612,7 +613,8 @@ export function createCashRouter() {
           String(settings.mappings[k as MappingKey]),
         ),
       );
-      if (!counter || counter.role || control.has(String(counter._id))) throw validationError({ counterAccountId: 'account_not_allowed' });
+      if (!counter || counter.role || control.has(String(counter._id)) || DOCUMENT_ONLY_KEYS.includes(counter.templateKey ?? ''))
+        throw validationError({ counterAccountId: 'account_not_allowed' });
       counterId = counter._id;
     }
     const date = await ledgerToday(tenant.organizationId);

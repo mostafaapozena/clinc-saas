@@ -74,6 +74,7 @@ export function AccountingNav() {
           { to: `/app/${orgId}/accounting/cash-flow`, label: t('accounting.nav.cashFlow') },
           { to: `/app/${orgId}/accounting/budgets`, label: t('accounting.nav.budgets') },
           { to: `/app/${orgId}/accounting/commitments`, label: t('accounting.nav.commitments') },
+          { to: `/app/${orgId}/accounting/staff-funds`, label: t('accounting.nav.staffFunds') },
         ]
       : []),
     ...(can('accounting.read')

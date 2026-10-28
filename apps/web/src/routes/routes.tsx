@@ -80,6 +80,7 @@ const AssetsPage = named(workspace, 'AssetsPage');
 const BudgetsPage = named(workspace, 'BudgetsPage');
 const CashFlowPage = named(workspace, 'CashFlowPage');
 const CommitmentsPage = named(workspace, 'CommitmentsPage');
+const StaffFundsPage = named(workspace, 'StaffFundsPage');
 const AssetPage = named(workspace, 'AssetPage');
 const ReportsHubPage = named(workspace, 'ReportsHubPage');
 const ServicesPage = named(workspace, 'ServicesPage');
@@ -196,6 +197,7 @@ export const routes: RouteObject[] = [
           guarded('accounting/budgets', 'accounting.read', <BudgetsPage />),
           guarded('accounting/cash-flow', 'accounting.read', <CashFlowPage />),
           guarded('accounting/commitments', 'accounting.read', <CommitmentsPage />),
+          guarded('accounting/staff-funds', 'accounting.read', <StaffFundsPage />),
           guarded('cash', 'cash.session.operate', <CashPage />),
           guarded('cash/sessions/:sessionId', 'cash.session.operate', <CashSessionPage />),
           guarded('cash/accounts/:cashAccountId/statement', 'accounting.manage', <BankStatementPage />),
