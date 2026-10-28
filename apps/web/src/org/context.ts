@@ -17,6 +17,10 @@ export type OrgContextValue = {
   specialtyOptions: string[];
   /** 'all' or a specialty code. A view filter: the API only ever narrows by it. */
   selectedSpecialty: string;
+  /** Whether a valid specialty context was chosen (or applies by default, e.g. a doctor's own). */
+  specialtyChosen: boolean;
+  /** Enabled shared ERP module, e.g. 'inventory' (server-enforced; the menu follows it). */
+  moduleOn: (module: string) => boolean;
   selectSpecialty: (code: string) => void;
 };
 

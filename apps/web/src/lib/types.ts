@@ -120,6 +120,8 @@ export type Organization = {
   type: OrganizationType | null;
   specialtyCodes: string[];
   configVersion: number;
+  /** Enabled shared ERP modules (all of them for organizations created before modules existed). */
+  enabledModules?: string[];
   createdAt: string;
 };
 

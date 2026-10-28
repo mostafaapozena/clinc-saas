@@ -871,3 +871,8 @@ when asking for a change.
 | `onboarding.existingBody` | افتح إحدى منشآتك، أو أعدّ منشأة جديدة. المنشأة الجديدة منفصلة عن المنشآت التي تنتمي إليها. | Open one of your organizations, or set up a new one. A new organization is separate from the ones you already belong to. |
 | `onboarding.openWorkspace` | فتح {{name}} | Open {{name}} |
 | `onboarding.createAnother` | إعداد منشأة جديدة | Set up a new organization |
+| `onboarding.preparing.title` | جاري تجهيز مساحة عملك | Preparing your workspace |
+| `onboarding.preparing.titleFor` | جاري تجهيز مساحة عمل {{specialty}} | Preparing your {{specialty}} workspace |
+| `onboarding.preparing.body` | بنضبط إعدادات منشأتك والتخصصات اللي اخترتها. | We’re setting up your organization and selected specialties. |
+| `onboarding.preparing.ready` | مساحة عملك جاهزة | Your workspace is ready |
+| `onboarding.preparing.opening` | بنفتحها لك الآن. | Opening it now. |

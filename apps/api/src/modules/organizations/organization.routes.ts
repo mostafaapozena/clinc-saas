@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { createRateLimiter } from '../../auth/rate-limit.js';
 import { requireAuth, authOf } from '../../auth/session.middleware.js';
 import type { AppConfig } from '../../config/app-config.js';
-import { HttpError, conflict, notFound } from '../../http/errors.js';
+import { HttpError, conflict, notFound, validationError } from '../../http/errors.js';
 import { branchNameSchema, citySchema, objectIdSchema, organizationNameSchema } from '../../http/schemas.js';
 import { parseInput } from '../../http/validate.js';
 import { hasPermission, effectivePermissions } from '../../tenancy/permissions.js';
@@ -31,6 +31,7 @@ import { futureActiveAppointments } from '../scheduling/schedule.service.js';
 import { ownPractitionerId } from '../scheduling/scheduling-context.js';
 import { PractitionerModel } from '../practitioners/practitioner.model.js';
 import { createFocusRouter } from '../workspace/focus.routes.js';
+import { ERP_MODULES, MODULE_REQUIRES, enabledModulesOf, requireModule, type ErpModule } from './modules.js';
 import { createAssetsRouter } from '../assets/assets.routes.js';
 import { assertCatalogSpecialties, specialtyListSchema } from '../specialties/specialty.service.js';
 import { createClinicalRouter } from '../clinical/clinical.routes.js';
@@ -94,6 +95,7 @@ function toOrganizationDto(org: Organization & { _id: unknown }) {
     type: org.type ?? null,
     specialtyCodes: [...specialtiesOf(org)],
     configVersion: org.configVersion ?? 0,
+    enabledModules: enabledModulesOf(org),
     createdAt: org.createdAt.toISOString(),
   };
 }
@@ -274,6 +276,36 @@ export function createOrganizationsRouter(config: AppConfig, mailer: Mailer = { 
   // Clinical records first: they own /appointments/:id/encounter and /patients/:id/clinical-history.
   router.use('/:orgId', createCoverageRouter(config));
   router.use('/:orgId', createSpecialtyRouter());
+  // Switched-off modules refuse their API (they are also hidden in the menu).
+  for (const [path, module] of [
+    ['accounting', 'accounting'],
+    ['cash', 'cash'],
+    ['inventory', 'inventory'],
+    ['purchasing', 'purchasing'],
+    ['compensation', 'compensation'],
+    ['assets', 'assets'],
+  ] as const)
+    router.use(`/:orgId/${path}`, requireModule(module));
+  router.put('/:orgId/modules', requirePermission('organization.update'), async (req, res) => {
+    const tenant = tenantOf(req);
+    const { enabledModules } = parseInput(z.object({ enabledModules: z.array(z.enum(ERP_MODULES)).max(ERP_MODULES.length) }), req.body);
+    const wanted = new Set<ErpModule>(enabledModules);
+    for (const m of wanted)
+      for (const needed of MODULE_REQUIRES[m] ?? []) if (!wanted.has(needed)) throw validationError({ enabledModules: `${m}_needs_${needed}` });
+    const organization = await OrganizationModel.findById(tenant.organizationId).lean();
+    if (!organization) throw notFound();
+    const before = enabledModulesOf(organization);
+    const after = ERP_MODULES.filter((m) => wanted.has(m));
+    await OrganizationModel.updateOne({ _id: tenant.organizationId }, { $set: { enabledModules: after } });
+    await recordAudit({
+      organizationId: tenant.organizationId,
+      actorUserId: tenant.userId,
+      action: 'organization.updated',
+      target: { type: 'organization', id: tenant.organizationId },
+      changes: { enabledModules: { from: before, to: after } },
+    });
+    res.json({ enabledModules: after });
+  });
   router.use('/:orgId', createFinanceRouter());
   router.use('/:orgId', createAccountingRouter());
   router.use('/:orgId', createCashRouter());

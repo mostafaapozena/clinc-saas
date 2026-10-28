@@ -168,7 +168,7 @@ export function createFocusRouter() {
 
   router.get('/workspace/focus', async (req, res) => {
     const tenant = tenantOf(req);
-    const { full } = parseInput(z.object({ full: z.enum(['1']).optional() }), req.query);
+    const { full, specialty } = parseInput(z.object({ full: z.enum(['1']).optional(), specialty: z.string().max(40).optional() }), req.query);
     const limit = full ? 100 : 5;
     const zone = await organizationZone(tenant.organizationId).catch(() => null);
     const orgWide = tenant.branchScope.type === 'all';
@@ -214,9 +214,17 @@ export function createFocusRouter() {
       }
     }
 
+    // A specialty context narrows the front desk to that specialty's practitioners (never widens).
+    let practitionerFilter: Record<string, unknown> = {};
+    if (specialty && specialty !== 'all') {
+      const ids = await PractitionerModel.find({ organizationId: tenant.organizationId, specialtyCode: specialty }).select('_id').lean();
+      practitionerFilter = { practitionerId: { $in: ids.map((p) => p._id) } };
+      body.specialty = specialty;
+    }
+
     // Front desk: arrivals, queue, charges to invoice, own cashier session.
     if (tenantCan(tenant, 'appointment.front_desk') && range) {
-      const scope = branchOwnedFilter(tenant, {});
+      const scope = branchOwnedFilter(tenant, practitionerFilter);
       const [byStatus, pendingCharges, session] = await Promise.all([
         AppointmentModel.aggregate<{ _id: string; n: number }>([
           { $match: { ...scope, startAt: { $gte: range.start, $lt: range.end } } },

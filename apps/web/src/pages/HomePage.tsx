@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { FocusPanel } from './WorkspacePages';
+import { FocusPanel, SpecialtyContextChooser, SpecialtyQuickActions } from './WorkspacePages';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
@@ -43,7 +43,9 @@ export function HomePage() {
     <>
       <PageHeader title={t('home.welcome', { name: user?.displayName ?? '' })} subtitle={organization.name} />
       <SpecialtySetupNotice />
+      <SpecialtyContextChooser />
       <FocusPanel />
+      <SpecialtyQuickActions />
       {can('practitioner.manage') && can('member.read') && <GettingStarted />}
       {can('dashboard.read') && <TodayCounts />}
       <div className="card-grid home-grid">

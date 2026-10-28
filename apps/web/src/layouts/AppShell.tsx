@@ -73,7 +73,13 @@ function Shell({ orgId, detail, branches }: { orgId: string; detail: OrgDetail; 
     () => (selectedBranch ? specialties.filter((code) => selectedBranch.specialtyCodes.includes(code)) : specialties),
     [specialties, selectedBranch],
   );
-  const selectedSpecialty = storedSpecialty && specialtyOptions.includes(storedSpecialty) ? storedSpecialty : 'all';
+  // A valid saved context wins; a doctor otherwise starts in their own specialty; anyone else
+  // with several choices is asked (the home page shows the chooser) and sees all meanwhile.
+  const storedValid = Boolean(storedSpecialty && (storedSpecialty === 'all' || specialtyOptions.includes(storedSpecialty)));
+  const own = detail.membership.practitionerSpecialty ?? null;
+  const selectedSpecialty = storedValid ? storedSpecialty! : own && specialtyOptions.includes(own) ? own : 'all';
+  const specialtyChosen = storedValid || specialtyOptions.length < 2 || Boolean(own && specialtyOptions.includes(own));
+  const modules = detail.organization.enabledModules;
 
   const value = useMemo<OrgContextValue>(
     () => ({
@@ -90,12 +96,14 @@ function Shell({ orgId, detail, branches }: { orgId: string; detail: OrgDetail; 
       specialties,
       specialtyOptions,
       selectedSpecialty,
+      specialtyChosen,
+      moduleOn: (module: string) => !modules || modules.includes(module),
       selectSpecialty: (code: string) => {
         setStoredSpecialty(code);
         writeStored(specialtyKey(orgId), code);
       },
     }),
-    [orgId, detail, branches, selectedBranchId, specialties, specialtyOptions, selectedSpecialty],
+    [orgId, detail, branches, selectedBranchId, specialties, specialtyOptions, selectedSpecialty, specialtyChosen, modules],
   );
 
   useEffect(() => {
@@ -158,13 +166,13 @@ function Shell({ orgId, detail, branches }: { orgId: string; detail: OrgDetail; 
         ...(value.can('accounting.read') || value.can('finance.report.read') || value.can('purchase.read') || value.can('cash.session.review')
           ? [{ to: `/app/${orgId}/reports`, icon: 'chart' as const, label: t('nav.reports') }]
           : []),
-        ...(value.can('accounting.read') ? [{ to: `/app/${orgId}/accounting`, icon: 'book' as const, label: t('nav.accounting') }] : []),
-        ...(value.can('cash.session.operate') ? [{ to: `/app/${orgId}/cash`, icon: 'cash' as const, label: t('nav.cash') }] : []),
-        ...(value.can('inventory.read') ? [{ to: `/app/${orgId}/inventory`, icon: 'box' as const, label: t('nav.inventory') }] : []),
+        ...(value.can('accounting.read') && value.moduleOn('accounting') ? [{ to: `/app/${orgId}/accounting`, icon: 'book' as const, label: t('nav.accounting') }] : []),
+        ...(value.can('cash.session.operate') && value.moduleOn('cash') ? [{ to: `/app/${orgId}/cash`, icon: 'cash' as const, label: t('nav.cash') }] : []),
+        ...(value.can('inventory.read') && value.moduleOn('inventory') ? [{ to: `/app/${orgId}/inventory`, icon: 'box' as const, label: t('nav.inventory') }] : []),
         // Purchasing in the menu for those who run it; anyone may still raise a request from the stock pages.
-        ...(value.can('purchase.read') ? [{ to: `/app/${orgId}/purchasing`, icon: 'cart' as const, label: t('nav.purchasing') }] : []),
-        ...(value.can('asset.manage') || value.can('asset.maintain') ? [{ to: `/app/${orgId}/assets`, icon: 'tool' as const, label: t('nav.assets') }] : []),
-        ...(value.can('compensation.read') || value.can('compensation.own.read') ? [{ to: `/app/${orgId}/compensation`, icon: 'users' as const, label: t('nav.compensation') }] : []),
+        ...(value.can('purchase.read') && value.moduleOn('purchasing') ? [{ to: `/app/${orgId}/purchasing`, icon: 'cart' as const, label: t('nav.purchasing') }] : []),
+        ...((value.can('asset.manage') || value.can('asset.maintain')) && value.moduleOn('assets') ? [{ to: `/app/${orgId}/assets`, icon: 'tool' as const, label: t('nav.assets') }] : []),
+        ...((value.can('compensation.read') || value.can('compensation.own.read')) && value.moduleOn('compensation') ? [{ to: `/app/${orgId}/compensation`, icon: 'users' as const, label: t('nav.compensation') }] : []),
       ],
     },
     {

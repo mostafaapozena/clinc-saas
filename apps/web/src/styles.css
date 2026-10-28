@@ -2066,3 +2066,68 @@ h1[tabindex='-1']:focus {
     white-space: nowrap;
   }
 }
+
+/* Workspace preparation after setup (real request; indeterminate indicator). */
+.preparing {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-3, 12px);
+  padding-block: 40px;
+  text-align: center;
+}
+
+.preparing h2 {
+  margin: 0;
+}
+
+.preparing-mark {
+  inline-size: 72px;
+  block-size: auto;
+  animation: preparing-pulse 1.6s ease-in-out infinite;
+}
+
+.preparing-bar {
+  position: relative;
+  inline-size: min(280px, 80%);
+  block-size: 4px;
+  overflow: hidden;
+  background: var(--surface-muted);
+  border-radius: 999px;
+}
+
+.preparing-bar span {
+  position: absolute;
+  inset-block: 0;
+  inline-size: 40%;
+  background: var(--primary);
+  border-radius: 999px;
+  animation: preparing-slide 1.2s ease-in-out infinite;
+}
+
+@keyframes preparing-pulse {
+  50% {
+    opacity: 0.6;
+    transform: scale(0.96);
+  }
+}
+
+@keyframes preparing-slide {
+  from {
+    inset-inline-start: -40%;
+  }
+  to {
+    inset-inline-start: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .preparing-mark,
+  .preparing-bar span {
+    animation: none;
+  }
+
+  .preparing-bar span {
+    inline-size: 100%;
+    opacity: 0.5;
+  }
+}

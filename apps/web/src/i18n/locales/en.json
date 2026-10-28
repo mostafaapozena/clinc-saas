@@ -199,7 +199,14 @@
     "existingTitle": "You already have a workspace",
     "existingBody": "Open one of your organizations, or set up a new one. A new organization is separate from the ones you already belong to.",
     "openWorkspace": "Open {{name}}",
-    "createAnother": "Set up a new organization"
+    "createAnother": "Set up a new organization",
+    "preparing": {
+      "title": "Preparing your workspace",
+      "titleFor": "Preparing your {{specialty}} workspace",
+      "body": "We’re setting up your organization and selected specialties.",
+      "ready": "Your workspace is ready",
+      "opening": "Opening it now."
+    }
   },
   "access": {
     "deniedTitle": "You can't open this page",
@@ -341,7 +348,28 @@
     "orgSpecialtiesHint": "Removing a specialty is refused while doctors still work in it.",
     "branchSpecialties": "Specialties of each branch",
     "saveSpecialties": "Save specialties",
-    "specialtiesSaved": "Specialties saved."
+    "specialtiesSaved": "Specialties saved.",
+    "modules": {
+      "title": "Organization modules",
+      "intro": "Switch on only what your organization needs. Switching a module off hides it and blocks its use without deleting anything; switching it on again shows everything as it was.",
+      "saved": "Modules saved.",
+      "names": {
+        "accounting": "Accounting",
+        "cash": "Cash and banks",
+        "inventory": "Inventory",
+        "purchasing": "Purchasing",
+        "compensation": "Practitioner fees",
+        "assets": "Equipment"
+      },
+      "hints": {
+        "accounting": "Ledger and statements",
+        "cash": "Needs accounting",
+        "inventory": "Stores, lots and consumption",
+        "purchasing": "Requests, orders and supplier bills",
+        "compensation": "Needs accounting",
+        "assets": "Equipment register and maintenance"
+      }
+    }
   },
   "profile": {
     "title": "Profile",
@@ -545,7 +573,8 @@
     "ITEMS_ALREADY_SETTLED": "Some items were settled meanwhile; recompute this draft.",
     "ASSET_CODE_TAKEN": "Another asset has this code.",
     "ASSET_RETIRED": "This equipment is retired.",
-    "DOCUMENTS_AFTER_CUTOVER": "Documents were recorded on or after this date and never posted; choose a later start date (for example today)."
+    "DOCUMENTS_AFTER_CUTOVER": "Documents were recorded on or after this date and never posted; choose a later start date (for example today).",
+    "MODULE_DISABLED": "This module is switched off for your organization. The owner can switch it on in settings."
   },
   "validation": {
     "required": "This field is required.",
@@ -4119,7 +4148,37 @@
     "lotsExpiring": "{{count}} lots expiring within 30 days",
     "nothingWaiting": "Nothing is waiting for you.",
     "maintenanceDue": "{{count}} devices due for maintenance",
-    "outOfService": "{{count}} devices out of service"
+    "outOfService": "{{count}} devices out of service",
+    "chooser": {
+      "title": "Choose your specialty context",
+      "body": "Your organization has several specialties. Choose the one you are working in now; you can change it at any time from the top of the page.",
+      "all": "All specialties together"
+    },
+    "quick": {
+      "title": "{{specialty}} shortcuts",
+      "dentistry": {
+        "plans": "Open treatment plans",
+        "todayVisits": "Today's dental visits",
+        "charts": "Patient files and dental charts",
+        "book": "Book a dental visit",
+        "queue": "Waiting queue",
+        "materials": "Dental materials and stock"
+      },
+      "physiotherapy": {
+        "courses": "Active treatment courses",
+        "todaySessions": "Today's sessions",
+        "book": "Book a session",
+        "patients": "Patient files and assessments",
+        "queue": "Waiting queue"
+      },
+      "ent": {
+        "followUps": "Follow-ups to book",
+        "todayVisits": "Today's visits",
+        "queue": "Waiting queue",
+        "book": "Book a visit",
+        "patients": "Patient files and examinations"
+      }
+    }
   },
   "assets": {
     "title": "Equipment and maintenance",
