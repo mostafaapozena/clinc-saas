@@ -1,6 +1,9 @@
 // Entry of the platform operator console chunk (loaded lazily by routes.tsx under /operator).
 export {
   OperatorAuditPage,
+  OperatorDevMailPage,
+  OperatorSupportPage,
+  OperatorSupportRequestPage,
   OperatorInquiriesPage,
   OperatorInquiryPage,
   OperatorOperatorsPage,

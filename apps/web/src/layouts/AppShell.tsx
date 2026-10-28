@@ -123,6 +123,7 @@ function Shell({ orgId, detail, branches }: { orgId: string; detail: OrgDetail; 
       ? [{ to: `/app/${orgId}/settings`, icon: 'settings' as const, label: t('nav.settings') }]
       : []),
     ...(value.can('subscription.read') ? [{ to: `/app/${orgId}/subscription`, icon: 'check' as const, label: t('nav.subscription') }] : []),
+    ...(value.can('support.request') ? [{ to: `/app/${orgId}/support`, icon: 'globe' as const, label: t('nav.support') }] : []),
     { to: `/app/${orgId}/profile`, icon: 'user', label: t('nav.profile') },
   ];
 

@@ -67,6 +67,9 @@ export const PERMISSION_MATRIX = {
   // Milestone 4 — the organization's platform subscription (what the clinic pays raclinic).
   'subscription.read': ['owner', 'admin'],
   'subscription.manage': ['owner'],
+  // Milestone 5 — support requests to raclinic. Everyone may ask; owners/admins see all of the org's.
+  'support.request': EVERYONE,
+  'support.read_all': ['owner', 'admin'],
 } as const satisfies Record<string, readonly Role[]>;
 
 export type Permission = keyof typeof PERMISSION_MATRIX;

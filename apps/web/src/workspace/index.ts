@@ -18,4 +18,5 @@ export { ProfilePage } from '../pages/ProfilePage';
 export { QueuePage } from '../pages/QueuePage';
 export { SettingsPage } from '../pages/SettingsPage';
 export { SimulatorCheckoutPage, SubscriptionPage } from '../pages/SubscriptionPage';
+export { SupportPage, SupportRequestPage } from '../pages/SupportPages';
 export { TeamPage } from '../pages/TeamPage';

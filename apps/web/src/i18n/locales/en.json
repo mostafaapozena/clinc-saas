@@ -65,7 +65,8 @@
     "coverage": "Clinical coverage",
     "clinicalAudit": "Clinical audit",
     "finance": "Finance",
-    "subscription": "Subscription"
+    "subscription": "Subscription",
+    "support": "Help & support"
   },
   "shell": {
     "skipToContent": "Skip to main content",
@@ -406,7 +407,12 @@
     "CANNOT_CHANGE_SELF": "You cannot change your own operator account.",
     "LAST_PLATFORM_ADMIN": "At least one active platform administrator must remain.",
     "SUBSCRIPTION_INACTIVE": "The organization's subscription is not active, so this cannot be added now. Existing data and work are not affected.",
-    "PLAN_LIMIT_REACHED": "The subscription plan limit for this is reached. Existing data and work are not affected."
+    "PLAN_LIMIT_REACHED": "The subscription plan limit for this is reached. Existing data and work are not affected.",
+    "TOKEN_INVALID": "This link is invalid, has expired or was already used. Ask for a new one.",
+    "INVITATION_EMAIL_MISMATCH": "This invitation was sent to another email address. Sign in with that address to accept it.",
+    "USE_LOGOUT": "To end this session, sign out.",
+    "SUPPORT_THREAD_FULL": "This conversation is full. Please open a new request.",
+    "SUPPORT_CHANGED": "The request changed meanwhile. Reload and try again."
   },
   "validation": {
     "required": "This field is required.",
@@ -1630,7 +1636,9 @@
       "plans": "Plans",
       "inquiries": "Inquiries",
       "operators": "Operators",
-      "audit": "Platform audit"
+      "audit": "Platform audit",
+      "support": "Support",
+      "devMail": "Development mail"
     },
     "roles": {
       "platform_admin": "Platform administrator",
@@ -1653,7 +1661,8 @@
       },
       "enforcement": "Enforcement",
       "idle": "Operator idle sign-out",
-      "idleMinutes": "after {{count}} minutes"
+      "idleMinutes": "after {{count}} minutes",
+      "openSupport": "open support requests"
     },
     "reconcile": {
       "title": "Reconciliation",
@@ -1797,6 +1806,137 @@
       "action": "Action",
       "target": "Target",
       "more": "Load more"
+    },
+    "support": {
+      "subtitle": "Requests from clinics. Requester contact is masked; reply in the conversation.",
+      "none": "No requests.",
+      "back": "Back to the support queue",
+      "requester": "Requester",
+      "readOnly": "Your role can read but not answer support requests.",
+      "markAs": {
+        "open": "Reopen",
+        "answered": "Mark as answered",
+        "closed": "Close"
+      }
+    },
+    "devMail": {
+      "subtitle": "Messages the platform would have emailed. Development environment only.",
+      "warning": "Development mail sink: nothing here was sent to anyone. Links contain live tokens; do not share them.",
+      "none": "No messages."
     }
+  },
+  "account": {
+    "forgotLink": "Forgot your password?",
+    "forgotTitle": "Reset your password",
+    "forgotHint": "Enter the email of your account. If an account uses it, we will send a link to choose a new password.",
+    "forgotSubmit": "Send reset link",
+    "forgotSent": "If an account uses this email, a reset link is on its way. The link works once, for one hour.",
+    "backToLogin": "Back to sign-in",
+    "resetTitle": "Choose a new password",
+    "newPassword": "New password",
+    "passwordHint": "At least 10 characters.",
+    "resetSubmit": "Save new password",
+    "resetSignsOut": "Saving a new password signs you out everywhere.",
+    "resetDone": "Your password was changed and every session was ended. Sign in with the new password.",
+    "verifyTitle": "Confirm your email",
+    "verifyHint": "Confirm that this email address belongs to you.",
+    "verifySubmit": "Confirm my email",
+    "verifyDone": "Your email address is confirmed.",
+    "toWorkspace": "Go to my workspace",
+    "verifyCardTitle": "Confirm your email",
+    "verifyCardHint": "Your email address is not confirmed yet. We can send you a confirmation link.",
+    "verifySend": "Send confirmation link",
+    "verifySent": "If email sending is set up, a confirmation link is on its way (valid for 24 hours).",
+    "sessionsTitle": "Signed-in devices",
+    "sessionsHint": "Sessions end after a period without activity, and at the latest when they expire.",
+    "unknownDevice": "Unknown device",
+    "thisDevice": "This device",
+    "sessionSince": "Signed in {{time}}",
+    "sessionLastSeen": "last active {{time}}",
+    "signOutDevice": "Sign out",
+    "signOutOthers": "Sign out all other devices",
+    "inviteTitle": "Invite by email",
+    "inviteHint": "The person receives a link valid for 7 days and joins after signing in or registering with that same email.",
+    "inviteSubmit": "Send invitation",
+    "inviteSent": "Invitation sent to {{email}}.",
+    "inviteSavedNoMail": "Invitation created. Email sending is not set up in this environment, so no message was sent.",
+    "pendingInvitations": "Pending invitations",
+    "noInvitations": "No pending invitations.",
+    "invitationExpires": "Expires {{date}}",
+    "revokeInvitation": "Revoke",
+    "invitationTitle": "Invitation",
+    "invitationSummary": "You are invited to join {{organization}} as {{role}}.",
+    "invitationFor": "Invitation for",
+    "invitationAccept": "Accept invitation",
+    "createAccount": "Create an account"
+  },
+  "support": {
+    "title": "Help & support",
+    "subtitle": "Answers to common questions, and requests to the raclinic team.",
+    "faqTitle": "Frequently asked questions",
+    "faqLabel": "Static help written by the raclinic team — not an AI assistant. It does not answer medical questions.",
+    "faqSearch": "Filter the questions",
+    "faqNone": "No question matches. You can send a support request below.",
+    "faq": [
+      {
+        "q": "How do I add a team member?",
+        "a": "Owners and admins open Team, then add someone who already has an account, or invite an email address. Invitations are valid for 7 days."
+      },
+      {
+        "q": "I forgot my password.",
+        "a": "On the sign-in page choose “Forgot your password?”. If email sending is set up, you receive a link that works once, for one hour. Choosing a new password signs you out everywhere."
+      },
+      {
+        "q": "Why can't other doctors read my visit records?",
+        "a": "Clinical records are visible only to the treating doctor. To let a colleague cover, share them under Clinical coverage for a limited time; every access is recorded."
+      },
+      {
+        "q": "Is the invoice a tax invoice?",
+        "a": "No. Invoices and receipts are ordinary documents. Tax invoices and electronic invoicing are not available."
+      },
+      {
+        "q": "What does “Development grant” mean on the subscription page?",
+        "a": "Free access granted by raclinic for development, pilots or demonstrations. It is not a commercial subscription and no payment is involved."
+      },
+      {
+        "q": "Can I send patient information in a support request?",
+        "a": "No. Please describe the problem without names, phone numbers or any medical details. The raclinic team cannot open patient records."
+      }
+    ],
+    "contactTitle": "Contact raclinic",
+    "contactNone": "Contact details have not been published yet. Please use a support request.",
+    "phone": "Phone",
+    "hours": "Support hours",
+    "hoursNone": "Not published yet",
+    "newTitle": "New support request",
+    "noPatientData": "Do not include patient names, phone numbers or any medical information. Describe the problem in general terms.",
+    "noPatientDataShort": "No patient names, phone numbers or medical details, please.",
+    "subject": "Subject",
+    "category": "Topic",
+    "categories": {
+      "account": "Account and sign-in",
+      "scheduling": "Appointments and schedules",
+      "records": "Visit records",
+      "finance": "Invoices and payments",
+      "subscription": "Subscription",
+      "other": "Other"
+    },
+    "message": "Message",
+    "send": "Send request",
+    "created": "Request {{reference}} was sent.",
+    "listTitle": "Your requests",
+    "none": "No requests yet.",
+    "status": {
+      "open": "Waiting for raclinic",
+      "answered": "Answered",
+      "closed": "Closed"
+    },
+    "back": "Back to help & support",
+    "conversation": "Conversation",
+    "fromRaclinic": "raclinic team",
+    "reply": "Reply",
+    "sendReply": "Send reply",
+    "close": "Close request",
+    "closedHint": "This request is closed. Replying reopens it."
   }
 }

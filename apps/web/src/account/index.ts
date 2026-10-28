@@ -4,3 +4,4 @@ export { LoginPage } from '../pages/LoginPage';
 export { OnboardingPage } from '../pages/OnboardingPage';
 export { RegisterPage } from '../pages/RegisterPage';
 export { StatusPage } from '../pages/StatusPage';
+export { AcceptInvitationPage, ForgotPasswordPage, ResetPasswordPage, VerifyEmailPage } from '../pages/AccountEmailPages';

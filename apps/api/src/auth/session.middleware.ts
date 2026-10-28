@@ -3,7 +3,7 @@ import type { AppConfig } from '../config/app-config.js';
 import { unauthenticated } from '../http/errors.js';
 import { UserModel, type UserDocument } from '../users/user.model.js';
 import type { SessionDocument } from './session.model.js';
-import { findValidSession } from './session.service.js';
+import { destroySession, findValidSession } from './session.service.js';
 
 export type AuthContext = {
   user: UserDocument;
@@ -32,11 +32,13 @@ export function loadSession(config: AppConfig): RequestHandler {
   return async (req, res, next) => {
     const token: unknown = req.cookies?.[sessionCookieName(config)];
     if (typeof token === 'string' && token.length > 0) {
-      const session = await findValidSession(token);
+      const session = await findValidSession(token, config.sessionIdleMinutes);
       const user = session ? await UserModel.findById(session.userId) : null;
       if (session && user) {
         req.auth = { user, session, token };
       } else {
+        // Expired, idle or orphaned: the session ends now.
+        await destroySession(token);
         clearSessionCookie(res, config);
       }
     }

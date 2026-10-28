@@ -24,6 +24,7 @@ import {
 } from '../lib/operator';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { PriceText, SubscriptionStatusBadge } from '../components/subscription';
+import { SupportConversation, SupportStatusBadge, type SupportDetail } from '../components/support';
 
 // The platform operator console (/operator). Separate sign-in, separate session; shows
 // organizations' metadata, plans, subscriptions, inquiries, operators and the platform audit —
@@ -147,13 +148,22 @@ function OperatorLayout({ children }: { children: ReactNode }) {
       queryClient.setQueryData(OPERATOR_SESSION_KEY, null);
     },
   });
+  // The development mail sink is linked only where it exists (never in production).
+  const overview = useQuery({
+    queryKey: opKeys.overview,
+    queryFn: ({ signal }) => opApi<Overview>('/overview', { signal }),
+    enabled: operator.can('platform.audit.read'),
+  });
+  const devMail = overview.data?.config.mailProvider === 'dev_sink';
   const nav = [
     { to: '/operator', label: t('operator.nav.overview'), end: true },
     { to: '/operator/organizations', label: t('operator.nav.organizations') },
     { to: '/operator/plans', label: t('operator.nav.plans') },
     { to: '/operator/inquiries', label: t('operator.nav.inquiries') },
+    { to: '/operator/support', label: t('operator.nav.support') },
     ...(operator.can('platform.operators.read') ? [{ to: '/operator/operators', label: t('operator.nav.operators') }] : []),
     ...(operator.can('platform.audit.read') ? [{ to: '/operator/audit', label: t('operator.nav.audit') }] : []),
+    ...(devMail ? [{ to: '/operator/dev-mail', label: t('operator.nav.devMail') }] : []),
   ];
   return (
     <OperatorShellFrame
@@ -188,7 +198,14 @@ type Overview = {
   subscriptions: { byStatus: Record<string, number>; byKind: Record<string, number> };
   inquiries: { new: number };
   health: { database: { status: 'up' | 'down'; latencyMs: number | null }; uptimeSeconds: number };
-  config: { billingProvider: 'none' | 'simulator'; subscriptionEnforcement: 'off' | 'log' | 'on'; operatorIdleMinutes: number };
+  config: {
+    billingProvider: 'none' | 'simulator';
+    subscriptionEnforcement: 'off' | 'log' | 'on';
+    operatorIdleMinutes: number;
+    mailProvider?: 'none' | 'dev_sink';
+    sessionIdleMinutes?: number;
+  };
+  support?: { open: number };
 };
 type Drift = { organizationId: string; action: string; applied: boolean; local: { status: string }; provider: { status: string } | null };
 
@@ -220,6 +237,9 @@ export function OperatorOverviewPage() {
         ))}
         <div className="stat">
           <strong>{fmt.number(o.inquiries.new)}</strong> {t('operator.overview.newInquiries')}
+        </div>
+        <div className="stat">
+          <strong>{fmt.number(o.support?.open ?? 0)}</strong> {t('operator.overview.openSupport')}
         </div>
       </div>
       <div className="card-grid card-grid--wide">
@@ -1198,6 +1218,178 @@ export function OperatorAuditPage() {
             </button>
           )}
         </>
+      )}
+    </>
+  );
+}
+
+// --- Support queue and development mail sink (milestone 5) -------------------------------------
+
+type QueueRow = {
+  id: string;
+  reference: string;
+  subject: string;
+  category: string;
+  status: string;
+  messageCount: number;
+  lastActivityAt: string;
+  organization: { id: string; name: string };
+};
+
+export function OperatorSupportPage() {
+  const { t } = useTranslation();
+  const fmt = useFormatters();
+  const [status, setStatus] = useState('open');
+  useDocumentTitle(t('operator.nav.support'));
+  const list = useQuery({
+    queryKey: ['operator', 'support', status],
+    queryFn: ({ signal }) => opApi<{ data: QueueRow[] }>(`/support${status ? `?status=${status}` : ''}`, { signal }),
+  });
+  return (
+    <>
+      <PageHeader title={t('operator.nav.support')} subtitle={t('operator.support.subtitle')} />
+      <div className="segmented" role="group" aria-label={t('operator.inquiries.filter')}>
+        {['open', 'answered', 'closed', ''].map((s) => (
+          <button
+            key={s || 'all'}
+            type="button"
+            className={`segment${status === s ? ' segment--active' : ''}`}
+            aria-pressed={status === s}
+            onClick={() => setStatus(s)}
+          >
+            {s ? t(`support.status.${s}`) : t('operator.inquiries.all')}
+          </button>
+        ))}
+      </div>
+      {list.isPending && <Loading />}
+      {list.isError && <ErrorState message={errorMessage(t, list.error)} onRetry={() => void list.refetch()} />}
+      {list.isSuccess && list.data.data.length === 0 && <EmptyState>{t('operator.support.none')}</EmptyState>}
+      {list.isSuccess && list.data.data.length > 0 && (
+        <ul className="data-list" data-testid="support-queue">
+          {list.data.data.map((r) => (
+            <li key={r.id} className="data-row">
+              <div className="data-main">
+                <Link to={`/operator/support/${r.reference}`}>{r.subject}</Link>
+                <p className="muted small">
+                  {r.organization.name} · <span dir="ltr">{r.reference}</span> · {t(`support.categories.${r.category}`)} ·{' '}
+                  {fmt.date(r.lastActivityAt)}
+                </p>
+              </div>
+              <SupportStatusBadge status={r.status} />
+            </li>
+          ))}
+        </ul>
+      )}
+    </>
+  );
+}
+
+export function OperatorSupportRequestPage() {
+  const { t } = useTranslation();
+  const { reference = '' } = useParams();
+  const operator = useOperator();
+  const queryClient = useQueryClient();
+  const key = ['operator', 'support-request', reference];
+  const detail = useQuery({
+    queryKey: key,
+    queryFn: ({ signal }) =>
+      opApi<{
+        request: SupportDetail & { organization: { id: string; name: string }; requester: { displayName: string; email: string } | null };
+      }>(`/support/${reference}`, { signal }),
+  });
+  useDocumentTitle(reference);
+  const done = async () => {
+    await queryClient.invalidateQueries({ queryKey: key });
+    await queryClient.invalidateQueries({ queryKey: ['operator', 'support'] });
+  };
+  const reply = useMutation({
+    mutationFn: (body: string) => opApi(`/support/${reference}/messages`, { method: 'POST', body: { body } }),
+    onSuccess: done,
+  });
+  const setStatus = useMutation({
+    mutationFn: (status: string) => opApi(`/support/${reference}/status`, { method: 'POST', body: { status } }),
+    onSuccess: done,
+  });
+  if (detail.isPending) return <Loading />;
+  if (detail.isError) return <ErrorState message={errorMessage(t, detail.error)} onRetry={() => void detail.refetch()} />;
+  const r = detail.data.request;
+  const manage = operator.can('platform.support.manage');
+  return (
+    <>
+      <PageHeader title={r.subject} subtitle={`${r.reference} · ${r.organization.name}`}>
+        <SupportStatusBadge status={r.status} />
+      </PageHeader>
+      <p className="muted small">
+        <Link to="/operator/support">{t('operator.support.back')}</Link>
+        {r.requester && (
+          <>
+            {' '}
+            · {t('operator.support.requester')}: {r.requester.displayName} <span dir="ltr">{r.requester.email}</span>
+          </>
+        )}
+      </p>
+      {manage ? (
+        <SupportConversation
+          viewer="operator"
+          request={r}
+          onReply={(body) => reply.mutateAsync(body)}
+          replying={reply.isPending}
+          replyError={reply.error ?? setStatus.error}
+          extraActions={(['open', 'answered', 'closed'] as const)
+            .filter((s) => s !== r.status)
+            .map((s) => (
+              <button
+                key={s}
+                type="button"
+                className="button button--ghost"
+                disabled={setStatus.isPending}
+                onClick={() => setStatus.mutate(s)}
+              >
+                {t(`operator.support.markAs.${s}`)}
+              </button>
+            ))}
+        />
+      ) : (
+        <EmptyState>{t('operator.support.readOnly')}</EmptyState>
+      )}
+    </>
+  );
+}
+
+type DevMailRow = { id: string; to: string; template: string; subject: string; text: string; createdAt: string };
+
+/** Development only: messages the platform would have emailed. Never available in production. */
+export function OperatorDevMailPage() {
+  const { t } = useTranslation();
+  const fmt = useFormatters();
+  useDocumentTitle(t('operator.nav.devMail'));
+  const list = useQuery({
+    queryKey: ['operator', 'dev-mail'],
+    queryFn: ({ signal }) => opApi<{ data: DevMailRow[] }>('/dev-mail', { signal }),
+  });
+  return (
+    <>
+      <PageHeader title={t('operator.nav.devMail')} subtitle={t('operator.devMail.subtitle')} />
+      <Notice kind="warning">{t('operator.devMail.warning')}</Notice>
+      {list.isPending && <Loading />}
+      {list.isError && <ErrorState message={errorMessage(t, list.error)} onRetry={() => void list.refetch()} />}
+      {list.isSuccess && list.data.data.length === 0 && <EmptyState>{t('operator.devMail.none')}</EmptyState>}
+      {list.isSuccess && list.data.data.length > 0 && (
+        <ul className="data-list" data-testid="dev-mail">
+          {list.data.data.map((m) => (
+            <li key={m.id} className="data-row">
+              <div className="data-main">
+                <strong>{m.subject}</strong>
+                <p className="muted small">
+                  <span dir="ltr">{m.to}</span> · {fmt.date(m.createdAt)}
+                </p>
+                <pre className="record-text dev-mail-text" dir="auto">
+                  {m.text}
+                </pre>
+              </div>
+            </li>
+          ))}
+        </ul>
       )}
     </>
   );

@@ -8,7 +8,7 @@ export interface User {
   passwordHash: string;
   displayName: string;
   preferredLanguage: Language;
-  /** Not set by any flow yet: there is no email infrastructure, so nothing is verified. */
+  /** Set when the user opens an email-verification link (milestone 5). */
   emailVerifiedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;

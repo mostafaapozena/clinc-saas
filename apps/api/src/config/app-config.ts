@@ -25,6 +25,14 @@ export type AppConfig = {
   billingSimulatorSecret: string;
   /** Entitlement enforcement: off (default), log (audit only) or on — on only after decision B4. */
   subscriptionEnforcement: 'off' | 'log' | 'on';
+  /** Tenant sessions end after this many minutes without a request (0 = no idle timeout). */
+  sessionIdleMinutes: number;
+  /** Mail boundary: 'none' (default, nothing sent) or the development mail sink (never in production). */
+  mailProvider: 'none' | 'dev_sink';
+  /** Origin used in links inside emails, e.g. https://app.example.com ('' = relative links). */
+  appBaseUrl: string;
+  /** Support contact details shown in the app — only what is configured, nothing invented. */
+  supportContact: { email: string | null; phone: string | null; hours: { ar: string; en: string } | null };
 };
 
 export const defaultAppConfig: AppConfig = {
@@ -40,6 +48,10 @@ export const defaultAppConfig: AppConfig = {
   billingProvider: 'none',
   billingSimulatorSecret: randomBytes(32).toString('hex'),
   subscriptionEnforcement: 'off',
+  sessionIdleMinutes: 120,
+  mailProvider: 'none',
+  appBaseUrl: '',
+  supportContact: { email: null, phone: null, hours: null },
 };
 
 export function appConfigFromEnv(env: Env): AppConfig {
@@ -59,5 +71,13 @@ export function appConfigFromEnv(env: Env): AppConfig {
     billingProvider: env.BILLING_PROVIDER,
     billingSimulatorSecret: env.BILLING_SIMULATOR_SECRET ?? randomBytes(32).toString('hex'),
     subscriptionEnforcement: env.SUBSCRIPTION_ENFORCEMENT,
+    sessionIdleMinutes: env.SESSION_IDLE_MINUTES,
+    mailProvider: env.MAIL_PROVIDER,
+    appBaseUrl: env.APP_BASE_URL ?? '',
+    supportContact: {
+      email: env.SUPPORT_CONTACT_EMAIL ?? null,
+      phone: env.SUPPORT_CONTACT_PHONE ?? null,
+      hours: env.SUPPORT_HOURS_AR && env.SUPPORT_HOURS_EN ? { ar: env.SUPPORT_HOURS_AR, en: env.SUPPORT_HOURS_EN } : null,
+    },
   };
 }

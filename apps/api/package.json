@@ -10,7 +10,10 @@
     "seed": "tsx src/scripts/seed.ts",
     "db:check": "tsx src/scripts/db-check.ts",
     "inquiries": "tsx src/scripts/inquiries.ts",
-    "operators": "tsx src/scripts/operators.ts"
+    "operators": "tsx src/scripts/operators.ts",
+    "ops:backup": "tsx src/scripts/backup.ts",
+    "ops:restore-drill": "tsx src/scripts/restore-drill.ts",
+    "ops:retention-report": "tsx src/scripts/retention-report.ts"
   },
   "dependencies": {
     "@node-rs/argon2": "^2.2.2",

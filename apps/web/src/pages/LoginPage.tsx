@@ -66,6 +66,9 @@ export function LoginPage() {
             {submitting ? t('auth.submittingLogin') : t('auth.submitLogin')}
           </button>
         </form>
+        <p className="small">
+          <Link to="/forgot-password">{t('account.forgotLink')}</Link>
+        </p>
         <p className="auth-switch">
           {t('auth.noAccount')} <Link to={withNext('/register', params.get('next'))}>{t('auth.registerLink')}</Link>
         </p>

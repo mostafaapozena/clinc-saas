@@ -36,7 +36,7 @@ development Codespace.
 | ---------- | ------ | ----- |
 | Sessions, CSRF, origin checks, auth rate limiting | Implemented and verified | Server-side revocable sessions; rate limit is in-memory per instance. |
 | Organizations, branches (create, rename, deactivate) | Implemented and verified | |
-| Team: add existing accounts by email, roles, branch scope, suspend | Implemented and verified | No invitations (no email provider). |
+| Team: add existing accounts by email, roles, branch scope, suspend; invitations | Implemented and verified; invitations implemented and tested _(milestone 5, in review)_ | Invitations by email (7-day single-use link, accepted only by the invited address); messages go to the development mail sink — no real email provider (B7). |
 | Five roles with a central permission matrix | Implemented and verified | Owner, admin, doctor, receptionist, viewer. Matrix in [architecture/TENANCY.md](architecture/TENANCY.md). |
 | Tenant and branch isolation | Implemented and verified | Enforced in the API and tested (cross-org ids, tampered ids, branch-limited staff, counts and searches). |
 | Organization and branch switching without stale data | Implemented and verified | |
@@ -87,7 +87,7 @@ development Codespace.
 | Plans, entitlements, subscription states | Implemented and tested _(milestone 4, in review)_ | Versioned plans (draft/active/retired) with optional prices and limits — none invented; development grants vs commercial subscriptions; state machine with history; customer subscription page; enforcement **off** by default (B4). Trials/grace not built (terms undecided). [SUBSCRIPTIONS.md](architecture/SUBSCRIPTIONS.md) |
 | Payment provider and webhooks | Simulated _(milestone 4, in review)_ | Provider boundary + clearly labelled **simulator** (refused in production): signed webhooks, replay protection, dedupe, out-of-order handling, reconciliation. Real provider awaits decision and sandbox credentials (B5). |
 | Platform operator console (isolated from tenant roles) | Implemented and tested _(milestone 4, in review)_ | Separate operator accounts, sessions, CSRF and audit; CLI provisioning only; platform_admin / support roles; organization metadata, plans, subscriptions, inquiries (masked, audited reveal), operators, platform audit. No patient/clinical access, no impersonation. MFA not implemented (B6). [PLATFORM.md](architecture/PLATFORM.md) |
-| Support intake | Planned | Support hours and channel undecided. |
+| Support intake | Implemented and tested _(milestone 5, in review)_ | In-app requests with conversation and statuses, tenant-isolated, operator queue; static FAQ labelled "not an AI assistant"; contact details shown only when configured (none are). Hours/channel undecided (B9). [SUPPORT.md](architecture/SUPPORT.md) |
 | Chatbot | Not planned yet | Scope must be defined before it is considered. |
 
 ## 3. Custom ownership delivery
@@ -101,12 +101,12 @@ Radiology and similar systems belong here as candidates, not in the SaaS.
 | Capability | Status | Notes |
 | ---------- | ------ | ----- |
 | CI on every PR and on `main`; ruleset requires `verify` | Implemented and verified | |
-| Email verification, password recovery, invitations | Blocked | No email provider. |
-| MFA | Decision required | Policy undecided (who, when, which factor). |
-| Idle session timeout, session management UI | Planned | Absolute expiry only. |
+| Email verification, password recovery, invitations | Implemented and tested with a development mail sink _(milestone 5, in review)_ | Hashed single-use expiring tokens, non-enumerating responses, reset ends all sessions. No real email is sent until a provider is chosen (B7). [ACCOUNT_EMAIL.md](architecture/ACCOUNT_EMAIL.md) |
+| MFA | Decision required | Not implemented. Options documented in [MFA_OPTIONS.md](operations/MFA_OPTIONS.md) (B6). |
+| Idle session timeout, session management UI | Implemented and tested _(milestone 5, in review)_ | Idle timeout (default 120 min, proposal P19) plus absolute expiry; signed-in devices list, sign out one or all others. |
 | Shared rate-limit store | Planned | Needed once more than one API instance runs. |
 | Hosting, data residency, staging/production | Blocked | Undecided for Egypt and Saudi Arabia. |
-| Backups and restoration tests, monitoring, runbooks | Blocked | Depends on hosting. |
+| Backups and restoration tests, monitoring, runbooks | Implemented in development _(milestone 5, in review)_; production setup blocked on hosting | Logical backup + restore drill into an isolated database (performed on synthetic data, all 36 collections verified); readiness/liveness, graceful shutdown, log redaction, monitoring boundary (log only), runbook, retention report (non-destructive), dependency audit. Schedule, off-site storage, alerting depend on hosting (B8). [operations/](operations/RUNBOOK.md) |
 | Security review / penetration test | Planned | Before any real data. |
 | Privacy notice, terms, regulatory review | Blocked | Needs authoritative legal input. No compliance is claimed. |
 

@@ -34,6 +34,9 @@ import { createCoverageRouter } from '../clinical/coverage.routes.js';
 import { createSpecialtyRouter } from '../clinical/specialty.routes.js';
 import { createFinanceRouter } from '../finance/finance.routes.js';
 import { createSubscriptionRouter } from '../platform/subscription.routes.js';
+import type { Mailer } from '../mail/mailer.js';
+import { createInvitationsRouter } from '../memberships/invitation.routes.js';
+import { createSupportRouter } from '../support/support.routes.js';
 import { ORGANIZATION_TYPES, OrganizationModel, specialtiesOf, type Organization } from './organization.model.js';
 import { createOrganizationWithOwner } from './organization.service.js';
 import {
@@ -100,7 +103,7 @@ async function membershipView(tenant: TenantContext) {
   };
 }
 
-export function createOrganizationsRouter(config: AppConfig) {
+export function createOrganizationsRouter(config: AppConfig, mailer: Mailer = { name: 'none', send: async () => {} }) {
   const router = Router();
   const setupLimiter = createRateLimiter(config.setupRateLimit);
   router.use(requireAuth);
@@ -260,6 +263,8 @@ export function createOrganizationsRouter(config: AppConfig) {
   router.use('/:orgId', createClinicalRouter());
   router.use('/:orgId/branches', branchesRouter);
   router.use('/:orgId/members', createMembersRouter(config));
+  router.use('/:orgId/invitations', createInvitationsRouter(config, mailer));
+  router.use('/:orgId/support', createSupportRouter(config));
   router.use('/:orgId/patients', patientsRouter);
   router.use('/:orgId/practitioners', practitionersRouter);
   router.use('/:orgId/appointments', appointmentsRouter);

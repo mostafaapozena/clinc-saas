@@ -3,6 +3,7 @@ import { useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SESSION_KEY, useSession } from '../auth/session';
 import { PageHeader } from '../components/PageHeader';
+import { EmailVerificationCard, SessionsCard } from '../components/account';
 import { Field, Notice } from '../components/ui';
 import { setLanguage } from '../i18n';
 import { describedBy } from '../lib/a11y';
@@ -71,6 +72,8 @@ export function ProfilePage() {
           </button>
         </form>
       </section>
+      <EmailVerificationCard />
+      <SessionsCard />
     </>
   );
 }

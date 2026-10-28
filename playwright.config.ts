@@ -44,6 +44,8 @@ export default defineConfig({
         INQUIRY_RATE_LIMIT_MAX: '1000',
         // The clearly labelled payment simulator (milestone 4); never a real provider in tests.
         BILLING_PROVIDER: 'simulator',
+        // Development mail sink (milestone 5): nothing is ever sent from tests.
+        MAIL_PROVIDER: 'dev_sink',
       },
       reuseExistingServer: false,
       timeout: 90_000,

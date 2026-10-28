@@ -43,7 +43,7 @@ export function createAuthRouter(config: AppConfig) {
   /** Issues a brand-new session (rotation): any session the request arrived with is destroyed. */
   async function signIn(req: Request, res: Response, user: UserDocument) {
     if (req.auth) await destroySession(req.auth.token);
-    const { token, csrfToken, expiresAt } = await createSession(user._id, config.sessionTtlHours);
+    const { token, csrfToken, expiresAt } = await createSession(user._id, config.sessionTtlHours, req.get('user-agent'));
     setSessionCookie(res, config, token, expiresAt);
     return csrfToken;
   }

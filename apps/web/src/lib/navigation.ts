@@ -1,8 +1,8 @@
 // Post-login destinations (no open redirects). Only internal paths of the authenticated app are
-// accepted: the workspace and onboarding. Anything else — other origins, protocol-relative
+// accepted: the workspace, onboarding and invitation acceptance. Anything else — other origins, protocol-relative
 // "//host", backslash tricks ("/\host", which browsers treat like "//host"), control characters
 // or unrelated paths — falls back to the default.
-const ALLOWED_PREFIXES = ['/app', '/onboarding'] as const;
+const ALLOWED_PREFIXES = ['/app', '/onboarding', '/invitations/accept'] as const;
 const INTERNAL = 'https://internal.invalid';
 
 export function safeNext(value: string | null | undefined, fallback = '/app'): string {
