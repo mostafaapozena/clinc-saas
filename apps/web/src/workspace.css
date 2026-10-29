@@ -479,9 +479,10 @@
   min-inline-size: 0;
 }
 
-/* Cards in one row share a height; their content starts at the top. */
+/* Card rows: each card keeps its own height and starts at the top of the row, so a short card
+   never ends in an empty band. Rows of genuinely parallel cards opt in with .card-grid--equal. */
 .card-grid {
-  align-items: stretch;
+  align-items: start;
   gap: var(--space-4);
 }
 
@@ -515,6 +516,7 @@
 /* ---------- Metrics (dashboard numbers) ---------- */
 .metrics {
   display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 190px), 1fr));
   gap: var(--space-3);
   margin: 0;
 }
@@ -1186,11 +1188,11 @@
   }
 
   .content .date-nav {
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
   }
 
   .content .date-nav input {
-    flex: 1;
+    flex: 1 1 140px;
     min-inline-size: 0;
   }
 }
@@ -1255,8 +1257,7 @@
   margin-block-start: var(--space-6);
 }
 
-/* Card rows: every card of a row starts on the same line and has the same height; the content
-   starts at the top (no stretched interiors pushing content apart). */
+/* Card rows: every card of a row starts on the same line (see .card-grid above). */
 .card-grid > .card {
   margin: 0;
 }
@@ -1393,11 +1394,17 @@
 /* ERP module sub-navigation (accounting, cash and banks, later purchasing and stock). */
 .module-nav {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: var(--stack-related);
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scrollbar-width: thin;
+  padding-block-end: 4px;
 }
 
 .module-nav-link {
+  flex: none;
+  white-space: nowrap;
   display: inline-flex;
   align-items: center;
   min-block-size: 36px;
@@ -1475,4 +1482,219 @@
 .focus-group h3 {
   margin: 0;
   font-size: 1rem;
+}
+
+/* =================================================================================================
+   Design-system contracts (phase 18, docs/DESIGN_SYSTEM.md). These rules belong to the shared
+   primitives in components/layout.tsx; pages do not override them.
+   ================================================================================================= */
+:root {
+  --control-sm: 32px;
+  --control-md: 40px;
+  --control-lg: 48px;
+  --touch-min: 44px;
+  --gap-inline-icon: 8px;
+  --gap-icon-text: 12px;
+  --icon-box: 36px;
+}
+
+/* The sticky top bar never hides a heading that is scrolled or focused into view (F-08). */
+html {
+  scroll-padding-block-start: var(--topbar-h, 96px);
+}
+
+/* Equal-height card rows, only when asked for. */
+.card-grid--equal {
+  align-items: stretch;
+}
+
+.form-actions--end {
+  justify-content: flex-end;
+}
+
+.form-actions--between {
+  justify-content: space-between;
+}
+
+/* Control sizes (F-12, F-20): sm inside tables and dense filters, md by default, lg for primary
+   actions on phones. Buttons take their height from the size, never from a stretched row. */
+.button--sm {
+  min-block-size: var(--control-sm);
+  padding-block: 4px;
+  padding-inline: 12px;
+  font-size: 0.875rem;
+}
+
+.button--lg {
+  min-block-size: var(--control-lg);
+  padding-inline: 20px;
+}
+
+.data-table td :is(.button, button) {
+  min-block-size: var(--control-sm);
+  padding-block: 4px;
+  padding-inline: 12px;
+  font-size: 0.875rem;
+}
+
+@media (max-width: 640px) {
+  .button--primary,
+  .segment,
+  .module-nav-link {
+    min-block-size: var(--touch-min);
+  }
+}
+
+/* Icon + text (F-03): the icon sits in its own box, top-aligned with the title, a fixed gap from
+   the text whether the text is one line or three. */
+.icon-label {
+  display: grid;
+  grid-template-columns: var(--icon-box) minmax(0, 1fr);
+  align-items: start;
+  column-gap: var(--gap-icon-text);
+  min-inline-size: 0;
+}
+
+.icon-box {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  inline-size: var(--icon-box);
+  block-size: var(--icon-box);
+  color: var(--link);
+  background: color-mix(in srgb, var(--primary) 14%, transparent);
+  border-radius: 10px;
+}
+
+.icon-box > .icon {
+  inline-size: 20px;
+  block-size: 20px;
+}
+
+.icon-label-text {
+  display: grid;
+  gap: 2px;
+  padding-block-start: 6px;
+}
+
+.icon-label-title {
+  font-weight: 700;
+  color: var(--text);
+}
+
+.icon-label-description {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+/* A report or destination link: icon label and a direction arrow in its own column. */
+.report-link {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  color: inherit;
+  text-decoration: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.report-link:hover {
+  border-color: var(--primary);
+}
+
+.report-link:focus-visible {
+  outline: 2px solid var(--focus, var(--primary));
+  outline-offset: 2px;
+}
+
+.report-link-arrow {
+  color: var(--muted);
+}
+
+.report-links {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Numbers in tables (F-06): end-aligned, tabular figures, never wrapped. */
+.data-table :is(td, th).num {
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Statement and ledger tables keep their columns on tablets and scroll on phones, with the first
+   column (the account) kept in view (F-10). */
+.table-wrap:has(> .data-table--scroll) {
+  overflow-x: auto;
+}
+
+@media (max-width: 900px) {
+  .data-table--scroll {
+    min-inline-size: 560px;
+  }
+
+  .data-table--scroll :is(th, td):first-child {
+    position: sticky;
+    inset-inline-start: 0;
+    background: var(--surface);
+  }
+}
+
+/* One table for a whole statement (F-06): fixed columns so amounts line up across sections. */
+.statement-table {
+  table-layout: fixed;
+  max-inline-size: 960px;
+}
+
+.statement-table col.statement-label {
+  inline-size: 65%;
+}
+
+.statement-table .statement-section th {
+  padding-block-start: var(--space-5);
+  font-size: 1rem;
+  text-align: start;
+  color: var(--text);
+  background: transparent;
+}
+
+.statement-table .row-total :is(th, td) {
+  font-weight: 700;
+}
+
+.statement-table .statement-grand :is(th, td) {
+  font-size: 1.05rem;
+  border-block-start: 2px solid var(--border);
+}
+
+/* The top bar fits one row on laptops: the context choosers drop their visible captions (the
+   <label> stays for assistive technology) and shrink before anything wraps (F-08). */
+@media (min-width: 1024px) {
+  .topbar {
+    flex-wrap: nowrap;
+  }
+
+  .topbar .switcher {
+    min-inline-size: 140px;
+    flex: 0 1 200px;
+  }
+
+  .topbar .switcher-label {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
 }

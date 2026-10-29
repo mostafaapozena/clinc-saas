@@ -1,8 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Fragment, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, NavLink, useParams } from 'react-router';
+import { Link, useParams, useSearchParams } from 'react-router';
 import { Metric } from '../components/Metric';
+import { ModuleTabs } from '../components/layout';
 import { PageHeader } from '../components/PageHeader';
 import { EmptyState, ErrorState, Field, Loading, Notice } from '../components/ui';
 import {
@@ -87,16 +88,7 @@ export function AccountingNav() {
       : []),
     ...(can('cash.session.operate') ? [{ to: `/app/${orgId}/cash`, label: t('accounting.nav.cash') }] : []),
   ];
-  if (items.length < 2) return null;
-  return (
-    <nav className="module-nav" aria-label={t('accounting.nav.label')}>
-      {items.map((i) => (
-        <NavLink key={i.to} to={i.to} end={i.end} className="module-nav-link">
-          {i.label}
-        </NavLink>
-      ))}
-    </nav>
-  );
+  return <ModuleTabs items={items} label={t('accounting.nav.label')} />;
 }
 
 /** Shown instead of a ledger page until accounting is set up. */
@@ -237,16 +229,16 @@ function MigrationCard() {
             <thead>
               <tr>
                 <th scope="col">{t('accounting.account')}</th>
-                <th scope="col">{t('accounting.debit')}</th>
-                <th scope="col">{t('accounting.credit')}</th>
+                <th scope="col" className="num">{t('accounting.debit')}</th>
+                <th scope="col" className="num">{t('accounting.credit')}</th>
               </tr>
             </thead>
             <tbody>
               {p.proposal.map((l) => (
                 <tr key={l.key}>
                   <td data-label={t('accounting.account')}>{t(`accounting.mappingKeys.${l.key}`)}</td>
-                  <td data-label={t('accounting.debit')}>{l.debit ? money(l.debit, p.currency) : ''}</td>
-                  <td data-label={t('accounting.credit')}>{l.credit ? money(l.credit, p.currency) : ''}</td>
+                  <td className="num" data-label={t('accounting.debit')}>{l.debit ? money(l.debit, p.currency) : ''}</td>
+                  <td className="num" data-label={t('accounting.credit')}>{l.credit ? money(l.credit, p.currency) : ''}</td>
                 </tr>
               ))}
             </tbody>
@@ -307,7 +299,7 @@ export function AccountingPage() {
           </Notice>
           {!orgWide && <Notice kind="info">{t('accounting.branchScopeNotice')}</Notice>}
           {orgWide && accounts.isSuccess && (
-            <dl className="metrics" data-testid="accounting-metrics">
+            <dl className="metrics metrics--auto" data-testid="accounting-metrics">
               <Metric icon="cash" label={t('accounting.metrics.cash')} value={byCode('cash')} format={(v) => money(v, s.currency)} />
               <Metric icon="building" label={t('accounting.metrics.bank')} value={byCode('bank')} format={(v) => money(v, s.currency)} />
               <Metric
@@ -479,8 +471,8 @@ function ManualEntryForm({
           <thead>
             <tr>
               <th scope="col">{t('accounting.account')}</th>
-              <th scope="col">{t('accounting.debit')}</th>
-              <th scope="col">{t('accounting.credit')}</th>
+              <th scope="col" className="num">{t('accounting.debit')}</th>
+              <th scope="col" className="num">{t('accounting.credit')}</th>
               <th scope="col">{t('accounting.costCenter')}</th>
               <th scope="col">
                 <span className="visually-hidden">{t('common.actions')}</span>
@@ -504,7 +496,7 @@ function ManualEntryForm({
                     ))}
                   </select>
                 </td>
-                <td data-label={t('accounting.debit')}>
+                <td className="num" data-label={t('accounting.debit')}>
                   <input
                     aria-label={t('accounting.lineDebit', { n: i + 1 })}
                     inputMode="decimal"
@@ -512,7 +504,7 @@ function ManualEntryForm({
                     onChange={(e) => update(i, { debit: e.target.value, credit: '' })}
                   />
                 </td>
-                <td data-label={t('accounting.credit')}>
+                <td className="num" data-label={t('accounting.credit')}>
                   <input
                     aria-label={t('accounting.lineCredit', { n: i + 1 })}
                     inputMode="decimal"
@@ -776,8 +768,8 @@ export function EntryPage() {
               <tr>
                 <th scope="col">{t('accounting.account')}</th>
                 <th scope="col">{t('accounting.costCenter')}</th>
-                <th scope="col">{t('accounting.debit')}</th>
-                <th scope="col">{t('accounting.credit')}</th>
+                <th scope="col" className="num">{t('accounting.debit')}</th>
+                <th scope="col" className="num">{t('accounting.credit')}</th>
               </tr>
             </thead>
             <tbody>
@@ -794,8 +786,8 @@ export function EntryPage() {
                   <td data-label={t('accounting.costCenter')}>
                     {l.branchId ? (branchName.get(l.branchId) ?? '—') : t('accounting.organizationLevel')}
                   </td>
-                  <td data-label={t('accounting.debit')}>{l.debit ? money(l.debit, e.currency) : ''}</td>
-                  <td data-label={t('accounting.credit')}>{l.credit ? money(l.credit, e.currency) : ''}</td>
+                  <td className="num" data-label={t('accounting.debit')}>{l.debit ? money(l.debit, e.currency) : ''}</td>
+                  <td className="num" data-label={t('accounting.credit')}>{l.credit ? money(l.credit, e.currency) : ''}</td>
                 </tr>
               ))}
             </tbody>
@@ -905,7 +897,7 @@ export function ChartPage() {
                   <th scope="col">{t('accounting.code')}</th>
                   <th scope="col">{t('accounting.account')}</th>
                   <th scope="col">{t('accounting.type')}</th>
-                  <th scope="col">{t('accounting.balance')}</th>
+                  <th scope="col" className="num">{t('accounting.balance')}</th>
                   <th scope="col">
                     <span className="visually-hidden">{t('common.actions')}</span>
                   </th>
@@ -922,7 +914,7 @@ export function ChartPage() {
                       {a.status === 'archived' && <span className="badge">{t('accounting.archived')}</span>}
                     </td>
                     <td data-label={t('accounting.type')}>{t(`accounting.types.${a.type}`)}</td>
-                    <td data-label={t('accounting.balance')}>{a.isGroup ? '' : money(a.balance ?? 0, currency)}</td>
+                    <td className="num" data-label={t('accounting.balance')}>{a.isGroup ? '' : money(a.balance ?? 0, currency)}</td>
                     <td>
                       {can('accounting.manage') && !a.isGroup && !a.templateKey && (
                         <button type="button" className="button button--ghost" disabled={archive.isPending} onClick={() => archive.mutate(a)}>
@@ -1013,11 +1005,28 @@ export function ReportsPage() {
   const settings = useAccountingSettings();
   const configured = settings.data?.configured === true;
   const today = settings.data?.today ?? null;
-  const [report, setReport] = useState<ReportName>('trialBalance');
-  const [from, setFrom] = useState(() => monthStart(today));
-  const [to, setTo] = useState(() => today ?? '');
-  const [branchId, setBranchId] = useState('');
-  const [accountId, setAccountId] = useState('');
+  const [search, setSearch] = useSearchParams();
+  const setParam = (key: string, value: string) =>
+    setSearch(
+      (current) => {
+        const next = new URLSearchParams(current);
+        if (value) next.set(key, value);
+        else next.delete(key);
+        return next;
+      },
+      { replace: key !== 'report' },
+    );
+  const asked = search.get('report');
+  const report: ReportName = (REPORTS as readonly string[]).includes(asked ?? '') ? (asked as ReportName) : 'trialBalance';
+  const setReport = (r: ReportName) => setParam('report', r);
+  const from = search.get('from') ?? '';
+  const setFrom = (v: string) => setParam('from', v);
+  const to = search.get('to') ?? '';
+  const setTo = (v: string) => setParam('to', v);
+  const branchId = search.get('branch') ?? '';
+  const setBranchId = (v: string) => setParam('branch', v);
+  const accountId = search.get('account') ?? '';
+  const setAccountId = (v: string) => setParam('account', v);
   const accounts = useAccounts(configured && report === 'ledger');
   const fromValue = from || monthStart(today);
   const toValue = to || today || '';
@@ -1115,31 +1124,68 @@ export function ReportsPage() {
   );
 }
 
-function GroupTable({ group, currency }: { group: Group; currency: string }) {
+/** A whole statement in one table: fixed columns, so the amounts of every section line up. */
+function StatementTable({ sections, currency, label, result }: { sections: Group[]; currency: string; label: string; result?: { label: string; amount: number } }) {
   const { t } = useTranslation();
   const money = useMoney();
   return (
     <div className="table-wrap">
-      <table className="data-table">
-        <caption>{t(`accounting.types.${group.type}`)}</caption>
-        <tbody>
-          {group.rows.map((r) => (
-            <tr key={r.id}>
-              <td data-label={t('accounting.account')}>
-                <bdi dir="ltr">{r.code}</bdi> {accountName(t, r)}
-              </td>
-              <td data-label={t('accounting.amount')}>{money(r.amount ?? 0, currency)}</td>
-            </tr>
-          ))}
-          <tr className="row-total">
-            <th scope="row">
-              {t('accounting.totalOf', {
-                type: t(`accounting.types.${group.type}`),
-              })}
+      <table className="data-table data-table--scroll statement-table" data-testid="statement">
+        <caption className="visually-hidden">{label}</caption>
+        <colgroup>
+          <col className="statement-label" />
+          <col />
+        </colgroup>
+        <thead>
+          <tr>
+            <th scope="col">{t('accounting.account')}</th>
+            <th scope="col" className="num">
+              {t('accounting.amountIn', { currency })}
             </th>
-            <td data-label={t('accounting.amount')}>{money(group.total, currency)}</td>
           </tr>
-        </tbody>
+        </thead>
+        {sections.map((group) => (
+          <tbody key={group.type}>
+            <tr className="statement-section">
+              <th scope="colgroup" colSpan={2}>
+                {t(`accounting.types.${group.type}`)}
+              </th>
+            </tr>
+            {group.rows.length === 0 && (
+              <tr>
+                <td colSpan={2} className="muted">
+                  {t('accounting.noAccounts')}
+                </td>
+              </tr>
+            )}
+            {group.rows.map((r) => (
+              <tr key={r.id}>
+                <td data-label={t('accounting.account')}>
+                  {r.code && <bdi dir="ltr">{r.code}</bdi>} {accountName(t, r)}
+                </td>
+                <td className="num" data-label={t('accounting.amount')}>
+                  {money(r.amount ?? 0, currency)}
+                </td>
+              </tr>
+            ))}
+            <tr className="row-total">
+              <th scope="row">{t('accounting.totalOf', { type: t(`accounting.types.${group.type}`) })}</th>
+              <td className="num" data-label={t('accounting.amount')}>
+                {money(group.total, currency)}
+              </td>
+            </tr>
+          </tbody>
+        ))}
+        {result && (
+          <tbody>
+            <tr className="row-total statement-grand">
+              <th scope="row">{result.label}</th>
+              <td className="num" data-label={t('accounting.amount')}>
+                {money(result.amount, currency)}
+              </td>
+            </tr>
+          </tbody>
+        )}
       </table>
     </div>
   );
@@ -1147,6 +1193,7 @@ function GroupTable({ group, currency }: { group: Group; currency: string }) {
 
 function ReportView({ name, data }: { name: ReportName; data: Record<string, unknown> }) {
   const { t } = useTranslation();
+  const { orgId } = useOrg();
   const money = useMoney();
   const currency = data.currency as string;
   if (name === 'trialBalance') {
@@ -1195,14 +1242,14 @@ function ReportView({ name, data }: { name: ReportName; data: Record<string, unk
           <EmptyState icon="book">{t('accounting.noMovements')}</EmptyState>
         ) : (
           <div className="table-wrap">
-            <table className="data-table" data-testid="trial-balance">
+            <table className="data-table data-table--scroll" data-testid="trial-balance">
               <thead>
                 <tr>
                   <th scope="col">{t('accounting.account')}</th>
-                  <th scope="col">{t('accounting.opening')}</th>
-                  <th scope="col">{t('accounting.debit')}</th>
-                  <th scope="col">{t('accounting.credit')}</th>
-                  <th scope="col">{t('accounting.closing')}</th>
+                  <th scope="col" className="num">{t('accounting.opening')}</th>
+                  <th scope="col" className="num">{t('accounting.debit')}</th>
+                  <th scope="col" className="num">{t('accounting.credit')}</th>
+                  <th scope="col" className="num">{t('accounting.closing')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -1211,18 +1258,18 @@ function ReportView({ name, data }: { name: ReportName; data: Record<string, unk
                     <td data-label={t('accounting.account')}>
                       <bdi dir="ltr">{r.code}</bdi> {accountName(t, r)}
                     </td>
-                    <td data-label={t('accounting.opening')}>{money(r.opening ?? 0, currency)}</td>
-                    <td data-label={t('accounting.debit')}>{money(r.debit ?? 0, currency)}</td>
-                    <td data-label={t('accounting.credit')}>{money(r.credit ?? 0, currency)}</td>
-                    <td data-label={t('accounting.closing')}>{money(r.closing ?? 0, currency)}</td>
+                    <td className="num" data-label={t('accounting.opening')}>{money(r.opening ?? 0, currency)}</td>
+                    <td className="num" data-label={t('accounting.debit')}>{money(r.debit ?? 0, currency)}</td>
+                    <td className="num" data-label={t('accounting.credit')}>{money(r.credit ?? 0, currency)}</td>
+                    <td className="num" data-label={t('accounting.closing')}>{money(r.closing ?? 0, currency)}</td>
                   </tr>
                 ))}
                 <tr className="row-total">
                   <th scope="row">{t('accounting.total')}</th>
-                  <td data-label={t('accounting.opening')}>{money(totals.opening, currency)}</td>
-                  <td data-label={t('accounting.debit')}>{money(totals.debit, currency)}</td>
-                  <td data-label={t('accounting.credit')}>{money(totals.credit, currency)}</td>
-                  <td data-label={t('accounting.closing')}>{money(totals.closing, currency)}</td>
+                  <td className="num" data-label={t('accounting.opening')}>{money(totals.opening, currency)}</td>
+                  <td className="num" data-label={t('accounting.debit')}>{money(totals.debit, currency)}</td>
+                  <td className="num" data-label={t('accounting.credit')}>{money(totals.credit, currency)}</td>
+                  <td className="num" data-label={t('accounting.closing')}>{money(totals.closing, currency)}</td>
                 </tr>
               </tbody>
             </table>
@@ -1238,11 +1285,12 @@ function ReportView({ name, data }: { name: ReportName; data: Record<string, unk
     return (
       <section className="card" aria-labelledby="pl-title">
         <h2 id="pl-title">{t('accounting.reports.profitLoss')}</h2>
-        <GroupTable group={income} currency={currency} />
-        <GroupTable group={expense} currency={currency} />
-        <p className="report-result">
-          {t('accounting.resultPerLedger')}: <strong>{money(data.result as number, currency)}</strong>
-        </p>
+        <StatementTable
+          label={t('accounting.reports.profitLoss')}
+          sections={[income, expense]}
+          currency={currency}
+          result={{ label: t('accounting.resultPerLedger'), amount: data.result as number }}
+        />
         <p className="muted">{t('accounting.resultNote')}</p>
       </section>
     );
@@ -1257,10 +1305,13 @@ function ReportView({ name, data }: { name: ReportName; data: Record<string, unk
         <span className={data.balanced ? 'badge badge--active' : 'badge badge--inactive'}>
           {data.balanced ? t('accounting.balanced') : t('accounting.notBalanced')}
         </span>
-        <GroupTable group={assets} currency={currency} />
-        <GroupTable group={liabilities} currency={currency} />
-        <GroupTable
-          group={{
+        <StatementTable
+          label={t('accounting.reports.balanceSheet')}
+          currency={currency}
+          sections={[
+            assets,
+            liabilities,
+            {
             ...equity,
             rows: [
               ...equity.rows,
@@ -1272,8 +1323,8 @@ function ReportView({ name, data }: { name: ReportName; data: Record<string, unk
                 amount: equity.accumulatedResult,
               } as Row,
             ],
-          }}
-          currency={currency}
+          },
+          ]}
         />
       </section>
     );
@@ -1306,9 +1357,9 @@ function ReportView({ name, data }: { name: ReportName; data: Record<string, unk
                   <th scope="col">{t('accounting.date')}</th>
                   <th scope="col">{t('accounting.number')}</th>
                   <th scope="col">{t('accounting.event')}</th>
-                  <th scope="col">{t('accounting.debit')}</th>
-                  <th scope="col">{t('accounting.credit')}</th>
-                  <th scope="col">{t('accounting.balance')}</th>
+                  <th scope="col" className="num">{t('accounting.debit')}</th>
+                  <th scope="col" className="num">{t('accounting.credit')}</th>
+                  <th scope="col" className="num">{t('accounting.balance')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -1323,9 +1374,9 @@ function ReportView({ name, data }: { name: ReportName; data: Record<string, unk
                     <td data-label={t('accounting.event')}>
                       {sourceLabel(t, l.source)} <bdi dir="auto">{l.memo}</bdi>
                     </td>
-                    <td data-label={t('accounting.debit')}>{l.debit ? money(l.debit, currency) : ''}</td>
-                    <td data-label={t('accounting.credit')}>{l.credit ? money(l.credit, currency) : ''}</td>
-                    <td data-label={t('accounting.balance')}>{money(l.balance, currency)}</td>
+                    <td className="num" data-label={t('accounting.debit')}>{l.debit ? money(l.debit, currency) : ''}</td>
+                    <td className="num" data-label={t('accounting.credit')}>{l.credit ? money(l.credit, currency) : ''}</td>
+                    <td className="num" data-label={t('accounting.balance')}>{money(l.balance, currency)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -1368,40 +1419,40 @@ function ReportView({ name, data }: { name: ReportName; data: Record<string, unk
         <EmptyState icon="check">{t('accounting.noOpenInvoices')}</EmptyState>
       ) : (
         <div className="table-wrap">
-          <table className="data-table" data-testid="aging">
+          <table className="data-table data-table--scroll" data-testid="aging">
             <thead>
               <tr>
                 <th scope="col">{t('accounting.patient')}</th>
                 {buckets.map((b) => (
-                  <th key={b} scope="col">
+                  <th key={b} scope="col" className="num">
                     {t(`accounting.buckets.${b}`)}
                   </th>
                 ))}
-                <th scope="col">{t('accounting.total')}</th>
+                <th scope="col" className="num">{t('accounting.total')}</th>
               </tr>
             </thead>
             <tbody>
               {rows.map((r) => (
                 <tr key={r.patientId}>
                   <td data-label={t('accounting.patient')}>
-                    {r.fullName} <bdi dir="ltr">{r.patientNumber}</bdi>
+                    <Link to={`/app/${orgId}/finance/patients/${r.patientId}`}>{r.fullName}</Link> <bdi dir="ltr">{r.patientNumber}</bdi>
                   </td>
                   {buckets.map((b) => (
-                    <td key={b} data-label={t(`accounting.buckets.${b}`)}>
-                      {r.buckets[b] ? money(r.buckets[b], currency) : ''}
+                    <td key={b} className="num" data-label={t(`accounting.buckets.${b}`)}>
+                      {money(r.buckets[b] ?? 0, currency)}
                     </td>
                   ))}
-                  <td data-label={t('accounting.total')}>{money(r.total, currency)}</td>
+                  <td className="num" data-label={t('accounting.total')}>{money(r.total, currency)}</td>
                 </tr>
               ))}
               <tr className="row-total">
                 <th scope="row">{t('accounting.total')}</th>
                 {buckets.map((b) => (
-                  <td key={b} data-label={t(`accounting.buckets.${b}`)}>
+                  <td key={b} className="num" data-label={t(`accounting.buckets.${b}`)}>
                     {money(totals[b] ?? 0, currency)}
                   </td>
                 ))}
-                <td data-label={t('accounting.total')}>{money(totals.total ?? 0, currency)}</td>
+                <td className="num" data-label={t('accounting.total')}>{money(totals.total ?? 0, currency)}</td>
               </tr>
             </tbody>
           </table>

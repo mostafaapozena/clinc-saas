@@ -7,7 +7,7 @@ export type MetricTone = 'neutral' | 'info' | 'warn' | 'ok' | 'bad' | 'muted' | 
 
 /**
  * One dashboard number: icon, label, the real value (counting up once when first shown) and,
- * optionally, a link to the list it counts. Lives inside a <dl className="metrics">. The value
+ * optionally, a link to the list it counts. Lives inside a <MetricGrid> (components/layout.tsx). The value
  * keeps its test id; the label is the term, so screen readers read "label: value".
  */
 export function Metric({

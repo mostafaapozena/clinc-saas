@@ -268,6 +268,7 @@ select {
 /* ---------- Forms ---------- */
 form {
   display: grid;
+  align-content: start;
   gap: 14px;
 }
 
@@ -340,6 +341,7 @@ input[aria-invalid='true'] {
 .row-actions {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 8px;
 }
 
@@ -1387,7 +1389,7 @@ input[aria-invalid='true'] {
 }
 
 @media (max-width: 900px) {
-  .data-table thead {
+  .data-table:not(.data-table--scroll) thead {
     position: absolute;
     inline-size: 1px;
     block-size: 1px;
@@ -1395,22 +1397,22 @@ input[aria-invalid='true'] {
     clip-path: inset(50%);
   }
 
-  .data-table,
-  .data-table tbody,
-  .data-table tr,
-  .data-table td {
+  .data-table:not(.data-table--scroll),
+  .data-table:not(.data-table--scroll) tbody,
+  .data-table:not(.data-table--scroll) tr,
+  .data-table:not(.data-table--scroll) td {
     display: block;
     inline-size: 100%;
   }
 
-  .data-table tr {
+  .data-table:not(.data-table--scroll) tr {
     margin-block-end: 10px;
     padding: 8px 12px;
     border: 1px solid var(--border);
     border-radius: 10px;
   }
 
-  .data-table td {
+  .data-table:not(.data-table--scroll) td {
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
@@ -1420,11 +1422,11 @@ input[aria-invalid='true'] {
   }
 
   /* A cell with nothing to show (e.g. no permitted action) is hidden, label included. */
-  .data-table td:empty {
+  .data-table:not(.data-table--scroll) td:empty {
     display: none;
   }
 
-  .data-table td::before {
+  .data-table:not(.data-table--scroll) td::before {
     content: attr(data-label);
     font-weight: 600;
     color: var(--muted);

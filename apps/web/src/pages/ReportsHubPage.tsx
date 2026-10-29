@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router';
-import { Icon, type IconName } from '../components/Icon';
+import { type IconName } from '../components/Icon';
+import { ReportLink } from '../components/layout';
 import { PageHeader } from '../components/PageHeader';
 import { EmptyState } from '../components/ui';
 import type { Permission } from '../lib/types';
@@ -63,17 +63,15 @@ export function ReportsHubPage() {
         {groups.map((g) => (
           <section key={g.key} className="card" aria-labelledby={`reports-${g.key}`}>
             <h2 id={`reports-${g.key}`}>{t(`reportsHub.groups.${g.key}`)}</h2>
-            <ul className="link-list" data-testid={`reports-${g.key}`}>
+            <ul className="report-links" data-testid={`reports-${g.key}`}>
               {g.reports.map((r) => (
                 <li key={r.key}>
-                  <Link to={`/app/${orgId}/${r.to}`}>
-                    <Icon name={r.icon} />
-                    <span>
-                      <strong>{t(`reportsHub.reports.${r.key}.title`)}</strong>
-                      <br />
-                      <span className="muted small">{t(`reportsHub.reports.${r.key}.body`)}</span>
-                    </span>
-                  </Link>
+                  <ReportLink
+                    to={`/app/${orgId}/${r.to}`}
+                    icon={r.icon}
+                    title={t(`reportsHub.reports.${r.key}.title`)}
+                    description={t(`reportsHub.reports.${r.key}.body`)}
+                  />
                 </li>
               ))}
             </ul>
