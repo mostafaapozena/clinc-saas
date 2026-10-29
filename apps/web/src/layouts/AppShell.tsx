@@ -118,6 +118,15 @@ function Shell({ orgId, detail, branches }: { orgId: string; detail: OrgDetail; 
   // The mobile drawer behaves as a dialog: focus moves into it, the page behind is inert while it
   // is open, and focus returns to the menu button when it closes.
   const menuButton = useRef<HTMLButtonElement>(null);
+  const topbar = useRef<HTMLElement>(null);
+  // Headings scrolled or focused into view stop below the sticky bar, whatever its height.
+  useEffect(() => {
+    const el = topbar.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(() => document.documentElement.style.setProperty('--topbar-h', `${el.offsetHeight + 8}px`));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
   const closeButton = useRef<HTMLButtonElement>(null);
   const wasOpen = useRef(false);
   useEffect(() => {
@@ -245,7 +254,7 @@ function Shell({ orgId, detail, branches }: { orgId: string; detail: OrgDetail; 
         <div className="sidebar-backdrop" onClick={() => setNavOpen(false)} aria-hidden="true" />
 
         <div className="shell-main" inert={navOpen}>
-          <header className="topbar">
+          <header className="topbar" ref={topbar}>
             <button
               ref={menuButton}
               type="button"

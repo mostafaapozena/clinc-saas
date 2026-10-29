@@ -1,9 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, NavLink } from 'react-router';
+import { Link } from 'react-router';
 import { Metric } from '../components/Metric';
 import { PageHeader } from '../components/PageHeader';
+import { ModuleTabs } from '../components/layout';
 import { EmptyState, ErrorState, Field, Loading, Notice } from '../components/ui';
 import { api, query } from '../lib/api';
 import { newRequestKey } from '../lib/clinical';
@@ -38,17 +39,14 @@ function InventoryNav() {
   const { t } = useTranslation();
   const { orgId } = useOrg();
   return (
-    <nav className="module-nav" aria-label={t('inventory.nav.label')}>
-      <NavLink to={`/app/${orgId}/inventory`} end className="module-nav-link">
-        {t('inventory.nav.stock')}
-      </NavLink>
-      <NavLink to={`/app/${orgId}/inventory/items`} className="module-nav-link">
-        {t('inventory.nav.items')}
-      </NavLink>
-      <NavLink to={`/app/${orgId}/inventory/moves`} className="module-nav-link">
-        {t('inventory.nav.moves')}
-      </NavLink>
-    </nav>
+    <ModuleTabs
+      label={t('inventory.nav.label')}
+      items={[
+        { to: `/app/${orgId}/inventory`, label: t('inventory.nav.stock'), end: true },
+        { to: `/app/${orgId}/inventory/items`, label: t('inventory.nav.items') },
+        { to: `/app/${orgId}/inventory/moves`, label: t('inventory.nav.moves') },
+      ]}
+    />
   );
 }
 
@@ -271,7 +269,7 @@ export function InventoryPage() {
       </PageHeader>
       <InventoryNav />
       {alerts.isSuccess && (
-        <dl className="metrics" data-testid="inventory-metrics">
+        <dl className="metrics metrics--auto" data-testid="inventory-metrics">
           <Metric icon="box" label={t('inventory.metrics.items')} value={items.data.filter((i) => i.status === 'active').length} />
           <Metric
             icon="alert"

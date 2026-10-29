@@ -1,9 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, NavLink, useNavigate, useParams, useSearchParams } from 'react-router';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 import { OrganizationLetterhead } from '../components/OrganizationProfile';
 import { PageHeader } from '../components/PageHeader';
+import { ModuleTabs } from '../components/layout';
 import { EmptyState, ErrorState, Field, Loading, Notice } from '../components/ui';
 import { accountName, type CashAccount, type LedgerAccount } from '../lib/accounting';
 import { api } from '../lib/api';
@@ -89,15 +90,7 @@ function PurchasingNav() {
     { to: `/app/${orgId}/purchasing/bills`, label: t('purchasing.nav.bills'), show: can('purchase.bill.manage') && orgWide },
     { to: `/app/${orgId}/purchasing/suppliers`, label: t('purchasing.nav.suppliers'), show: true },
   ].filter((i) => i.show);
-  return (
-    <nav className="module-nav" aria-label={t('purchasing.nav.label')}>
-      {items.map((i) => (
-        <NavLink key={i.to} to={i.to} end={i.end} className="module-nav-link">
-          {i.label}
-        </NavLink>
-      ))}
-    </nav>
-  );
+  return <ModuleTabs items={items} label={t('purchasing.nav.label')} />;
 }
 
 const statusBadge = (status: string) =>

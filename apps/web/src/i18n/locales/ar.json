@@ -51,7 +51,8 @@
     "next": "التالي",
     "pagination": "التنقل بين الصفحات",
     "pageOf": "صفحة {{page}} من {{pages}} ({{total}} نتيجة)",
-    "separator": "، "
+    "separator": "، ",
+    "actions": "الإجراءات"
   },
   "nav": {
     "home": "الرئيسية",
@@ -3652,7 +3653,9 @@
       "accumulatedDepreciation": "مجمع الإهلاك",
       "depreciationExpense": "مصروف الإهلاك",
       "badDebts": "ديون معدومة"
-    }
+    },
+    "amountIn": "المبلغ ({{currency}})",
+    "noAccounts": "لا حسابات بأرصدة في هذه الفترة."
   },
   "cash": {
     "title": "الخزينة والبنوك",

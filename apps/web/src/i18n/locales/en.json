@@ -51,7 +51,8 @@
     "next": "Next",
     "pagination": "Pagination",
     "pageOf": "Page {{page}} of {{pages}} ({{total}} results)",
-    "separator": ", "
+    "separator": ", ",
+    "actions": "Actions"
   },
   "nav": {
     "home": "Home",
@@ -3652,7 +3653,9 @@
       "accumulatedDepreciation": "Accumulated depreciation",
       "depreciationExpense": "Depreciation",
       "badDebts": "Bad debts"
-    }
+    },
+    "amountIn": "Amount ({{currency}})",
+    "noAccounts": "No accounts with balances in this period."
   },
   "cash": {
     "title": "Cash and banks",
