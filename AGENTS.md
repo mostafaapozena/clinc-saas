@@ -79,13 +79,27 @@ security design in [docs/architecture/](docs/architecture/).
 
 ## 6. User interface: the design system is mandatory
 
-Every screen is composed from the primitives in `apps/web/src/components/layout.tsx`, `ChartCard`,
-`Metric` and `ui.tsx`, following [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md) and the patterns in
+Every screen is composed from the primitives in `apps/web/src/components/layout.tsx`, `data.tsx`
+(tables, pagination, filters, money, dates, confirmations), `ChartCard`, `Metric` and `ui.tsx`,
+following [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md) and the patterns in
 [docs/UI_PAGE_PATTERNS.md](docs/UI_PAGE_PATTERNS.md). Go through
 [docs/UI_CONTRIBUTION_CHECKLIST.md](docs/UI_CONTRIBUTION_CHECKLIST.md) before a UI PR. Do not fix
-layout with page-level margin overrides; change the shared rule. `design-system.test.ts` and
-`e2e/layout.spec.ts` must stay green; a justified exception is recorded in
+layout with page-level margin overrides; change the shared rule. `design-system.test.ts`,
+`e2e/layout.spec.ts` and `e2e/a11y.spec.ts` must stay green; a justified exception is recorded in
 [docs/DESIGN_SYSTEM_REMEDIATION.md](docs/DESIGN_SYSTEM_REMEDIATION.md).
+
+- **Visibility:** destinations, their module and permissions live in `apps/web/src/lib/modules.ts`.
+  The sidebar, route gate and reports center read it; never add a sidebar link or a module check
+  by hand. It is not authorization: the API checks every request.
+- **Scope:** pages inherit the branch chosen in the top bar; a different scope is an explicit,
+  resettable override.
+- **Data on screen:** never print an ISO date, a raw enum or a number with a unit by hand; use
+  `DateText`, translations and `Quantity` / `Money`. System default names may be shown localized
+  (`lib/defaultNames.ts`); never rename what a user entered.
+- **URLs:** filters, tabs and pages may live in the address; names, phones, clinical text,
+  free-text searches and secrets never do.
+- **Findings:** UI review findings and their status are tracked in
+  [docs/UI_REMEDIATION_TRACKER.md](docs/UI_REMEDIATION_TRACKER.md).
 
 ## 7. Keep continuity documents current
 

@@ -380,6 +380,7 @@ function UserMenu({ orgId }: { orgId: string }) {
       <button
         type="button"
         className="button button--ghost user-menu-button"
+        aria-label={t('nav.userMenu', { name: user?.displayName ?? '' })}
         aria-expanded={open}
         aria-controls="user-menu-panel"
         onClick={() => setOpen((v) => !v)}

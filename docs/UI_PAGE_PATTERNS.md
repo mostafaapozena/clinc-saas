@@ -14,11 +14,23 @@ Compose new pages from these patterns, built from the primitives in [DESIGN_SYST
 | **Settings** | One card per concern, each with its own save action; risky actions (reset) last, with preview and confirmation | `pages/SettingsPage.tsx` |
 | **Confirmation / error recovery** | `role="alertdialog"` panel with focused heading → consequence in plain words → confirm and cancel; errors use `Notice` with the error-code message and keep the entered values | Invoice issue confirmation, `components/SettingsReset.tsx` |
 
+## Lists, filters and tables
+
+The reference is the Inventory pilot (`pages/InventoryPages.tsx`): stock, items and moves.
+
+- **Filters** sit in a `FilterBar` above the results, with a reset when a filter is set. Their values live in the address through `useUrlState`, so a view survives reload, Back and sharing. Only identifiers, enums, dates and page numbers go in the URL. Names, phones, clinical text and free-text searches stay in component state.
+- **Changing a filter resets the page** (`url.set({ item, page: null })`).
+- **Tables** are `DataTable` with typed columns. Quantities and amounts are `numeric` and rendered with `Quantity` or `Money`; dates with `DateText`. Code and lot numbers are `<bdi dir="ltr">`.
+- **Server-paginated collections** use `Pagination` and sort on the server (`sortable` columns with `onSort`); a page never sorts only the rows it holds.
+- **States**: `Loading` (or `Skeleton` inside a drawn frame), `ErrorState` with retry, `EmptyState` with the next step when the viewer can take one.
+- **Statuses** use `Badge` with a tone that names the meaning.
+
 ## Adding a module
 
-1. Add the routes and pages, reusing the patterns above.
-2. Put module navigation in `ModuleTabs` (keep it to about six items; reports belong in the reports center).
-3. Add the module's reports to `CATEGORIES` in `ReportsHubPage.tsx`, with permission and scope rules matching the API.
-4. Use `MetricGrid` for figures, `StatementTable` or `DataTable` for amounts, and `ChartCard` only when a chart answers a question.
-5. Add both locales. The key test fails on a missing key.
-6. Run `npm run verify`. `e2e/layout.spec.ts` covers the shared rules; add a page there if it introduces a new layout.
+1. Add the destination to `lib/modules.ts` (group, path, module, permissions) and its routes; the sidebar, route gate and reports center follow from it.
+2. Add the routes and pages, reusing the patterns above.
+3. Put module navigation in `ModuleTabs` (keep it to about six items; reports belong in the reports center). A tab of another module shows only when that module is on.
+4. Add the module's reports to `CATEGORIES` in `ReportsHubPage.tsx`, with permission and scope rules matching the API. Reports of a switched-off module are hidden automatically.
+5. Use `MetricGrid` for figures, `StatementTable` or `DataTable` for amounts, and `ChartCard` only when a chart answers a question.
+6. Add both locales, with plural forms for counts (`_one`, and in Arabic `_two` / `_few` where the sentence needs them). The key test fails on a missing key.
+7. Run `npm run verify`. `e2e/layout.spec.ts` covers the shared rules and `e2e/a11y.spec.ts` the automated accessibility checks; add the page to them if it introduces a new layout.

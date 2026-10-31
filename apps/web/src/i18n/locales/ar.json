@@ -52,7 +52,12 @@
     "pagination": "التنقل بين الصفحات",
     "pageOf": "صفحة {{page}} من {{pages}} ({{total}} نتيجة)",
     "separator": "، ",
-    "actions": "الإجراءات"
+    "actions": "الإجراءات",
+    "filters": "عوامل التصفية",
+    "resetFilters": "إعادة ضبط التصفية",
+    "sortable": "(يمكن الترتيب)",
+    "sortedAsc": "(مرتّب تصاعديًا)",
+    "sortedDesc": "(مرتّب تنازليًا)"
   },
   "nav": {
     "home": "الرئيسية",
@@ -92,7 +97,8 @@
     },
     "assets": "الأجهزة والصيانة",
     "reports": "التقارير",
-    "installments": "خطط التقسيط"
+    "installments": "خطط التقسيط",
+    "userMenu": "قائمة الحساب: {{name}}"
   },
   "shell": {
     "skipToContent": "تخطَّ إلى المحتوى الرئيسي",

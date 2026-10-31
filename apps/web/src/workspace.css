@@ -2201,3 +2201,98 @@ textarea {
   inline-size: 18px;
   block-size: 18px;
 }
+
+/* =================================================================================================
+   Data components (phase 19, components/data.tsx): sortable headers, filter reset, empty-state next
+   step, in-place confirmation and loading placeholders.
+   ================================================================================================= */
+.sort-button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--gap-inline-icon);
+  min-block-size: var(--control-sm, 32px);
+  padding: 0;
+  font: inherit;
+  font-weight: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.sort-button:focus-visible {
+  outline: 2px solid var(--focus, var(--primary));
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.sort-mark {
+  font-size: var(--fs-xs);
+  color: var(--muted);
+}
+
+.data-table th.num .sort-button {
+  flex-direction: row-reverse;
+}
+
+.filters-reset {
+  display: flex;
+  align-items: end;
+}
+
+.empty-state-action {
+  display: block;
+  margin-block-start: var(--space-2);
+}
+
+.confirm-panel {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--bad-bg);
+  border: 1px solid var(--bad);
+  border-radius: 10px;
+}
+
+.confirm-panel > p {
+  margin: 0;
+}
+
+.quantity,
+.money {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.skeleton {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.skeleton-line {
+  display: block;
+  block-size: 0.875rem;
+  background: var(--neutral-bg);
+  border-radius: 6px;
+}
+
+.skeleton-line:last-child {
+  inline-size: 60%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .skeleton-line {
+    animation: skeleton-pulse 1.4s ease-in-out infinite;
+  }
+}
+
+@keyframes skeleton-pulse {
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Filters keep their natural width: one filter is one column, not a full-width field. */
+.filters {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
+}
