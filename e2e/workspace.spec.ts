@@ -93,6 +93,7 @@ test('an owner manages the team: add an existing user, change role and branches,
   await expect(row).toContainText('كل الفروع');
 
   await row.getByRole('button', { name: /^إيقاف عضوية/ }).click();
+  await row.getByRole('button', { name: 'نعم، أوقف العضوية' }).click();
   await expect(row.getByTestId('member-status')).toHaveText('موقوف');
   await row.getByRole('button', { name: /^إعادة تفعيل عضوية/ }).click();
   await expect(row.getByTestId('member-status')).toHaveText('نشط');

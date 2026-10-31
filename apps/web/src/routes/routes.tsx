@@ -136,7 +136,11 @@ const guarded = (path: string, permission: Permission, element: ReactNode): Rout
 });
 
 // Only implemented pages are routable; there are no placeholders for future modules.
+// Development only: the design-system gallery (docs/DESIGN_SYSTEM.md). Not in production builds.
+const DevGallery = import.meta.env.DEV ? named(() => import('../dev/Gallery'), 'Gallery') : null;
+
 export const routes: RouteObject[] = [
+  ...(DevGallery ? [{ path: '/dev/gallery', element: load(<DevGallery />) }] : []),
   {
     element: load(<PublicSiteLayout />),
     children: [

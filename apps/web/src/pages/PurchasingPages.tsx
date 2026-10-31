@@ -29,7 +29,7 @@ import { showToast } from '../lib/toast';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { orgKeys, useOrg } from '../org/context';
 import { csvMoney, downloadCsv } from '../lib/csv';
-import { DateText } from '../components/data';
+import { ConfirmAction, DateText } from '../components/data';
 
 // Suppliers, purchasing and payables (docs/architecture/PURCHASING.md): request → approval → RFQ →
 // quotations → order → receipt → bill → payment. Supplier documents are printed or downloaded by the
@@ -1170,9 +1170,13 @@ export function PurchaseOrderPage() {
               <input id="order-reason" maxLength={300} value={reason} onChange={(e) => setReason(e.target.value)} />
             </Field>
             {o.lines.every((l) => !l.received && !l.billed) ? (
-              <button type="button" className="button button--secondary" disabled={act.isPending} onClick={() => act.mutate('cancel')}>
-                {t('purchasing.cancelOrder')}
-              </button>
+              <ConfirmAction
+                label={t('purchasing.cancelOrder')}
+                message={t('purchasing.cancelOrderMessage', { number: o.number })}
+                confirmLabel={t('purchasing.cancelOrderConfirm')}
+                pending={act.isPending}
+                onConfirm={() => act.mutate('cancel')}
+              />
             ) : (
               <button
                 type="button"

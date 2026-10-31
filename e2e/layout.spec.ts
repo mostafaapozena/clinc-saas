@@ -135,3 +135,54 @@ test('detail pages keep their place: patient context tabs, back links, booking s
   await expect(confirm).toHaveAttribute('aria-describedby', 'booking-missing');
   errors.expectNone();
 });
+
+test('settings mark unsaved sections and ask before leaving; policy notes are help, not banners (UX-016, UX-021)', async ({ page }) => {
+  const errors = watchBrowserErrors(page);
+  await page.setViewportSize({ width: 1366, height: 900 });
+  await login(page, 'owner.nour@demo.test');
+  const org = orgIdFromUrl(page);
+  await page.goto(`/app/${org}/settings`);
+  const name = page.locator('#settings-org-name');
+  const original = await name.inputValue();
+  await name.focus();
+  await name.fill('عيادات النور (تعديل غير محفوظ)');
+  await expect(page.getByTestId('settings-unsaved')).toContainText('البيانات الأساسية');
+  await expect(page.locator('section[aria-labelledby="org-settings-title"]')).toHaveAttribute('data-dirty', 'true');
+  // Leaving asks first; staying keeps the edit.
+  await page.getByRole('navigation').getByRole('link', { name: 'الرئيسية' }).click();
+  await expect(page.getByRole('alertdialog')).toBeVisible();
+  await page.getByRole('button', { name: 'البقاء في الصفحة' }).click();
+  await expect(name).toHaveValue('عيادات النور (تعديل غير محفوظ)');
+  // Back to the saved value: nothing is dirty any more.
+  await name.fill(original);
+  await expect(page.getByTestId('settings-unsaved')).toHaveCount(0);
+  // Finance: the "not a tax invoice" note sits under the title, folded, so content starts right away.
+  await page.goto(`/app/${org}/finance`);
+  await expect(page.locator('.page-help summary')).toBeVisible();
+  await expect(page.locator('main > .notice--info')).toHaveCount(0);
+  errors.expectNone();
+});
+
+test('the design-system gallery is not part of the production build', async ({ page }) => {
+  await page.goto('/dev/gallery');
+  await expect(page.getByText('Design system gallery')).toHaveCount(0);
+});
+
+test('phones: every control in the page is at least 44px tall (UX-025) @mobile', async ({ page }) => {
+  const errors = watchBrowserErrors(page);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await login(page, 'owner.nour@demo.test');
+  const org = orgIdFromUrl(page);
+  for (const path of ['/appointments', '/patients', '/team', '/inventory']) {
+    await page.goto(`/app/${org}${path}`);
+    await page.waitForLoadState('networkidle');
+    const small = await page.evaluate(() =>
+      [...document.querySelectorAll('main :is(button, a.button, input, select, textarea, .module-nav-link, summary)')]
+        .filter((e) => (e as HTMLElement).offsetParent !== null && !['checkbox', 'radio', 'hidden'].includes((e as HTMLInputElement).type))
+        .filter((e) => e.getBoundingClientRect().height < 43.5)
+        .map((e) => `${e.tagName} "${(e.textContent ?? '').trim().slice(0, 20)}"`),
+    );
+    expect(small, path).toEqual([]);
+  }
+  errors.expectNone();
+});

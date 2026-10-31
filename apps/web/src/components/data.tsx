@@ -189,6 +189,7 @@ export function Quantity({ value, unit, signed }: { value: number; unit?: string
  */
 export function ConfirmAction({
   label,
+  ariaLabel,
   message,
   confirmLabel,
   onConfirm,
@@ -196,6 +197,8 @@ export function ConfirmAction({
   danger = true,
 }: {
   label: string;
+  /** Fuller accessible name for the first button (e.g. with the member's name). */
+  ariaLabel?: string;
   message: ReactNode;
   confirmLabel?: string;
   onConfirm: () => void;
@@ -211,12 +214,17 @@ export function ConfirmAction({
   const tone = danger ? 'button button--danger' : 'button button--primary';
   if (!open)
     return (
-      <button type="button" className={danger ? 'button button--danger-outline' : 'button button--secondary'} onClick={() => setOpen(true)}>
+      <button
+        type="button"
+        className={danger ? 'button button--danger-outline' : 'button button--secondary'}
+        onClick={() => setOpen(true)}
+        aria-label={ariaLabel}
+      >
         {label}
       </button>
     );
   return (
-    <div className="confirm-panel" role="group" aria-label={label}>
+    <div className="confirm-panel" role="group" aria-label={ariaLabel ?? label}>
       <p>{message}</p>
       <div className="form-actions form-actions--start">
         <button

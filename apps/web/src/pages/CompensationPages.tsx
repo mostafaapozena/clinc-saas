@@ -167,8 +167,7 @@ export function CompensationPage() {
   });
   return (
     <>
-      <PageHeader title={t('compensation.title')} subtitle={t('compensation.subtitle')} />
-      <Notice kind="info">{t('compensation.notPayroll')}</Notice>
+      <PageHeader title={t('compensation.title')} subtitle={t('compensation.subtitle')} help={t('compensation.notPayroll')} />
       {can('compensation.own.read') && <MyStatements />}
       {finance && (
         <>

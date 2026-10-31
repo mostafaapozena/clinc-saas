@@ -196,7 +196,7 @@ export function CoverageItem({ coverage, direction }: { coverage: Coverage; dire
           </Link>
         )}
         {direction === 'granted' && live && !revoking && (
-          <button type="button" className="button button--secondary" onClick={() => setRevoking(true)}>
+          <button type="button" className="button button--danger-outline" onClick={() => setRevoking(true)}>
             {t('coverage.revoke')}
           </button>
         )}

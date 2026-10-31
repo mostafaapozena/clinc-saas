@@ -57,7 +57,8 @@
     "resetFilters": "Reset filters",
     "sortable": "(sortable)",
     "sortedAsc": "(sorted ascending)",
-    "sortedDesc": "(sorted descending)"
+    "sortedDesc": "(sorted descending)",
+    "aboutPage": "About this page"
   },
   "nav": {
     "home": "Home",
@@ -338,7 +339,9 @@
     "auditGrantLabel": "Give {{name}} clinical audit access",
     "auditRevokeLabel": "Remove clinical audit access from {{name}}",
     "auditGrantedNotice": "{{name}} can now read the clinical audit log (who accessed which record, never the content).",
-    "auditRevokedNotice": "{{name}} can no longer read the clinical audit log."
+    "auditRevokedNotice": "{{name}} can no longer read the clinical audit log.",
+    "suspendMessage": "{{name}} will not be able to sign in to this organization until the membership is reactivated.",
+    "suspendConfirm": "Yes, suspend"
   },
   "settings": {
     "title": "Organization settings",
@@ -381,7 +384,12 @@
         "compensation": "Needs accounting",
         "assets": "Equipment register and maintenance"
       }
-    }
+    },
+    "sectionsNav": "Settings sections",
+    "unsaved": "unsaved changes",
+    "unsavedSections": "Unsaved changes in: {{sections}}. Save each section with its own button.",
+    "leaveTitle": "Unsaved changes",
+    "leaveBody": "Some settings sections have changes that are not saved. They will be lost if you leave now."
   },
   "profile": {
     "title": "Profile",
@@ -854,7 +862,9 @@
     },
     "pageOfCapped": "Page {{page}} of {{pages}} — more than {{total}} patients; refine the search to see others",
     "fileTitle": "Patient file {{number}}",
-    "contextNav": "Patient pages"
+    "contextNav": "Patient pages",
+    "archiveMessage": "The patient's registration at {{branch}} will be archived. The record is kept, and you can reactivate the registration later.",
+    "archiveConfirm": "Yes, archive"
   },
   "appointments": {
     "title": "Appointments",
@@ -2782,7 +2792,9 @@
     "chargeAdded": "Charge added to the patient's account.",
     "invoiceIssued": "Invoice issued.",
     "payThisInvoice": "Record a payment for this invoice",
-    "serviceCodeAuto": "Capital Latin letters, digits and hyphens. Leave it empty to use {{code}}."
+    "serviceCodeAuto": "Capital Latin letters, digits and hyphens. Leave it empty to use {{code}}.",
+    "deactivateMessage": "The service will stop being offered for new charges. Existing invoices do not change, and you can activate it later.",
+    "deactivateConfirm": "Yes, deactivate"
   },
   "subscription": {
     "title": "Subscription",
@@ -3288,7 +3300,9 @@
     "invitationSummary": "You are invited to join {{organization}} as {{role}}.",
     "invitationFor": "Invitation for",
     "invitationAccept": "Accept invitation",
-    "createAccount": "Create an account"
+    "createAccount": "Create an account",
+    "revokeMessage": "The invitation link sent to {{email}} will stop working.",
+    "revokeConfirm": "Yes, revoke"
   },
   "support": {
     "title": "Help & support",
@@ -3697,7 +3711,9 @@
     },
     "amountIn": "Amount ({{currency}})",
     "noAccounts": "No accounts with balances in this period.",
-    "openingAlready_one": "1 opening entry is posted."
+    "openingAlready_one": "1 opening entry is posted.",
+    "archiveMessage": "The account \"{{name}}\" will be archived. You can restore it later.",
+    "archiveConfirm": "Yes, archive"
   },
   "cash": {
     "title": "Cash and banks",
@@ -4116,7 +4132,9 @@
     "supplierName": "Supplier name",
     "phone": "Phone",
     "paymentTerms": "Payment terms (days)",
-    "pendingApprovals_one": "1 request is waiting for your approval."
+    "pendingApprovals_one": "1 request is waiting for your approval.",
+    "cancelOrderMessage": "Purchase order {{number}} will be cancelled.",
+    "cancelOrderConfirm": "Yes, cancel the order"
   },
   "compensation": {
     "title": "Practitioner fees",
@@ -4299,7 +4317,17 @@
     "installmentsOverdue_one": "1 installment plan has a missed installment",
     "requestsToApprove_one": "1 purchase request to approve",
     "billsToApprove_one": "1 expense bill to approve",
-    "settlementsToApprove_one": "1 practitioner settlement in draft"
+    "settlementsToApprove_one": "1 practitioner settlement in draft",
+    "links": {
+      "myVisits": "Show my visits today",
+      "queue": "Open the waiting list",
+      "chargesToInvoice": "Review charges to invoice",
+      "receivables": "Review patient receivables by age",
+      "payables": "Review supplier bills due",
+      "sessions": "Show open cash sessions"
+    },
+    "scopeAll": "Now · all branches you can access",
+    "scopeAllNotSelected": "Now · all branches you can access, not only the branch chosen at the top"
   },
   "assets": {
     "title": "Equipment and maintenance",
