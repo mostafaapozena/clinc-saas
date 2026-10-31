@@ -2040,3 +2040,25 @@ circle.chart-stroke-5 {
   padding: var(--space-4);
 }
 
+
+/* ---------- Home: context section, collapsed under the day's work (F-13) ---------- */
+.home-context > summary {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-inline-icon);
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+}
+
+.home-context > summary::-webkit-details-marker {
+  display: none;
+}
+
+.home-context[open] > summary {
+  margin-block-end: var(--stack-group);
+}
+
+.home-context > .card-grid > .card {
+  background: var(--surface-muted);
+}

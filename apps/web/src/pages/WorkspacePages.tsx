@@ -170,21 +170,6 @@ export function FocusPanel() {
         <div className="focus-group">
           <h3>{t('workspace.frontDeskTitle')}</h3>
           <dl className="metrics metrics--compact">
-            <Metric
-              icon="calendar"
-              label={t('workspace.expectedArrivals')}
-              value={f.frontDesk.expected}
-              to={`/app/${orgId}/appointments`}
-              linkLabel={t('nav.appointments')}
-            />
-            <Metric
-              icon="queue"
-              tone={f.frontDesk.waiting ? 'warn' : 'neutral'}
-              label={t('workspace.inQueue')}
-              value={f.frontDesk.waiting}
-              to={`/app/${orgId}/queue`}
-              linkLabel={t('nav.queue')}
-            />
             {f.frontDesk.pendingCharges !== null && (
               <Metric
                 icon="wallet"
@@ -215,6 +200,7 @@ export function FocusPanel() {
               icon="wallet"
               label={t('workspace.openReceivables')}
               value={f.finance.openReceivables}
+              hint={t('workspace.fromDocuments')}
               format={money}
               to={`/app/${orgId}/accounting/reports`}
               linkLabel={t('accounting.nav.reports')}
