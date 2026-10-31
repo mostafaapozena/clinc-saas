@@ -1242,5 +1242,43 @@ export function createFinanceRouter() {
     });
   });
 
+  // Monthly invoiced and collected amounts for the reports center. Same definitions and scope as
+  // the summary: issued invoices by issue date, active receipts by receipt date, calendar months
+  // in UTC, grouped by currency (never added across currencies). Collections are not revenue.
+  router.get('/finance/reports/trend', requirePermission('finance.report.read'), async (req, res) => {
+    const tenant = tenantOf(req);
+    const input = parseInput(z.object({ months: z.coerce.number().int().min(1).max(12).default(6), branchId: objectIdSchema.optional() }), req.query);
+    const now = clock.now();
+    const months = Array.from({ length: input.months }, (_, i) =>
+      new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - (input.months - 1 - i), 1)).toISOString().slice(0, 7),
+    );
+    const from = new Date(`${months[0]}-01T00:00:00.000Z`);
+    const branchFilter = input.branchId ? { branchId: (await accessibleBranch(tenant, input.branchId))._id } : {};
+    const scope = branchOwnedFilter(tenant, branchFilter);
+    const month = (field: string) => ({ $dateToString: { format: '%Y-%m', date: field, timezone: 'UTC' } });
+    const [invoiced, collected] = await Promise.all([
+      InvoiceModel.aggregate<{ _id: { c: string; m: string }; v: number; n: number }>([
+        { $match: { ...scope, status: 'issued', issuedAt: { $gte: from, $lte: now } } },
+        { $group: { _id: { c: '$currency', m: month('$issuedAt') }, v: { $sum: '$total' }, n: { $sum: 1 } } },
+      ]),
+      PaymentModel.aggregate<{ _id: { c: string; m: string }; v: number; n: number }>([
+        { $match: { ...scope, status: 'active', receivedAt: { $gte: from, $lte: now } } },
+        { $group: { _id: { c: '$currency', m: month('$receivedAt') }, v: { $sum: '$amount' }, n: { $sum: 1 } } },
+      ]),
+    ]);
+    const currencies = [...new Set([...invoiced, ...collected].map((r) => r._id.c))].sort();
+    const pick = (rows: typeof invoiced, c: string, m: string) => rows.find((r) => r._id.c === c && r._id.m === m);
+    res.json({
+      months,
+      series: currencies.map((c) => ({
+        currency: c,
+        invoiced: months.map((m) => pick(invoiced, c, m)?.v ?? 0),
+        invoices: months.map((m) => pick(invoiced, c, m)?.n ?? 0),
+        collected: months.map((m) => pick(collected, c, m)?.v ?? 0),
+        receipts: months.map((m) => pick(collected, c, m)?.n ?? 0),
+      })),
+    });
+  });
+
   return router;
 }

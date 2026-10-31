@@ -206,6 +206,8 @@ const invoiceSchema = new Schema<Invoice>(
 invoiceSchema.index({ organizationId: 1, number: 1 }, { unique: true, partialFilterExpression: { number: { $type: 'string' } } });
 invoiceSchema.index({ organizationId: 1, patientId: 1, createdAt: -1 });
 invoiceSchema.index({ organizationId: 1, branchId: 1, issuedAt: -1 });
+// Period reports and monthly trends (reports center).
+invoiceSchema.index({ organizationId: 1, status: 1, issuedAt: -1 });
 invoiceSchema.plugin(tenantGuardPlugin);
 
 // ---------------------------------------------------------------------------------------------
@@ -270,6 +272,8 @@ const paymentSchema = new Schema<Payment>(
 paymentSchema.index({ organizationId: 1, number: 1 }, { unique: true });
 paymentSchema.index({ organizationId: 1, createdBy: 1, idempotencyKey: 1 }, { unique: true });
 paymentSchema.index({ organizationId: 1, patientId: 1, receivedAt: -1 });
+// Period reports and monthly trends (reports center).
+paymentSchema.index({ organizationId: 1, status: 1, receivedAt: -1 });
 paymentSchema.plugin(tenantGuardPlugin);
 
 // ---------------------------------------------------------------------------------------------
