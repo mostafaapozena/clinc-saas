@@ -42,7 +42,7 @@ A finding is `done` only when the named check exists and passes in `npm run veri
 | UX-026 | Header choosers truncate | – | F-08 | `field-sizing: content` with bounds | visual | done |
 | UX-027 | Empty heading elements | FE-012 | – | Not reproduced on current code (12 patient accounts scanned); axe `empty-heading` now runs on every audited page incl. `/finance/patients/:id` | `e2e/a11y.spec.ts` | done (guarded) |
 | UX-028 | Empty states without a next step | FE-001 | – | `EmptyState` `action`; pilot: Inventory | – | partial: other modules |
-| UX-029 | Blank screen on full load | – | – | Shell-first loading | – | planned |
+| UX-029 | Blank screen on full load | – | – | A neutral brand mark in `#root` (`index.html`) paints with the first HTML, in the theme colour; React replaces it on mount | `e2e/layout.spec.ts` | done (shell skeleton not drawn before the bundle) |
 | UX-030 | Key/value layouts vary | FE-001 | – | `DescriptionList` | `data.test.tsx` | partial: adoption |
 | UX-031 | Brand hue changes between themes | FE-003 | – | Owner decision: navy in light, turquoise in dark (kept) | – | decision recorded |
 
@@ -56,3 +56,13 @@ A finding is `done` only when the named check exists and passes in `npm run veri
 | FE-011 | Operator console is a parallel app | Migrate to shared components | planned |
 | FE-013 | No catalog, no accessibility tooling | `e2e/a11y.spec.ts` (axe WCAG 2.1 A/AA plus structural rules on 20 pages and the phone pilot); dev-only gallery at `/dev/gallery` (absent from production builds, checked in e2e); PR template | done |
 | FE-015 | Badges consistent | Tone names (`Badge`, `badge--success/warning/danger/info/neutral`) | done |
+
+## Verification (2026-10-31)
+
+| Check | Scope | Result |
+| --- | --- | --- |
+| `npm run verify` | lint, types, 953 unit tests, build, e2e (≈70) | green on every merged PR (one documented time-of-day flake in `front-desk.spec.ts`, passed on re-run) |
+| Role sweep (script, dev data) | owner 21, admin 20, doctor 13, receptionist 16, accountant 16, viewer 5 sidebar destinations; each at 1366px and 200% zoom (683 CSS px, 2x) | Chromium: no h1 missing, no overflow, no page errors, no axe WCAG 2.1 A/AA or empty-heading violations |
+| Cross-browser | owner in Firefox, receptionist in WebKit (same sweep) | no problems |
+| `e2e/a11y.spec.ts` | 17 owner pages, patient record and account, booking, Inventory on a phone | no violations |
+| Not done | manual screen-reader pass; operator console sweep; every module-switch combination in the browser (covered by `modules.test.ts`); Arabic-locale native date picker | – |

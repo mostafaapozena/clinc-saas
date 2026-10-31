@@ -18,11 +18,16 @@
     <style>
       html { background: #f5f8fa; }
       html[data-theme='dark'] { background: #0d1b2e; }
+      /* Shown until the app mounts (UX-029): never an entirely blank frame. */
+      .boot { display: grid; place-items: center; min-height: 100vh; }
+      .boot img { width: 48px; height: 48px; opacity: 0.85; }
+      @media (prefers-reduced-motion: no-preference) { .boot img { animation: boot 1.2s ease-in-out infinite alternate; } }
+      @keyframes boot { to { opacity: 0.35; } }
     </style>
     <title>raclinic</title>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root"><div class="boot" role="status" aria-label="raclinic"><img src="/favicon.svg" alt="" /></div></div>
     <noscript>
       <p>raclinic — مساعدك الذكي في كل تفاصيل العيادة. مساحة عمل سحابية للعيادات والمراكز الطبية في مصر والسعودية. يلزم تفعيل JavaScript لاستخدام الموقع.</p>
       <p lang="en" dir="ltr">raclinic — Smart clinic management. A cloud workspace for clinics and medical centers in Egypt and Saudi Arabia. JavaScript is required to use this site.</p>
