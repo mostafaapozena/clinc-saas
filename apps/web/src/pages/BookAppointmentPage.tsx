@@ -150,6 +150,16 @@ export function BookAppointmentPage() {
   const registeredHere = registeredIn(branchId);
   // The API refuses a branch the patient is not registered in; the button says so before sending.
   const ready = Boolean(patient && registeredHere && branchId && practitionerId && slot);
+  // A disabled button says what is still missing (UX-017), one step at a time.
+  const missing = !patient
+    ? 'patient'
+    : !registeredHere
+      ? 'registration'
+      : !practitionerId
+        ? 'practitioner'
+        : !slot
+          ? 'slot'
+          : null;
   const onSubmit = (event: FormEvent) => {
     event.preventDefault();
     if (ready) book.mutate();
@@ -237,6 +247,7 @@ export function BookAppointmentPage() {
                 resetAttempt();
               }}
             >
+              {!practitioner && <option value="">{t('booking.durationAfterPractitioner')}</option>}
               {[...new Set([...(practitioner ? [practitioner.defaultDurationMinutes] : []), ...DURATIONS])]
                 .sort((a, b) => a - b)
                 .map((d) => (
@@ -266,13 +277,16 @@ export function BookAppointmentPage() {
             type="submit"
             className="button button--primary"
             disabled={!ready || book.isPending}
-            aria-describedby={patient && !registeredHere ? 'booking-branch-warning' : undefined}
+            aria-describedby={missing ? 'booking-missing' : undefined}
           >
             {book.isPending ? t('common.saving') : t('booking.confirm')}
           </button>
           <Link className="button button--secondary" to={`/app/${orgId}/appointments`}>
             {t('common.cancel')}
           </Link>
+          <p id="booking-missing" className="muted small form-actions-note" aria-live="polite" data-testid="booking-missing">
+            {missing ? t(`booking.missing.${missing}`) : ''}
+          </p>
         </div>
       </form>
     </>

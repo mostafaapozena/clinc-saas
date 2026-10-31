@@ -57,7 +57,11 @@ export function AppointmentDetailPage() {
 
   return (
     <>
-      <PageHeader title={t('appointments.detailTitle')} subtitle={fmt.dateTime(a.startAt, timeZone)}>
+      <PageHeader
+        back={{ to: `/app/${orgId}/appointments`, label: t('nav.appointments') }}
+        title={t('appointments.detailTitle')}
+        subtitle={fmt.dateTime(a.startAt, timeZone)}
+      >
         <StatusBadge status={a.status} />
       </PageHeader>
       {fresh && state?.booked && <Notice kind="success">{t('booking.booked')}</Notice>}

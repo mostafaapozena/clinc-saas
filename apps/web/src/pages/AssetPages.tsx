@@ -11,6 +11,7 @@ import { useFormatters } from '../lib/format';
 import { showToast } from '../lib/toast';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { orgKeys, useOrg } from '../org/context';
+import { DateText } from '../components/data';
 
 // Equipment register and maintenance (docs/architecture/ASSETS.md). Costs come from the supplier
 // bill or cash voucher they were paid with; this page never records a cost twice.
@@ -361,11 +362,7 @@ export function AssetPage() {
   const live = a.status === 'active' || a.status === 'out_of_service';
   return (
     <>
-      <PageHeader title={a.name} subtitle={a.code}>
-        <Link className="button button--secondary" to={`/app/${orgId}/assets`}>
-          {t('assets.back')}
-        </Link>
-      </PageHeader>
+      <PageHeader back={{ to: `/app/${orgId}/assets`, label: t('assets.back') }} title={a.name} subtitle={a.code} />
       <section className="card" aria-labelledby="asset-detail-title">
         <div className="section-header">
           <h2 id="asset-detail-title">{t('assets.details')}</h2>
@@ -396,7 +393,7 @@ export function AssetPage() {
             <>
               <dt>{t('assets.retiredOn')}</dt>
               <dd>
-                <bdi dir="ltr">{a.disposal.date}</bdi> · <bdi dir="auto">{a.disposal.reason}</bdi>
+                <DateText value={a.disposal.date} /> · <bdi dir="auto">{a.disposal.reason}</bdi>
               </dd>
             </>
           )}
@@ -456,7 +453,7 @@ export function AssetPage() {
               <li key={m.id} className="data-row">
                 <div className="data-main">
                   <h3>
-                    {t(`assets.kinds.${m.kind}`)} · <bdi dir="ltr">{m.date}</bdi>
+                    {t(`assets.kinds.${m.kind}`)} · <DateText value={m.date} />
                   </h3>
                   <p className="muted">
                     <bdi dir="auto">{m.description}</bdi>

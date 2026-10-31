@@ -111,3 +111,27 @@ test('small phones: appointments and statements do not overflow the page at 360p
   }
   errors.expectNone();
 });
+
+test('detail pages keep their place: patient context tabs, back links, booking says what is missing (UX-017, UX-018)', async ({ page }) => {
+  const errors = watchBrowserErrors(page);
+  await page.setViewportSize({ width: 1366, height: 900 });
+  await login(page, 'owner.nour@demo.test');
+  const org = orgIdFromUrl(page);
+  await page.goto(`/app/${org}/patients`);
+  await page.getByTestId('patient-row').first().getByRole('link').click();
+  const tabs = page.getByRole('navigation', { name: 'صفحات المريض' });
+  await expect(tabs.getByRole('link', { name: 'ملف المريض' })).toHaveClass(/active/);
+  await tabs.getByRole('link', { name: 'الحساب المالي' }).click();
+  await expect(page).toHaveURL(/\/finance\/patients\//);
+  // The same patient header on the account, with the way back to the list.
+  await expect(page.getByRole('navigation', { name: 'صفحات المريض' }).getByRole('link', { name: 'الحساب المالي' })).toHaveClass(/active/);
+  await page.locator('.page-back').click();
+  await expect(page).toHaveURL(new RegExp(`/app/${org}/patients$`));
+  // Booking: a disabled confirm button says what is missing.
+  await page.goto(`/app/${org}/appointments/new`);
+  const confirm = page.locator('form.booking-form button[type="submit"]');
+  await expect(confirm).toBeDisabled();
+  await expect(page.getByTestId('booking-missing')).toHaveText('اختر المريض أولًا.');
+  await expect(confirm).toHaveAttribute('aria-describedby', 'booking-missing');
+  errors.expectNone();
+});

@@ -24,6 +24,7 @@ import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { useOrg } from '../org/context';
 import { useAccountingSettings, useMoney } from '../lib/useAccounting';
 import { AccountingNav } from './AccountingPages';
+import { DateText } from '../components/data';
 
 // Cashboxes, bank accounts, cashier sessions, vouchers and bank reconciliation
 // (docs/architecture/ACCOUNTING.md, "Cash and banks"). The API computes every expected amount.
@@ -577,7 +578,7 @@ export function CashPage() {
                     {t(`cash.voucherTypes.${v.type}`)}
                   </h3>
                   <p className="muted">
-                    <bdi dir="auto">{v.memo}</bdi> · <bdi dir="ltr">{v.date}</bdi>
+                    <bdi dir="auto">{v.memo}</bdi> · <DateText value={v.date} />
                   </p>
                 </div>
                 <strong>{money(v.amount, currency)}</strong>
@@ -813,7 +814,7 @@ export function BankStatementPage() {
                   return (
                     <tr key={l.id}>
                       <td data-label={t('accounting.date')}>
-                        <bdi dir="ltr">{l.date}</bdi>
+                        <DateText value={l.date} />
                       </td>
                       <td data-label={t('cash.description')}>
                         <bdi dir="auto">{l.description}</bdi> {l.reference && <bdi dir="ltr">{l.reference}</bdi>}

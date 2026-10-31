@@ -1,8 +1,8 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
+import { PatientContextHeader } from '../components/PatientContextHeader';
 import { useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useLocation, useParams } from 'react-router';
-import { PageHeader } from '../components/PageHeader';
 import { ClinicalHistoryCard } from '../components/clinical';
 import { DentalChartCard, PhysioCoursesCard } from '../components/specialty';
 import { PatientFields } from '../components/PatientForm';
@@ -54,18 +54,13 @@ export function PatientDetailPage() {
 
   return (
     <>
-      <PageHeader title={p.fullName} subtitle={t('patients.numberLabel', { number: fmt.number(p.patientNumber) })}>
-        {can('finance.account.read') && (
-          <Link className="button button--secondary" to={`/app/${orgId}/finance/patients/${p.id}`}>
-            {t('finance.account')}
-          </Link>
-        )}
+      <PatientContextHeader patient={p}>
         {can('appointment.book') && (
           <Link className="button button--primary" to={`/app/${orgId}/appointments/new?patientId=${p.id}`}>
             {t('appointments.book')}
           </Link>
         )}
-      </PageHeader>
+      </PatientContextHeader>
       {notice && <Notice kind="success">{notice}</Notice>}
 
       <div className="card-grid card-grid--wide">

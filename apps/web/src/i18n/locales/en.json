@@ -853,7 +853,8 @@
       "past": "No past appointments."
     },
     "pageOfCapped": "Page {{page}} of {{pages}} — more than {{total}} patients; refine the search to see others",
-    "fileTitle": "Patient file {{number}}"
+    "fileTitle": "Patient file {{number}}",
+    "contextNav": "Patient pages"
   },
   "appointments": {
     "title": "Appointments",
@@ -958,7 +959,14 @@
     "morning": "Morning",
     "afternoon": "Afternoon and evening",
     "currentSlot": "Current time",
-    "registerHere": "Register the patient in this branch"
+    "registerHere": "Register the patient in this branch",
+    "durationAfterPractitioner": "Set after choosing a doctor",
+    "missing": {
+      "patient": "Choose the patient first.",
+      "registration": "Register the patient in this branch, or choose a branch they are registered in.",
+      "practitioner": "Choose the doctor.",
+      "slot": "Choose an available time above."
+    }
   },
   "queue": {
     "title": "Today's queue",
@@ -4761,7 +4769,8 @@
     "showTable": "Show as table",
     "showChart": "Show as chart",
     "item": "Item",
-    "summary": "{{count}} values; exact figures in “Show as table”"
+    "summary": "{{count}} values; exact figures in “Show as table”",
+    "wholeTotal": "The whole amount for this period came from one source."
   },
   "orgProfile": {
     "title": "Organization identity and legal profile",
