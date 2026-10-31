@@ -4319,14 +4319,17 @@
   },
   "reportsHub": {
     "title": "Reports",
-    "subtitle": "Every report you may open, computed from posted and authorized data only",
+    "subtitle": "Figures and charts from posted and authorized data only, within your permissions and branches",
     "none": "No reports are available for your role.",
     "note": "Revenue and collections are reported separately. \"Result per ledger\" is not a certified net profit. There are no tax reports.",
     "downloadCsv": "Download CSV",
     "groups": {
-      "financial": "Financial statements",
+      "financial": "Financial",
       "cash": "Cash and obligations",
-      "operations": "Operations"
+      "operations": "Operations",
+      "collections": "Collections",
+      "inventory": "Inventory and purchasing",
+      "resources": "Equipment and people"
     },
     "reports": {
       "statements": {
@@ -4396,8 +4399,89 @@
       "installments": {
         "title": "Installment plans",
         "body": "Overdue, current and completed installments on patient invoices"
+      },
+      "trialBalance": {
+        "title": "Trial balance",
+        "body": "Opening, movement and closing balance of each account"
+      },
+      "profitLoss": {
+        "title": "Income and expenses",
+        "body": "The ledger result for the period, by branch if you want"
+      },
+      "balanceSheet": {
+        "title": "Balance sheet",
+        "body": "Assets, liabilities and equity on a date"
+      },
+      "ledger": {
+        "title": "General ledger",
+        "body": "Every movement of one account with its running balance"
+      },
+      "aging": {
+        "title": "Patient receivables aging",
+        "body": "Unpaid invoices per patient by age"
       }
-    }
+    },
+    "categories": "Report categories",
+    "filters": "Report filters",
+    "period": "Period",
+    "branch": "Branch",
+    "allBranches": "All branches",
+    "periods": {
+      "month": "This month",
+      "last30": "Last 30 days",
+      "last90": "Last 90 days",
+      "year": "This year"
+    },
+    "kpis": "Key figures",
+    "kpi": {
+      "invoiced": "Invoiced",
+      "collected": "Collected",
+      "outstanding": "Owed by patients",
+      "discounts": "Discounts",
+      "openReceivables": "Unpaid invoices",
+      "patientsOwing": "Patients owing",
+      "appointmentsToday": "Today's appointments",
+      "reorder": "Items to reorder",
+      "expiring": "Lots expiring soon",
+      "payables": "Owed to suppliers"
+    },
+    "source": {
+      "invoices": "{{count}} issued invoices · from documents",
+      "receipts": "Active receipts · not revenue",
+      "openInvoices": "Open invoices now · from documents",
+      "openInvoicesNow": "Now · from open invoices",
+      "invoiceDiscounts": "Discounts on issued invoices",
+      "issuedInvoices": "Issued invoices",
+      "ledgerCash": "Cashboxes and banks · general ledger",
+      "openBills": "Open supplier bills"
+    },
+    "charts": {
+      "trend": "Invoiced against collected, by month",
+      "methods": "Collections by payment method",
+      "services": "Top services by amount invoiced",
+      "aging": "Receivables by age",
+      "cashflow": "Cash in and out by activity",
+      "appointments": "Today's appointments by status",
+      "payables": "Suppliers owed the most"
+    },
+    "lastMonths": "Last {{count}} months",
+    "asOfToday": "As of today",
+    "today": "Today",
+    "noData": "No invoices or collections in these months.",
+    "noReceipts": "No collections in this period.",
+    "noInvoices": "No issued invoices in this period.",
+    "noAppointments": "No appointments today.",
+    "noPayables": "Nothing open with suppliers.",
+    "status": {
+      "scheduled": "Booked, not arrived",
+      "waiting": "Waiting",
+      "inProgress": "In progress",
+      "completed": "Completed",
+      "noShow": "No-show",
+      "cancelled": "Cancelled"
+    },
+    "available": "Available reports",
+    "availableHint": "Open the detailed report with its auditable, exportable table"
   },
   "planning": {
     "budget": {
@@ -4611,5 +4695,11 @@
     "restore": "Restore previous settings",
     "restored": "Previous settings restored.",
     "wasRestored": "Restored"
+  },
+  "charts": {
+    "showTable": "Show as table",
+    "showChart": "Show as chart",
+    "item": "Item",
+    "summary": "{{count}} values; exact figures in “Show as table”"
   }
 }
