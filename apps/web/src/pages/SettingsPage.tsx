@@ -15,6 +15,7 @@ import { useFormatters } from '../lib/format';
 import { useSpecialtyNames } from '../lib/specialties';
 import { DEFAULT_TIME_ZONE, ORGANIZATION_TYPES, TIME_ZONES, type OrganizationType } from '../lib/types';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
+import { useUnsavedSections } from '../lib/useUnsavedSections';
 import { orgKeys, useOrg } from '../org/context';
 
 export function SettingsPage() {
@@ -24,6 +25,7 @@ export function SettingsPage() {
   const queryClient = useQueryClient();
   const [name, setName] = useState(detail.organization.name);
   useDocumentTitle(t('nav.settings'));
+  const { dirty, blocker } = useUnsavedSections();
 
   const save = useMutation({
     mutationFn: () => api(`/orgs/${orgId}`, { method: 'PATCH', body: { name } }),
@@ -41,9 +43,46 @@ export function SettingsPage() {
     save.mutate();
   };
 
+  const sections = [
+    { id: 'org-settings-title', label: t('settings.general') },
+    { id: 'time-zone-title', label: t('settings.timeZone') },
+    { id: 'specialty-settings-title', label: t('settings.specialtiesTitle') },
+    { id: 'profile-title', label: t('orgProfile.title') },
+    { id: 'modules-title', label: t('settings.modules.title') },
+    { id: 'reset-title', label: t('settingsReset.title') },
+  ];
+
   return (
     <>
       <PageHeader title={t('settings.title')} subtitle={t('settings.createdOn', { date: fmt.date(detail.organization.createdAt) })} />
+      {/* Sections at a glance, with the ones that have unsaved changes marked (UX-016). */}
+      <nav className="settings-nav" aria-label={t('settings.sectionsNav')}>
+        {sections.map((s) => (
+          <a key={s.id} href={`#${s.id}`} className={dirty.includes(s.id) ? 'settings-nav-link settings-nav-link--dirty' : 'settings-nav-link'}>
+            {s.label}
+            {dirty.includes(s.id) && <span className="visually-hidden"> ({t('settings.unsaved')})</span>}
+          </a>
+        ))}
+      </nav>
+      {dirty.length > 0 && (
+        <p className="settings-unsaved" role="status" data-testid="settings-unsaved">
+          {t('settings.unsavedSections', { sections: fmt.list(sections.filter((s) => dirty.includes(s.id)).map((s) => s.label)) })}
+        </p>
+      )}
+      {blocker.state === 'blocked' && (
+        <div className="confirm-panel" role="alertdialog" aria-labelledby="settings-leave-title">
+          <h3 id="settings-leave-title">{t('settings.leaveTitle')}</h3>
+          <p>{t('settings.leaveBody')}</p>
+          <div className="form-actions form-actions--start">
+            <button type="button" className="button button--primary" onClick={() => blocker.reset?.()}>
+              {t('clinical.stay')}
+            </button>
+            <button type="button" className="button button--danger" onClick={() => blocker.proceed?.()}>
+              {t('clinical.leave')}
+            </button>
+          </div>
+        </div>
+      )}
       <section className="card" aria-labelledby="org-settings-title">
         <h2 id="org-settings-title">{t('settings.general')}</h2>
         {save.isSuccess && <Notice kind="success">{t('settings.saved')}</Notice>}

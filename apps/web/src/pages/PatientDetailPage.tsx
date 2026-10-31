@@ -16,6 +16,7 @@ import { useFormatters } from '../lib/format';
 import type { Appointment, Page, Patient } from '../lib/types';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { orgKeys, useOrg } from '../org/context';
+import { ConfirmAction } from '../components/data';
 
 export function PatientDetailPage() {
   const { t } = useTranslation();
@@ -208,15 +209,26 @@ function Registrations({ patient }: { patient: Patient }) {
                 <span className={`badge badge--${r.status === 'active' ? 'active' : 'inactive'}`}>{t(`patients.registrationState.${r.status}`)}</span>
               </div>
               {manage && (
-                <button
-                  type="button"
-                  className="button button--secondary"
-                  disabled={setStatus.isPending}
-                  onClick={() => setStatus.mutate({ branchId: r.branchId, status: r.status === 'active' ? 'archived' : 'active' })}
-                  aria-label={t(r.status === 'active' ? 'patients.archiveLabel' : 'patients.reactivateLabel', { branch: name })}
-                >
-                  {r.status === 'active' ? t('patients.archive') : t('patients.reactivate')}
-                </button>
+                r.status === 'active' ? (
+                  <ConfirmAction
+                    label={t('patients.archive')}
+                    ariaLabel={t('patients.archiveLabel', { branch: name })}
+                    message={t('patients.archiveMessage', { branch: name })}
+                    confirmLabel={t('patients.archiveConfirm')}
+                    pending={setStatus.isPending}
+                    onConfirm={() => setStatus.mutate({ branchId: r.branchId, status: 'archived' })}
+                  />
+                ) : (
+                  <button
+                    type="button"
+                    className="button button--secondary"
+                    disabled={setStatus.isPending}
+                    onClick={() => setStatus.mutate({ branchId: r.branchId, status: 'active' })}
+                    aria-label={t('patients.reactivateLabel', { branch: name })}
+                  >
+                    {t('patients.reactivate')}
+                  </button>
+                )
               )}
             </li>
           );

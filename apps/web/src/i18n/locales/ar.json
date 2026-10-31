@@ -57,7 +57,8 @@
     "resetFilters": "إعادة ضبط التصفية",
     "sortable": "(يمكن الترتيب)",
     "sortedAsc": "(مرتّب تصاعديًا)",
-    "sortedDesc": "(مرتّب تنازليًا)"
+    "sortedDesc": "(مرتّب تنازليًا)",
+    "aboutPage": "عن هذه الصفحة"
   },
   "nav": {
     "home": "الرئيسية",
@@ -338,7 +339,9 @@
     "auditGrantLabel": "منح {{name}} صلاحية التدقيق السريري",
     "auditRevokeLabel": "سحب صلاحية التدقيق السريري من {{name}}",
     "auditGrantedNotice": "يستطيع {{name}} الآن قراءة سجل التدقيق السريري (من فتح أي سجل، دون المحتوى).",
-    "auditRevokedNotice": "لم يعد {{name}} يستطيع قراءة سجل التدقيق السريري."
+    "auditRevokedNotice": "لم يعد {{name}} يستطيع قراءة سجل التدقيق السريري.",
+    "suspendMessage": "لن يتمكن {{name}} من الدخول إلى هذه المنشأة حتى تُعيد تفعيل عضويته.",
+    "suspendConfirm": "نعم، أوقف العضوية"
   },
   "settings": {
     "title": "إعدادات المنشأة",
@@ -381,7 +384,12 @@
         "compensation": "تحتاج الحسابات العامة",
         "assets": "سجل الأجهزة والصيانة"
       }
-    }
+    },
+    "sectionsNav": "أقسام الإعدادات",
+    "unsaved": "تغييرات غير محفوظة",
+    "unsavedSections": "تغييرات غير محفوظة في: {{sections}}. احفظ كل قسم بزر الحفظ الخاص به.",
+    "leaveTitle": "تغييرات غير محفوظة",
+    "leaveBody": "بعض أقسام الإعدادات بها تغييرات لم تُحفظ. إذا غادرت الآن ستضيع."
   },
   "profile": {
     "title": "الملف الشخصي",
@@ -854,7 +862,9 @@
     },
     "pageOfCapped": "الصفحة {{page}} من {{pages}} — أكثر من {{total}} مريض؛ حدّد البحث لعرض غيرهم",
     "fileTitle": "ملف مريض رقم {{number}}",
-    "contextNav": "صفحات المريض"
+    "contextNav": "صفحات المريض",
+    "archiveMessage": "سيُؤرشَف تسجيل المريض في {{branch}}. يبقى ملفه كما هو، ويمكنك إعادة تفعيل التسجيل لاحقًا.",
+    "archiveConfirm": "نعم، أرشِف التسجيل"
   },
   "appointments": {
     "title": "المواعيد",
@@ -2782,7 +2792,9 @@
     "chargeAdded": "أُضيف الرسم إلى حساب المريض.",
     "invoiceIssued": "صدرت الفاتورة.",
     "payThisInvoice": "تسجيل دفعة لهذه الفاتورة",
-    "serviceCodeAuto": "حروف لاتينية كبيرة وأرقام وشرطات. اتركه فارغًا ليُعطى الرمز {{code}}."
+    "serviceCodeAuto": "حروف لاتينية كبيرة وأرقام وشرطات. اتركه فارغًا ليُعطى الرمز {{code}}.",
+    "deactivateMessage": "ستتوقف الخدمة عن الظهور للرسوم الجديدة. الفواتير السابقة لا تتغير، ويمكنك تفعيلها لاحقًا.",
+    "deactivateConfirm": "نعم، أوقف الخدمة"
   },
   "subscription": {
     "title": "الاشتراك",
@@ -3288,7 +3300,9 @@
     "invitationSummary": "أنت مدعو للانضمام إلى {{organization}} بدور {{role}}.",
     "invitationFor": "الدعوة موجّهة إلى",
     "invitationAccept": "قبول الدعوة",
-    "createAccount": "إنشاء حساب"
+    "createAccount": "إنشاء حساب",
+    "revokeMessage": "سيتوقف رابط الدعوة المرسل إلى {{email}} عن العمل.",
+    "revokeConfirm": "نعم، ألغِ الدعوة"
   },
   "support": {
     "title": "المساعدة والدعم",
@@ -3697,7 +3711,9 @@
     },
     "amountIn": "المبلغ ({{currency}})",
     "noAccounts": "لا حسابات بأرصدة في هذه الفترة.",
-    "openingAlready_one": "قيد افتتاحي واحد مرحّل."
+    "openingAlready_one": "قيد افتتاحي واحد مرحّل.",
+    "archiveMessage": "سيُؤرشَف الحساب «{{name}}». يمكنك استعادته لاحقًا.",
+    "archiveConfirm": "نعم، أرشِف الحساب"
   },
   "cash": {
     "title": "الخزينة والبنوك",
@@ -4116,7 +4132,9 @@
     "supplierName": "اسم المورد",
     "phone": "الهاتف",
     "paymentTerms": "مدة السداد (أيام)",
-    "pendingApprovals_one": "طلب واحد بانتظار اعتمادك."
+    "pendingApprovals_one": "طلب واحد بانتظار اعتمادك.",
+    "cancelOrderMessage": "سيُلغى أمر الشراء {{number}}.",
+    "cancelOrderConfirm": "نعم، ألغِ الأمر"
   },
   "compensation": {
     "title": "مستحقات الأطباء",
@@ -4299,7 +4317,17 @@
     "installmentsOverdue_one": "خطة تقسيط واحدة بها قسط متأخر",
     "requestsToApprove_one": "طلب شراء واحد بانتظار اعتمادك",
     "billsToApprove_one": "فاتورة مصروفات واحدة بانتظار اعتمادك",
-    "settlementsToApprove_one": "تسوية أطباء واحدة في المسودة"
+    "settlementsToApprove_one": "تسوية أطباء واحدة في المسودة",
+    "links": {
+      "myVisits": "اعرض مواعيدي اليوم",
+      "queue": "افتح قائمة الانتظار",
+      "chargesToInvoice": "راجع الرسوم غير المفوترة",
+      "receivables": "راجع أعمار ذمم المرضى",
+      "payables": "راجع فواتير الموردين المستحقة",
+      "sessions": "اعرض الورديات المفتوحة"
+    },
+    "scopeAll": "الآن · كل الفروع التي تصل إليها",
+    "scopeAllNotSelected": "الآن · كل الفروع التي تصل إليها، وليس الفرع المختار في الأعلى فقط"
   },
   "assets": {
     "title": "الأجهزة والصيانة",

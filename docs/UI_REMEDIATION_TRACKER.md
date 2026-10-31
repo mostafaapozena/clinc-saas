@@ -27,18 +27,18 @@ A finding is `done` only when the named check exists and passes in `npm run veri
 | UX-011 | Numeric columns misaligned | FE-005 | F-06 | `numeric` columns, `Quantity`, `Money` | `e2e/layout.spec.ts` | partial: other modules |
 | UX-012 | Untranslated system values and units | FE-008 | F-24 | `accounting.sources.*` incl. `stock`, generic fallback; system default names shown localized (`lib/defaultNames.ts`) without renaming stored data | unit tests | done (user-entered names stay as entered) |
 | UX-013 | Plural errors | FE-008 | – | `_one` / `_two` / `_few` forms for counts | locale parity test | done |
-| UX-014 | Consequential actions look neutral | FE-010, FE-014 | – | `ConfirmAction` (in place, danger tone, focus on cancel) | `data.test.tsx` | partial: adoption |
+| UX-014 | Consequential actions look neutral | FE-010, FE-014 | – | `ConfirmAction` (danger tone, consequence, focus on cancel) for suspend member, archive patient registration, deactivate service, cancel purchase order, archive account, revoke invitation; coverage revoke danger-toned (it already had a reason step) | `data.test.tsx`, `e2e/workspace.spec.ts` | done |
 | UX-015 | Team rows crowd | FE-005 | F-12 | Container-query rows (as UX-001) | `e2e/layout.spec.ts` | done |
-| UX-016 | Settings: one long page, seven Save buttons | FE-001 | – | `SettingsSection` with its own dirty state | – | planned |
+| UX-016 | Settings: one long page, seven Save buttons | FE-001 | – | Settings: section nav, unsaved-changes marker per section and summary, leave guard (route change and tab close) via `useUnsavedSections` | `e2e/layout.spec.ts` | partial: one shared save bar per section not built; each section keeps its own Save |
 | UX-017 | Booking: disabled submit without reason | FE-009 | – | The disabled confirm names the next missing step (`booking-missing`, `aria-describedby`); duration says it follows the doctor | `e2e/layout.spec.ts` | done |
 | UX-018 | Detail pages lose their place | FE-006 | – | `PageHeader` `back` on every detail page; `PatientContextHeader` with record / account tabs | `e2e/layout.spec.ts` | done |
 | UX-019 | Sidebar grew by addition | FE-007 | F-19 | Module registry (`lib/modules.ts`) with the six task groups | `modules.test.ts` | done |
 | UX-020 | Two tab styles; tab bars clip | FE-006 | F-05 | `ModuleTabs` scrolls with the active tab in view and fades the side that hides more tabs (RTL aware) | `e2e/layout.spec.ts` | done |
-| UX-021 | Disclaimer banners on top of pages | – | – | Move static notes to help | – | planned |
-| UX-022 | Dashboard priorities and link labels | – | F-13 | `ChartCard`: one non-zero part shows the figure, not a 100% ring | visual | partial: dashboard verb links |
+| UX-021 | Disclaimer banners on top of pages | – | – | `PageHeader` `help`: finance (not a tax invoice), assets (depreciation policy), compensation (not payroll) moved from banners to "About this page"; state banners stay | `e2e/layout.spec.ts` | done |
+| UX-022 | Dashboard priorities and link labels | – | F-13 | Money never counts up; one-part donut shows the figure; dashboard links named as actions; finance group states its scope (all accessible branches, now) | `e2e/layout.spec.ts` (scope), visual | partial: zero tiles keep their place; the focus API has no branch filter, so the panel says it covers all branches |
 | UX-023 | Reports chart grid gaps | FE-001 | F-15 | `CardGrid` | – | planned |
 | UX-024 | Low contrast of field borders | FE-003 | – | `--border-strong` (3:1) on controls | `e2e/a11y.spec.ts` (axe) | done |
-| UX-025 | Touch targets below 44px | FE-014 | F-20 | 44px minimum for page controls on phones | `e2e/layout.spec.ts` | partial: verify all modules |
+| UX-025 | Touch targets below 44px | FE-014 | F-20 | 44px minimum for page controls on phones; measured at 390px on appointments, patients, team, queue, inventory, finance, settings, cash: 0 controls under 44px | `e2e/layout.spec.ts` (phones, 390px) | done |
 | UX-026 | Header choosers truncate | – | F-08 | `field-sizing: content` with bounds | visual | done |
 | UX-027 | Empty heading elements | FE-012 | – | Not reproduced on current code (12 patient accounts scanned); axe `empty-heading` now runs on every audited page incl. `/finance/patients/:id` | `e2e/a11y.spec.ts` | done (guarded) |
 | UX-028 | Empty states without a next step | FE-001 | – | `EmptyState` `action`; pilot: Inventory | – | partial: other modules |
@@ -54,5 +54,5 @@ A finding is `done` only when the named check exists and passes in `npm run veri
 | FE-004 | Public site is a second design system | Shared tokens | planned |
 | FE-007 | Visibility rules duplicated (equipment hidden for `asset.read`) | One registry: sidebar, route `ModuleGate`, reports center, module tabs. The API stays authoritative. | done (`modules.test.ts`) |
 | FE-011 | Operator console is a parallel app | Migrate to shared components | planned |
-| FE-013 | No catalog, no accessibility tooling | `e2e/a11y.spec.ts` (axe on 17 owner pages and the phone pilot); PR template; dev-only gallery | partial: gallery |
+| FE-013 | No catalog, no accessibility tooling | `e2e/a11y.spec.ts` (axe WCAG 2.1 A/AA plus structural rules on 20 pages and the phone pilot); dev-only gallery at `/dev/gallery` (absent from production builds, checked in e2e); PR template | done |
 | FE-015 | Badges consistent | Tone names (`Badge`, `badge--success/warning/danger/info/neutral`) | done |

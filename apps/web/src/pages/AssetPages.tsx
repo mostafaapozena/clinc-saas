@@ -292,8 +292,7 @@ export function AssetsPage() {
   const due = (list.data?.assets ?? []).filter((a) => a.maintenanceDue);
   return (
     <>
-      <PageHeader title={t('assets.title')} subtitle={t('assets.subtitle')} />
-      <Notice kind="info">{t('assets.depreciationNotice')}</Notice>
+      <PageHeader title={t('assets.title')} subtitle={t('assets.subtitle')} help={t('assets.depreciationNotice')} />
       {due.length > 0 && <Notice kind="warning">{t('assets.dueNotice', { count: due.length })}</Notice>}
       <section className="card" aria-labelledby="assets-title">
         <h2 id="assets-title">{t('assets.register')}</h2>

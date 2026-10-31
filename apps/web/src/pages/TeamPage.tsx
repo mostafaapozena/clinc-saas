@@ -12,6 +12,7 @@ import { useFormatters } from '../lib/format';
 import { ASSIGNABLE_ROLES, ORG_WIDE_ROLES, type BranchScope, type Member, type Role } from '../lib/types';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { orgKeys, useOrg } from '../org/context';
+import { ConfirmAction } from '../components/data';
 
 const ALL: BranchScope = { type: 'all', branchIds: [] };
 
@@ -141,15 +142,26 @@ function MemberRow({
               {t('common.edit')}
             </button>
           )}
-          <button
-            type="button"
-            className="button button--secondary"
-            disabled={setStatus.isPending}
-            onClick={() => setStatus.mutate(member.status === 'active' ? 'suspended' : 'active')}
-            aria-label={t(member.status === 'active' ? 'team.suspendLabel' : 'team.reactivateLabel', { name })}
-          >
-            {member.status === 'active' ? t('team.suspend') : t('team.reactivate')}
-          </button>
+          {member.status === 'active' ? (
+            <ConfirmAction
+              label={t('team.suspend')}
+              ariaLabel={t('team.suspendLabel', { name })}
+              message={t('team.suspendMessage', { name })}
+              confirmLabel={t('team.suspendConfirm')}
+              pending={setStatus.isPending}
+              onConfirm={() => setStatus.mutate('suspended')}
+            />
+          ) : (
+            <button
+              type="button"
+              className="button button--secondary"
+              disabled={setStatus.isPending}
+              onClick={() => setStatus.mutate('active')}
+              aria-label={t('team.reactivateLabel', { name })}
+            >
+              {t('team.reactivate')}
+            </button>
+          )}
           {actorIsOwner && auditEligible && (
             <button
               type="button"

@@ -117,7 +117,7 @@ function WorklistRows({ worklist, compact }: { worklist: NonNullable<NonNullable
 /** "Today's focus" on the home page; nothing is shown that the role cannot use. */
 export function FocusPanel() {
   const { t } = useTranslation();
-  const { orgId } = useOrg();
+  const { orgId, selectedBranchId } = useOrg();
   const money = useMoney();
   const focus = useFocus();
   if (!focus.isSuccess) return null;
@@ -136,7 +136,7 @@ export function FocusPanel() {
               label={t('workspace.myVisitsToday')}
               value={f.clinical.today.scheduled + f.clinical.today.waiting + f.clinical.today.inProgress}
               to={`/app/${orgId}/appointments`}
-              linkLabel={t('nav.appointments')}
+              linkLabel={t('workspace.links.myVisits')}
             />
             <Metric
               icon="queue"
@@ -144,7 +144,7 @@ export function FocusPanel() {
               label={t('workspace.waitingForMe')}
               value={f.clinical.today.waiting}
               to={`/app/${orgId}/queue`}
-              linkLabel={t('nav.queue')}
+              linkLabel={t('workspace.links.queue')}
             />
             <Metric
               icon="file"
@@ -177,7 +177,7 @@ export function FocusPanel() {
                 label={t('workspace.chargesToInvoice')}
                 value={f.frontDesk.pendingCharges}
                 to={`/app/${orgId}/finance`}
-                linkLabel={t('nav.finance')}
+                linkLabel={t('workspace.links.chargesToInvoice')}
               />
             )}
           </dl>
@@ -195,6 +195,9 @@ export function FocusPanel() {
       {f.finance && f.finance.ledger && (
         <div className="focus-group">
           <h3>{t('workspace.financeTitle')}</h3>
+          <p className="muted small" data-testid="finance-scope">
+            {selectedBranchId === 'all' ? t('workspace.scopeAll') : t('workspace.scopeAllNotSelected')}
+          </p>
           <dl className="metrics metrics--compact">
             <Metric
               icon="wallet"
@@ -203,7 +206,7 @@ export function FocusPanel() {
               hint={t('workspace.fromDocuments')}
               format={money}
               to={`/app/${orgId}/accounting/reports?report=aging`}
-              linkLabel={t('reportsHub.reports.aging.title')}
+              linkLabel={t('workspace.links.receivables')}
             />
             <Metric icon="patients" label={t('workspace.unallocated')} value={f.finance.unallocatedReceipts} format={money} />
             <Metric
@@ -213,14 +216,14 @@ export function FocusPanel() {
               value={f.finance.payablesDueSoon.amount}
               format={money}
               to={`/app/${orgId}/purchasing/bills`}
-              linkLabel={t('purchasing.nav.bills')}
+              linkLabel={t('workspace.links.payables')}
             />
             <Metric
               icon="cash"
               label={t('workspace.openSessions')}
               value={f.finance.openCashSessions}
               to={`/app/${orgId}/cash`}
-              linkLabel={t('nav.cash')}
+              linkLabel={t('workspace.links.sessions')}
             />
           </dl>
           {f.finance.monthToClose && (

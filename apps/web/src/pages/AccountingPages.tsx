@@ -27,7 +27,7 @@ import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { useOrg } from '../org/context';
 import { csvMoney, downloadCsv } from '../lib/csv';
 import { useAccountingSettings, useMoney } from '../lib/useAccounting';
-import { DateText, Pagination } from '../components/data';
+import { ConfirmAction, DateText, Pagination } from '../components/data';
 import { pageParam, useUrlState } from '../lib/useUrlState';
 
 // General ledger (docs/architecture/ACCOUNTING.md): setup, journal, chart of accounts, statements
@@ -903,9 +903,19 @@ export function ChartPage() {
                     <td className="num" data-label={t('accounting.balance')}>{a.isGroup ? '' : money(a.balance ?? 0, currency)}</td>
                     <td>
                       {can('accounting.manage') && !a.isGroup && !a.templateKey && (
-                        <button type="button" className="button button--ghost" disabled={archive.isPending} onClick={() => archive.mutate(a)}>
-                          {a.status === 'active' ? t('accounting.archive') : t('accounting.restore')}
-                        </button>
+                        a.status === 'active' ? (
+                          <ConfirmAction
+                            label={t('accounting.archive')}
+                            message={t('accounting.archiveMessage', { name: accountName(t, a) })}
+                            confirmLabel={t('accounting.archiveConfirm')}
+                            pending={archive.isPending}
+                            onConfirm={() => archive.mutate(a)}
+                          />
+                        ) : (
+                          <button type="button" className="button button--ghost" disabled={archive.isPending} onClick={() => archive.mutate(a)}>
+                            {t('accounting.restore')}
+                          </button>
+                        )
                       )}
                     </td>
                   </tr>

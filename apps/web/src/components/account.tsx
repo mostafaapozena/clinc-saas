@@ -9,6 +9,7 @@ import { ASSIGNABLE_ROLES, ORG_WIDE_ROLES, type BranchScope, type Role } from '.
 import { useOrg } from '../org/context';
 import { BranchScopeFields } from './BranchScopeFields';
 import { EmptyState, ErrorState, Field, Loading, Notice } from './ui';
+import { ConfirmAction } from './data';
 
 // Account pieces of milestone 5: email verification, the user's sessions, and invitations.
 
@@ -179,9 +180,13 @@ export function InvitationsCard() {
                 <span dir="ltr">{i.email}</span> · {t(`roles.${i.role}`)}
                 <p className="muted small">{t('account.invitationExpires', { date: fmt.date(i.expiresAt) })}</p>
               </div>
-              <button type="button" className="button button--ghost" disabled={revoke.isPending} onClick={() => revoke.mutate(i.id)}>
-                {t('account.revokeInvitation')}
-              </button>
+              <ConfirmAction
+                label={t('account.revokeInvitation')}
+                message={t('account.revokeMessage', { email: i.email })}
+                confirmLabel={t('account.revokeConfirm')}
+                pending={revoke.isPending}
+                onConfirm={() => revoke.mutate(i.id)}
+              />
             </li>
           ))}
         </ul>

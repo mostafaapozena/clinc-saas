@@ -33,6 +33,7 @@ import { showToast } from '../lib/toast';
 import type { Page, PatientSummary } from '../lib/types';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { orgKeys, useOrg } from '../org/context';
+import { ConfirmAction } from '../components/data';
 
 // Clinic finances (docs/architecture/FINANCE.md). Amounts are integer minor units; all totals are
 // computed by the API. Labelled printouts are ordinary invoices/receipts — not tax invoices.
@@ -121,14 +122,13 @@ export function FinancePage() {
   });
   return (
     <>
-      <PageHeader title={t('finance.title')} subtitle={t('finance.subtitle')}>
+      <PageHeader title={t('finance.title')} subtitle={t('finance.subtitle')} help={t('finance.notTaxNotice')}>
         {can('finance.catalog.read') && (
           <Link className="button button--secondary" to={`/app/${orgId}/finance/services`}>
             {t('finance.services')}
           </Link>
         )}
       </PageHeader>
-      <Notice kind="info">{t('finance.notTaxNotice')}</Notice>
       <CurrencySetup />
       <div className="card-grid card-grid--wide">
         {can('finance.account.read') && (
@@ -369,9 +369,19 @@ function ServiceRow({ service, money }: { service: FinanceService; money: Return
               {t('finance.changePrice')}
             </button>
           )}
-          <button type="button" className="button button--secondary" onClick={() => update.mutate({ status: service.status === 'active' ? 'inactive' : 'active' })}>
-            {service.status === 'active' ? t('finance.deactivate') : t('finance.activate')}
-          </button>
+          {service.status === 'active' ? (
+            <ConfirmAction
+              label={t('finance.deactivate')}
+              message={t('finance.deactivateMessage')}
+              confirmLabel={t('finance.deactivateConfirm')}
+              pending={update.isPending}
+              onConfirm={() => update.mutate({ status: 'inactive' })}
+            />
+          ) : (
+            <button type="button" className="button button--secondary" onClick={() => update.mutate({ status: 'active' })}>
+              {t('finance.activate')}
+            </button>
+          )}
           {update.isError && <span className="field-error">{errorMessage(t, update.error)}</span>}
         </div>
       )}

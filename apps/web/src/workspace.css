@@ -2366,3 +2366,83 @@ textarea {
   inline-size: 16px;
   block-size: 16px;
 }
+
+/* Static policy notes folded under the page subtitle (UX-021). */
+.page-help {
+  margin-block-start: var(--space-2);
+  font-size: var(--fs-sm);
+}
+
+.page-help > summary {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--gap-inline-icon);
+  min-block-size: var(--control-sm, 32px);
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.page-help > summary > .icon {
+  inline-size: 16px;
+  block-size: 16px;
+}
+
+.page-help > p {
+  max-inline-size: 70ch;
+  margin: var(--space-2) 0 0;
+  padding: var(--space-3) var(--space-4);
+  background: var(--info-bg);
+  border-radius: 10px;
+}
+
+/* Settings: sections at a glance; dirty sections are marked in the list and on the card (UX-016). */
+.settings-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.settings-nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--gap-inline-icon);
+  min-block-size: var(--control-sm, 32px);
+  padding-inline: var(--space-3);
+  font-size: var(--fs-sm);
+  color: var(--text);
+  text-decoration: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+}
+
+.settings-nav-link--dirty::after {
+  content: '';
+  inline-size: 8px;
+  block-size: 8px;
+  background: var(--warn);
+  border-radius: 50%;
+}
+
+.settings-unsaved {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  color: var(--warn);
+  background: var(--warn-bg);
+  border-radius: 10px;
+}
+
+.content section.card[data-dirty] {
+  border-inline-start: 4px solid var(--warn);
+}
+
+.content section.card[aria-labelledby] {
+  scroll-margin-block-start: calc(var(--topbar-h, 64px) + var(--space-4));
+}
+
+/* Phones: the phase 19 controls (back link, page help, settings sections, disclosures) reach 44px too. */
+@media (max-width: 767px) {
+  .content :is(summary, .page-back, .settings-nav-link, .sort-button) {
+    min-block-size: var(--touch-min);
+  }
+}
