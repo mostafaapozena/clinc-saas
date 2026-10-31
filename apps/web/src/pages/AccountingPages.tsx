@@ -46,7 +46,7 @@ function useAccounts(enabled = true) {
 /** Sub-navigation shared by the accounting and cash pages (permission-filtered). */
 export function AccountingNav() {
   const { t } = useTranslation();
-  const { orgId, can, detail } = useOrg();
+  const { orgId, can, detail, moduleOn } = useOrg();
   const orgWide = detail.membership.branchScope.type === 'all';
   const items = [
     ...(can('accounting.read')
@@ -86,7 +86,7 @@ export function AccountingNav() {
           },
         ]
       : []),
-    ...(can('cash.session.operate') ? [{ to: `/app/${orgId}/cash`, label: t('accounting.nav.cash') }] : []),
+    ...(can('cash.session.operate') && moduleOn('cash') ? [{ to: `/app/${orgId}/cash`, label: t('accounting.nav.cash') }] : []),
   ];
   return <ModuleTabs items={items} label={t('accounting.nav.label')} />;
 }
@@ -328,7 +328,7 @@ export function AccountingPage() {
                       <dd>
                         {money(r.ledger, reconciliation.data.currency)} · {t('accounting.subledger')}{' '}
                         {money(r.subledger, reconciliation.data.currency)}{' '}
-                        <span className={r.difference === 0 ? 'badge badge--active' : 'badge badge--inactive'}>
+                        <span className={r.difference === 0 ? 'badge badge--success' : 'badge badge--danger'}>
                           {r.difference === 0
                             ? t('accounting.agrees')
                             : t('accounting.differs', {
@@ -1235,7 +1235,7 @@ function ReportView({ name, data }: { name: ReportName; data: Record<string, unk
             {t('reportsHub.downloadCsv')}
           </button>
         </div>
-        <span className={data.balanced ? 'badge badge--active' : 'badge badge--inactive'}>
+        <span className={data.balanced ? 'badge badge--success' : 'badge badge--danger'}>
           {data.balanced ? t('accounting.balanced') : t('accounting.notBalanced')}
         </span>
         {rows.length === 0 ? (
@@ -1302,7 +1302,7 @@ function ReportView({ name, data }: { name: ReportName; data: Record<string, unk
     return (
       <section className="card" aria-labelledby="bs-title">
         <h2 id="bs-title">{t('accounting.reports.balanceSheet')}</h2>
-        <span className={data.balanced ? 'badge badge--active' : 'badge badge--inactive'}>
+        <span className={data.balanced ? 'badge badge--success' : 'badge badge--danger'}>
           {data.balanced ? t('accounting.balanced') : t('accounting.notBalanced')}
         </span>
         <StatementTable

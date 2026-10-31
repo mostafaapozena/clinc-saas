@@ -345,12 +345,12 @@ function VarianceReport({ year, branchId }: { year: number; branchId: string }) 
                   <tr key={r.account.id}>
                     <td data-label={t('accounting.account')}>
                       <bdi dir="ltr">{r.account.code}</bdi> {accountName(t, r.account)}
-                      {r.unbudgeted && <span className="badge badge--inactive"> {t('planning.variance.unbudgeted')}</span>}
+                      {r.unbudgeted && <span className="badge badge--warning"> {t('planning.variance.unbudgeted')}</span>}
                     </td>
                     <td data-label={t('planning.variance.budget')}>{money(r.budget, d.currency)}</td>
                     <td data-label={t('planning.variance.actual')}>{money(r.actual, d.currency)}</td>
                     <td data-label={t('planning.variance.variance')}>
-                      <span className={r.favourable ? 'badge badge--active' : 'badge badge--inactive'}>{money(r.variance, d.currency)}</span>
+                      <span className={r.favourable ? 'badge badge--success' : 'badge badge--danger'}>{money(r.variance, d.currency)}</span>
                       <span className="visually-hidden">
                         {r.favourable ? t('planning.variance.favourable') : t('planning.variance.unfavourable')}
                       </span>
@@ -493,7 +493,7 @@ export function CashFlowPage() {
               {t('reportsHub.downloadCsv')}
             </button>
           </div>
-          <span className={d.reconciled ? 'badge badge--active' : 'badge badge--inactive'}>
+          <span className={d.reconciled ? 'badge badge--success' : 'badge badge--danger'}>
             {d.reconciled ? t('planning.cashFlow.reconciled') : t('planning.cashFlow.notReconciled')}
           </span>
           <dl className="metrics metrics--compact">
@@ -735,7 +735,7 @@ export function CommitmentsPage() {
                   </p>
                 </div>
                 {c.due && (
-                  <span className={c.due === 'overdue' ? 'badge badge--inactive' : 'badge badge--suspended'}>
+                  <span className={c.due === 'overdue' ? 'badge badge--danger' : 'badge badge--warning'}>
                     {t(`planning.commitments.due.${c.due}`)}
                   </span>
                 )}

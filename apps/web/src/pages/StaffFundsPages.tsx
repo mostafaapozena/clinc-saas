@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { displayName } from '../lib/defaultNames';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PageHeader } from '../components/PageHeader';
@@ -58,7 +59,7 @@ function BoxSelect({ id, value, onChange }: { id: string; value: string; onChang
           .filter((b) => b.status === 'active')
           .map((b) => (
             <option key={b.id} value={b.id}>
-              {b.name}
+              {displayName(t, b.name)}
             </option>
           ))}
       </select>
@@ -359,8 +360,8 @@ export function StaffFundsPage() {
                     })}
                   </p>
                 </div>
-                {f.overdue && <span className="badge badge--inactive">{t('staffFunds.overdue')}</span>}
-                <span className={f.status === 'open' ? 'badge badge--suspended' : 'badge badge--active'}>
+                {f.overdue && <span className="badge badge--danger">{t('staffFunds.overdue')}</span>}
+                <span className={f.status === 'open' ? 'badge badge--warning' : 'badge badge--success'}>
                   {f.status === 'open' ? t('staffFunds.outstanding', { amount: money(f.outstanding, d.currency) }) : t('staffFunds.statuses.settled')}
                 </span>
                 {f.status === 'open' && can('accounting.manage') && <FundActions fund={f} currency={d.currency} onDone={refresh} />}

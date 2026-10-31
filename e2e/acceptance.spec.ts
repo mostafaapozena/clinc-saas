@@ -85,7 +85,7 @@ test('J2: new patient → booking → arrival → dentistry consultation → fin
 
   // Front desk (the owner here): patient, booking, arrival.
   await page.goto(`/app/${orgId}`);
-  await page.getByRole('navigation').getByRole('link', { name: 'المرضى' }).click();
+  await page.getByRole('navigation').getByRole('link', { name: 'المرضى', exact: true }).click();
   await page.getByRole('button', { name: 'مريض جديد' }).click();
   await page.locator('#new-patient-name').fill('سلمى القبول');
   await page.locator('#new-patient-phone').fill('٠١٠٠٢٢٢٣٣٤٤');
@@ -212,7 +212,7 @@ test('J7: an owner invites by email; the invitee registers from the dev-mail lin
   await expect(invitee).toHaveURL(/\/invitations\/accept\?token=/);
   await invitee.getByRole('button', { name: 'قبول الدعوة' }).click();
   await expect(invitee).toHaveURL(new RegExp(`/app/${orgId}$`));
-  await expect(invitee.getByRole('navigation').getByRole('link', { name: 'المرضى' })).toBeVisible();
+  await expect(invitee.getByRole('navigation').getByRole('link', { name: 'المرضى', exact: true })).toBeVisible();
   await expect(invitee.getByRole('navigation').getByRole('link', { name: 'الفريق' })).toHaveCount(0);
   // The link works once.
   await invitee.goto(`/invitations/accept?token=${token}`);

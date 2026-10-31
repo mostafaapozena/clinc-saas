@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { displayName } from '../lib/defaultNames';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
@@ -138,7 +139,7 @@ function OperationForm({ items, warehouses }: { items: StockItem[]; warehouses: 
           <select id="op-warehouse" value={warehouseId} onChange={(e) => setWarehouseId(e.target.value)}>
             {active.map((w) => (
               <option key={w.id} value={w.id}>
-                {w.name}
+                {displayName(t, w.name)}
               </option>
             ))}
           </select>
@@ -151,7 +152,7 @@ function OperationForm({ items, warehouses }: { items: StockItem[]; warehouses: 
                 .filter((w) => w.id !== warehouseId)
                 .map((w) => (
                   <option key={w.id} value={w.id}>
-                    {w.name}
+                    {displayName(t, w.name)}
                   </option>
                 ))}
             </select>
@@ -255,7 +256,7 @@ export function InventoryPage() {
   if (items.isError) return <ErrorState message={errorMessage(t, items.error)} onRetry={() => items.refetch()} />;
   if (warehouses.isError) return <ErrorState message={errorMessage(t, warehouses.error)} onRetry={() => warehouses.refetch()} />;
   const itemOf = new Map(items.data.map((i) => [i.id, i]));
-  const warehouseName = new Map(warehouses.data.map((w) => [w.id, w.name]));
+  const warehouseName = new Map(warehouses.data.map((w) => [w.id, displayName(t, w.name)]));
   const branchName = new Map(branches.map((b) => [b.id, b.name]));
   const expired = (alerts.data?.expiring ?? []).filter((b) => b.expired);
   return (
@@ -324,7 +325,7 @@ export function InventoryPage() {
                         {t('inventory.lot')} <bdi dir="ltr">{b.lot}</bdi> · {warehouseName.get(b.warehouseId)} · {b.qty}
                       </p>
                     </div>
-                    <span className={b.expired ? 'badge badge--suspended' : 'badge badge--inactive'}>
+                    <span className={b.expired ? 'badge badge--danger' : 'badge badge--warning'}>
                       {b.expired ? t('inventory.expired') : t('inventory.expires')} <bdi dir="ltr">{b.expiry}</bdi>
                     </span>
                   </li>
@@ -346,7 +347,7 @@ export function InventoryPage() {
                 <option value="">{t('inventory.allWarehouses')}</option>
                 {warehouses.data.map((w) => (
                   <option key={w.id} value={w.id}>
-                    {w.name} · {branchName.get(w.branchId) ?? ''}
+                    {displayName(t, w.name)} · {branchName.get(w.branchId) ?? ''}
                   </option>
                 ))}
               </select>
@@ -564,7 +565,7 @@ export function InventoryItemsPage() {
                         {i.category && <span className="muted"> · {i.category}</span>}
                       </td>
                       <td data-label={t('inventory.onHand')}>
-                        {i.onHand} {i.baseUnit} {i.belowReorder && <span className="badge badge--inactive">{t('inventory.belowReorder')}</span>}
+                        {i.onHand} {i.baseUnit} {i.belowReorder && <span className="badge badge--warning">{t('inventory.belowReorder')}</span>}
                       </td>
                       <td data-label={t('inventory.reorderLevel')}>{i.reorderLevel || '—'}</td>
                       {i.stockValue !== undefined && <td data-label={t('inventory.value')}>{money(i.stockValue, currency)}</td>}
@@ -587,7 +588,7 @@ export function InventoryItemsPage() {
               {warehouses.data.map((w) => (
                 <li key={w.id} className="data-row">
                   <div className="data-main">
-                    <h3>{w.name}</h3>
+                    <h3>{displayName(t, w.name)}</h3>
                     <p className="muted">{branchName.get(w.branchId)}</p>
                   </div>
                   <span className={w.status === 'active' ? 'badge badge--active' : 'badge'}>{t(`inventory.status.${w.status}`)}</span>

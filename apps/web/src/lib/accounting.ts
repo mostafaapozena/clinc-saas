@@ -1,4 +1,5 @@
 import type { TFunction } from 'i18next';
+import { displayName } from './defaultNames';
 
 // General ledger, cash and banks (docs/architecture/ACCOUNTING.md). Amounts are integer minor units;
 // every total comes from the API.
@@ -106,15 +107,15 @@ export type CashVoucher = {
 
 /** The account's name in the interface language: template accounts are translated by key. */
 export function accountName(t: TFunction, a: { name: string | null; templateKey: string | null }): string {
-  return a.templateKey ? t(`accounting.chart.${a.templateKey}`, { defaultValue: a.name ?? '' }) : (a.name ?? '');
+  return a.templateKey ? t(`accounting.chart.${a.templateKey}`, { defaultValue: a.name ?? '' }) : displayName(t, a.name);
 }
 
 /** The kind of business event behind an entry, for display. */
 export function sourceLabel(t: TFunction, source: { type: string; event: string }): string {
-  const event = source.event.startsWith('allocation-') ? 'allocation' : source.event;
+  const event = /^(allocation|payment|depreciation|return|expense|write_off)-/.test(source.event) ? source.event.replace(/-.*$/, '') : source.event;
   return t(`accounting.sources.${source.type}.${event}`, {
     defaultValue: t(`accounting.sources.${source.type}.default`, {
-      defaultValue: source.type,
+      defaultValue: t('accounting.sources.other'),
     }),
   });
 }

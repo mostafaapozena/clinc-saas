@@ -102,7 +102,7 @@ function WorklistRows({ worklist, compact }: { worklist: NonNullable<NonNullable
               {i.nextVisit ? ` · ${t('workspace.worklist.nextVisit', { date: fmt.date(i.nextVisit) })}` : ''}
             </p>
           </div>
-          {worklist.kind === 'ent' && <span className="badge badge--inactive">{t('workspace.worklist.noFollowUpBooked')}</span>}
+          {worklist.kind === 'ent' && <span className="badge badge--warning">{t('workspace.worklist.noFollowUpBooked')}</span>}
         </li>
       ))}
       {compact && worklist.total > worklist.items.length && (
@@ -202,8 +202,8 @@ export function FocusPanel() {
               value={f.finance.openReceivables}
               hint={t('workspace.fromDocuments')}
               format={money}
-              to={`/app/${orgId}/accounting/reports`}
-              linkLabel={t('accounting.nav.reports')}
+              to={`/app/${orgId}/accounting/reports?report=aging`}
+              linkLabel={t('reportsHub.reports.aging.title')}
             />
             <Metric icon="patients" label={t('workspace.unallocated')} value={f.finance.unallocatedReceipts} format={money} />
             <Metric

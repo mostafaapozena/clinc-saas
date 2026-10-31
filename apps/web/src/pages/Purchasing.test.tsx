@@ -116,7 +116,7 @@ describe('purchasing', () => {
       [`POST /api/v1/orgs/${ORG}/purchasing/requests/r1/approve`]: { request: request({ status: 'approved' }) },
     });
     renderRoute(`/app/${ORG}/purchasing`);
-    expect(await screen.findByText('1 طلب بانتظار اعتمادك.')).toBeInTheDocument();
+    expect(await screen.findByText('طلب واحد بانتظار اعتمادك.')).toBeInTheDocument();
     const row = within(screen.getByTestId('purchase-requests'));
     fireEvent.click(row.getByRole('button', { name: 'اعتماد' }));
     await waitFor(() => expect(callsTo(fetchMock, 'POST', '/purchasing/requests/r1/approve')).toHaveLength(1));
