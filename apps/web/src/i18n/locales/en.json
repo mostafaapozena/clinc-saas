@@ -263,7 +263,8 @@
         "patient": "Register the first patient",
         "booking": "Book the first appointment"
       }
-    }
+    },
+    "context": "Your organization, access and branch"
   },
   "branches": {
     "title": "Branches",
@@ -4236,7 +4237,8 @@
     },
     "commitmentsDue": "{{count}} recurring commitments due within 7 days or overdue",
     "staffFundsOverdue": "{{count}} advances or custody amounts are past their settlement date",
-    "installmentsOverdue": "{{count}} installment plans have a missed installment"
+    "installmentsOverdue": "{{count}} installment plans have a missed installment",
+    "fromDocuments": "From open invoices (documents)"
   },
   "assets": {
     "title": "Equipment and maintenance",

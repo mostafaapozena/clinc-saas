@@ -263,7 +263,8 @@
         "patient": "سجّل أول مريض",
         "booking": "احجز أول موعد"
       }
-    }
+    },
+    "context": "عن منشأتك وصلاحياتك وفرعك"
   },
   "branches": {
     "title": "الفروع",
@@ -4236,7 +4237,8 @@
     },
     "commitmentsDue": "{{count}} التزام دوري مستحق خلال 7 أيام أو متأخر",
     "staffFundsOverdue": "{{count}} سلفة أو عهدة تجاوزت موعد التسوية",
-    "installmentsOverdue": "{{count}} خطة تقسيط بها قسط متأخر"
+    "installmentsOverdue": "{{count}} خطة تقسيط بها قسط متأخر",
+    "fromDocuments": "من الفواتير المفتوحة (المستندات)"
   },
   "assets": {
     "title": "الأجهزة والصيانة",

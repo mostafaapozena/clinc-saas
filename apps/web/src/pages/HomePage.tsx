@@ -6,6 +6,7 @@ import { Link } from 'react-router';
 import { useSession } from '../auth/session';
 import { Icon, type IconName } from '../components/Icon';
 import { Metric, type MetricTone } from '../components/Metric';
+import { CardGrid, MetricGrid } from '../components/layout';
 import { PageHeader } from '../components/PageHeader';
 import { SpecialtySummaryCard } from '../components/specialty';
 import { TimeZoneRequired } from '../components/scheduling';
@@ -28,100 +29,90 @@ export function HomePage() {
   const selected = branches.find((b) => b.id === selectedBranchId);
   useDocumentTitle(t('nav.home'));
 
-  const links = [
-    ...(can('queue.read') ? [{ to: `/app/${orgId}/queue`, label: t('nav.queue') }] : []),
-    ...(can('appointment.book') ? [{ to: `/app/${orgId}/appointments/new`, label: t('appointments.book') }] : []),
-    ...(can('appointment.read') ? [{ to: `/app/${orgId}/appointments`, label: t('nav.appointments') }] : []),
-    ...(can('patient.list') ? [{ to: `/app/${orgId}/patients`, label: t('nav.patients') }] : []),
-    { to: `/app/${orgId}/branches`, label: t('nav.branches') },
-    ...(can('member.read') ? [{ to: `/app/${orgId}/team`, label: t('nav.team') }] : []),
-    ...(can('organization.update') ? [{ to: `/app/${orgId}/settings`, label: t('nav.settings') }] : []),
-    { to: `/app/${orgId}/profile`, label: t('nav.profile') },
-  ];
+  // One main action for the role in the header; the sidebar holds every other destination.
+  const primary = can('appointment.book')
+    ? { to: `/app/${orgId}/appointments/new`, label: t('appointments.book'), icon: 'plus' as const }
+    : can('clinical.encounter.own')
+      ? { to: `/app/${orgId}/queue`, label: t('nav.queue'), icon: 'queue' as const }
+      : can('finance.report.read') || can('accounting.read')
+        ? { to: `/app/${orgId}/reports`, label: t('nav.reports'), icon: 'chart' as const }
+        : null;
 
   return (
     <>
-      <PageHeader title={t('home.welcome', { name: user?.displayName ?? '' })} subtitle={organization.name} />
+      <PageHeader title={t('home.welcome', { name: user?.displayName ?? '' })} subtitle={organization.name}>
+        {primary && (
+          <Link className="button button--primary" to={primary.to}>
+            <Icon name={primary.icon} /> {primary.label}
+          </Link>
+        )}
+      </PageHeader>
       <SpecialtySetupNotice />
       <SpecialtyContextChooser />
+      {/* 1. What needs a decision or an action now. */}
       <FocusPanel />
+      {/* 2. Today's work. */}
+      {can('dashboard.read') && <TodayCounts />}
       <SpecialtyQuickActions />
       {can('practitioner.manage') && can('member.read') && <GettingStarted />}
-      {can('dashboard.read') && <TodayCounts />}
-      <div className="card-grid home-grid">
-        <section className="card" aria-labelledby="links-title">
-          <h2 id="links-title" className="card-title">
-            <Icon name="arrowForward" /> {t('home.quickLinks')}
-          </h2>
-          <ul className="link-list">
-            {links.map((link) => (
-              <li key={link.to}>
-                <Link to={link.to}>
-                  <span>{link.label}</span>
-                  <Icon name="arrowForward" />
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
-        <section className="card" aria-labelledby="overview-title">
-          <h2 id="overview-title" className="card-title">
-            <Icon name="chart" /> {t('home.overview')}
-          </h2>
-          <dl className="metrics metrics--compact">
-            <Metric icon="building" label={t('home.accessibleBranches')} value={stats.accessibleBranches} tone="brand" testId="stat-branches" />
-            {stats.activeMembers !== undefined && <Metric icon="users" label={t('home.activeMembers')} value={stats.activeMembers} tone="brand" testId="stat-members" />}
-          </dl>
-        </section>
-        <SpecialtyOverview />
-        <section className="card" aria-labelledby="access-title">
-          <h2 id="access-title">{t('home.yourAccess')}</h2>
-          <dl className="details">
-            <div>
-              <dt>{t('home.organization')}</dt>
-              <dd data-testid="home-org-name">{organization.name}</dd>
-            </div>
-            <div>
-              <dt>{t('home.yourRole')}</dt>
-              <dd>
-                <span className="badge" data-testid="home-role">{t(`roles.${membership.role}`)}</span>
-              </dd>
-            </div>
-            <div>
-              <dt>{t('home.branchAccess')}</dt>
-              <dd data-testid="home-branch-access">
-                {membership.branchScope.type === 'all'
-                  ? t('home.allBranchesAccess')
-                  : fmt.list(branches.map((b) => b.name))}
-              </dd>
-            </div>
-          </dl>
-        </section>
-
-        <section className="card" aria-labelledby="current-branch-title">
-          <h2 id="current-branch-title">{t('home.currentBranch')}</h2>
-          {selected ? (
-            <dl className="details" data-testid="current-branch">
+      {/* 3. Context: the organization, your access and branch — available, but not competing with the work. */}
+      <details className="card home-context" data-testid="home-context">
+        <summary>
+          <Icon name="info" /> {t('home.context')}
+        </summary>
+        <CardGrid className="home-grid">
+          <section className="card" aria-labelledby="access-title">
+            <h2 id="access-title">{t('home.yourAccess')}</h2>
+            <dl className="details">
               <div>
-                <dt>{t('branches.name')}</dt>
-                <dd>{selected.name}</dd>
+                <dt>{t('home.organization')}</dt>
+                <dd data-testid="home-org-name">{organization.name}</dd>
               </div>
               <div>
-                <dt>{t('branches.city')}</dt>
-                <dd>{selected.city || t('common.notSet')}</dd>
+                <dt>{t('home.yourRole')}</dt>
+                <dd>
+                  <span className="badge" data-testid="home-role">
+                    {t(`roles.${membership.role}`)}
+                  </span>
+                </dd>
               </div>
               <div>
-                <dt>{t('branches.createdAt')}</dt>
-                <dd>{fmt.date(selected.createdAt)}</dd>
+                <dt>{t('home.branchAccess')}</dt>
+                <dd data-testid="home-branch-access">
+                  {membership.branchScope.type === 'all' ? t('home.allBranchesAccess') : fmt.list(branches.map((b) => b.name))}
+                </dd>
               </div>
             </dl>
-          ) : (
-            <p data-testid="current-branch">{t('home.allBranchesSelected')}</p>
-          )}
-        </section>
-
-        {can('clinical.documentation_status.read') && <SpecialtySummaryCard />}
-      </div>
+            <MetricGrid columns="compact">
+              <Metric icon="building" label={t('home.accessibleBranches')} value={stats.accessibleBranches} tone="brand" testId="stat-branches" />
+              {stats.activeMembers !== undefined && <Metric icon="users" label={t('home.activeMembers')} value={stats.activeMembers} tone="brand" testId="stat-members" />}
+            </MetricGrid>
+          </section>
+          <section className="card" aria-labelledby="current-branch-title">
+            <h2 id="current-branch-title">{t('home.currentBranch')}</h2>
+            {selected ? (
+              <dl className="details" data-testid="current-branch">
+                <div>
+                  <dt>{t('branches.name')}</dt>
+                  <dd>{selected.name}</dd>
+                </div>
+                <div>
+                  <dt>{t('branches.city')}</dt>
+                  <dd>{selected.city || t('common.notSet')}</dd>
+                </div>
+                <div>
+                  <dt>{t('branches.createdAt')}</dt>
+                  <dd>{fmt.date(selected.createdAt)}</dd>
+                </div>
+              </dl>
+            ) : (
+              <p data-testid="current-branch">{t('home.allBranchesSelected')}</p>
+            )}
+          </section>
+          <SpecialtyOverview />
+          {can('clinical.documentation_status.read') && <SpecialtySummaryCard />}
+        </CardGrid>
+      </details>
     </>
   );
 }

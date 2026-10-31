@@ -77,7 +77,17 @@ security design in [docs/architecture/](docs/architecture/).
   certifications or delivery promises, and must label unbuilt features as planned.
 - Do not claim multi-tenant isolation beyond what the tests in `apps/api/test/` prove.
 
-## 6. Keep continuity documents current
+## 6. User interface: the design system is mandatory
+
+Every screen is composed from the primitives in `apps/web/src/components/layout.tsx`, `ChartCard`,
+`Metric` and `ui.tsx`, following [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md) and the patterns in
+[docs/UI_PAGE_PATTERNS.md](docs/UI_PAGE_PATTERNS.md). Go through
+[docs/UI_CONTRIBUTION_CHECKLIST.md](docs/UI_CONTRIBUTION_CHECKLIST.md) before a UI PR. Do not fix
+layout with page-level margin overrides; change the shared rule. `design-system.test.ts` and
+`e2e/layout.spec.ts` must stay green; a justified exception is recorded in
+[docs/DESIGN_SYSTEM_REMEDIATION.md](docs/DESIGN_SYSTEM_REMEDIATION.md).
+
+## 7. Keep continuity documents current
 
 Before ending a session, update [docs/PROGRESS.md](docs/PROGRESS.md) and, if resuming changed,
 [docs/HANDOFF.md](docs/HANDOFF.md). Push everything — a Codespace is not a backup.
