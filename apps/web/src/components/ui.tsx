@@ -98,15 +98,26 @@ export function ErrorState({ message, onRetry }: { message: string; onRetry?: ()
   );
 }
 
-/** Nothing to show yet. `icon` names the context (patients, invoices…); without it a neutral mark. */
-export function EmptyState({ children, icon }: { children: ReactNode; icon?: IconName }) {
-  if (!icon) return <p className="empty-state">{children}</p>;
+/**
+ * Nothing to show yet. `icon` names the context (patients, invoices…); without it a neutral mark.
+ * `action` is the next step (a link or button) when the viewer can take one (UX-028).
+ */
+export function EmptyState({ children, icon, action }: { children: ReactNode; icon?: IconName; action?: ReactNode }) {
+  const next = action ? <span className="empty-state-action">{action}</span> : null;
+  if (!icon)
+    return (
+      <p className="empty-state">
+        {children}
+        {next}
+      </p>
+    );
   return (
     <p className="empty-state empty-state--icon">
       <span className="empty-state-icon" aria-hidden="true">
         <Icon name={icon} />
       </span>
       {children}
+      {next}
     </p>
   );
 }

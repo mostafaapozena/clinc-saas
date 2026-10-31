@@ -22,28 +22,28 @@ A finding is `done` only when the named check exists and passes in `npm run veri
 | UX-006 | Control heights ignore tokens | FE-014 | – | Inputs and selects use `--control-md` | visual | done |
 | UX-007 | No rule for the primary page action | FE-001 | F-02 | `PageHeader` actions slot, `ActionBar` | – | planned |
 | UX-008 | Four create/edit patterns | FE-001, FE-010 | – | `FormPage` / `FormDrawer` | – | planned |
-| UX-009 | Same data listed three ways | FE-005 | F-12 | `DataTable` / data list rules in `UI_PAGE_PATTERNS.md` | – | planned |
-| UX-010 | Date formats inconsistent | FE-008 | F-18 | `DateText`, `DateField`, `lib/format.ts` presets | – | planned |
-| UX-011 | Numeric columns misaligned | FE-005 | F-06 | `.num` cells in `DataTable`, `Money` | – | planned |
+| UX-009 | Same data listed three ways | FE-005 | F-12 | `DataTable` (`components/data.tsx`); pilot: Inventory stock, items, moves | `data.test.tsx`, `e2e/layout.spec.ts` | partial: other modules |
+| UX-010 | Date formats inconsistent | FE-008 | F-18 | `DateText` / `calendarDate` (month by name); pilot: Inventory | `data.test.tsx`, `e2e/layout.spec.ts` | partial: other modules |
+| UX-011 | Numeric columns misaligned | FE-005 | F-06 | `numeric` columns, `Quantity`, `Money` | `e2e/layout.spec.ts` | partial: other modules |
 | UX-012 | Untranslated system values and units | FE-008 | F-24 | `accounting.sources.*` incl. `stock`, generic fallback; system default names shown localized (`lib/defaultNames.ts`) without renaming stored data | unit tests | done (user-entered names stay as entered) |
 | UX-013 | Plural errors | FE-008 | – | `_one` / `_two` / `_few` forms for counts | locale parity test | done |
-| UX-014 | Consequential actions look neutral | FE-010, FE-014 | – | `ConfirmPanel`, danger button tone | – | planned |
+| UX-014 | Consequential actions look neutral | FE-010, FE-014 | – | `ConfirmAction` (in place, danger tone, focus on cancel) | `data.test.tsx` | partial: adoption |
 | UX-015 | Team rows crowd | FE-005 | F-12 | Container-query rows (as UX-001) | `e2e/layout.spec.ts` | done |
 | UX-016 | Settings: one long page, seven Save buttons | FE-001 | – | `SettingsSection` with its own dirty state | – | planned |
 | UX-017 | Booking: disabled submit without reason | FE-009 | – | Reason shown next to the button | – | planned |
 | UX-018 | Detail pages lose their place | FE-006 | – | Back link and `PatientContextHeader` | – | planned |
 | UX-019 | Sidebar grew by addition | FE-007 | F-19 | Module registry (`lib/modules.ts`) with the six task groups | `modules.test.ts` | done |
-| UX-020 | Two tab styles; tab bars clip | FE-006 | F-05 | `RouteTabs` with overflow | – | planned |
+| UX-020 | Two tab styles; tab bars clip | FE-006 | F-05 | `ModuleTabs` scrolls with the active tab in view | `e2e/layout.spec.ts` | partial: overflow cue |
 | UX-021 | Disclaimer banners on top of pages | – | – | Move static notes to help | – | planned |
 | UX-022 | Dashboard priorities and link labels | – | F-13 | Verb links, scope labels | – | planned |
 | UX-023 | Reports chart grid gaps | FE-001 | F-15 | `CardGrid` | – | planned |
-| UX-024 | Low contrast of field borders | FE-003 | – | `--border-strong` (3:1) on controls | axe (planned) | partial |
+| UX-024 | Low contrast of field borders | FE-003 | – | `--border-strong` (3:1) on controls | `e2e/a11y.spec.ts` (axe) | done |
 | UX-025 | Touch targets below 44px | FE-014 | F-20 | 44px minimum for page controls on phones | `e2e/layout.spec.ts` | partial: verify all modules |
 | UX-026 | Header choosers truncate | – | F-08 | `field-sizing: content` with bounds | visual | done |
-| UX-027 | Empty heading elements | FE-012 | – | Headings render only with text | axe (planned) | planned |
-| UX-028 | Empty states without a next step | FE-001 | – | `EmptyState` action | – | planned |
+| UX-027 | Empty heading elements | FE-012 | – | Headings render only with text | `e2e/a11y.spec.ts` (axe empty-heading) | planned |
+| UX-028 | Empty states without a next step | FE-001 | – | `EmptyState` `action`; pilot: Inventory | – | partial: other modules |
 | UX-029 | Blank screen on full load | – | – | Shell-first loading | – | planned |
-| UX-030 | Key/value layouts vary | FE-001 | – | `DescriptionList` | – | planned |
+| UX-030 | Key/value layouts vary | FE-001 | – | `DescriptionList` | `data.test.tsx` | partial: adoption |
 | UX-031 | Brand hue changes between themes | FE-003 | – | Owner decision: navy in light, turquoise in dark (kept) | – | decision recorded |
 
 ## Architecture findings without a UX row
@@ -54,5 +54,5 @@ A finding is `done` only when the named check exists and passes in `npm run veri
 | FE-004 | Public site is a second design system | Shared tokens | planned |
 | FE-007 | Visibility rules duplicated (equipment hidden for `asset.read`) | One registry: sidebar, route `ModuleGate`, reports center, module tabs. The API stays authoritative. | done (`modules.test.ts`) |
 | FE-011 | Operator console is a parallel app | Migrate to shared components | planned |
-| FE-013 | No catalog, no accessibility tooling | Dev-only gallery, `@axe-core/playwright` | planned |
+| FE-013 | No catalog, no accessibility tooling | `e2e/a11y.spec.ts` (axe on 17 owner pages and the phone pilot); PR template; dev-only gallery | partial: gallery |
 | FE-015 | Badges consistent | Tone names (`Badge`, `badge--success/warning/danger/info/neutral`) | done |

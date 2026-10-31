@@ -72,6 +72,33 @@ test('compensation: buttons of the same size match in height (F-02) @mobile', as
   errors.expectNone();
 });
 
+test('inventory pilot: filters live in the address, numbers end-aligned, cash cards readable (UX-001, UX-011)', async ({ page }) => {
+  const errors = watchBrowserErrors(page);
+  await page.setViewportSize({ width: 1366, height: 900 });
+  await login(page, 'owner.nour@demo.test');
+  const org = orgIdFromUrl(page);
+  await page.goto(`/app/${org}/inventory/moves`);
+  const item = page.locator('#moves-item');
+  const value = await item.locator('option').nth(1).getAttribute('value');
+  await item.selectOption(value!);
+  await expect(page).toHaveURL(new RegExp(`item=${value}`));
+  await page.reload();
+  await expect(page.locator('#moves-item')).toHaveValue(value!);
+  // Quantities are end-aligned with tabular figures; dates are formatted, not ISO.
+  const qty = page.getByTestId('stock-moves').locator('td.num').first();
+  await expect(qty).toHaveCSS('text-align', 'end');
+  await expect(page.getByTestId('stock-moves').locator('time').first()).not.toHaveText(/^\d{4}-\d{2}-\d{2}$/);
+  await page.getByRole('button', { name: 'إعادة ضبط التصفية' }).click();
+  await expect(page).not.toHaveURL(/item=/);
+  // UX-001: every account card on the cash page keeps a readable title column (not a sliver).
+  await page.goto(`/app/${org}/cash`);
+  await expect(page.locator('.data-list .data-row .data-main').first()).toBeVisible();
+  const widths = await page.locator('.data-list .data-row .data-main').evaluateAll((m) => m.map((e) => Math.round(e.getBoundingClientRect().width)));
+  expect(widths.length).toBeGreaterThan(0);
+  for (const w of widths) expect(w).toBeGreaterThan(160);
+  errors.expectNone();
+});
+
 test('small phones: appointments and statements do not overflow the page at 360px (F-09, F-10) @mobile', async ({ page }) => {
   const errors = watchBrowserErrors(page);
   await page.setViewportSize({ width: 360, height: 780 });

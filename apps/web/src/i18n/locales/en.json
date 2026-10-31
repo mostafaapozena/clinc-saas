@@ -52,7 +52,12 @@
     "pagination": "Pagination",
     "pageOf": "Page {{page}} of {{pages}} ({{total}} results)",
     "separator": ", ",
-    "actions": "Actions"
+    "actions": "Actions",
+    "filters": "Filters",
+    "resetFilters": "Reset filters",
+    "sortable": "(sortable)",
+    "sortedAsc": "(sorted ascending)",
+    "sortedDesc": "(sorted descending)"
   },
   "nav": {
     "home": "Home",
@@ -92,7 +97,8 @@
     },
     "assets": "Equipment",
     "reports": "Reports",
-    "installments": "Installment plans"
+    "installments": "Installment plans",
+    "userMenu": "Account menu: {{name}}"
   },
   "shell": {
     "skipToContent": "Skip to main content",

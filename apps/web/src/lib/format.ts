@@ -36,6 +36,12 @@ export function useFormatters() {
         month: style === 'long' ? 'long' : 'short',
         ...(style === 'long' ? { year: 'numeric' } : {}),
       }).format(new Date(`${date}T00:00:00Z`)),
+    /** A calendar date ("YYYY-MM-DD": expiry, posting, due date) with its year, independent of any zone. */
+    calendarDate: (date: string) =>
+      // Month by name: "12 ديسمبر 2026" / "Dec 12, 2026" cannot be read in the wrong day/month order.
+      new Intl.DateTimeFormat(intl, { timeZone: 'UTC', day: 'numeric', month: 'short', year: 'numeric' }).format(
+        new Date(`${date.slice(0, 10)}T00:00:00Z`),
+      ),
     weekday: (weekday: number) =>
       // 2026-11-08 is a Sunday; weekday 0 = Sunday.
       new Intl.DateTimeFormat(intl, { timeZone: 'UTC', weekday: 'long' }).format(new Date(Date.UTC(2026, 10, 8 + weekday))),

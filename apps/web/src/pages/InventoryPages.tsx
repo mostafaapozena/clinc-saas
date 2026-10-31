@@ -5,8 +5,9 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { Metric } from '../components/Metric';
 import { PageHeader } from '../components/PageHeader';
-import { ModuleTabs } from '../components/layout';
-import { EmptyState, ErrorState, Field, Loading, Notice } from '../components/ui';
+import { DataTable, DateText, FilterBar, Money, Pagination, Quantity } from '../components/data';
+import { CardGrid, MetricGrid, ModuleTabs } from '../components/layout';
+import { Badge, EmptyState, ErrorState, Field, Loading, Notice } from '../components/ui';
 import { api, query } from '../lib/api';
 import { newRequestKey } from '../lib/clinical';
 import { errorMessage } from '../lib/errors';
@@ -14,8 +15,9 @@ import { parseMoney } from '../lib/finance';
 import { inventoryKeys, type StockBalance, type StockItem, type StockMove, type Warehouse } from '../lib/inventory';
 import { showToast } from '../lib/toast';
 import type { Page } from '../lib/types';
-import { useAccountingSettings, useMoney } from '../lib/useAccounting';
+import { useAccountingSettings } from '../lib/useAccounting';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
+import { pageParam, useUrlState } from '../lib/useUrlState';
 import { useOrg } from '../org/context';
 
 // Inventory and medical consumables (docs/architecture/INVENTORY.md). Quantities are in each item's
@@ -242,7 +244,8 @@ export function InventoryPage() {
   useDocumentTitle(t('inventory.title'));
   const items = useItems();
   const warehouses = useWarehouses();
-  const [warehouseId, setWarehouseId] = useState('');
+  const url = useUrlState();
+  const warehouseId = url.get('warehouse');
   const params = { warehouseId: warehouseId || undefined };
   const balances = useQuery({
     queryKey: inventoryKeys.balances(orgId, params),
@@ -270,7 +273,7 @@ export function InventoryPage() {
       </PageHeader>
       <InventoryNav />
       {alerts.isSuccess && (
-        <dl className="metrics metrics--auto" data-testid="inventory-metrics">
+        <MetricGrid testId="inventory-metrics">
           <Metric icon="box" label={t('inventory.metrics.items')} value={items.data.filter((i) => i.status === 'active').length} />
           <Metric
             icon="alert"
@@ -285,16 +288,18 @@ export function InventoryPage() {
             value={alerts.data.expiring.length - expired.length}
           />
           <Metric icon="ban" tone={expired.length ? 'bad' : 'neutral'} label={t('inventory.metrics.expired')} value={expired.length} />
-        </dl>
+        </MetricGrid>
       )}
       {warehouses.data.length === 0 && (
-        <EmptyState icon="box">
-          <p>{t('inventory.noWarehouses')}</p>
-          {can('inventory.manage') && <Link to={`/app/${orgId}/inventory/items`}>{t('inventory.addWarehouseLink')}</Link>}
+        <EmptyState
+          icon="box"
+          action={can('inventory.manage') && <Link to={`/app/${orgId}/inventory/items`}>{t('inventory.addWarehouseLink')}</Link>}
+        >
+          {t('inventory.noWarehouses')}
         </EmptyState>
       )}
       {alerts.isSuccess && (alerts.data.reorder.length > 0 || alerts.data.expiring.length > 0) && (
-        <div className="card-grid card-grid--wide">
+        <CardGrid wide>
           {alerts.data.reorder.length > 0 && (
             <section className="card" aria-labelledby="reorder-title">
               <h2 id="reorder-title">{t('inventory.reorderTitle')}</h2>
@@ -322,18 +327,19 @@ export function InventoryPage() {
                     <div className="data-main">
                       <h3>{itemOf.get(b.itemId)?.name}</h3>
                       <p className="muted">
-                        {t('inventory.lot')} <bdi dir="ltr">{b.lot}</bdi> · {warehouseName.get(b.warehouseId)} · {b.qty}
+                        {t('inventory.lot')} <bdi dir="ltr">{b.lot}</bdi> · {warehouseName.get(b.warehouseId)} ·{' '}
+                        <Quantity value={b.qty} unit={itemOf.get(b.itemId)?.baseUnit} />
                       </p>
                     </div>
-                    <span className={b.expired ? 'badge badge--danger' : 'badge badge--warning'}>
-                      {b.expired ? t('inventory.expired') : t('inventory.expires')} <bdi dir="ltr">{b.expiry}</bdi>
-                    </span>
+                    <Badge tone={b.expired ? 'danger' : 'warning'}>
+                      {b.expired ? t('inventory.expired') : t('inventory.expires')} <DateText value={b.expiry} />
+                    </Badge>
                   </li>
                 ))}
               </ul>
             </section>
           )}
-        </div>
+        </CardGrid>
       )}
       {can('inventory.move') && warehouses.data.length > 0 && items.data.length > 0 && (
         <OperationForm items={items.data} warehouses={warehouses.data} />
@@ -341,9 +347,9 @@ export function InventoryPage() {
       {warehouses.data.length > 0 && (
         <section className="card" aria-labelledby="stock-title">
           <h2 id="stock-title">{t('inventory.stockTitle')}</h2>
-          <div className="filters">
+          <FilterBar active={Boolean(warehouseId)} onReset={() => url.set({ warehouse: null })}>
             <Field id="stock-warehouse" label={t('inventory.warehouse')}>
-              <select id="stock-warehouse" value={warehouseId} onChange={(e) => setWarehouseId(e.target.value)}>
+              <select id="stock-warehouse" value={warehouseId} onChange={(e) => url.set({ warehouse: e.target.value })}>
                 <option value="">{t('inventory.allWarehouses')}</option>
                 {warehouses.data.map((w) => (
                   <option key={w.id} value={w.id}>
@@ -352,41 +358,45 @@ export function InventoryPage() {
                 ))}
               </select>
             </Field>
-          </div>
+          </FilterBar>
           {balances.isPending && <Loading />}
+          {balances.isError && <ErrorState message={errorMessage(t, balances.error)} onRetry={() => balances.refetch()} />}
           {balances.isSuccess && balances.data.balances.length === 0 && <EmptyState icon="box">{t('inventory.noStock')}</EmptyState>}
           {balances.isSuccess && balances.data.balances.length > 0 && (
-            <div className="table-wrap">
-              <table className="data-table" data-testid="stock-balances">
-                <thead>
-                  <tr>
-                    <th scope="col">{t('inventory.item')}</th>
-                    <th scope="col">{t('inventory.warehouse')}</th>
-                    <th scope="col">{t('inventory.lot')}</th>
-                    <th scope="col">{t('inventory.expiry')}</th>
-                    <th scope="col">{t('inventory.quantity')}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {balances.data.balances.map((b) => (
-                    <tr key={`${b.itemId}-${b.warehouseId}-${b.lot}`}>
-                      <td data-label={t('inventory.item')}>
-                        <bdi dir="ltr">{itemOf.get(b.itemId)?.code}</bdi> {itemOf.get(b.itemId)?.name}
-                      </td>
-                      <td data-label={t('inventory.warehouse')}>{warehouseName.get(b.warehouseId)}</td>
-                      <td data-label={t('inventory.lot')}>{b.lot ? <bdi dir="ltr">{b.lot}</bdi> : '—'}</td>
-                      <td data-label={t('inventory.expiry')}>
-                        {b.expiry ? <bdi dir="ltr">{b.expiry}</bdi> : '—'}{' '}
-                        {b.expired && <span className="badge badge--suspended">{t('inventory.expired')}</span>}
-                      </td>
-                      <td data-label={t('inventory.quantity')}>
-                        {b.qty} {itemOf.get(b.itemId)?.baseUnit}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <DataTable
+              testId="stock-balances"
+              caption={t('inventory.stockTitle')}
+              rows={balances.data.balances}
+              rowKey={(b) => `${b.itemId}-${b.warehouseId}-${b.lot}`}
+              columns={[
+                {
+                  key: 'item',
+                  label: t('inventory.item'),
+                  cell: (b) => (
+                    <>
+                      <bdi dir="ltr">{itemOf.get(b.itemId)?.code}</bdi> {itemOf.get(b.itemId)?.name}
+                    </>
+                  ),
+                },
+                { key: 'warehouse', label: t('inventory.warehouse'), cell: (b) => warehouseName.get(b.warehouseId) },
+                { key: 'lot', label: t('inventory.lot'), cell: (b) => (b.lot ? <bdi dir="ltr">{b.lot}</bdi> : '—') },
+                {
+                  key: 'expiry',
+                  label: t('inventory.expiry'),
+                  cell: (b) => (
+                    <>
+                      <DateText value={b.expiry} /> {b.expired && <Badge tone="danger">{t('inventory.expired')}</Badge>}
+                    </>
+                  ),
+                },
+                {
+                  key: 'qty',
+                  label: t('inventory.quantity'),
+                  numeric: true,
+                  cell: (b) => <Quantity value={b.qty} unit={itemOf.get(b.itemId)?.baseUnit} />,
+                },
+              ]}
+            />
           )}
         </section>
       )}
@@ -525,7 +535,6 @@ export function InventoryItemsPage() {
   const { t } = useTranslation();
   const { can, branches } = useOrg();
   useDocumentTitle(t('inventory.itemsTitle'));
-  const money = useMoney();
   const settings = useAccountingSettings();
   const items = useItems();
   const warehouses = useWarehouses();
@@ -543,37 +552,48 @@ export function InventoryItemsPage() {
           {items.data.length === 0 ? (
             <EmptyState icon="box">{t('inventory.noItems')}</EmptyState>
           ) : (
-            <div className="table-wrap">
-              <table className="data-table" data-testid="stock-items">
-                <thead>
-                  <tr>
-                    <th scope="col">{t('inventory.code')}</th>
-                    <th scope="col">{t('inventory.name')}</th>
-                    <th scope="col">{t('inventory.onHand')}</th>
-                    <th scope="col">{t('inventory.reorderLevel')}</th>
-                    {items.data.some((i) => i.stockValue !== undefined) && <th scope="col">{t('inventory.value')}</th>}
-                  </tr>
-                </thead>
-                <tbody>
-                  {items.data.map((i) => (
-                    <tr key={i.id} className={i.status === 'archived' ? 'row-muted' : undefined}>
-                      <td data-label={t('inventory.code')}>
-                        <bdi dir="ltr">{i.code}</bdi>
-                      </td>
-                      <td data-label={t('inventory.name')}>
-                        {i.name} {i.tracking === 'lot' && <span className="badge">{t('inventory.lotTracked')}</span>}
-                        {i.category && <span className="muted"> · {i.category}</span>}
-                      </td>
-                      <td data-label={t('inventory.onHand')}>
-                        {i.onHand} {i.baseUnit} {i.belowReorder && <span className="badge badge--warning">{t('inventory.belowReorder')}</span>}
-                      </td>
-                      <td data-label={t('inventory.reorderLevel')}>{i.reorderLevel || '—'}</td>
-                      {i.stockValue !== undefined && <td data-label={t('inventory.value')}>{money(i.stockValue, currency)}</td>}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <DataTable
+              testId="stock-items"
+              caption={t('inventory.items')}
+              rows={items.data}
+              rowKey={(i) => i.id}
+              rowClassName={(i) => (i.status === 'archived' ? 'row-muted' : undefined)}
+              columns={[
+                { key: 'code', label: t('inventory.code'), cell: (i) => <bdi dir="ltr">{i.code}</bdi> },
+                {
+                  key: 'name',
+                  label: t('inventory.name'),
+                  cell: (i) => (
+                    <>
+                      {i.name} {i.tracking === 'lot' && <Badge>{t('inventory.lotTracked')}</Badge>}
+                      {i.category && <span className="muted"> · {i.category}</span>}
+                    </>
+                  ),
+                },
+                {
+                  key: 'onHand',
+                  label: t('inventory.onHand'),
+                  numeric: true,
+                  cell: (i) => (
+                    <>
+                      {i.belowReorder && <Badge tone="warning">{t('inventory.belowReorder')}</Badge>} <Quantity value={i.onHand} unit={i.baseUnit} />
+                    </>
+                  ),
+                },
+                {
+                  key: 'reorderLevel',
+                  label: t('inventory.reorderLevel'),
+                  numeric: true,
+                  cell: (i) => (i.reorderLevel ? <Quantity value={i.reorderLevel} /> : '—'),
+                },
+                items.data.some((i) => i.stockValue !== undefined) && {
+                  key: 'value',
+                  label: t('inventory.value'),
+                  numeric: true,
+                  cell: (i) => <Money minor={i.stockValue} currency={currency} />,
+                },
+              ]}
+            />
           )}
         </section>
       )}
@@ -591,7 +611,7 @@ export function InventoryItemsPage() {
                     <h3>{displayName(t, w.name)}</h3>
                     <p className="muted">{branchName.get(w.branchId)}</p>
                   </div>
-                  <span className={w.status === 'active' ? 'badge badge--active' : 'badge'}>{t(`inventory.status.${w.status}`)}</span>
+                  <Badge tone={w.status === 'active' ? 'success' : 'neutral'}>{t(`inventory.status.${w.status}`)}</Badge>
                 </li>
               ))}
             </ul>
@@ -607,19 +627,19 @@ export function InventoryMovesPage() {
   const { t } = useTranslation();
   const { orgId } = useOrg();
   useDocumentTitle(t('inventory.movesTitle'));
-  const money = useMoney();
   const settings = useAccountingSettings();
   const items = useItems();
   const warehouses = useWarehouses();
-  const [itemId, setItemId] = useState('');
-  const [page, setPage] = useState(1);
+  const url = useUrlState();
+  const itemId = url.get('item');
+  const page = pageParam(url.get('page'));
   const params = { itemId: itemId || undefined, page, pageSize: 50 };
   const moves = useQuery({
     queryKey: inventoryKeys.moves(orgId, params),
     queryFn: ({ signal }) => api<Page<StockMove>>(`/orgs/${orgId}/inventory/moves${query(params)}`, { signal }),
   });
   const itemOf = new Map((items.data ?? []).map((i) => [i.id, i]));
-  const warehouseName = new Map((warehouses.data ?? []).map((w) => [w.id, w.name]));
+  const warehouseName = new Map((warehouses.data ?? []).map((w) => [w.id, displayName(t, w.name)]));
   const currency = settings.data?.settings?.currency ?? settings.data?.prerequisites.currency ?? null;
   return (
     <>
@@ -629,9 +649,9 @@ export function InventoryMovesPage() {
         <h2 id="moves-title" className="visually-hidden">
           {t('inventory.movesTitle')}
         </h2>
-        <div className="filters">
+        <FilterBar active={Boolean(itemId)} onReset={() => url.set({ item: null, page: null })}>
           <Field id="moves-item" label={t('inventory.item')}>
-            <select id="moves-item" value={itemId} onChange={(e) => (setItemId(e.target.value), setPage(1))}>
+            <select id="moves-item" value={itemId} onChange={(e) => url.set({ item: e.target.value, page: null })}>
               <option value="">{t('inventory.allItems')}</option>
               {(items.data ?? []).map((i) => (
                 <option key={i.id} value={i.id}>
@@ -640,61 +660,49 @@ export function InventoryMovesPage() {
               ))}
             </select>
           </Field>
-        </div>
+        </FilterBar>
         {moves.isPending && <Loading />}
         {moves.isError && <ErrorState message={errorMessage(t, moves.error)} onRetry={() => moves.refetch()} />}
         {moves.isSuccess && moves.data.data.length === 0 && <EmptyState icon="box">{t('inventory.noMoves')}</EmptyState>}
         {moves.isSuccess && moves.data.data.length > 0 && (
           <>
-            <div className="table-wrap">
-              <table className="data-table" data-testid="stock-moves">
-                <thead>
-                  <tr>
-                    <th scope="col">{t('inventory.document')}</th>
-                    <th scope="col">{t('inventory.date')}</th>
-                    <th scope="col">{t('inventory.item')}</th>
-                    <th scope="col">{t('inventory.warehouse')}</th>
-                    <th scope="col">{t('inventory.quantity')}</th>
-                    <th scope="col">{t('inventory.onHandAfter')}</th>
-                    {moves.data.data.some((m) => m.value !== undefined) && <th scope="col">{t('inventory.value')}</th>}
-                  </tr>
-                </thead>
-                <tbody>
-                  {moves.data.data.map((m) => (
-                    <tr key={m.id}>
-                      <td data-label={t('inventory.document')}>
-                        <bdi dir="ltr">{m.documentNumber}</bdi> {t(`inventory.types.${m.type}`)}
-                      </td>
-                      <td data-label={t('inventory.date')}>
-                        <bdi dir="ltr">{m.date}</bdi>
-                      </td>
-                      <td data-label={t('inventory.item')}>
-                        {itemOf.get(m.itemId)?.name} {m.lot && <bdi dir="ltr">({m.lot})</bdi>}
-                      </td>
-                      <td data-label={t('inventory.warehouse')}>{warehouseName.get(m.warehouseId)}</td>
-                      <td data-label={t('inventory.quantity')}>
-                        <bdi dir="ltr">{m.qty > 0 ? `+${m.qty}` : m.qty}</bdi>
-                      </td>
-                      <td data-label={t('inventory.onHandAfter')}>{m.onHandAfter}</td>
-                      {m.value !== undefined && <td data-label={t('inventory.value')}>{money(m.value, currency)}</td>}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <div className="pagination">
-              <button type="button" className="button button--secondary" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
-                {t('common.previous')}
-              </button>
-              <button
-                type="button"
-                className="button button--secondary"
-                disabled={page * moves.data.pageSize >= moves.data.total}
-                onClick={() => setPage((p) => p + 1)}
-              >
-                {t('common.next')}
-              </button>
-            </div>
+            <DataTable
+              testId="stock-moves"
+              caption={t('inventory.movesTitle')}
+              rows={moves.data.data}
+              rowKey={(m) => m.id}
+              columns={[
+                {
+                  key: 'document',
+                  label: t('inventory.document'),
+                  cell: (m) => (
+                    <>
+                      <bdi dir="ltr">{m.documentNumber}</bdi> {t(`inventory.types.${m.type}`)}
+                    </>
+                  ),
+                },
+                { key: 'date', label: t('inventory.date'), cell: (m) => <DateText value={m.date} /> },
+                {
+                  key: 'item',
+                  label: t('inventory.item'),
+                  cell: (m) => (
+                    <>
+                      {itemOf.get(m.itemId)?.name} {m.lot && <bdi dir="ltr">({m.lot})</bdi>}
+                    </>
+                  ),
+                },
+                { key: 'warehouse', label: t('inventory.warehouse'), cell: (m) => warehouseName.get(m.warehouseId) },
+                { key: 'qty', label: t('inventory.quantity'), numeric: true, cell: (m) => <Quantity value={m.qty} signed /> },
+                { key: 'onHandAfter', label: t('inventory.onHandAfter'), numeric: true, cell: (m) => <Quantity value={m.onHandAfter} /> },
+                moves.data.data.some((m) => m.value !== undefined) && {
+                  key: 'value',
+                  label: t('inventory.value'),
+                  numeric: true,
+                  cell: (m) => <Money minor={m.value} currency={currency} />,
+                },
+              ]}
+            />
+            <Pagination page={page} pageSize={moves.data.pageSize} total={moves.data.total} onPage={(p) => url.set({ page: p > 1 ? p : null })} />
           </>
         )}
       </section>

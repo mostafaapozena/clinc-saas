@@ -33,7 +33,7 @@ existing rhythm rules (page and card) are the only margin systems.
 | `.button--sm` / `--control-sm` | 32px | Inside tables and dense toolbars (automatic for buttons in `.data-table` cells) |
 | default / `--control-md` | 40px | Buttons and fields |
 | `.button--lg` / `--control-lg` | 48px | A primary action on phones or sign-in screens |
-| `--touch-min` | 44px | Primary buttons, segments and module tabs at ≤640px |
+| `--touch-min` | 44px | Every button, field, segment and module tab in the page at ≤767px (UX-025) |
 
 Buttons take their height from their size, never from a stretched row (`.form-actions` uses
 `align-items: center`). Width follows the label; buttons of one size in one context share height,
@@ -62,14 +62,23 @@ font, padding and icon spacing.
 
 ### Typography
 
-| Role | Size | Weight |
-| --- | --- | --- |
-| Page title | existing clamp | 700 |
-| Section / card title | 1.1rem | 600–700 |
-| Sub-title | 1rem | 600 |
-| Body | 1rem / 1.6 | 400 |
-| Secondary | 0.875rem | 400, muted |
-| Metric value | 1.75rem (1.5 on phones) | 700, tabular figures |
+| Role | Token | Size | Weight |
+| --- | --- | --- | --- |
+| Page title (`h1`) | `--fs-h1` | 1.625rem | 700 |
+| Section / card title (`h2`) | `--fs-h2` | 1.25rem | 600–700 |
+| Sub-section (`h3`, `.card h3`) | `--fs-h3` | 1.0625rem | 600 |
+| Minor heading (`h4`) | `--fs-h4` | 1rem | 600 |
+| Body | `--fs-body` | 1rem / 1.6 | 400 |
+| Secondary | `--fs-sm` | 0.875rem | 400, muted |
+| Fine print | `--fs-xs` | 0.8125rem | 400 |
+| Metric value | – | 1.75rem (1.5 on phones) | 700, tabular figures |
+
+Headings always step down: an `h3` is never larger than its `h2` (UX-005). A heading element always has text; when a section has no visible title, label the section with `aria-label` instead of an empty heading (UX-027).
+
+### Borders and badges
+
+- `--border` is for dividers and card edges. Form controls use `--border-strong`, which keeps 3:1 against the surface in both themes (WCAG 1.4.11, UX-024).
+- Badges are named by meaning (`Badge` in `ui.tsx`): `success`, `warning`, `danger`, `info`, `neutral`. Status components map their states to these tones; a page never picks a badge by its colour. Tones other than neutral carry a dot, so the state is not colour alone.
 
 Numbers and amounts use `<bdi dir="ltr">` where mixed with Arabic text. Table amounts use `.num`, which gives end alignment, tabular figures and no wrapping, in both directions.
 
@@ -85,11 +94,18 @@ Numbers and amounts use `<bdi dir="ltr">` where mixed with Arabic text. Table am
 | `ActionBar` | `layout.tsx` | One row of actions, related gap, never stretched. `align` is start, end or between. |
 | `ModuleTabs` | `layout.tsx` | Module navigation: one row with horizontal scroll and the active tab scrolled into view. Navigation links only. |
 | Category tabs | `ReportsHubPage.tsx` | `role="tablist"` buttons for switching content inside one page; the state lives in the URL. |
-| `DataTable` conventions | `.data-table` | Record lists stack into labelled cards below 900px. Statements, ledgers and anything compared by row use `.data-table--scroll`: columns kept, horizontal scroll inside the card, sticky first column. |
+| `DataTable` | `components/data.tsx` | Typed columns (`label`, `cell`, `numeric`, `sortable`). Cells carry their label, so record lists stack into labelled cards below 900px; `scroll` keeps the columns for statements and ledgers (horizontal scroll inside the card, sticky first column). Sorting is server-side: the header reports the order through `onSort` and the page asks the API again. |
+| `Pagination` | `data.tsx` | Previous / next with "page x of y (n results)"; hidden when everything fits on one page. The page number lives in the URL. |
+| `FilterBar` | `data.tsx` | The filters of a list in one responsive row, with a reset when any filter is set. Values are kept with `useUrlState` (`lib/useUrlState.ts`). |
+| `DescriptionList` | `data.tsx` | Label / value pairs of a record (the `.details` grid). |
+| `Money`, `DateText`, `Quantity` | `data.tsx` | The only way to show an amount, a date or a quantity: UI-language digits, the year on calendar dates, tabular figures, a dash when there is no value. Never print an ISO date or a raw number with a unit. |
+| `ConfirmAction` | `data.tsx` | A consequential action confirmed in place: the consequence in plain words, a danger-toned confirm and a cancel that receives focus. |
+| `Skeleton` | `data.tsx` | Placeholder lines inside an already drawn page frame. |
+| `Badge` | `ui.tsx` | Status by meaning (see §1). |
 | `StatementTable` | `AccountingPages.tsx` | One fixed-layout table per statement: section header rows, totals, amounts `.num`, currency in the header, width up to 960px. |
 | `ChartCard` | `ChartCard.tsx` | Title, context line (period, currency, source), inline SVG chart, legend, "show as table" alternative, and loading, empty and error states. |
-| `EmptyState` / `Loading` / `ErrorState` / `Notice` | `ui.tsx` | Unchanged; always used instead of hand-written blocks. |
-| `Field` | `ui.tsx` | Label, hint and error wiring. |
+| `EmptyState` / `Loading` / `ErrorState` / `Notice` | `ui.tsx` | Always used instead of hand-written blocks. `EmptyState` takes an `action` (the next step) when the viewer can take one. |
+| `Field` | `ui.tsx` | Label, hint and error wiring: the control gets `aria-describedby` for the hint and the error, `aria-invalid` on error and `aria-required` when the field is required. |
 | Forms | `form` / `.form-grid` | Grid forms keep their natural row height (`align-content: start`). |
 
 ## 3. Charts and report data rules
@@ -119,6 +135,15 @@ Numbers and amounts use `<bdi dir="ltr">` where mixed with Arabic text. Table am
 
 `--topbar-h` is measured at run time and feeds `scroll-padding-block-start`, so anchors and focus never land under the sticky bar. The page never scrolls sideways; wide content scrolls inside its own container.
 
-## 5. Recording a justified exception
+## 5. Module registry, visibility and scope
+
+- **One registry.** `apps/web/src/lib/modules.ts` lists every workspace destination: group, path, icon, label, the switchable module it belongs to and the permissions that open it. The sidebar, the route `ModuleGate`, the reports center and module tabs read it, so a destination is shown or hidden the same way everywhere. A new destination is added there, with a case in `modules.test.ts`.
+- **The API stays the authority.** The registry only decides what is offered. Every endpoint keeps its own permission, tenant and branch checks.
+- **Switched-off modules are hidden** from the sidebar, tabs and reports; a typed link to one explains why instead of showing a page whose API refuses.
+- **Sidebar groups** (owner decision): daily work; patient billing and collection; operations and resources; accounting and financial reporting; organization and team; my account and help. Patient billing (documents) and the general ledger are separate destinations with distinct labels.
+- **One branch scope.** The branch chosen in the top bar applies to every page, including the reports center, which states it. A page that needs another scope shows that override explicitly with a way back to the header scope.
+- **Figures name their source.** A document-based figure (invoices, receipts) and a ledger figure are different metrics with different labels; both link to the list that adds up to them. Amounts never count up.
+
+## 6. Recording a justified exception
 
 When a page must break a rule, keep a short code comment at the exception that names the rule and the reason. Add a line to the "Exceptions" table in [docs/DESIGN_SYSTEM_REMEDIATION.md](DESIGN_SYSTEM_REMEDIATION.md). The guard tests have no silent allow-lists.
