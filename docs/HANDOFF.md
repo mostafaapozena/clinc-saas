@@ -17,6 +17,19 @@ Read [AGENTS.md](../AGENTS.md) (rules) and [PROGRESS.md](PROGRESS.md) (state, ga
 Everything important is in Git; a new Codespace from any branch sets itself up via the
 devcontainer.
 
+## UI remediation (phase 19, from 2026-10-31)
+
+Every UI finding (UX-001…031 of the 2026-10-31 audit, FE-001…015, F-01…25) has a row in
+[UI_REMEDIATION_TRACKER.md](UI_REMEDIATION_TRACKER.md); continue from its `partial` and `planned` rows.
+Conventions: new destinations go in `apps/web/src/lib/modules.ts`; lists use `DataTable`,
+`Pagination` and `FilterBar` with `useUrlState` (ids, enums, dates and page only in URLs);
+amounts, dates and quantities use `Money`, `DateText` and `Quantity`; consequential actions use
+`ConfirmAction`. `e2e/a11y.spec.ts` and `e2e/layout.spec.ts` must stay green. The design-system
+gallery runs at `/dev/gallery` on the dev server only. Cross-browser runs need
+`npx playwright install firefox webkit` and `sudo npx playwright install-deps` in the Codespace (done
+once on 2026-10-31; lost if the Codespace is rebuilt). Known flake: `front-desk.spec.ts` "switching
+branch and organization" can fail when a run crosses midnight in the second organization's zone.
+
 ## Medical ERP programme (from 2026-10-28)
 
 Owner brief: `review-inputs/erp-brief-2026-10-28/BRIEF.md` next to the checkout on drive D:. The

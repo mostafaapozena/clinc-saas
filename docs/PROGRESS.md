@@ -1,6 +1,19 @@
 # Progress
 
-_Last updated: 2026-10-28 (ERP milestone A — general ledger, cash and banks; phases 14–15 merged into main)._
+_Last updated: 2026-10-31 (phase 19: UX and frontend-architecture remediation, PRs #34–#38)._
+
+## Phase 19: UX and frontend-architecture remediation (merged)
+
+PRs #34–#38. Tracker with the UX ↔ FE ↔ F crosswalk and per-finding status: [UI_REMEDIATION_TRACKER.md](UI_REMEDIATION_TRACKER.md). Contract: [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md), [UI_PAGE_PATTERNS.md](UI_PAGE_PATTERNS.md), [UI_CONTRIBUTION_CHECKLIST.md](UI_CONTRIBUTION_CHECKLIST.md).
+
+- **Foundations:** type scale, control height, strong control border (3:1), 44px touch targets on phones, badge tones, `Field` wiring (hint, error, required, invalid), container-aware list rows.
+- **Module registry** (`lib/modules.ts`): sidebar groups, route `ModuleGate`, reports center and module tabs from one list; equipment shows for `asset.read`; switched-off modules hidden. Not authorization: the API checks every request.
+- **Scope and figures:** the reports center inherits the header branch; document and ledger figures keep separate labels and drill down; money never counts up.
+- **Components** (`components/data.tsx`): `DataTable` (server-side sort), `Pagination`, `FilterBar` + `useUrlState`, `DescriptionList`, `Money`, `DateText`, `Quantity`, `ConfirmAction`, `Skeleton`; `PageHeader` `back` and `help`; `PatientContextHeader`; `useUnsavedSections`.
+- **Migrated:** Inventory (pilot), every ISO calendar date, journal filters and pagination, detail-page back links, consequential actions, settings, dashboard link names, static policy notes.
+- **Prevention:** `e2e/a11y.spec.ts` (axe), new layout checks, dev-only `/dev/gallery`, PR template, AGENTS.md rules.
+- **Verification:** six roles × every sidebar destination at 1366px and 200% zoom (Chromium, axe), owner in Firefox, receptionist in WebKit: no violations, overflow or page errors. No manual screen-reader pass was done.
+- **Still open** (tracker `partial` / `planned`): page templates for create/edit (UX-007, UX-008), `DataTable` in the remaining modules (UX-009, UX-011, UX-028), dashboard zero tiles, reports chart grid (UX-023), CSS reorganized by component and one token file (FE-002, FE-003), public-site tokens (FE-004), operator console (FE-011), money-hook consolidation (FE-008).
 
 ## ERP milestone A: general ledger, cash and banks (in review)
 

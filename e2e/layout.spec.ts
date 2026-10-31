@@ -186,3 +186,8 @@ test('phones: every control in the page is at least 44px tall (UX-025) @mobile',
   }
   errors.expectNone();
 });
+
+test('the first HTML paints a loading mark instead of a blank page (UX-029)', async ({ request }) => {
+  const html = await (await request.get('/')).text();
+  expect(html).toContain('class="boot"');
+});
