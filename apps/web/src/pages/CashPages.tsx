@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { displayName } from '../lib/defaultNames';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router';
@@ -131,7 +132,7 @@ function OpenSessionForm({ boxes }: { boxes: CashAccount[] }) {
         <select id="session-box" value={cashAccountId} onChange={(e) => setCashAccountId(e.target.value)}>
           {usable.map((b) => (
             <option key={b.id} value={b.id}>
-              {b.name} · {branchName.get(b.branchId ?? '') ?? ''}
+              {displayName(t, b.name)} · {branchName.get(b.branchId ?? '') ?? ''}
             </option>
           ))}
         </select>
@@ -236,7 +237,7 @@ function MySessionCard({ boxes, sessions, currency }: { boxes: CashAccount[]; se
                   </Link>
                 </h3>
                 <p className="muted">
-                  {boxes.find((b) => b.id === s.cashAccountId)?.name} · {t('cash.openedAt', { at: fmt.date(s.openedAt) })}
+                  {displayName(t, boxes.find((b) => b.id === s.cashAccountId)?.name)} · {t('cash.openedAt', { at: fmt.date(s.openedAt) })}
                 </p>
               </div>
               <span className="badge badge--active">{t('cash.status.open')}</span>
@@ -342,7 +343,7 @@ function VoucherForm({ boxes, accounts }: { boxes: CashAccount[]; accounts: Ledg
           <select id="voucher-from" value={cashAccountId} onChange={(e) => setCashAccountId(e.target.value)}>
             {active.map((b) => (
               <option key={b.id} value={b.id}>
-                {b.name}
+                {displayName(t, b.name)}
               </option>
             ))}
           </select>
@@ -355,7 +356,7 @@ function VoucherForm({ boxes, accounts }: { boxes: CashAccount[]; accounts: Ledg
                 .filter((b) => b.id !== cashAccountId)
                 .map((b) => (
                   <option key={b.id} value={b.id}>
-                    {b.name}
+                    {displayName(t, b.name)}
                   </option>
                 ))}
             </select>
@@ -434,7 +435,7 @@ function AddCashAccountForm() {
           {kind === 'bank' && <option value="">{t('accounting.organizationLevel')}</option>}
           {branches.map((b) => (
             <option key={b.id} value={b.id}>
-              {b.name}
+              {displayName(t, b.name)}
             </option>
           ))}
         </select>
@@ -503,7 +504,7 @@ export function CashPage() {
                 {boxes.data.accounts.map((a) => (
                   <li key={a.id} className="data-row">
                     <div className="data-main">
-                      <h3>{a.name}</h3>
+                      <h3>{displayName(t, a.name)}</h3>
                       <p className="muted">
                         {t(`cash.kinds.${a.kind}`)} · {a.branchId ? branchName.get(a.branchId) : t('accounting.organizationLevel')}
                       </p>
@@ -614,7 +615,7 @@ export function CashSessionPage() {
   const canClose = s.status === 'open';
   return (
     <>
-      <PageHeader title={t('cash.sessionTitle', { number: s.number })} subtitle={cashAccount.name}>
+      <PageHeader title={t('cash.sessionTitle', { number: s.number })} subtitle={displayName(t, cashAccount.name)}>
         <Link className="button button--secondary" to={`/app/${orgId}/cash`}>
           {t('cash.backToCash')}
         </Link>
@@ -760,7 +761,7 @@ export function BankStatementPage() {
   const st = data.data;
   return (
     <>
-      <PageHeader title={t('cash.statementTitle')} subtitle={st.account.name}>
+      <PageHeader title={t('cash.statementTitle')} subtitle={displayName(t, st.account.name)}>
         <Link className="button button--secondary" to={`/app/${orgId}/cash`}>
           {t('cash.backToCash')}
         </Link>

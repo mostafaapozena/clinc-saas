@@ -55,13 +55,13 @@ export function OrganizationLetterhead() {
     (i18n.language.startsWith('ar') ? profile?.legalNameAr || profile?.legalNameEn : profile?.legalNameEn || profile?.legalNameAr) ||
     detail.organization.name;
   const ids = [
-    profile?.commercialRegistration && t('profile.printCr', { value: profile.commercialRegistration }),
-    profile?.taxRegistration && t('profile.printTax', { value: profile.taxRegistration }),
+    profile?.commercialRegistration && t('orgProfile.printCr', { value: profile.commercialRegistration }),
+    profile?.taxRegistration && t('orgProfile.printTax', { value: profile.taxRegistration }),
   ].filter(Boolean);
   return (
     <div className="letterhead" data-testid="letterhead">
       {profile?.logoUrl ? (
-        <img className="letterhead-logo" src={profile.logoUrl} alt={t('profile.logoAlt', { name })} />
+        <img className="letterhead-logo" src={profile.logoUrl} alt={t('orgProfile.logoAlt', { name })} />
       ) : (
         <BrandLogo variant="wordmark" />
       )}
@@ -89,26 +89,26 @@ function ProfileForm({ profile }: { profile: Profile }) {
   const done = (message: string) => (showToast(message), queryClient.invalidateQueries({ queryKey: profileKey(orgId) }));
   const save = useMutation({
     mutationFn: () => api(`/orgs/${orgId}/profile`, { method: 'PUT', body: { ...values, version: profile.version } }),
-    onSuccess: () => done(t('profile.saved')),
+    onSuccess: () => done(t('orgProfile.saved')),
   });
   const upload = useMutation({
     mutationFn: (file: File) => api(`/orgs/${orgId}/profile/logo`, { method: 'PUT', raw: file }),
-    onSuccess: () => done(t('profile.logoSaved')),
+    onSuccess: () => done(t('orgProfile.logoSaved')),
   });
   const removeLogo = useMutation({
     mutationFn: () => api(`/orgs/${orgId}/profile/logo`, { method: 'DELETE' }),
-    onSuccess: () => done(t('profile.logoRemoved')),
+    onSuccess: () => done(t('orgProfile.logoRemoved')),
   });
   return (
     <section className="card" aria-labelledby="profile-title" data-testid="organization-profile">
-      <h2 id="profile-title">{t('profile.title')}</h2>
-      <p className="muted">{t('profile.intro')}</p>
+      <h2 id="profile-title">{t('orgProfile.title')}</h2>
+      <p className="muted">{t('orgProfile.intro')}</p>
       <div className="letterhead-preview">
         <OrganizationLetterhead />
       </div>
       {editable && (
         <div className="inline-form">
-          <Field id="profile-logo" label={t('profile.logo')} hint={t('profile.logoHint')}>
+          <Field id="profile-logo" label={t('orgProfile.logo')} hint={t('orgProfile.logoHint')}>
             <input
               id="profile-logo"
               type="file"
@@ -117,8 +117,8 @@ function ProfileForm({ profile }: { profile: Profile }) {
                 const file = e.target.files?.[0];
                 e.target.value = '';
                 if (!file) return;
-                if (!LOGO_TYPES.includes(file.type)) return setLogoError(t('profile.logoType'));
-                if (file.size > LOGO_MAX) return setLogoError(t('profile.logoSize'));
+                if (!LOGO_TYPES.includes(file.type)) return setLogoError(t('orgProfile.logoType'));
+                if (file.size > LOGO_MAX) return setLogoError(t('orgProfile.logoSize'));
                 setLogoError(null);
                 upload.mutate(file);
               }}
@@ -126,7 +126,7 @@ function ProfileForm({ profile }: { profile: Profile }) {
           </Field>
           {profile.logoUrl && (
             <button type="button" className="button button--ghost" disabled={removeLogo.isPending} onClick={() => removeLogo.mutate()}>
-              {t('profile.removeLogo')}
+              {t('orgProfile.removeLogo')}
             </button>
           )}
         </div>
@@ -141,7 +141,7 @@ function ProfileForm({ profile }: { profile: Profile }) {
       >
         <div className="form-grid">
           {FIELDS.map((f) => (
-            <Field key={f.key} id={`profile-${f.key}`} label={t(`profile.fields.${f.key}`)}>
+            <Field key={f.key} id={`profile-${f.key}`} label={t(`orgProfile.fields.${f.key}`)}>
               <input
                 id={`profile-${f.key}`}
                 dir={f.dir}
@@ -154,7 +154,7 @@ function ProfileForm({ profile }: { profile: Profile }) {
             </Field>
           ))}
         </div>
-        <p className="muted small">{t('profile.numbersHint')}</p>
+        <p className="muted small">{t('orgProfile.numbersHint')}</p>
         {save.isError && <Notice kind="error">{errorMessage(t, save.error)}</Notice>}
         {editable && (
           <div className="form-actions">

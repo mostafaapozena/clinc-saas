@@ -67,15 +67,18 @@
     "mySchedule": "My schedule",
     "coverage": "Clinical coverage",
     "clinicalAudit": "Clinical audit",
-    "finance": "Finance",
+    "finance": "Patient accounts",
     "subscription": "Subscription",
     "support": "Help & support",
     "groups": {
       "daily": "Daily work",
       "records": "Records and billing",
-      "organization": "Administration",
-      "account": "Account",
-      "erp": "Financial management"
+      "organization": "Organization and team",
+      "account": "My account and help",
+      "erp": "Financial management",
+      "billing": "Patient billing and collection",
+      "operations": "Operations and resources",
+      "accounting": "Accounting and financial reports"
     },
     "accounting": "Accounting",
     "cash": "Cash and banks",
@@ -88,7 +91,8 @@
       "ent": "Follow-ups"
     },
     "assets": "Equipment",
-    "reports": "Reports"
+    "reports": "Reports",
+    "installments": "Installment plans"
   },
   "shell": {
     "skipToContent": "Skip to main content",
@@ -374,35 +378,13 @@
     }
   },
   "profile": {
-    "title": "Organization identity and legal profile",
+    "title": "Profile",
     "details": "Your details",
     "emailStatus": "Email status",
     "emailVerified": "Verified",
     "emailUnverified": "Not verified",
     "language": "Preferred interface language",
-    "saved": "Profile saved.",
-    "intro": "The legal name, logo, commercial registration and tax card numbers and the address appear at the top of printed invoices, receipts and purchase orders.",
-    "fields": {
-      "legalNameAr": "Legal name (Arabic)",
-      "legalNameEn": "Legal name (English)",
-      "commercialRegistration": "Commercial registration number",
-      "taxRegistration": "Tax card number",
-      "address": "Address",
-      "phone": "Phone",
-      "email": "Email",
-      "documentFooter": "Line under the letterhead"
-    },
-    "numbersHint": "Numbers are kept exactly as you type them; their legal format is not checked. Printouts are not electronic tax invoices.",
-    "logo": "Organization logo",
-    "logoHint": "PNG, JPEG or WebP up to 512 KB. SVG is not accepted.",
-    "logoType": "Choose a PNG, JPEG or WebP image.",
-    "logoSize": "The image is larger than 512 KB.",
-    "logoSaved": "Logo saved.",
-    "logoRemoved": "Logo removed.",
-    "removeLogo": "Remove logo",
-    "logoAlt": "{{name}} logo",
-    "printCr": "CR: {{value}}",
-    "printTax": "Tax no.: {{value}}"
+    "saved": "Your profile was saved."
   },
   "notFound": {
     "title": "Page not found",
@@ -2843,7 +2825,10 @@
     "limitPart": {
       "branches": "{{count}} branches",
       "practitioners": "{{count}} doctors",
-      "members": "{{count}} members"
+      "members": "{{count}} members",
+      "branches_one": "1 branch",
+      "practitioners_one": "1 doctor",
+      "members_one": "1 member"
     },
     "interval": {
       "month": "month",
@@ -3219,7 +3204,8 @@
         "growth_only": "Cannot add branches, doctors or members",
         "read_only": "Read-only (most changes blocked)"
       },
-      "edit": "Edit policy"
+      "edit": "Edit policy",
+      "days_one": "1 day"
     },
     "lifecycle": {
       "title": "Subscription lifecycle",
@@ -3602,10 +3588,50 @@
         "default": "Cash session"
       },
       "staff_fund": {
-        "default": "Advance or custody"
+        "default": "Advance or custody",
+        "issue": "Advance or custody handed out",
+        "return": "Advance or custody returned",
+        "expense": "Custody receipts",
+        "write_off": "Advance or custody written off"
       },
       "write_off": {
-        "default": "Write-off"
+        "default": "Write-off",
+        "issued": "Bad-debt write-off"
+      },
+      "other": "Posted entry",
+      "stock": {
+        "default": "Stock movement",
+        "opening": "Opening stock",
+        "adjustment": "Count adjustment",
+        "write_off": "Stock write-off",
+        "issue": "Internal issue",
+        "transfer": "Transfer between stores",
+        "consumption": "Consumption in a visit",
+        "consumption_return": "Consumption return",
+        "receipt": "Purchase receipt"
+      },
+      "asset": {
+        "default": "Equipment",
+        "disposed": "Equipment disposal",
+        "depreciation": "Monthly depreciation"
+      },
+      "purchase_return": {
+        "default": "Purchase return"
+      },
+      "settlement": {
+        "default": "Practitioner fees",
+        "approved": "Settlement approved",
+        "payment": "Settlement paid"
+      },
+      "supplier_bill": {
+        "default": "Supplier bill",
+        "posted": "Supplier bill"
+      },
+      "supplier_payment": {
+        "default": "Supplier payment"
+      },
+      "supplier_credit": {
+        "default": "Supplier credit note"
       }
     },
     "chart": {
@@ -3656,7 +3682,8 @@
       "badDebts": "Bad debts"
     },
     "amountIn": "Amount ({{currency}})",
-    "noAccounts": "No accounts with balances in this period."
+    "noAccounts": "No accounts with balances in this period.",
+    "openingAlready_one": "1 opening entry is posted."
   },
   "cash": {
     "title": "Cash and banks",
@@ -3749,7 +3776,8 @@
     "unmatch": "Unmatch",
     "noCandidate": "No entry with this amount",
     "matchWith": "Match the {{date}} line with an entry",
-    "chooseEntry": "— Choose the entry —"
+    "chooseEntry": "— Choose the entry —",
+    "imported_one": "1 line added."
   },
   "inventory": {
     "title": "Inventory and medical supplies",
@@ -4073,7 +4101,8 @@
     "code": "Code",
     "supplierName": "Supplier name",
     "phone": "Phone",
-    "paymentTerms": "Payment terms (days)"
+    "paymentTerms": "Payment terms (days)",
+    "pendingApprovals_one": "1 request is waiting for your approval."
   },
   "compensation": {
     "title": "Practitioner fees",
@@ -4146,7 +4175,8 @@
     "reason": "Reason",
     "pay": "Pay fees",
     "payFrom": "Pay from",
-    "paid": "Payment recorded."
+    "paid": "Payment recorded.",
+    "items_one": "1 item"
   },
   "workspace": {
     "focusTitle": "Today's focus",
@@ -4180,7 +4210,8 @@
         "dentistry": "Your patients with unfinished plan items, from your finalized records",
         "physiotherapy": "Open treatment courses: sessions done and booked",
         "ent": "Visits of the last 60 days with follow-up instructions and no upcoming appointment"
-      }
+      },
+      "openItems_one": "1 open plan item"
     },
     "worklistTitle": "My worklist",
     "noWorklist": "There is no worklist for your specialty yet.",
@@ -4238,7 +4269,23 @@
     "commitmentsDue": "{{count}} recurring commitments due within 7 days or overdue",
     "staffFundsOverdue": "{{count}} advances or custody amounts are past their settlement date",
     "installmentsOverdue": "{{count}} installment plans have a missed installment",
-    "fromDocuments": "From open invoices (documents)"
+    "fromDocuments": "From open invoices (documents)",
+    "itemsToReorder_one": "1 item to reorder",
+    "itemsToReorder_two": "{{count}} items to reorder",
+    "itemsToReorder_few": "{{count}} items to reorder",
+    "lotsExpiring_one": "1 lot expiring within 30 days",
+    "lotsExpiring_two": "{{count}} lots expiring within 30 days",
+    "maintenanceDue_one": "1 device due for maintenance",
+    "maintenanceDue_two": "{{count}} devices due for maintenance",
+    "outOfService_one": "1 device out of service",
+    "outOfService_two": "{{count}} devices out of service",
+    "commitmentsDue_one": "1 recurring commitment due within 7 days or overdue",
+    "commitmentsDue_two": "{{count}} recurring commitments due within 7 days or overdue",
+    "staffFundsOverdue_one": "1 advance or custody amount is past its settlement date",
+    "installmentsOverdue_one": "1 installment plan has a missed installment",
+    "requestsToApprove_one": "1 purchase request to approve",
+    "billsToApprove_one": "1 expense bill to approve",
+    "settlementsToApprove_one": "1 practitioner settlement in draft"
   },
   "assets": {
     "title": "Equipment and maintenance",
@@ -4317,7 +4364,8 @@
       "due": "{{count}} monthly amounts due, {{amount}} in total",
       "nothingDue": "Nothing is due through this month.",
       "ran": "Depreciation of {{amount}} posted."
-    }
+    },
+    "dueNotice_one": "1 device is due for maintenance within 14 days."
   },
   "reportsHub": {
     "title": "Reports",
@@ -4455,7 +4503,8 @@
       "invoiceDiscounts": "Discounts on issued invoices",
       "issuedInvoices": "Issued invoices",
       "ledgerCash": "Cashboxes and banks · general ledger",
-      "openBills": "Open supplier bills"
+      "openBills": "Open supplier bills",
+      "invoices_one": "1 issued invoice · from documents"
     },
     "charts": {
       "trend": "Invoiced against collected, by month",
@@ -4483,7 +4532,8 @@
       "cancelled": "Cancelled"
     },
     "available": "Available reports",
-    "availableHint": "Open the detailed report with its auditable, exportable table"
+    "availableHint": "Open the detailed report with its auditable, exportable table",
+    "scope": "Branch: {{branch}} · change it at the top of the page"
   },
   "planning": {
     "budget": {
@@ -4662,7 +4712,8 @@
     "nextDue": "next installment {{date}}",
     "writeOff": "Write off as bad debt",
     "writeOffNotice": "Owner only: it lowers the open balance ({{balance}}) and posts a bad-debt expense. Only a reversing entry undoes it; it is audited.",
-    "writtenOff": "Written off."
+    "writtenOff": "Written off.",
+    "revised_one": "Rescheduled once"
   },
   "settingsReset": {
     "title": "Reset settings",
@@ -4696,12 +4747,46 @@
     "changes": "{{count}} changes",
     "restore": "Restore previous settings",
     "restored": "Previous settings restored.",
-    "wasRestored": "Restored"
+    "wasRestored": "Restored",
+    "willChange_one": "1 setting will change:",
+    "changes_one": "1 change"
   },
   "charts": {
     "showTable": "Show as table",
     "showChart": "Show as chart",
     "item": "Item",
     "summary": "{{count}} values; exact figures in “Show as table”"
+  },
+  "orgProfile": {
+    "title": "Organization identity and legal profile",
+    "intro": "The legal name, logo, commercial registration and tax card numbers and the address appear at the top of printed invoices, receipts and purchase orders.",
+    "fields": {
+      "legalNameAr": "Legal name (Arabic)",
+      "legalNameEn": "Legal name (English)",
+      "commercialRegistration": "Commercial registration number",
+      "taxRegistration": "Tax card number",
+      "address": "Address",
+      "phone": "Phone",
+      "email": "Email",
+      "documentFooter": "Line under the letterhead"
+    },
+    "numbersHint": "Numbers are kept exactly as you type them; their legal format is not checked. Printouts are not electronic tax invoices.",
+    "logo": "Organization logo",
+    "logoHint": "PNG, JPEG or WebP up to 512 KB. SVG is not accepted.",
+    "logoType": "Choose a PNG, JPEG or WebP image.",
+    "logoSize": "The image is larger than 512 KB.",
+    "logoSaved": "Logo saved.",
+    "logoRemoved": "Logo removed.",
+    "removeLogo": "Remove logo",
+    "logoAlt": "{{name}} logo",
+    "saved": "Profile saved.",
+    "printCr": "CR: {{value}}",
+    "printTax": "Tax no.: {{value}}"
+  },
+  "defaults": {
+    "mainCashbox": "Main cashbox",
+    "bankAccount": "Bank account",
+    "branchCashbox": "Branch cashbox {{n}}",
+    "mainStore": "Main store {{n}}"
   }
 }

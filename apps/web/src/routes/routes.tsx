@@ -1,4 +1,5 @@
 import { lazy, type ComponentType, type ReactNode } from 'react';
+import { ModuleGate } from '../components/ModuleGate';
 import type { RouteObject } from 'react-router';
 import type { Permission } from '../lib/types';
 import { NotFoundPage } from '../pages/NotFoundPage';
@@ -127,7 +128,11 @@ const load = (element: ReactNode) => <Loadable>{element}</Loadable>;
 
 const guarded = (path: string, permission: Permission, element: ReactNode): RouteObject => ({
   path,
-  element: <RequirePermission permission={permission}>{load(element)}</RequirePermission>,
+  element: (
+    <RequirePermission permission={permission}>
+      <ModuleGate path={path}>{load(element)}</ModuleGate>
+    </RequirePermission>
+  ),
 });
 
 // Only implemented pages are routable; there are no placeholders for future modules.

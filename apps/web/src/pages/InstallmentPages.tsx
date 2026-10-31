@@ -35,10 +35,10 @@ const keys = { plans: (orgId: string, params: object) => [...orgKeys.all(orgId),
 const badge: Record<State | Plan['status'], string> = {
   paid: 'badge badge--active',
   completed: 'badge badge--active',
-  partial: 'badge badge--suspended',
+  partial: 'badge badge--warning',
   due: 'badge',
   active: 'badge',
-  overdue: 'badge badge--inactive',
+  overdue: 'badge badge--danger',
   cancelled: 'badge',
 };
 

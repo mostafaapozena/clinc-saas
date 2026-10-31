@@ -71,7 +71,7 @@ test('front desk to doctor: create patient → book → check in → doctor star
 
   // 1. Create the patient (Arabic digits in the phone number).
   await page.goto(`/app/${orgId}`);
-  await page.getByRole('navigation').getByRole('link', { name: 'المرضى' }).click();
+  await page.getByRole('navigation').getByRole('link', { name: 'المرضى', exact: true }).click();
   await page.getByRole('button', { name: 'مريض جديد' }).click();
   await page.locator('#new-patient-name').fill('مريم التجربة');
   await page.locator('#new-patient-phone').fill('٠١٠٠١١١٢٢٣٣');
@@ -173,7 +173,7 @@ test('restricted roles only see what their role and branches allow', async ({ pa
 
   // Branch-restricted receptionist: an Alexandria-only patient does not exist for them.
   await login(page, 'reception.nour@demo.test');
-  await page.getByRole('navigation').getByRole('link', { name: 'المرضى' }).click();
+  await page.getByRole('navigation').getByRole('link', { name: 'المرضى', exact: true }).click();
   await page.locator('#patient-search').fill('منى إبراهيم');
   await expect(page.getByText('لا يوجد مرضى مطابقون للبحث.')).toBeVisible();
   await page.locator('#patient-search').fill('يوسف حسن');

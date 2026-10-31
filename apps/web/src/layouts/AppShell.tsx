@@ -1,4 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { DESTINATIONS, NAV_GROUPS, destinationOpen, worklistIcon, type AccessContext } from '../lib/modules';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, NavLink, Outlet, useLocation, useNavigate, useParams } from 'react-router';
@@ -142,65 +143,28 @@ function Shell({ orgId, detail, branches }: { orgId: string; detail: OrgDetail; 
   // A doctor sees only their own schedule there; front desk and admins see every practitioner.
   const ownScheduleOnly = !value.can('appointment.book') && !value.can('practitioner.manage');
   type NavItem = { to: string; icon: IconName; label: string; end?: boolean };
-  const worklistIcon = ({ dentistry: 'tooth', physiotherapy: 'activity', ent: 'ear' } as Record<string, IconName>)[value.detail.membership.practitionerSpecialty ?? ''];
-  // Grouped by area; permissions alone decide which items appear, and empty groups are dropped.
-  const navGroups: { key: string; items: NavItem[] }[] = [
-    { key: 'start', items: [{ to: `/app/${orgId}`, icon: 'home', label: t('nav.home'), end: true }] },
-    {
-      key: 'daily',
-      items: [
-        ...(value.can('appointment.read') ? [{ to: `/app/${orgId}/appointments`, icon: 'calendar' as const, label: t('nav.appointments') }] : []),
-        ...(value.can('queue.read') ? [{ to: `/app/${orgId}/queue`, icon: 'queue' as const, label: t('nav.queue') }] : []),
-        ...(value.can('patient.list') ? [{ to: `/app/${orgId}/patients`, icon: 'patients' as const, label: t('nav.patients') }] : []),
-        ...(value.can('practitioner.read')
-          ? [{ to: `/app/${orgId}/practitioners`, icon: 'stethoscope' as const, label: ownScheduleOnly ? t('nav.mySchedule') : t('nav.practitioners') }]
-          : []),
-      ],
-    },
-    {
-      key: 'records',
-      items: [
-        ...(value.can('finance.account.read') ? [{ to: `/app/${orgId}/finance`, icon: 'wallet' as const, label: t('nav.finance') }] : []),
-        // The doctor's specialty worklist: open plans (dentistry), active courses (physiotherapy), follow-ups (ENT).
-        ...(value.can('clinical.encounter.own') && worklistIcon
-          ? [{ to: `/app/${orgId}/worklist`, icon: worklistIcon, label: t(`nav.worklist.${value.detail.membership.practitionerSpecialty}`) }]
-          : []),
-        ...(value.can('clinical.encounter.own') ? [{ to: `/app/${orgId}/coverage`, icon: 'share' as const, label: t('nav.coverage') }] : []),
-        ...(value.can('clinical.audit.read') ? [{ to: `/app/${orgId}/clinical-audit`, icon: 'shield' as const, label: t('nav.clinicalAudit') }] : []),
-      ],
-    },
-    {
-      key: 'erp',
-      items: [
-        ...(value.can('accounting.read') || value.can('finance.report.read') || value.can('purchase.read') || value.can('cash.session.review')
-          ? [{ to: `/app/${orgId}/reports`, icon: 'chart' as const, label: t('nav.reports') }]
-          : []),
-        ...(value.can('accounting.read') && value.moduleOn('accounting') ? [{ to: `/app/${orgId}/accounting`, icon: 'book' as const, label: t('nav.accounting') }] : []),
-        ...(value.can('cash.session.operate') && value.moduleOn('cash') ? [{ to: `/app/${orgId}/cash`, icon: 'cash' as const, label: t('nav.cash') }] : []),
-        ...(value.can('inventory.read') && value.moduleOn('inventory') ? [{ to: `/app/${orgId}/inventory`, icon: 'box' as const, label: t('nav.inventory') }] : []),
-        // Purchasing in the menu for those who run it; anyone may still raise a request from the stock pages.
-        ...(value.can('purchase.read') && value.moduleOn('purchasing') ? [{ to: `/app/${orgId}/purchasing`, icon: 'cart' as const, label: t('nav.purchasing') }] : []),
-        ...((value.can('asset.manage') || value.can('asset.maintain')) && value.moduleOn('assets') ? [{ to: `/app/${orgId}/assets`, icon: 'tool' as const, label: t('nav.assets') }] : []),
-        ...((value.can('compensation.read') || value.can('compensation.own.read')) && value.moduleOn('compensation') ? [{ to: `/app/${orgId}/compensation`, icon: 'users' as const, label: t('nav.compensation') }] : []),
-      ],
-    },
-    {
-      key: 'organization',
-      items: [
-        { to: `/app/${orgId}/branches`, icon: 'building', label: t('nav.branches') },
-        ...(value.can('member.read') ? [{ to: `/app/${orgId}/team`, icon: 'users' as const, label: t('nav.team') }] : []),
-        ...(value.can('organization.update') ? [{ to: `/app/${orgId}/settings`, icon: 'settings' as const, label: t('nav.settings') }] : []),
-        ...(value.can('subscription.read') ? [{ to: `/app/${orgId}/subscription`, icon: 'card' as const, label: t('nav.subscription') }] : []),
-      ],
-    },
-    {
-      key: 'account',
-      items: [
-        ...(value.can('support.request') ? [{ to: `/app/${orgId}/support`, icon: 'help' as const, label: t('nav.support') }] : []),
-        { to: `/app/${orgId}/profile`, icon: 'user', label: t('nav.profile') },
-      ],
-    },
-  ];
+  const access: AccessContext = {
+    can: value.can,
+    moduleOn: value.moduleOn,
+    orgWide: value.detail.membership.branchScope.type === 'all',
+    specialty: value.detail.membership.practitionerSpecialty ?? null,
+  };
+  // Grouped by task. The registry (lib/modules.ts) decides what appears — the same rule as the route
+  // gates and the reports center — and empty groups are dropped.
+  const navGroups: { key: string; items: NavItem[] }[] = NAV_GROUPS.map((group) => ({
+    key: group,
+    items: DESTINATIONS.filter((d) => d.group === group && d.nav !== false && destinationOpen(d, access)).map((d) => ({
+      to: d.path ? `/app/${orgId}/${d.path}` : `/app/${orgId}`,
+      icon: d.id === 'worklist' ? (worklistIcon(access.specialty) ?? d.icon) : d.icon,
+      label:
+        d.id === 'worklist'
+          ? t(`nav.worklist.${access.specialty}`)
+          : d.id === 'practitioners' && ownScheduleOnly
+            ? t('nav.mySchedule')
+            : t(d.labelKey),
+      end: d.end,
+    })),
+  }));
 
   return (
     <OrgContext.Provider value={value}>

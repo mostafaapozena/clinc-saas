@@ -12,7 +12,8 @@ import { errorMessage } from '../lib/errors';
 import { formatMoney } from '../lib/finance';
 import type { Permission } from '../lib/types';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
-import { orgKeys, useOrg } from '../org/context';
+import { moduleOfPath } from '../lib/modules';
+import { orgKeys, useBranchFilter, useOrg } from '../org/context';
 
 // Reports center (docs/REPORTS_CENTER.md). Category tabs, the category's key figures and charts
 // for the chosen period and branch, then the detailed reports that open directly. Every number
@@ -427,16 +428,21 @@ function InventorySection() {
 
 export function ReportsHubPage() {
   const { t } = useTranslation();
-  const { orgId, can, detail, branches } = useOrg();
+  const { orgId, can, detail, branches, moduleOn } = useOrg();
   useDocumentTitle(t('reportsHub.title'));
   const [search, setSearch] = useSearchParams();
   const orgWide = detail.membership.branchScope.type === 'all';
-  const categories = CATEGORIES.map((c) => ({ ...c, reports: c.reports.filter((r) => can(r.permission) && (!r.orgWide || orgWide)) })).filter(
-    (c) => c.reports.length,
-  );
+  const categories = CATEGORIES.map((c) => ({
+    ...c,
+    reports: c.reports.filter((r) => {
+      const module = moduleOfPath(r.to.split('?')[0]!);
+      return can(r.permission) && (!r.orgWide || orgWide) && (!module || moduleOn(module));
+    }),
+  })).filter((c) => c.reports.length);
   const active = categories.find((c) => c.key === search.get('category')) ?? categories[0];
   const period: Period = (PERIODS as readonly string[]).includes(search.get('period') ?? '') ? (search.get('period') as Period) : 'month';
-  const branchId = branches.some((b) => b.id === search.get('branch')) ? (search.get('branch') ?? '') : '';
+  // One scope model: the branch chosen at the top of the page applies here too (no second branch filter).
+  const branchId = useBranchFilter() ?? '';
   const set = (key: string, value: string) =>
     setSearch(
       (cur) => {
@@ -466,20 +472,10 @@ export function ReportsHubPage() {
               ))}
             </select>
           </label>
-          {branches.length > 1 && (
-            <label className="report-filter">
-              <span className="visually-hidden">{t('reportsHub.branch')}</span>
-              <Icon name="building" aria-hidden="true" />
-              <select value={branchId} onChange={(e) => set('branch', e.target.value)}>
-                <option value="">{t('reportsHub.allBranches')}</option>
-                {branches.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {b.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-          )}
+          <span className="report-scope" data-testid="report-scope">
+            <Icon name="building" aria-hidden="true" />
+            {t('reportsHub.scope', { branch: branchLabel })}
+          </span>
         </div>
       </PageHeader>
       {!active ? (

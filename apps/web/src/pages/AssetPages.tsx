@@ -313,7 +313,7 @@ export function AssetsPage() {
                     {a.nextMaintenanceDue && ` · ${t('assets.nextDue', { date: a.nextMaintenanceDue })}`}
                   </p>
                 </div>
-                {a.maintenanceDue && <span className="badge badge--inactive">{t('assets.maintenanceDue')}</span>}
+                {a.maintenanceDue && <span className="badge badge--warning">{t('assets.maintenanceDue')}</span>}
                 <span className={badge(a.status)}>{t(`assets.status.${a.status}`)}</span>
               </li>
             ))}

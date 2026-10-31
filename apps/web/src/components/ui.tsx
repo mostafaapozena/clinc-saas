@@ -1,7 +1,13 @@
-import type { ReactNode } from 'react';
+import { Children, cloneElement, isValidElement, type ReactNode } from 'react';
 import { Icon, type IconName } from './Icon';
 import { useTranslation } from 'react-i18next';
 
+/**
+ * A labelled form control. The label is tied to the control by `id`; the hint and the error are
+ * tied to it through aria-describedby (merged with any ids the control already names), the error
+ * sets aria-invalid, and `required` sets aria-required — so assistive technology announces what a
+ * sighted user reads. Wrap exactly one control; groups use <fieldset>.
+ */
 export function Field({
   id,
   label,
@@ -17,24 +23,46 @@ export function Field({
   required?: boolean;
   children: ReactNode;
 }) {
+  const hintId = hint && !error ? `${id}-hint` : undefined;
+  const errorId = error ? `${id}-error` : undefined;
+  let control = children;
+  if (Children.count(children) === 1 && isValidElement<Record<string, unknown>>(children)) {
+    const own = typeof children.props['aria-describedby'] === 'string' ? (children.props['aria-describedby'] as string) : '';
+    const describedBy = [...new Set([...own.split(' '), hintId, errorId].filter(Boolean))].join(' ');
+    control = cloneElement(children, {
+      ...(describedBy ? { 'aria-describedby': describedBy } : {}),
+      ...(error ? { 'aria-invalid': true } : {}),
+      ...(required && children.props.required === undefined ? { 'aria-required': true } : {}),
+    });
+  }
   return (
     <div className="field">
-      {/* The asterisk is CSS-only: the input's required/aria-required already announces it. */}
+      {/* The asterisk is CSS-only: required/aria-required on the control already announces it. */}
       <label htmlFor={id} className={required ? 'label--required' : undefined}>
         {label}
       </label>
-      {children}
-      {hint && !error && (
-        <p className="field-hint" id={`${id}-hint`}>
+      {control}
+      {hintId && (
+        <p className="field-hint" id={hintId}>
           {hint}
         </p>
       )}
-      {error && (
-        <p className="field-error" id={`${id}-error`}>
+      {errorId && (
+        <p className="field-error" id={errorId}>
           {error}
         </p>
       )}
     </div>
+  );
+}
+
+export type BadgeTone = 'neutral' | 'info' | 'success' | 'warning' | 'danger';
+/** A status label. The tone carries meaning (warning = needs attention, danger = wrong or overdue). */
+export function Badge({ tone = 'neutral', children, testId }: { tone?: BadgeTone; children: ReactNode; testId?: string }) {
+  return (
+    <span className={`badge badge--${tone}`} data-testid={testId}>
+      {children}
+    </span>
   );
 }
 

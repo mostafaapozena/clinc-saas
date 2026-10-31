@@ -44,7 +44,7 @@ export function Metric({
       </dt>
       <dd>
         <span className="metric-value" data-testid={testId}>
-          <CountUp value={value} format={format} />
+          {format ? format(value) : <CountUp value={value} />}
         </span>
         {hint && <span className="metric-hint">{hint}</span>}
         {to && (

@@ -2062,3 +2062,142 @@ circle.chart-stroke-5 {
 .home-context > .card-grid > .card {
   background: var(--surface-muted);
 }
+
+/* =================================================================================================
+   UX foundations (phase 19, docs/DESIGN_SYSTEM.md §1). Typography, control boundaries, touch sizes,
+   badge tones and list rows that adapt to their container.
+   ================================================================================================= */
+:root {
+  --fs-h1: 1.625rem;
+  --fs-h2: 1.25rem;
+  --fs-h3: 1.0625rem;
+  --fs-h4: 1rem;
+  --fs-body: 1rem;
+  --fs-sm: 0.875rem;
+  --fs-xs: 0.8125rem;
+  /* Form-control boundaries need 3:1 against the surface (WCAG 1.4.11); --border stays for dividers. */
+  --border-strong: #8193a6;
+}
+
+:root[data-theme='dark'] {
+  --border-strong: #5f7896;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --border-strong: #5f7896;
+  }
+}
+
+/* Card titles inside a card are h2/h3 by outline but read as card titles, never larger than h2. */
+.card h3 {
+  font-size: var(--fs-h3);
+}
+
+textarea {
+  border-color: var(--border-strong);
+}
+
+/* Badge tones: the name is the meaning. */
+.badge--success {
+  color: var(--ok);
+  background: var(--ok-bg);
+}
+
+.badge--warning {
+  color: var(--warn);
+  background: var(--warn-bg);
+}
+
+.badge--danger {
+  color: var(--bad);
+  background: var(--bad-bg);
+}
+
+.badge--info {
+  color: var(--info);
+  background: var(--info-bg);
+}
+
+.badge--neutral {
+  background: var(--neutral-bg);
+}
+
+.badge:is(.badge--success, .badge--warning, .badge--danger, .badge--info)::before {
+  content: '';
+  display: inline-block;
+  inline-size: 6px;
+  block-size: 6px;
+  margin-inline-end: 6px;
+  vertical-align: middle;
+  background: currentColor;
+  border-radius: 50%;
+}
+
+/* Touch sizes on phones (UX-025): every control in the page reaches 44px. */
+@media (max-width: 767px) {
+  .content :is(.button, button, input:not([type='checkbox'], [type='radio']), select, .module-nav-link, .segment, .report-category) {
+    min-block-size: var(--touch-min);
+  }
+}
+
+/* Header choosers show their whole default value (UX-026). */
+@media (min-width: 1024px) {
+  .topbar .switcher {
+    flex: 0 0 auto;
+    min-inline-size: 0;
+    max-inline-size: 16rem;
+  }
+
+  .topbar .switcher select {
+    field-sizing: content;
+    min-inline-size: 9rem;
+    max-inline-size: 16rem;
+  }
+}
+
+/* List rows adapt to their own container, not the window (UX-001, UX-015): when a row is narrow,
+   the actions move under the content instead of squeezing the title to a sliver. */
+.data-list {
+  container-type: inline-size;
+}
+
+@container (max-width: 760px) {
+  .data-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .data-row > :is(.row-actions, .inline-form) {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+}
+
+@container (max-width: 420px) {
+  .data-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .data-row > * {
+    justify-self: start;
+  }
+}
+
+/* The scope the reports center applies (inherited from the top bar). */
+.report-scope {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--gap-inline-icon);
+  min-block-size: var(--control-md);
+  padding-inline: var(--space-3);
+  font-size: var(--fs-sm);
+  color: var(--muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.report-scope > .icon {
+  inline-size: 18px;
+  block-size: 18px;
+}
