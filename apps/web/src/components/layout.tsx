@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link, NavLink } from 'react-router';
 import { Icon, type IconName } from './Icon';
 
@@ -70,6 +70,8 @@ export type ModuleTab = { to: string; label: string; end?: boolean };
  */
 export function ModuleTabs({ items, label }: { items: ModuleTab[]; label: string }) {
   const ref = useRef<HTMLElement>(null);
+  // Which ends hide more tabs: the row fades there, so a clipped tab reads as "more" (UX-020).
+  const [more, setMore] = useState({ start: false, end: false });
   useEffect(() => {
     const active = ref.current?.querySelector<HTMLElement>('.module-nav-link.active');
     // Only the tab row scrolls; the page itself does not move.
@@ -79,9 +81,33 @@ export function ModuleTabs({ items, label }: { items: ModuleTab[]; label: string
       nav.scrollTo?.({ left: offset, behavior: 'auto' });
     }
   });
+  useEffect(() => {
+    const nav = ref.current;
+    if (!nav) return;
+    const update = () => {
+      // scrollLeft is negative in RTL; its magnitude is the distance from the start.
+      const pos = Math.abs(nav.scrollLeft);
+      const max = nav.scrollWidth - nav.clientWidth;
+      setMore((m) => {
+        const next = { start: pos > 2, end: max - pos > 2 };
+        return next.start === m.start && next.end === m.end ? m : next;
+      });
+    };
+    update();
+    nav.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    return () => {
+      nav.removeEventListener('scroll', update);
+      window.removeEventListener('resize', update);
+    };
+  }, [items.length]);
   if (items.length < 2) return null;
   return (
-    <nav ref={ref} className="module-nav" aria-label={label}>
+    <nav
+      ref={ref}
+      className={['module-nav', more.start && 'module-nav--more-start', more.end && 'module-nav--more-end'].filter(Boolean).join(' ')}
+      aria-label={label}
+    >
       {items.map((i) => (
         <NavLink key={i.to} to={i.to} end={i.end} className="module-nav-link">
           {i.label}

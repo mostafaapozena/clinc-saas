@@ -24,6 +24,7 @@ import {
 } from '../lib/templates';
 import { useOrg } from '../org/context';
 import { EmptyState, Field, Loading } from './ui';
+import { DateText } from './data';
 
 // Specialty parts of a visit record (docs/architecture/SPECIALTY_WORKSPACES.md). Everything here
 // is entered by the clinician; nothing is suggested, scored or generated. Templates are provisional
@@ -148,7 +149,7 @@ function DentistryEditor({ value, onChange, patientId, encounterId, errors }: Ed
               <ul className="plain-list">
                 {history.map((h, i) => (
                   <li key={i} className="small">
-                    <span className="muted">{h.date.slice(0, 10)}</span> · {t(`specialty.dental.kind.${h.kind}`)}
+                    <DateText value={h.date} /> · {t(`specialty.dental.kind.${h.kind}`)}
                     {h.surfaces.length > 0 && <> ({h.surfaces.join(', ')})</>}: <span className="record-text">{h.text}</span>
                   </li>
                 ))}
@@ -566,7 +567,7 @@ export function DentalChartCard({ patientId }: { patientId: string }) {
             <ul className="plain-list">
               {entries.map((h, i) => (
                 <li key={i} className="small">
-                  <span className="muted">{h.date.slice(0, 10)}</span> · {t(`specialty.dental.kind.${h.kind}`)}
+                  <DateText value={h.date} /> · {t(`specialty.dental.kind.${h.kind}`)}
                   {h.surfaces.length > 0 && <> ({h.surfaces.join(', ')})</>}: <span className="record-text">{h.text}</span>
                 </li>
               ))}

@@ -11,6 +11,7 @@ import { formatMoney, moneyInput, parseMoney } from '../lib/finance';
 import { showToast } from '../lib/toast';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { orgKeys, useOrg } from '../org/context';
+import { DateText } from '../components/data';
 
 // Installment plans, rescheduling and bad-debt write-offs on patient invoices
 // (docs/architecture/INSTALLMENTS.md). The plan only schedules the open balance: receipts are
@@ -225,7 +226,7 @@ function PlanTable({ plan, currency }: { plan: Plan; currency: string }) {
           {plan.schedule.map((s, i) => (
             <tr key={i}>
               <td data-label={t('installments.dueDate')}>
-                <bdi dir="ltr">{s.dueDate}</bdi>
+                <DateText value={s.dueDate} />
               </td>
               <td data-label={t('installments.amount')}>{money(s.amount)}</td>
               <td data-label={t('installments.covered')}>{money(s.covered)}</td>

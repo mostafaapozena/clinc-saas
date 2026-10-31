@@ -29,6 +29,7 @@ import { showToast } from '../lib/toast';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { orgKeys, useOrg } from '../org/context';
 import { csvMoney, downloadCsv } from '../lib/csv';
+import { DateText } from '../components/data';
 
 // Suppliers, purchasing and payables (docs/architecture/PURCHASING.md): request → approval → RFQ →
 // quotations → order → receipt → bill → payment. Supplier documents are printed or downloaded by the
@@ -647,7 +648,11 @@ export function RfqPage() {
   const branchStores = (warehouses.data ?? []).filter((w) => w.branchId === d.rfq.branchId && w.status === 'active');
   return (
     <>
-      <PageHeader title={t('purchasing.rfqTitle', { number: d.rfq.number })} subtitle={t(`purchasing.rfqStatus.${d.rfq.status}`)}>
+      <PageHeader
+        back={{ to: `/app/${orgId}/purchasing`, label: t('purchasing.title') }}
+        title={t('purchasing.rfqTitle', { number: d.rfq.number })}
+        subtitle={t(`purchasing.rfqStatus.${d.rfq.status}`)}
+      >
         <Link className="button button--secondary" to={`/app/${orgId}/purchasing/rfqs/${d.rfq.id}/print`}>
           {t('purchasing.printRfq')}
         </Link>
@@ -1107,7 +1112,11 @@ export function PurchaseOrderPage() {
   const orgWide = org.membership.branchScope.type === 'all';
   return (
     <>
-      <PageHeader title={t('purchasing.orderTitle', { number: o.number })} subtitle={supplier?.name}>
+      <PageHeader
+        back={{ to: `/app/${orgId}/purchasing/orders`, label: t('purchasing.ordersTitle') }}
+        title={t('purchasing.orderTitle', { number: o.number })}
+        subtitle={supplier?.name}
+      >
         <Link className="button button--secondary" to={`/app/${orgId}/purchasing/orders/${o.id}/print`}>
           {t('purchasing.printOrder')}
         </Link>
@@ -1275,7 +1284,7 @@ export function PurchaseOrderPrintPage() {
           <>
             <dt>{t('purchasing.expectedDate')}</dt>
             <dd>
-              <bdi dir="ltr">{o.expectedDate}</bdi>
+              <DateText value={o.expectedDate} />
             </dd>
           </>
         )}
@@ -1747,7 +1756,11 @@ export function BillPage() {
   const { bill: b, payments, credits } = view.data;
   return (
     <>
-      <PageHeader title={t('purchasing.billTitle', { number: b.number })} subtitle={suppliers.data?.find((s) => s.id === b.supplierId)?.name} />
+      <PageHeader
+        back={{ to: `/app/${orgId}/purchasing/bills`, label: t('purchasing.billsTitle') }}
+        title={t('purchasing.billTitle', { number: b.number })}
+        subtitle={suppliers.data?.find((s) => s.id === b.supplierId)?.name}
+      />
       <PurchasingNav />
       <section className="card" aria-labelledby="bill-summary-title">
         <div className="section-header">
@@ -1761,11 +1774,11 @@ export function BillPage() {
           </dd>
           <dt>{t('purchasing.billDate')}</dt>
           <dd>
-            <bdi dir="ltr">{b.billDate}</bdi>
+            <DateText value={b.billDate} />
           </dd>
           <dt>{t('purchasing.dueDate')}</dt>
           <dd>
-            <bdi dir="ltr">{b.dueDate}</bdi>
+            <DateText value={b.dueDate} />
           </dd>
           <dt>{t('purchasing.total')}</dt>
           <dd>{money(b.total)}</dd>
@@ -1804,7 +1817,7 @@ export function BillPage() {
                     <bdi dir="ltr">{p.number}</bdi> {t('purchasing.payment')}
                   </h3>
                   <p className="muted">
-                    {money(p.allocations.find((a) => a.billId === b.id)?.amount ?? 0)} · <bdi dir="ltr">{p.date}</bdi>
+                    {money(p.allocations.find((a) => a.billId === b.id)?.amount ?? 0)} · <DateText value={p.date} />
                   </p>
                 </div>
               </li>

@@ -159,6 +159,9 @@ export function ChartCard({
   const rtl = i18n.dir() === 'rtl';
   const hasData = series.some((s) => s.values.some((v) => v !== 0));
   const donutTotal = kind === 'donut' ? (series[0]?.values ?? []).reduce((s, v) => s + v, 0) : 0;
+  // One non-zero part is not a composition: show the figure, not a 100% ring (UX-022).
+  const parts = kind === 'donut' ? (series[0]?.values ?? []).flatMap((v, i) => (v !== 0 ? [i] : [])) : [];
+  const single = parts.length === 1 ? parts[0]! : null;
   return (
     <section className="card chart-card" aria-labelledby={`${id}-title`} data-testid={testId}>
       <div className="chart-head">
@@ -205,6 +208,12 @@ export function ChartCard({
               ))}
             </tbody>
           </table>
+        </div>
+      ) : single !== null ? (
+        <div className="chart-single" data-testid={testId ? `${testId}-single` : undefined}>
+          <p className="chart-single-label">{labels[single]}</p>
+          <p className="chart-single-value">{format(series[0]?.values[single] ?? 0)}</p>
+          <p className="muted small">{t('charts.wholeTotal')}</p>
         </div>
       ) : kind === 'hbar' ? (
         <HBars labels={labels} values={series[0]?.values ?? []} format={format} />

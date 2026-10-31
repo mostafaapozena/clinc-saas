@@ -12,6 +12,7 @@ import { formatMoney, moneyInput, parseMoney } from '../lib/finance';
 import { showToast } from '../lib/toast';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { orgKeys, useOrg } from '../org/context';
+import { DateText } from '../components/data';
 
 // Practitioner compensation (docs/architecture/COMPENSATION.md): agreements, settlements computed
 // from real work, approval (frozen) and payment. Not payroll.
@@ -363,7 +364,15 @@ export function SettlementPage() {
   const payValue = parseMoney(payAmount ?? moneyInput(s.remaining));
   return (
     <>
-      <PageHeader title={t('compensation.settlementTitle', { number: s.number })} subtitle={`${s.periodFrom} → ${s.periodTo}`}>
+      <PageHeader
+        back={{ to: `/app/${orgId}/compensation`, label: t('compensation.title') }}
+        title={t('compensation.settlementTitle', { number: s.number })}
+        subtitle={
+          <>
+            <DateText value={s.periodFrom} /> – <DateText value={s.periodTo} />
+          </>
+        }
+      >
         <Link className="button button--secondary" to={`/app/${orgId}/compensation`}>
           {t('compensation.back')}
         </Link>
@@ -390,7 +399,7 @@ export function SettlementPage() {
                 {s.lines.map((l) => (
                   <tr key={l.sourceKey}>
                     <td data-label={t('compensation.date')}>
-                      <bdi dir="ltr">{l.date}</bdi>
+                      <DateText value={l.date} />
                     </td>
                     <td data-label={t('compensation.item')}>
                       {t(`compensation.sources.${l.sourceType}`)} · <bdi dir="auto">{l.description}</bdi>

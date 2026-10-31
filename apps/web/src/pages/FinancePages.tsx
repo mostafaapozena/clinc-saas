@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { PatientContextHeader } from '../components/PatientContextHeader';
 import { useDeferredValue, useEffect, useRef, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
@@ -429,11 +430,7 @@ export function PatientAccountPage() {
 
   return (
     <>
-      <PageHeader title={a.patient.fullName} subtitle={t('finance.accountOf', { number: fmt.number(a.patient.patientNumber) })}>
-        <Link className="button button--secondary" to={`/app/${orgId}/patients/${a.patient.id}`}>
-          {t('finance.patientFile')}
-        </Link>
-      </PageHeader>
+      <PatientContextHeader patient={a.patient} />
       <CurrencySetup />
       <section className="card" aria-labelledby="balance-title" data-testid="account-balance">
         <h2 id="balance-title">{t('finance.balance')}</h2>
@@ -931,7 +928,13 @@ export function InvoicePage() {
   const { invoice: inv, patient, payments, creditNotes } = view.data;
   return (
     <>
-      <PageHeader title={inv.number ?? t('finance.draftInvoice')} subtitle={patient ? `\u2068${patient.fullName}\u2069 (#${fmt.number(patient.patientNumber)})` : undefined}>
+      <PageHeader
+        back={
+          patient
+            ? { to: `/app/${orgId}/finance/patients/${patient.id}`, label: t('finance.account') }
+            : { to: `/app/${orgId}/finance`, label: t('nav.finance') }
+        }
+        title={inv.number ?? t('finance.draftInvoice')} subtitle={patient ? `\u2068${patient.fullName}\u2069 (#${fmt.number(patient.patientNumber)})` : undefined}>
         <span className={`badge badge--invoice-${inv.status}`} data-testid="invoice-status">
           {t(`finance.invoiceStatus.${inv.status}`)}
         </span>

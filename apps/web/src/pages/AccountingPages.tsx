@@ -27,6 +27,8 @@ import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { useOrg } from '../org/context';
 import { csvMoney, downloadCsv } from '../lib/csv';
 import { useAccountingSettings, useMoney } from '../lib/useAccounting';
+import { DateText, Pagination } from '../components/data';
+import { pageParam, useUrlState } from '../lib/useUrlState';
 
 // General ledger (docs/architecture/ACCOUNTING.md): setup, journal, chart of accounts, statements
 // and month closing. The chart is an implementation template pending the clinic accountant's review.
@@ -574,10 +576,12 @@ export function JournalPage() {
   useDocumentTitle(t('accounting.journalTitle'));
   const money = useMoney();
   const settings = useAccountingSettings();
-  const [from, setFrom] = useState('');
-  const [to, setTo] = useState('');
-  const [journal, setJournal] = useState('');
-  const [page, setPage] = useState(1);
+  // Filters and page in the address: dates and a journal code only.
+  const url = useUrlState();
+  const from = url.get('from');
+  const to = url.get('to');
+  const journal = url.get('journal');
+  const page = pageParam(url.get('page'));
   const [showForm, setShowForm] = useState(false);
   const configured = settings.data?.configured === true;
   const accounts = useAccounts(configured && can('accounting.manage'));
@@ -613,13 +617,13 @@ export function JournalPage() {
           </h2>
           <div className="filters">
             <Field id="journal-from" label={t('accounting.from')}>
-              <input id="journal-from" type="date" value={from} onChange={(e) => (setFrom(e.target.value), setPage(1))} />
+              <input id="journal-from" type="date" value={from} onChange={(e) => url.set({ from: e.target.value, page: null })} />
             </Field>
             <Field id="journal-to" label={t('accounting.to')}>
-              <input id="journal-to" type="date" value={to} onChange={(e) => (setTo(e.target.value), setPage(1))} />
+              <input id="journal-to" type="date" value={to} onChange={(e) => url.set({ to: e.target.value, page: null })} />
             </Field>
             <Field id="journal-filter" label={t('accounting.journal')}>
-              <select id="journal-filter" value={journal} onChange={(e) => (setJournal(e.target.value), setPage(1))}>
+              <select id="journal-filter" value={journal} onChange={(e) => url.set({ journal: e.target.value, page: null })}>
                 {JOURNAL_FILTERS.map((j) => (
                   <option key={j} value={j}>
                     {j ? t(`accounting.journals.${j}`) : t('accounting.allJournals')}
@@ -656,7 +660,7 @@ export function JournalPage() {
                           {e.reversalOf && <span className="badge">{t('accounting.reversal')}</span>}
                         </td>
                         <td data-label={t('accounting.date')}>
-                          <bdi dir="ltr">{e.date}</bdi>
+                          <DateText value={e.date} />
                         </td>
                         <td data-label={t('accounting.journal')}>{t(`accounting.journals.${e.journal}`)}</td>
                         <td data-label={t('accounting.event')}>{sourceLabel(t, e.source)}</td>
@@ -669,25 +673,7 @@ export function JournalPage() {
                   </tbody>
                 </table>
               </div>
-              <div className="pagination">
-                <button type="button" className="button button--secondary" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
-                  {t('common.previous')}
-                </button>
-                <span>
-                  {t('accounting.pageOf', {
-                    page,
-                    pages: Math.max(1, Math.ceil(entries.data.total / entries.data.pageSize)),
-                  })}
-                </span>
-                <button
-                  type="button"
-                  className="button button--secondary"
-                  disabled={page * entries.data.pageSize >= entries.data.total}
-                  onClick={() => setPage((p) => p + 1)}
-                >
-                  {t('common.next')}
-                </button>
-              </div>
+              <Pagination page={page} pageSize={entries.data.pageSize} total={entries.data.total} onPage={(p) => url.set({ page: p > 1 ? p : null })} />
             </>
           )}
         </section>
@@ -737,7 +723,7 @@ export function EntryPage() {
         <dl className="details">
           <dt>{t('accounting.date')}</dt>
           <dd>
-            <bdi dir="ltr">{e.date}</bdi>
+            <DateText value={e.date} />
           </dd>
           <dt>{t('accounting.journal')}</dt>
           <dd>{t(`accounting.journals.${e.journal}`)}</dd>
@@ -1366,7 +1352,7 @@ function ReportView({ name, data }: { name: ReportName; data: Record<string, unk
                 {lines.map((l, i) => (
                   <tr key={i}>
                     <td data-label={t('accounting.date')}>
-                      <bdi dir="ltr">{l.date}</bdi>
+                      <DateText value={l.date} />
                     </td>
                     <td data-label={t('accounting.number')}>
                       <bdi dir="ltr">{l.number}</bdi>

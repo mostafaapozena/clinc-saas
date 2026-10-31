@@ -2296,3 +2296,73 @@ textarea {
 .filters {
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
 }
+
+/* The reason a submit button is disabled, on its own line under the actions (UX-017). */
+.form-actions-note {
+  flex-basis: 100%;
+  margin: 0;
+}
+
+.form-actions-note:empty {
+  display: none;
+}
+
+/* Module tabs: the end that hides more tabs fades out, so a clipped tab reads as "more" (UX-020). */
+.module-nav--more-end {
+  mask-image: linear-gradient(to left, transparent 0, #000 56px);
+}
+
+.module-nav--more-start {
+  mask-image: linear-gradient(to right, transparent 0, #000 56px);
+}
+
+.module-nav--more-start.module-nav--more-end {
+  mask-image: linear-gradient(to right, transparent 0, #000 56px, #000 calc(100% - 56px), transparent 100%);
+}
+
+[dir='rtl'] .module-nav--more-end:not(.module-nav--more-start) {
+  mask-image: linear-gradient(to right, transparent 0, #000 56px);
+}
+
+[dir='rtl'] .module-nav--more-start:not(.module-nav--more-end) {
+  mask-image: linear-gradient(to left, transparent 0, #000 56px);
+}
+
+/* A share chart with one part shows the figure instead of a full ring (UX-022). */
+.chart-single {
+  display: grid;
+  gap: var(--space-1);
+  padding-block: var(--space-4);
+}
+
+.chart-single > p {
+  margin: 0;
+}
+
+.chart-single-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The way back to the list a detail page belongs to (UX-018). */
+.page-back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--gap-inline-icon);
+  min-block-size: var(--control-sm, 32px);
+  margin-block-end: var(--space-1);
+  font-size: var(--fs-sm);
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.page-back:hover {
+  color: var(--text);
+  text-decoration: underline;
+}
+
+.page-back > .icon {
+  inline-size: 16px;
+  block-size: 16px;
+}
