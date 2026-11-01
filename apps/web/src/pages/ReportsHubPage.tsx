@@ -9,11 +9,11 @@ import { PageHeader } from '../components/PageHeader';
 import { EmptyState, ErrorState } from '../components/ui';
 import { api, query } from '../lib/api';
 import { errorMessage } from '../lib/errors';
-import { formatMoney } from '../lib/finance';
 import type { Permission } from '../lib/types';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { moduleOfPath } from '../lib/modules';
 import { orgKeys, useBranchFilter, useOrg } from '../org/context';
+import { useCurrencyMoney, useOrgCurrency } from '../lib/money';
 
 // Reports center (docs/REPORTS_CENTER.md). Category tabs, the category's key figures and charts
 // for the chosen period and branch, then the detailed reports that open directly. Every number
@@ -98,21 +98,6 @@ type Summary = {
 };
 type Trend = { months: string[]; series: { currency: string; invoiced: number[]; collected: number[] }[] };
 
-function useMoney(currency: string | null | undefined) {
-  const { i18n } = useTranslation();
-  return (minor: number) => (currency ? formatMoney(minor, currency, i18n.language) : String(minor));
-}
-
-function useCurrency() {
-  const { orgId } = useOrg();
-  return (
-    useQuery({
-      queryKey: orgKeys.financeSettings(orgId),
-      queryFn: ({ signal }) => api<{ currency: string | null }>(`/orgs/${orgId}/finance/settings`, { signal }),
-    }).data?.currency ?? null
-  );
-}
-
 const context = (parts: (string | null | false | undefined)[]) => parts.filter(Boolean).join(' · ');
 
 /** Financial: invoiced and collected from the documents — never presented as revenue or profit. */
@@ -129,8 +114,8 @@ function FinancialSection({
 }) {
   const { t, i18n } = useTranslation();
   const { orgId, can } = useOrg();
-  const currency = useCurrency();
-  const money = useMoney(currency);
+  const currency = useOrgCurrency();
+  const money = useCurrencyMoney(currency);
   const enabled = can('finance.report.read');
   const params = { ...range, branchId: branchId || undefined };
   const summary = useQuery({
@@ -233,7 +218,7 @@ function CollectionsSection() {
     queryFn: ({ signal }) => api<Aging>(`/orgs/${orgId}/accounting/reports/receivables-aging`, { signal }),
     enabled: can('accounting.read'),
   });
-  const money = useMoney(aging.data?.currency);
+  const money = useCurrencyMoney(aging.data?.currency);
   if (!can('accounting.read')) return null;
   const buckets = ['d0_30', 'd31_60', 'd61_90', 'd90plus'] as const;
   const totals = aging.data?.totals;
@@ -290,7 +275,7 @@ function CashSection({ range, periodLabel }: { range: { from: string; to: string
     queryFn: ({ signal }) => api<CashFlow>(`/orgs/${orgId}/accounting/reports/cash-flow${query(range)}`, { signal }),
     enabled,
   });
-  const money = useMoney(flow.data?.currency);
+  const money = useCurrencyMoney(flow.data?.currency);
   if (!enabled) return null;
   const d = flow.data;
   const sections = d?.sections ?? [];
@@ -374,8 +359,8 @@ function InventorySection() {
       api<{ rows: { name: string; total: number }[]; total: number }>(`/orgs/${orgId}/purchasing/reports/payables-aging`, { signal }),
     enabled: payablesOn,
   });
-  const currency = useCurrency();
-  const money = useMoney(currency);
+  const currency = useOrgCurrency();
+  const money = useCurrencyMoney(currency);
   if (!can('inventory.read') && !payablesOn) return null;
   const top = (payables.data?.rows ?? []).slice(0, 6);
   return (

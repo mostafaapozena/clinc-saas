@@ -12,21 +12,7 @@ import { revealAndFocus } from '../lib/a11y';
 import { ApiError, api, query } from '../lib/api';
 import { newRequestKey } from '../lib/clinical';
 import { errorMessage, fieldErrors, fieldMessage } from '../lib/errors';
-import {
-  PAYMENT_METHODS,
-  formatMoney,
-  moneyInput,
-  parseMoney,
-  type Account,
-  type Charge,
-  type DocumentContext,
-  type FinanceReport,
-  type FinanceService,
-  type Invoice,
-  type Payment,
-  type Statement,
-  type Adjustment,
-} from '../lib/finance';
+import { PAYMENT_METHODS, moneyInput, parseMoney, type Account, type Charge, type DocumentContext, type FinanceReport, type FinanceService, type Invoice, type Payment, type Statement, type Adjustment } from '../lib/finance';
 import { useFormatters } from '../lib/format';
 import { todayIn } from '../lib/time';
 import { showToast } from '../lib/toast';
@@ -34,14 +20,11 @@ import type { Page, PatientSummary } from '../lib/types';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { orgKeys, useOrg } from '../org/context';
 import { ConfirmAction } from '../components/data';
+import { ActionBar, CardGrid } from '../components/layout';
+import { useMoney } from '../lib/money';
 
 // Clinic finances (docs/architecture/FINANCE.md). Amounts are integer minor units; all totals are
 // computed by the API. Labelled printouts are ordinary invoices/receipts — not tax invoices.
-
-function useMoney() {
-  const { i18n } = useTranslation();
-  return (minor: number, currency: string | null | undefined) => (currency ? formatMoney(minor, currency, i18n.language) : '—');
-}
 
 function useFinanceSettings() {
   const { orgId } = useOrg();
@@ -130,7 +113,7 @@ export function FinancePage() {
         )}
       </PageHeader>
       <CurrencySetup />
-      <div className="card-grid card-grid--wide">
+      <CardGrid wide>
         {can('finance.account.read') && (
           <section className="card" aria-labelledby="finance-patients-title">
             <h2 id="finance-patients-title">{t('finance.patientAccounts')}</h2>
@@ -152,7 +135,7 @@ export function FinancePage() {
           </section>
         )}
         {can('finance.report.read') && <FinanceReportCard />}
-      </div>
+      </CardGrid>
     </>
   );
 }
@@ -303,11 +286,11 @@ export function ServicesPage() {
               <input id="service-name" maxLength={120} value={name} onChange={(e) => setName(e.target.value)} />
             </Field>
             <MoneyField id="service-price" label={t('finance.price')} value={price} onChange={setPrice} error={fieldMessage(t, 'price', fields.price)} />
-            <div className="form-actions">
+            <ActionBar>
               <button type="submit" className="button button--primary" disabled={create.isPending || parseMoney(price) === null}>
                 {t('finance.addService')}
               </button>
-            </div>
+            </ActionBar>
           </form>
         </section>
       )}
@@ -460,7 +443,7 @@ export function PatientAccountPage() {
         </dl>
       </section>
 
-      <div className="card-grid card-grid--wide">
+      <CardGrid wide>
         <section className="card" aria-labelledby="charges-title">
           <h2 id="charges-title">{t('finance.pendingCharges')}</h2>
           {pending.length === 0 ? (
@@ -523,9 +506,9 @@ export function PatientAccountPage() {
             </ul>
           )}
         </section>
-      </div>
+      </CardGrid>
 
-      <div className="card-grid card-grid--wide">
+      <CardGrid wide>
         <section className="card" aria-labelledby="payments-title">
           <h2 id="payments-title">{t('finance.payments')}</h2>
           {a.payments.length === 0 ? (
@@ -576,7 +559,7 @@ export function PatientAccountPage() {
             </div>
           )}
         </section>
-      </div>
+      </CardGrid>
     </>
   );
 }
@@ -961,11 +944,11 @@ export function InvoicePage() {
       )}
       {/* The natural next step for an issued invoice with something left to pay (UX-035). */}
       {inv.status === 'issued' && inv.balance > 0 && patient && can('finance.payment.record') && (
-        <div className="form-actions invoice-next">
+        <ActionBar className="invoice-next">
           <Link className="button button--primary" to={`/app/${orgId}/finance/patients/${patient.id}?pay=${inv.id}`}>
             <Icon name="wallet" /> {t('finance.payThisInvoice')}
           </Link>
-        </div>
+        </ActionBar>
       )}
       <InvoiceTable invoice={inv} money={money} />
       <InvoiceInstallments invoice={inv} />
@@ -990,14 +973,14 @@ export function InvoicePage() {
               {applyDiscount.isError && <span className="field-error">{errorMessage(t, applyDiscount.error)}</span>}
             </form>
           )}
-          <div className="form-actions">
+          <ActionBar>
             <button type="button" id="issue-invoice" className="button button--primary" disabled={confirmIssue} onClick={() => setConfirmIssue(true)}>
               {t('finance.issue')}
             </button>
             <button type="button" className="button button--secondary" disabled={discard.isPending} onClick={() => discard.mutate(inv)}>
               {t('finance.discard')}
             </button>
-          </div>
+          </ActionBar>
           {confirmIssue && (
             <div className="confirm-panel" role="alertdialog" aria-labelledby="confirm-issue-title">
               <h3 id="confirm-issue-title" ref={confirmRef} tabIndex={-1}>
@@ -1005,7 +988,7 @@ export function InvoicePage() {
               </h3>
               <p>{t('finance.confirmIssueBody')}</p>
               {issue.isError && <Notice kind="error">{errorMessage(t, issue.error)}</Notice>}
-              <div className="form-actions">
+              <ActionBar>
                 <button type="button" className="button button--primary" disabled={issue.isPending} onClick={() => issue.mutate(inv)}>
                   {t('finance.confirmIssue')}
                 </button>
@@ -1019,13 +1002,13 @@ export function InvoicePage() {
                 >
                   {t('common.cancel')}
                 </button>
-              </div>
+              </ActionBar>
             </div>
           )}
         </section>
       )}
       {inv.status === 'issued' && (
-        <div className="card-grid card-grid--wide">
+        <CardGrid wide>
           <section className="card" aria-labelledby="invoice-payments-title">
             <h2 id="invoice-payments-title">{t('finance.paymentsApplied')}</h2>
             {payments.length === 0 ? (
@@ -1076,7 +1059,7 @@ export function InvoicePage() {
               </ActionPanel>
             </section>
           )}
-        </div>
+        </CardGrid>
       )}
     </>
   );

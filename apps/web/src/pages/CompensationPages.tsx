@@ -8,11 +8,13 @@ import type { CashAccount } from '../lib/accounting';
 import { api } from '../lib/api';
 import { newRequestKey } from '../lib/clinical';
 import { errorMessage } from '../lib/errors';
-import { formatMoney, moneyInput, parseMoney } from '../lib/finance';
+import { moneyInput, parseMoney } from '../lib/finance';
 import { showToast } from '../lib/toast';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
-import { orgKeys, useOrg } from '../org/context';
+import { useOrg } from '../org/context';
 import { DateText } from '../components/data';
+import { useOrgMoney } from '../lib/money';
+import { ActionBar, CardGrid } from '../components/layout';
 
 // Practitioner compensation (docs/architecture/COMPENSATION.md): agreements, settlements computed
 // from real work, approval (frozen) and payment. Not payroll.
@@ -52,16 +54,6 @@ const keys = {
   mine: (orgId: string) => ['org', orgId, 'compensation', 'mine'] as const,
 };
 
-function useMoneyFmt() {
-  const { i18n } = useTranslation();
-  const { orgId } = useOrg();
-  const settings = useQuery({
-    queryKey: orgKeys.financeSettings(orgId),
-    queryFn: ({ signal }) => api<{ currency: string | null }>(`/orgs/${orgId}/finance/settings`, { signal }),
-  });
-  const currency = settings.data?.currency;
-  return (minor: number) => (currency ? formatMoney(minor, currency, i18n.language) : String(minor));
-}
 function usePractitioners(enabled: boolean) {
   const { orgId } = useOrg();
   return useQuery({
@@ -79,7 +71,7 @@ const statusClass = (s: string) =>
 function MyStatements() {
   const { t } = useTranslation();
   const { orgId } = useOrg();
-  const money = useMoneyFmt();
+  const { money } = useOrgMoney();
   const mine = useQuery({
     queryKey: keys.mine(orgId),
     queryFn: ({ signal }) => api<{ settlements: Settlement[] }>(`/orgs/${orgId}/compensation/my-settlements`, { signal }).then((r) => r.settlements),
@@ -117,7 +109,7 @@ export function CompensationPage() {
   const { t } = useTranslation();
   const { orgId, can, detail } = useOrg();
   useDocumentTitle(t('compensation.title'));
-  const money = useMoneyFmt();
+  const { money } = useOrgMoney();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const finance = can('compensation.read') && detail.membership.branchScope.type === 'all';
@@ -197,7 +189,7 @@ export function CompensationPage() {
             )}
           </section>
           {can('compensation.manage') && (
-            <div className="card-grid card-grid--wide">
+            <CardGrid wide>
               <form
                 className="card"
                 aria-labelledby="new-agreement-title"
@@ -241,11 +233,11 @@ export function CompensationPage() {
                   )}
                 </div>
                 {addAgreement.isError && <Notice kind="error">{errorMessage(t, addAgreement.error)}</Notice>}
-                <div className="form-actions">
+                <ActionBar>
                   <button type="submit" className="button button--primary" disabled={addAgreement.isPending || !pid || !from}>
                     {t('compensation.saveAgreement')}
                   </button>
-                </div>
+                </ActionBar>
               </form>
               <form
                 className="card"
@@ -276,13 +268,13 @@ export function CompensationPage() {
                   </Field>
                 </div>
                 {draft.isError && <Notice kind="error">{errorMessage(t, draft.error)}</Notice>}
-                <div className="form-actions">
+                <ActionBar>
                   <button type="submit" className="button button--primary" disabled={draft.isPending}>
                     {t('compensation.compute')}
                   </button>
-                </div>
+                </ActionBar>
               </form>
-            </div>
+            </CardGrid>
           )}
           <section className="card" aria-labelledby="settlements-title">
             <h2 id="settlements-title">{t('compensation.settlements')}</h2>
@@ -322,7 +314,7 @@ export function SettlementPage() {
   const { t } = useTranslation();
   const { orgId, can } = useOrg();
   const { settlementId = '' } = useParams();
-  const money = useMoneyFmt();
+  const { money } = useOrgMoney();
   const queryClient = useQueryClient();
   const view = useQuery({
     queryKey: keys.settlement(orgId, settlementId),
@@ -486,11 +478,11 @@ export function SettlementPage() {
               <input id="adj-reason" required minLength={3} maxLength={300} value={adjReason} onChange={(e) => setAdjReason(e.target.value)} />
             </Field>
           </div>
-          <div className="form-actions">
+          <ActionBar>
             <button type="submit" className="button button--secondary" disabled={act.isPending || !adj}>
               {t('compensation.addAdjustment')}
             </button>
-          </div>
+          </ActionBar>
         </form>
       )}
       {s.status === 'approved' && s.remaining > 0 && can('compensation.pay') && (
@@ -526,11 +518,11 @@ export function SettlementPage() {
             </Field>
           </div>
           {pay.isError && <Notice kind="error">{errorMessage(t, pay.error)}</Notice>}
-          <div className="form-actions">
+          <ActionBar>
             <button type="submit" className="button button--primary" disabled={pay.isPending}>
               {t('compensation.pay')}
             </button>
-          </div>
+          </ActionBar>
         </form>
       )}
     </>

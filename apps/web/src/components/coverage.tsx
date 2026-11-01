@@ -8,6 +8,7 @@ import { errorMessage, fieldErrors, fieldMessage } from '../lib/errors';
 import { useFormatters } from '../lib/format';
 import { orgKeys, useOrg } from '../org/context';
 import { Field, Notice } from './ui';
+import { ActionBar } from './layout';
 
 /** Durations offered for a grant (the API caps a grant at 90 days). */
 const DURATIONS = [1, 3, 7, 14, 30, 90] as const;
@@ -140,14 +141,14 @@ export function ShareRecord({ encounter }: { encounter: Encounter }) {
           <Field id="share-reason" label={t('coverage.reason')} error={fieldMessage(t, 'coverageReason', fields.reason)}>
             <textarea id="share-reason" rows={2} maxLength={300} value={reason} onChange={(e) => change(setReason)(e.target.value)} required />
           </Field>
-          <div className="form-actions">
+          <ActionBar>
             <button type="submit" className="button button--primary" disabled={share.isPending || !grantee}>
               {share.isPending ? t('common.saving') : t('coverage.grant')}
             </button>
             <button type="button" className="button button--secondary" onClick={() => setOpen(false)}>
               {t('common.cancel')}
             </button>
-          </div>
+          </ActionBar>
         </form>
       )}
     </section>

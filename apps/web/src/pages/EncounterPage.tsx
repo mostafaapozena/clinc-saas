@@ -29,6 +29,7 @@ import { useFormatters } from '../lib/format';
 import type { Appointment } from '../lib/types';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { orgKeys, useOrg } from '../org/context';
+import { ActionBar } from '../components/layout';
 
 /**
  * The treating doctor's record of one visit: start (or late entry), draft, finalize, addenda.
@@ -272,11 +273,11 @@ function StartRecord({ view, appointmentId }: { view: EncounterView; appointment
           </fieldset>
         )}
         {start.isError && !fields.lateEntryReason && <Notice kind="error">{errorMessage(t, start.error)}</Notice>}
-        <div className="form-actions">
+        <ActionBar>
           <button type="submit" className="button button--primary" disabled={start.isPending}>
             {start.isPending ? t('clinical.starting') : t('clinical.start')}
           </button>
-        </div>
+        </ActionBar>
       </form>
     </section>
   );
@@ -417,7 +418,7 @@ function DraftEditor({ encounter, reload }: { encounter: Encounter; reload: () =
             <strong>{t('clinical.conflictTitle')}</strong>
           </p>
           <p>{t('clinical.conflictBody')}</p>
-          <div className="form-actions">
+          <ActionBar>
             <button type="button" className="button button--secondary" onClick={() => void loadLatest()}>
               {t('clinical.loadLatest')}
             </button>
@@ -426,7 +427,7 @@ function DraftEditor({ encounter, reload }: { encounter: Encounter; reload: () =
                 {t('clinical.keepMine')}
               </button>
             )}
-          </div>
+          </ActionBar>
         </div>
       )}
       {conflict?.kind === 'finalized' && (
@@ -501,7 +502,7 @@ function DraftEditor({ encounter, reload }: { encounter: Encounter; reload: () =
           <span className="muted small draft-actions-state" aria-hidden="true">
             {dirty ? t('clinical.unsaved') : savedAt ? t('clinical.savedAt', { time: fmt.time(savedAt, timeZone ?? 'UTC') }) : t('clinical.allSaved')}
           </span>
-          <div className="form-actions">
+          <ActionBar>
             <button type="submit" className="button button--primary" disabled={!dirty || save.isPending}>
               {save.isPending ? t('common.saving') : t('clinical.saveDraft')}
             </button>
@@ -514,7 +515,7 @@ function DraftEditor({ encounter, reload }: { encounter: Encounter; reload: () =
             >
               {t('clinical.finalize')}
             </button>
-          </div>
+          </ActionBar>
           {dirty && (
             <p id="finalize-blocked" className="muted small">
               {t('clinical.saveBeforeFinalize')}
@@ -529,14 +530,14 @@ function DraftEditor({ encounter, reload }: { encounter: Encounter; reload: () =
             {t('clinical.confirmTitle')}
           </h3>
           <p id="confirm-finalize-body">{t('clinical.confirmBody')}</p>
-          <div className="form-actions">
+          <ActionBar>
             <button type="button" className="button button--primary" disabled={finalize.isPending} onClick={() => finalize.mutate()}>
               {finalize.isPending ? t('clinical.finalizing') : t('clinical.confirmFinalize')}
             </button>
             <button type="button" className="button button--secondary" disabled={finalize.isPending} onClick={() => setConfirming(false)}>
               {t('common.cancel')}
             </button>
-          </div>
+          </ActionBar>
         </div>
       )}
 
@@ -544,14 +545,14 @@ function DraftEditor({ encounter, reload }: { encounter: Encounter; reload: () =
         <div className="confirm-panel" role="alertdialog" aria-labelledby="leave-title">
           <h3 id="leave-title">{t('clinical.leaveTitle')}</h3>
           <p>{t('clinical.leaveBody')}</p>
-          <div className="form-actions">
+          <ActionBar>
             <button type="button" className="button button--primary" onClick={() => blocker.reset()}>
               {t('clinical.stay')}
             </button>
             <button type="button" className="button button--danger" onClick={() => blocker.proceed()}>
               {t('clinical.leave')}
             </button>
-          </div>
+          </ActionBar>
         </div>
       )}
     </section>
@@ -700,11 +701,11 @@ function AddAddendum({ encounter, onAdded }: { encounter: Encounter; onAdded: (e
             onChange={(e) => edit(setContent)(e.target.value)}
           />
         </Field>
-        <div className="form-actions">
+        <ActionBar>
           <button type="submit" className="button button--primary" disabled={add.isPending}>
             {add.isPending ? t('clinical.adding') : t('clinical.addAddendum')}
           </button>
-        </div>
+        </ActionBar>
       </form>
     </section>
   );

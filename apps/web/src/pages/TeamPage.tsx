@@ -13,6 +13,7 @@ import { ASSIGNABLE_ROLES, ORG_WIDE_ROLES, type BranchScope, type Member, type R
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { orgKeys, useOrg } from '../org/context';
 import { ConfirmAction } from '../components/data';
+import { ActionBar } from '../components/layout';
 
 const ALL: BranchScope = { type: 'all', branchIds: [] };
 
@@ -305,14 +306,14 @@ function EditMemberRow({ member, onDone }: { member: Member; onDone: (message?: 
         ) : (
           <BranchScopeFields idPrefix={id} scope={scope} branches={branches} onChange={setScope} error={scopeError} />
         )}
-        <div className="form-actions">
+        <ActionBar>
           <button type="submit" className="button button--primary" disabled={save.isPending}>
             {save.isPending ? t('common.saving') : t('common.save')}
           </button>
           <button type="button" className="button button--secondary" onClick={() => onDone()}>
             {t('common.cancel')}
           </button>
-        </div>
+        </ActionBar>
       </form>
     </li>
   );

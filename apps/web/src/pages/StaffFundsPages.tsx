@@ -3,17 +3,18 @@ import { displayName } from '../lib/defaultNames';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PageHeader } from '../components/PageHeader';
-import { EmptyState, ErrorState, Field, Loading, Notice } from '../components/ui';
+import { Badge, EmptyState, ErrorState, Field, Loading, Notice } from '../components/ui';
 import { accountName, accountingKeys, type LedgerAccount } from '../lib/accounting';
 import { api } from '../lib/api';
 import { newRequestKey } from '../lib/clinical';
 import { errorMessage } from '../lib/errors';
 import { parseMoney } from '../lib/finance';
 import { showToast } from '../lib/toast';
-import { useMoney } from '../lib/useAccounting';
+import { useMoney } from '../lib/money';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { useOrg } from '../org/context';
 import { AccountingNav } from './AccountingPages';
+import { ActionBar } from '../components/layout';
 
 // Employee cash advances (سلف) and petty-cash custody (عهد) — docs/architecture/STAFF_FUNDS.md.
 // Every action posts through the API; this page only sends what was entered.
@@ -145,11 +146,11 @@ function IssueForm({ onDone }: { onDone: () => void }) {
         </Field>
       </div>
       {issue.isError && <Notice kind="error">{errorMessage(t, issue.error)}</Notice>}
-      <div className="form-actions">
+      <ActionBar>
         <button type="submit" className="button button--primary" disabled={issue.isPending}>
           {t('staffFunds.issue')}
         </button>
-      </div>
+      </ActionBar>
     </form>
   );
 }
@@ -286,11 +287,11 @@ function FundActions({ fund, currency, onDone }: { fund: Fund; currency: string;
             </>
           )}
           {run.isError && <Notice kind="error">{errorMessage(t, run.error)}</Notice>}
-          <div className="form-actions">
+          <ActionBar>
             <button type="submit" className="button button--primary" disabled={run.isPending}>
               {t('staffFunds.confirm')}
             </button>
-          </div>
+          </ActionBar>
         </form>
       )}
     </div>
@@ -360,7 +361,7 @@ export function StaffFundsPage() {
                     })}
                   </p>
                 </div>
-                {f.overdue && <span className="badge badge--danger">{t('staffFunds.overdue')}</span>}
+                {f.overdue && <Badge tone="danger">{t('staffFunds.overdue')}</Badge>}
                 <span className={f.status === 'open' ? 'badge badge--warning' : 'badge badge--success'}>
                   {f.status === 'open' ? t('staffFunds.outstanding', { amount: money(f.outstanding, d.currency) }) : t('staffFunds.statuses.settled')}
                 </span>

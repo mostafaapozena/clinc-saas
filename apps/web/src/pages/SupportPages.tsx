@@ -10,6 +10,7 @@ import { errorMessage, fieldErrors, fieldMessage } from '../lib/errors';
 import { useFormatters } from '../lib/format';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { useOrg } from '../org/context';
+import { CardGrid } from '../components/layout';
 
 // Help and support (docs/architecture/SUPPORT.md): static, hand-written answers (no AI), the
 // contact details raclinic has configured (nothing invented), and support requests to raclinic.
@@ -128,10 +129,10 @@ export function SupportPage() {
   return (
     <>
       <PageHeader title={t('support.title')} subtitle={t('support.subtitle')} />
-      <div className="card-grid card-grid--wide">
+      <CardGrid wide>
         <Faq />
         <ContactCard />
-      </div>
+      </CardGrid>
       <section className="card" aria-labelledby="support-new-title">
         <h2 id="support-new-title">{t('support.newTitle')}</h2>
         <Notice kind="warning">{t('support.noPatientData')}</Notice>

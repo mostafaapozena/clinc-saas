@@ -58,8 +58,16 @@ export function ReportLink({ to, icon, title, description }: { to: string; icon:
 }
 
 /** Buttons that act on the content above: one row, related spacing, never stretched vertically. */
-export function ActionBar({ children, align = 'start' }: { children: ReactNode; align?: 'start' | 'end' | 'between' }) {
-  return <div className={`form-actions form-actions--${align}`}>{children}</div>;
+export function ActionBar({
+  children,
+  align = 'start',
+  className,
+}: {
+  children: ReactNode;
+  align?: 'start' | 'end' | 'between';
+  className?: string;
+}) {
+  return <div className={['form-actions', `form-actions--${align}`, className].filter(Boolean).join(' ')}>{children}</div>;
 }
 
 /** A module page. Pages that share a `group` appear as one primary tab with a second row of their own. */

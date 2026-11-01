@@ -3,7 +3,7 @@ import { Fragment, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useParams, useSearchParams } from 'react-router';
 import { Metric } from '../components/Metric';
-import { ModuleTabs } from '../components/layout';
+import { ActionBar, CardGrid, MetricGrid, ModuleTabs } from '../components/layout';
 import { PageHeader } from '../components/PageHeader';
 import { EmptyState, ErrorState, Field, Loading, Notice } from '../components/ui';
 import {
@@ -26,8 +26,9 @@ import type { Page } from '../lib/types';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { useOrg } from '../org/context';
 import { csvMoney, downloadCsv } from '../lib/csv';
-import { useAccountingSettings, useMoney } from '../lib/useAccounting';
-import { ConfirmAction, DateText, Pagination } from '../components/data';
+import { useMoney } from '../lib/money';
+import { useAccountingSettings } from '../lib/useAccounting';
+import { ConfirmAction, DateText, FilterBar, Pagination } from '../components/data';
 import { pageParam, useUrlState } from '../lib/useUrlState';
 
 // General ledger (docs/architecture/ACCOUNTING.md): setup, journal, chart of accounts, statements
@@ -154,11 +155,11 @@ function SetupCard({ data }: { data: SettingsResponse }) {
             <span>{t('accounting.requireCashSession')}</span>
           </label>
           {setup.isError && <Notice kind="error">{errorMessage(t, setup.error)}</Notice>}
-          <div className="form-actions">
+          <ActionBar>
             <button type="submit" className="button button--primary" disabled={missing || setup.isPending}>
               {t('accounting.setUp')}
             </button>
-          </div>
+          </ActionBar>
         </form>
       )}
     </section>
@@ -256,11 +257,11 @@ function MigrationCard() {
       )}
       {p.openingEntriesPosted > 0 && <Notice kind="info">{t('accounting.openingAlready', { count: p.openingEntriesPosted })}</Notice>}
       {hasAmounts && p.openingEntriesPosted === 0 && (
-        <div className="form-actions">
+        <ActionBar>
           <button type="button" className="button button--secondary" disabled={post.isPending} onClick={() => post.mutate(p)}>
             {t('accounting.postOpening')}
           </button>
-        </div>
+        </ActionBar>
       )}
       {post.isError && <Notice kind="error">{errorMessage(t, post.error)}</Notice>}
     </section>
@@ -306,7 +307,7 @@ export function AccountingPage() {
           </Notice>
           {!orgWide && <Notice kind="info">{t('accounting.branchScopeNotice')}</Notice>}
           {orgWide && accounts.isSuccess && (
-            <dl className="metrics metrics--auto" data-testid="accounting-metrics">
+            <MetricGrid testId="accounting-metrics">
               <Metric icon="cash" label={t('accounting.metrics.cash')} value={byCode('cash')} format={(v) => money(v, s.currency)} />
               <Metric icon="building" label={t('accounting.metrics.bank')} value={byCode('bank')} format={(v) => money(v, s.currency)} />
               <Metric
@@ -321,9 +322,9 @@ export function AccountingPage() {
                 value={byCode(null, 'patientAdvances')}
                 format={(v) => money(v, s.currency)}
               />
-            </dl>
+            </MetricGrid>
           )}
-          <div className="card-grid card-grid--wide">
+          <CardGrid wide>
             {reconciliation.isSuccess && (
               <section className="card" aria-labelledby="reconciliation-title">
                 <h2 id="reconciliation-title">{t('accounting.reconciliationTitle')}</h2>
@@ -354,7 +355,7 @@ export function AccountingPage() {
               <p>{t('accounting.templateNotice')}</p>
               <p className="muted">{t('accounting.accrualNotice')}</p>
             </section>
-          </div>
+          </CardGrid>
         </>
       )}
     </>
@@ -566,11 +567,11 @@ function ManualEntryForm({
         </p>
       </div>
       {post.isError && <Notice kind="error">{errorMessage(t, post.error)}</Notice>}
-      <div className="form-actions">
+      <ActionBar>
         <button type="submit" className="button button--primary" disabled={!valid || post.isPending}>
           {t('accounting.postEntry')}
         </button>
-      </div>
+      </ActionBar>
     </form>
   );
 }
@@ -620,7 +621,7 @@ export function JournalPage() {
           <h2 id="journal-list-title" className="visually-hidden">
             {t('accounting.entries')}
           </h2>
-          <div className="filters">
+          <FilterBar>
             <Field id="journal-from" label={t('accounting.from')}>
               <input id="journal-from" type="date" value={from} onChange={(e) => url.set({ from: e.target.value, page: null })} />
             </Field>
@@ -636,7 +637,7 @@ export function JournalPage() {
                 ))}
               </select>
             </Field>
-          </div>
+          </FilterBar>
           {entries.isPending && <Loading />}
           {entries.isError && <ErrorState message={errorMessage(t, entries.error)} onRetry={() => entries.refetch()} />}
           {entries.isSuccess && entries.data.data.length === 0 && <EmptyState icon="book">{t('accounting.noEntries')}</EmptyState>}
@@ -800,11 +801,11 @@ export function EntryPage() {
             <input id="reverse-reason" required minLength={3} maxLength={200} value={reason} onChange={(ev) => setReason(ev.target.value)} />
           </Field>
           {reverse.isError && <Notice kind="error">{errorMessage(t, reverse.error)}</Notice>}
-          <div className="form-actions">
+          <ActionBar>
             <button type="submit" className="button button--secondary" disabled={reverse.isPending}>
               {t('accounting.reverse')}
             </button>
-          </div>
+          </ActionBar>
         </form>
       )}
       {!reversible && !e.reversedBy && !e.reversalOf && <Notice kind="info">{t('accounting.documentPostingNote')}</Notice>}
@@ -970,11 +971,11 @@ export function ChartPage() {
             </Field>
           </div>
           {create.isError && <Notice kind="error">{errorMessage(t, create.error)}</Notice>}
-          <div className="form-actions">
+          <ActionBar>
             <button type="submit" className="button button--primary" disabled={create.isPending}>
               {t('accounting.addAccount')}
             </button>
-          </div>
+          </ActionBar>
         </form>
       )}
     </>
@@ -1078,7 +1079,7 @@ export function ReportsPage() {
               </button>
             ))}
           </div>
-          <div className="filters">
+          <FilterBar>
             {report !== 'balanceSheet' && report !== 'aging' && (
               <Field id="report-from" label={t('accounting.from')}>
                 <input id="report-from" type="date" value={fromValue} onChange={(e) => setFrom(e.target.value)} />
@@ -1115,7 +1116,7 @@ export function ReportsPage() {
                 </select>
               </Field>
             )}
-          </div>
+          </FilterBar>
         </section>
       )}
       {result.isPending && result.fetchStatus !== 'idle' && <Loading />}
@@ -1569,11 +1570,11 @@ export function PeriodsPage() {
             <input id="reopen-reason" required minLength={10} maxLength={300} value={reason} onChange={(e) => setReason(e.target.value)} />
           </Field>
           {reopen.isError && <Notice kind="error">{errorMessage(t, reopen.error)}</Notice>}
-          <div className="form-actions">
+          <ActionBar>
             <button type="submit" className="button button--secondary" disabled={reopen.isPending}>
               {t('accounting.reopen')}
             </button>
-          </div>
+          </ActionBar>
         </form>
       )}
       {periods.isSuccess && periods.data.history.length > 0 && (

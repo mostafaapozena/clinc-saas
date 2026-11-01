@@ -12,6 +12,7 @@ import { useFormatters } from '../lib/format';
 import type { BranchScope, Practitioner } from '../lib/types';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { orgKeys, useOrg, useSpecialtyFilter } from '../org/context';
+import { ActionBar } from '../components/layout';
 
 export function PractitionersPage() {
   const { t } = useTranslation();
@@ -156,14 +157,14 @@ function AddPractitioner({ onDone }: { onDone: () => void }) {
               ))}
             </div>
           </fieldset>
-          <div className="form-actions">
+          <ActionBar>
             <button type="submit" className="button button--primary" disabled={create.isPending || !membershipId || !specialtyCode || branchIds.length === 0}>
               {create.isPending ? t('common.saving') : t('practitioners.create')}
             </button>
             <button type="button" className="button button--secondary" onClick={onDone}>
               {t('common.cancel')}
             </button>
-          </div>
+          </ActionBar>
         </form>
       )}
     </section>

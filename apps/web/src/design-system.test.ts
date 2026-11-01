@@ -28,6 +28,19 @@ describe('design-system guards', () => {
     expect(offenders).toEqual([]);
   });
 
+  it('lays out actions, card rows, metric lists, filters and tone badges through the primitives (UI-04)', () => {
+    const raw = /className="(?:form-actions|card-grid|filters)[" ]|<dl className="metrics|className="badge badge--(?:success|warning|danger|info|neutral)"/;
+    const allowed = new Set(['components/layout.tsx', 'components/data.tsx', 'components/ui.tsx']);
+    const offenders = files.filter((f) => !allowed.has(f.path) && raw.test(f.text)).map((f) => f.path);
+    expect(offenders).toEqual([]);
+  });
+
+  it('formats money only through lib/money.ts and Money (UI-04)', () => {
+    const allowed = new Set(['lib/money.ts', 'lib/finance.ts', 'components/data.tsx']);
+    const offenders = files.filter((f) => !allowed.has(f.path) && /formatMoney[(]|function useMoney/.test(f.text)).map((f) => f.path);
+    expect(offenders).toEqual([]);
+  });
+
   it('puts icons beside wrapping text only through IconLabel / ReportLink (no line breaks inside links)', () => {
     const offenders = files.filter((f) => /<Link[^>]*>[^]*?<br \/>[^]*?<\/Link>/.test(f.text)).map((f) => f.path);
     expect(offenders).toEqual([]);

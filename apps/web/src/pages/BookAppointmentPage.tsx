@@ -13,6 +13,7 @@ import { isValidDateInput, localDateOf, newIdempotencyKey, todayIn } from '../li
 import type { Appointment, AppointmentType, Patient, PatientSummary, Practitioner, Slot } from '../lib/types';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { orgKeys, useOrg } from '../org/context';
+import { ActionBar } from '../components/layout';
 
 const DURATIONS = [10, 15, 20, 30, 45, 60, 90];
 
@@ -272,7 +273,7 @@ export function BookAppointmentPage() {
           value={slot}
           onChange={setSlot}
         />
-        <div className="form-actions">
+        <ActionBar>
           <button
             type="submit"
             className="button button--primary"
@@ -287,7 +288,7 @@ export function BookAppointmentPage() {
           <p id="booking-missing" className="muted small form-actions-note" aria-live="polite" data-testid="booking-missing">
             {missing ? t(`booking.missing.${missing}`) : ''}
           </p>
-        </div>
+        </ActionBar>
       </form>
     </>
   );
@@ -373,14 +374,14 @@ export function RescheduleAppointmentPage() {
           value={slot}
           onChange={setSlot}
         />
-        <div className="form-actions">
+        <ActionBar>
           <button type="submit" className="button button--primary" disabled={!slot || save.isPending}>
             {save.isPending ? t('common.saving') : t('booking.confirmReschedule')}
           </button>
           <Link className="button button--secondary" to={`/app/${orgId}/appointments/${a.id}`}>
             {t('common.cancel')}
           </Link>
-        </div>
+        </ActionBar>
       </form>
     </>
   );

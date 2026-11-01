@@ -32,6 +32,8 @@ import { useSpecialtyNames } from '../lib/specialties';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { PriceText, SubscriptionStatusBadge } from '../components/subscription';
 import { SupportConversation, SupportStatusBadge, type SupportDetail } from '../components/support';
+import { ActionBar, CardGrid, MetricGrid } from '../components/layout';
+import { FilterBar } from '../components/data';
 
 // The platform operator console (/operator). Separate sign-in, separate session; shows
 // organizations' metadata, plans, subscriptions, inquiries, operators and the platform audit —
@@ -254,7 +256,7 @@ export function OperatorOverviewPage() {
         <h2 id="op-action-title" className="card-title">
           <Icon name="alert" /> {t('operator.overview.needsAction')}
         </h2>
-        <dl className="metrics metrics--four">
+        <MetricGrid columns="four">
           <Metric
             icon="file"
             tone="warn"
@@ -288,22 +290,22 @@ export function OperatorOverviewPage() {
             to="/operator/organizations"
             linkLabel={t('operator.overview.openList', { label: t('subscription.status.past_due') })}
           />
-        </dl>
+        </MetricGrid>
       </section>
       <section className="card op-metrics" aria-labelledby="op-status-title">
         <h2 id="op-status-title" className="card-title">
           <Icon name="chart" /> {t('operator.overview.platformStatus')}
         </h2>
-        <dl className="metrics metrics--six">
+        <MetricGrid columns="six">
           <Metric icon="building" tone="brand" label={t('operator.overview.organizations')} value={o.organizations} to="/operator/organizations" testId="op-organizations" />
           <Metric icon="checkCircle" tone="ok" label={t('subscription.status.active')} value={o.subscriptions.byStatus.active ?? 0} />
           <Metric icon="lock" tone="warn" label={t('subscription.status.restricted')} value={o.subscriptions.byStatus.restricted ?? 0} />
           <Metric icon="clock" tone="muted" label={t('subscription.status.expired')} value={o.subscriptions.byStatus.expired ?? 0} />
           <Metric icon="ban" tone="muted" label={t('subscription.status.canceled')} value={o.subscriptions.byStatus.canceled ?? 0} />
           <Metric icon="layers" tone="neutral" label={t('subscription.status.none')} value={o.subscriptions.byStatus.none ?? 0} />
-        </dl>
+        </MetricGrid>
       </section>
-      <div className="card-grid card-grid--wide">
+      <CardGrid wide>
         <section className="card" aria-labelledby="op-health-title">
           <h2 id="op-health-title">{t('operator.overview.health')}</h2>
           <dl className="details">
@@ -329,7 +331,7 @@ export function OperatorOverviewPage() {
             <h2 id="op-reconcile-title">{t('operator.reconcile.title')}</h2>
             <p className="muted small">{t('operator.reconcile.hint')}</p>
             {reconcile.isError && <Notice kind="error">{errorMessage(t, reconcile.error)}</Notice>}
-            <div className="form-actions">
+            <ActionBar>
               <button
                 type="button"
                 className="button button--primary"
@@ -346,7 +348,7 @@ export function OperatorOverviewPage() {
               >
                 {t('operator.reconcile.apply')}
               </button>
-            </div>
+            </ActionBar>
             {drifts &&
               (drifts.length === 0 ? (
                 <p data-testid="reconcile-result">{t('operator.reconcile.none')}</p>
@@ -367,7 +369,7 @@ export function OperatorOverviewPage() {
         )}
         {operator.can('platform.plans.read') && <PolicyCard canEdit={operator.can('platform.subscriptions.manage')} />}
         {operator.can('platform.subscriptions.manage') && <LifecycleCard />}
-      </div>
+      </CardGrid>
     </>
   );
 }
@@ -431,14 +433,14 @@ function PolicyCard({ canEdit }: { canEdit: boolean }) {
               <option value="read_only">{t('operator.policy.access.read_only')}</option>
             </select>
           </Field>
-          <div className="form-actions">
+          <ActionBar>
             <button type="submit" className="button button--primary" disabled={save.isPending}>
               {t('common.save')}
             </button>
             <button type="button" className="button button--ghost" onClick={() => setDraft(null)}>
               {t('common.cancel')}
             </button>
-          </div>
+          </ActionBar>
         </form>
       )}
     </section>
@@ -461,14 +463,14 @@ function LifecycleCard() {
       <h2 id="op-lifecycle-title">{t('operator.lifecycle.title')}</h2>
       <p className="muted small">{t('operator.lifecycle.hint')}</p>
       {run.isError && <Notice kind="error">{errorMessage(t, run.error)}</Notice>}
-      <div className="form-actions">
+      <ActionBar>
         <button type="button" className="button button--primary" disabled={run.isPending} onClick={() => run.mutate(false)}>
           {t('operator.lifecycle.dryRun')}
         </button>
         <button type="button" className="button button--secondary" disabled={run.isPending || !actions?.some((a) => a.to)} onClick={() => run.mutate(true)}>
           {t('operator.lifecycle.apply')}
         </button>
-      </div>
+      </ActionBar>
       {actions &&
         (actions.length === 0 ? (
           <p data-testid="lifecycle-result">{t('operator.lifecycle.none')}</p>
@@ -675,7 +677,7 @@ export function OperatorOrganizationPage() {
         <Link to="/operator/organizations">{t('operator.organization.back')}</Link>
       </p>
       {action.isError && <Notice kind="error">{errorMessage(t, action.error)}</Notice>}
-      <div className="card-grid card-grid--wide">
+      <CardGrid wide>
         <section className="card" aria-labelledby="op-org-meta">
           <h2 id="op-org-meta">{t('operator.organization.metadata')}</h2>
           <dl className="details">
@@ -749,7 +751,7 @@ export function OperatorOrganizationPage() {
                   onChange={(e) => setReason(e.target.value)}
                 />
               </Field>
-              <div className="form-actions">
+              <ActionBar>
                 {sub.status !== 'restricted' && (
                   <button
                     type="button"
@@ -778,7 +780,7 @@ export function OperatorOrganizationPage() {
                 >
                   {t('operator.organization.cancel')}
                 </button>
-              </div>
+              </ActionBar>
               <p className="muted small">{t('operator.organization.restrictHint')}</p>
             </div>
           )}
@@ -902,7 +904,7 @@ export function OperatorOrganizationPage() {
               <label className="choice">
                 <input type="checkbox" checked={emit} onChange={(e) => setEmit(e.target.checked)} /> {t('operator.simulator.emit')}
               </label>
-              <div className="form-actions">
+              <ActionBar>
                 {(['renew', 'fail_payment', 'cancel'] as const).map((a) => (
                   <button
                     key={a}
@@ -914,12 +916,12 @@ export function OperatorOrganizationPage() {
                     {t(`operator.simulator.${a}`)}
                   </button>
                 ))}
-              </div>
+              </ActionBar>
             </div>
           )}
         </section>
-      </div>
-      <div className="card-grid card-grid--wide">
+      </CardGrid>
+      <CardGrid wide>
         <section className="card" aria-labelledby="op-org-history">
           <h2 id="op-org-history">{t('operator.organization.history')}</h2>
           {history.length === 0 ? (
@@ -965,7 +967,7 @@ export function OperatorOrganizationPage() {
             </ul>
           )}
         </section>
-      </div>
+      </CardGrid>
     </>
   );
 }
@@ -1127,14 +1129,14 @@ function PlanForm({ initial, plan, onDone }: { initial: PlanDraft; plan?: Plan; 
       <Field id="plan-note" label={t('operator.plans.note')}>
         <input id="plan-note" value={d.note} maxLength={500} onChange={(e) => setD({ ...d, note: e.target.value })} />
       </Field>
-      <div className="form-actions">
+      <ActionBar>
         <button type="submit" className="button button--primary" disabled={save.isPending}>
           {t('operator.plans.saveDraft')}
         </button>
         <button type="button" className="button button--ghost" onClick={onDone}>
           {t('common.cancel')}
         </button>
-      </div>
+      </ActionBar>
     </form>
   );
 }
@@ -1393,7 +1395,7 @@ export function OperatorInquiryPage() {
           </dd>
         </dl>
         {operator.can('platform.inquiries.manage') && (
-          <div className="form-actions">
+          <ActionBar>
             {!contact && (
               <button type="button" className="button button--secondary" disabled={reveal.isPending} onClick={() => reveal.mutate()}>
                 {t('operator.inquiries.reveal')}
@@ -1412,7 +1414,7 @@ export function OperatorInquiryPage() {
                   {t(`operator.inquiries.markAs.${s}`)}
                 </button>
               ))}
-          </div>
+          </ActionBar>
         )}
         <p className="muted small">{t('operator.inquiries.revealHint')}</p>
       </section>
@@ -1597,7 +1599,7 @@ function AuditFilters({
   const actions = [...new Set(rows.map((r) => r.action))].sort();
   const actors = [...new Set(rows.map((r) => r.operator ?? r.actor))].sort();
   return (
-    <div className="filters audit-filters">
+    <FilterBar className="audit-filters">
       <Field id="audit-action" label={t('operator.audit.action')}>
         <select id="audit-action" value={action} onChange={(e) => onAction(e.target.value)}>
           <option value="">{t('operator.audit.allActions')}</option>
@@ -1623,7 +1625,7 @@ function AuditFilters({
         {t('operator.audit.hideSignIns')}
       </label>
       <p className="field-hint">{t('operator.audit.filterHint')}</p>
-    </div>
+    </FilterBar>
   );
 }
 
@@ -1921,7 +1923,7 @@ export function OperatorContactMessagePage() {
           </dd>
         </dl>
         {operator.can('platform.inquiries.manage') && (
-          <div className="form-actions">
+          <ActionBar>
             {!contact && (
               <button type="button" className="button button--secondary" disabled={reveal.isPending} onClick={() => reveal.mutate()}>
                 {t('operator.inquiries.reveal')}
@@ -1934,7 +1936,7 @@ export function OperatorContactMessagePage() {
                   {t(`operator.inquiries.markAs.${s}`)}
                 </button>
               ))}
-          </div>
+          </ActionBar>
         )}
         <p className="muted small">{t('operator.inquiries.revealHint')}</p>
       </section>

@@ -17,6 +17,7 @@ import type { Appointment, Page, Patient } from '../lib/types';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { orgKeys, useOrg } from '../org/context';
 import { ConfirmAction } from '../components/data';
+import { ActionBar, CardGrid } from '../components/layout';
 
 export function PatientDetailPage() {
   const { t } = useTranslation();
@@ -64,7 +65,7 @@ export function PatientDetailPage() {
       </PatientContextHeader>
       {notice && <Notice kind="success">{notice}</Notice>}
 
-      <div className="card-grid card-grid--wide">
+      <CardGrid wide>
         <section className="card" aria-labelledby="patient-details-title">
           <div className="section-header">
             <h2 id="patient-details-title">{t('patients.details')}</h2>
@@ -114,7 +115,7 @@ export function PatientDetailPage() {
           )}
         </section>
         <Registrations patient={p} />
-      </div>
+      </CardGrid>
       <PatientAppointments patientId={p.id} />
       <DentalChartCard patientId={p.id} />
       <PhysioCoursesCard patientId={p.id} />
@@ -149,14 +150,14 @@ function EditPatient({ patient, onDone }: { patient: Patient; onDone: (saved?: b
       <Notice kind="info">{t('patients.sharedIdentityNote')}</Notice>
       {save.isError && <Notice kind="error">{Object.keys(fields).length > 0 ? t('errors.VALIDATION_ERROR') : errorMessage(t, save.error)}</Notice>}
       <PatientFields idPrefix="edit-patient" value={form} onChange={setForm} fields={fields} />
-      <div className="form-actions">
+      <ActionBar>
         <button type="submit" className="button button--primary" disabled={save.isPending}>
           {save.isPending ? t('common.saving') : t('common.save')}
         </button>
         <button type="button" className="button button--secondary" onClick={() => onDone()}>
           {t('common.cancel')}
         </button>
-      </div>
+      </ActionBar>
     </form>
   );
 }

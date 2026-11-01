@@ -6,7 +6,7 @@ import { Link } from 'react-router';
 import { useSession } from '../auth/session';
 import { Icon, type IconName } from '../components/Icon';
 import { Metric, type MetricTone } from '../components/Metric';
-import { CardGrid, MetricGrid } from '../components/layout';
+import { ActionBar, CardGrid, MetricGrid } from '../components/layout';
 import { PageHeader } from '../components/PageHeader';
 import { SpecialtySummaryCard } from '../components/specialty';
 import { TimeZoneRequired } from '../components/scheduling';
@@ -219,7 +219,7 @@ function TodayCounts() {
         </EmptyState>
       )}
       {counts.isSuccess && Object.values(counts.data.counts).some((n) => n > 0) && (
-        <dl className="metrics metrics--six">
+        <MetricGrid columns="six">
           {COUNTS.map(({ key, icon, tone, status }) => (
             <Metric
               key={key}
@@ -232,7 +232,7 @@ function TodayCounts() {
               linkLabel={t('home.counts.open', { label: t(`home.counts.${key}`) })}
             />
           ))}
-        </dl>
+        </MetricGrid>
       )}
       <p className="muted small">{t('home.countsDefinition')}</p>
     </section>
@@ -316,7 +316,7 @@ function GettingStarted() {
           </li>
         ))}
       </ol>
-      <div className="form-actions start-actions">
+      <ActionBar className="start-actions">
         {(patients.data?.total ?? 0) > 0 && (
           <Link className="button button--primary" to={`${base}/appointments/new`}>
             <Icon name="calendar" /> {t('home.start.steps.booking')}
@@ -325,7 +325,7 @@ function GettingStarted() {
         <button type="button" className="button button--ghost" onClick={dismiss}>
           {t('home.start.dismiss')}
         </button>
-      </div>
+      </ActionBar>
     </section>
   );
 }

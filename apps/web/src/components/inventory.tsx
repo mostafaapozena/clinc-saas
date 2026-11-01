@@ -8,6 +8,7 @@ import { inventoryKeys, type StockDocument, type StockItem, type StockMove, type
 import { showToast } from '../lib/toast';
 import { useOrg } from '../org/context';
 import { Field, Notice } from './ui';
+import { ActionBar } from './layout';
 
 type Consumption = StockDocument & { moves: StockMove[] };
 
@@ -165,11 +166,11 @@ export function MaterialsUsed({ encounter }: { encounter: Encounter }) {
             <span>{t('inventory.materials.confirm')}</span>
           </label>
           {record.isError && <Notice kind="error">{errorMessage(t, record.error)}</Notice>}
-          <div className="form-actions">
+          <ActionBar>
             <button type="submit" className="button button--secondary" disabled={!itemId || !qtyValid || !confirm || record.isPending}>
               {t('inventory.materials.record')}
             </button>
-          </div>
+          </ActionBar>
         </form>
       )}
     </section>

@@ -7,6 +7,7 @@ import { showToast } from '../lib/toast';
 import { orgKeys, useOrg } from '../org/context';
 import { BrandLogo } from './BrandLogo';
 import { Field, Notice } from './ui';
+import { ActionBar } from './layout';
 
 // Organization identity and legal profile — «ملف وهوية المنشأة»
 // (docs/architecture/ORGANIZATION_PROFILE.md): edited in settings, shown on printed documents.
@@ -157,11 +158,11 @@ function ProfileForm({ profile }: { profile: Profile }) {
         <p className="muted small">{t('orgProfile.numbersHint')}</p>
         {save.isError && <Notice kind="error">{errorMessage(t, save.error)}</Notice>}
         {editable && (
-          <div className="form-actions">
+          <ActionBar>
             <button type="submit" className="button button--primary" disabled={save.isPending}>
               {t('common.save')}
             </button>
-          </div>
+          </ActionBar>
         )}
       </form>
     </section>

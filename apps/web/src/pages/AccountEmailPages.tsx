@@ -9,6 +9,7 @@ import { api } from '../lib/api';
 import { errorMessage, fieldErrors, fieldMessage } from '../lib/errors';
 import { withNext } from '../lib/navigation';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
+import { ActionBar } from '../components/layout';
 
 // Password recovery, email verification and invitation acceptance (docs/architecture/ACCOUNT_EMAIL.md).
 // Links carry a single-use token; pages that spend it drop it from the address bar right away so
@@ -208,14 +209,14 @@ export function AcceptInvitationPage() {
             </p>
             {accept.isError && <Notice kind="error">{errorMessage(t, accept.error)}</Notice>}
             {!user ? (
-              <div className="form-actions">
+              <ActionBar>
                 <Link className="button button--primary" to={withNext('/login', here)}>
                   {t('auth.submitLogin')}
                 </Link>
                 <Link className="button button--secondary" to={withNext('/register', here)}>
                   {t('account.createAccount')}
                 </Link>
-              </div>
+              </ActionBar>
             ) : user.email !== preview.data.email ? (
               <Notice kind="error">{t('errors.INVITATION_EMAIL_MISMATCH')}</Notice>
             ) : (

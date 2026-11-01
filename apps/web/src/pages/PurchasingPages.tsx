@@ -4,13 +4,13 @@ import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 import { OrganizationLetterhead } from '../components/OrganizationProfile';
 import { PageHeader } from '../components/PageHeader';
-import { ModuleTabs } from '../components/layout';
+import { ActionBar, ModuleTabs } from '../components/layout';
 import { EmptyState, ErrorState, Field, Loading, Notice } from '../components/ui';
 import { accountName, type CashAccount, type LedgerAccount } from '../lib/accounting';
 import { api } from '../lib/api';
 import { newRequestKey } from '../lib/clinical';
 import { errorMessage } from '../lib/errors';
-import { formatMoney, moneyInput, parseMoney } from '../lib/finance';
+import { moneyInput, parseMoney } from '../lib/finance';
 import { useFormatters } from '../lib/format';
 import { inventoryKeys, type StockItem, type Warehouse } from '../lib/inventory';
 import {
@@ -27,24 +27,15 @@ import {
 } from '../lib/purchasing';
 import { showToast } from '../lib/toast';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
-import { orgKeys, useOrg } from '../org/context';
+import { useOrg } from '../org/context';
 import { csvMoney, downloadCsv } from '../lib/csv';
 import { ConfirmAction, DateText } from '../components/data';
+import { useOrgMoney } from '../lib/money';
 
 // Suppliers, purchasing and payables (docs/architecture/PURCHASING.md): request → approval → RFQ →
 // quotations → order → receipt → bill → payment. Supplier documents are printed or downloaded by the
 // clinic; nothing is e-mailed.
 
-function useCurrencyMoney() {
-  const { i18n } = useTranslation();
-  const { orgId } = useOrg();
-  const settings = useQuery({
-    queryKey: orgKeys.financeSettings(orgId),
-    queryFn: ({ signal }) => api<{ currency: string | null }>(`/orgs/${orgId}/finance/settings`, { signal }),
-  });
-  const currency = settings.data?.currency ?? null;
-  return { currency, money: (minor: number) => (currency ? formatMoney(minor, currency, i18n.language) : String(minor)) };
-}
 function useSuppliers() {
   const { orgId } = useOrg();
   return useQuery({
@@ -318,11 +309,11 @@ function NewRequestForm() {
       <LinesEditor lines={lines} setLines={setLines} items={items.data ?? []} accounts={[]} needAccounts={false} />
       <p className="muted small">{t('purchasing.estimateHint')}</p>
       {save.isError && <Notice kind="error">{errorMessage(t, save.error)}</Notice>}
-      <div className="form-actions">
+      <ActionBar>
         <button type="submit" className="button button--primary" disabled={save.isPending || !linesValid(lines)}>
           {t('purchasing.sendRequest')}
         </button>
-      </div>
+      </ActionBar>
     </form>
   );
 }
@@ -414,7 +405,7 @@ function RequestActions({ request, suppliers }: { request: PurchaseRequest; supp
 function SettingsCard() {
   const { t } = useTranslation();
   const { orgId } = useOrg();
-  const { money } = useCurrencyMoney();
+  const { money } = useOrgMoney();
   const queryClient = useQueryClient();
   const settings = useQuery({
     queryKey: purchasingKeys.settings(orgId),
@@ -467,11 +458,11 @@ function SettingsCard() {
         ))}
       </div>
       {save.isError && <Notice kind="error">{errorMessage(t, save.error)}</Notice>}
-      <div className="form-actions">
+      <ActionBar>
         <button type="submit" className="button button--secondary" disabled={save.isPending}>
           {t('common.save')}
         </button>
-      </div>
+      </ActionBar>
     </form>
   );
 }
@@ -480,7 +471,7 @@ export function PurchasingPage() {
   const { t } = useTranslation();
   const { orgId, can, branches } = useOrg();
   useDocumentTitle(t('purchasing.title'));
-  const { money } = useCurrencyMoney();
+  const { money } = useOrgMoney();
   const fmt = useFormatters();
   const suppliers = useSuppliers();
   const requests = useQuery({
@@ -603,11 +594,11 @@ function QuotationForm({ detail, supplier }: { detail: RfqDetail; supplier: Supp
         </Field>
       </div>
       {save.isError && <Notice kind="error">{errorMessage(t, save.error)}</Notice>}
-      <div className="form-actions">
+      <ActionBar>
         <button type="submit" className="button button--secondary" disabled={save.isPending}>
           {t('purchasing.saveQuotation')}
         </button>
-      </div>
+      </ActionBar>
     </form>
   );
 }
@@ -616,7 +607,7 @@ export function RfqPage() {
   const { t } = useTranslation();
   const { orgId, can } = useOrg();
   const { rfqId = '' } = useParams();
-  const { money } = useCurrencyMoney();
+  const { money } = useOrgMoney();
   const suppliers = useSuppliers();
   const warehouses = useWarehouses();
   const navigate = useNavigate();
@@ -830,11 +821,11 @@ function NewOrderForm({ requestId }: { requestId: string | null }) {
       </div>
       <LinesEditor lines={lines} setLines={setLines} items={items.data ?? []} accounts={accounts.data ?? []} needAccounts />
       {save.isError && <Notice kind="error">{errorMessage(t, save.error)}</Notice>}
-      <div className="form-actions">
+      <ActionBar>
         <button type="submit" className="button button--primary" disabled={save.isPending || !supplierId || !linesValid(lines)}>
           {t('purchasing.createOrder')}
         </button>
-      </div>
+      </ActionBar>
     </form>
   );
 }
@@ -843,7 +834,7 @@ export function PurchaseOrdersPage() {
   const { t } = useTranslation();
   const { orgId, can, branches } = useOrg();
   useDocumentTitle(t('purchasing.ordersTitle'));
-  const { money } = useCurrencyMoney();
+  const { money } = useOrgMoney();
   const suppliers = useSuppliers();
   const [search] = useSearchParams();
   const requestId = search.get('request');
@@ -989,11 +980,11 @@ function ReceiveForm({ order, kind }: { order: PurchaseOrder; kind: 'receipts' |
         </Field>
       </div>
       {save.isError && <Notice kind="error">{errorMessage(t, save.error)}</Notice>}
-      <div className="form-actions">
+      <ActionBar>
         <button type="submit" className="button button--primary" disabled={save.isPending || lines.length === 0}>
           {kind === 'receipts' ? t('purchasing.confirmReceipt') : t('purchasing.confirmReturn')}
         </button>
-      </div>
+      </ActionBar>
     </form>
   );
 }
@@ -1071,11 +1062,11 @@ function BillFromOrderForm({ order }: { order: PurchaseOrder }) {
         )}
       </div>
       {save.isError && <Notice kind="error">{errorMessage(t, save.error)}</Notice>}
-      <div className="form-actions">
+      <ActionBar>
         <button type="submit" className="button button--primary" disabled={save.isPending || !reference || !billDate || lines.length === 0}>
           {t('purchasing.recordBill')}
         </button>
-      </div>
+      </ActionBar>
     </form>
   );
 }
@@ -1092,7 +1083,7 @@ export function PurchaseOrderPage() {
   const { t } = useTranslation();
   const { orgId, can, detail: org } = useOrg();
   const { orderId = '' } = useParams();
-  const { money } = useCurrencyMoney();
+  const { money } = useOrgMoney();
   const fmt = useFormatters();
   const queryClient = useQueryClient();
   const view = useQuery({
@@ -1253,11 +1244,11 @@ function PrintFrame({ title, children }: { title: string; children: ReactNode })
       </header>
       {children}
       <p className="muted small">{t('purchasing.printNote')}</p>
-      <div className="form-actions no-print">
+      <ActionBar className="no-print">
         <button type="button" className="button button--primary" onClick={() => window.print()}>
           {t('purchasing.print')}
         </button>
-      </div>
+      </ActionBar>
     </article>
   );
 }
@@ -1266,7 +1257,7 @@ export function PurchaseOrderPrintPage() {
   const { t } = useTranslation();
   const { orgId } = useOrg();
   const { orderId = '' } = useParams();
-  const { money } = useCurrencyMoney();
+  const { money } = useOrgMoney();
   const view = useQuery({
     queryKey: purchasingKeys.order(orgId, orderId),
     queryFn: ({ signal }) => api<OrderView>(`/orgs/${orgId}/purchasing/orders/${orderId}`, { signal }),
@@ -1466,11 +1457,11 @@ function DirectBillForm() {
         </Field>
       </div>
       {save.isError && <Notice kind="error">{errorMessage(t, save.error)}</Notice>}
-      <div className="form-actions">
+      <ActionBar>
         <button type="submit" className="button button--primary" disabled={save.isPending}>
           {t('purchasing.recordBill')}
         </button>
-      </div>
+      </ActionBar>
     </form>
   );
 }
@@ -1485,7 +1476,7 @@ export function BillsPage() {
   const { t } = useTranslation();
   const { orgId, can } = useOrg();
   useDocumentTitle(t('purchasing.billsTitle'));
-  const { money } = useCurrencyMoney();
+  const { money } = useOrgMoney();
   const queryClient = useQueryClient();
   const suppliers = useSuppliers();
   const bills = useQuery({
@@ -1669,11 +1660,11 @@ function PayForm({ bill }: { bill: SupplierBill }) {
         </Field>
       </div>
       {pay.isError && <Notice kind="error">{errorMessage(t, pay.error)}</Notice>}
-      <div className="form-actions">
+      <ActionBar>
         <button type="submit" className="button button--primary" disabled={pay.isPending}>
           {t('purchasing.pay')}
         </button>
-      </div>
+      </ActionBar>
     </form>
   );
 }
@@ -1734,11 +1725,11 @@ function CreditForm({ bill }: { bill: SupplierBill }) {
         </Field>
       </div>
       {save.isError && <Notice kind="error">{errorMessage(t, save.error)}</Notice>}
-      <div className="form-actions">
+      <ActionBar>
         <button type="submit" className="button button--secondary" disabled={save.isPending || lines.length === 0}>
           {t('purchasing.recordCredit')}
         </button>
-      </div>
+      </ActionBar>
     </form>
   );
 }
@@ -1747,7 +1738,7 @@ export function BillPage() {
   const { t } = useTranslation();
   const { orgId, can } = useOrg();
   const { billId = '' } = useParams();
-  const { money } = useCurrencyMoney();
+  const { money } = useOrgMoney();
   const suppliers = useSuppliers();
   const view = useQuery({
     queryKey: purchasingKeys.bill(orgId, billId),
@@ -1920,11 +1911,11 @@ export function SuppliersPage() {
             </Field>
           </div>
           {add.isError && <Notice kind="error">{errorMessage(t, add.error)}</Notice>}
-          <div className="form-actions">
+          <ActionBar>
             <button type="submit" className="button button--primary" disabled={add.isPending}>
               {t('purchasing.addSupplier')}
             </button>
-          </div>
+          </ActionBar>
         </form>
       )}
     </>
