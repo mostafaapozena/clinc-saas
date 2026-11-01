@@ -1,8 +1,10 @@
 import { Router } from 'express';
-import type { Types } from 'mongoose';
+import { Types } from 'mongoose';
 import { z } from 'zod';
+import { notFound } from '../../http/errors.js';
+import { objectIdSchema } from '../../http/schemas.js';
 import { parseInput } from '../../http/validate.js';
-import { branchOwnedFilter } from '../../tenancy/scope.js';
+import { branchOwnedFilter, canAccessBranch } from '../../tenancy/scope.js';
 import { tenantCan, tenantOf, type TenantContext } from '../../tenancy/tenant-context.js';
 import { clock } from '../../time/clock.js';
 import { addDays, dayRange } from '../../time/local-time.js';
@@ -21,6 +23,7 @@ import { PatientModel } from '../patients/patient.model.js';
 import { PractitionerModel } from '../practitioners/practitioner.model.js';
 import { PurchaseRequestModel, SupplierBillModel } from '../purchasing/purchasing.model.js';
 import { AssetModel } from '../assets/assets.model.js';
+import { BranchModel } from '../branches/branch.model.js';
 
 // "Today's focus" (docs/architecture/SPECIALTY_WORKSPACES.md, "Role and specialty workspaces"):
 // each section appears only for the permissions that allow it, and nothing widens access —
@@ -171,11 +174,27 @@ export function createFocusRouter() {
 
   router.get('/workspace/focus', async (req, res) => {
     const tenant = tenantOf(req);
-    const { full, specialty } = parseInput(z.object({ full: z.enum(['1']).optional(), specialty: z.string().max(40).optional() }), req.query);
+    const {
+      full,
+      specialty,
+      branchId: rawBranch,
+    } = parseInput(
+      z.object({ full: z.enum(['1']).optional(), specialty: z.string().max(40).optional(), branchId: objectIdSchema.optional() }),
+      req.query,
+    );
+    // The branch chosen in the header narrows every branch-owned figure; it never widens the member's
+    // branch scope, and a branch outside the organization or the scope is the generic 404.
+    let branch: { branchId: Types.ObjectId } | Record<string, never> = {};
+    if (rawBranch) {
+      const branchId = new Types.ObjectId(rawBranch);
+      if (!canAccessBranch(tenant, branchId) || !(await BranchModel.exists({ organizationId: tenant.organizationId, _id: branchId })))
+        throw notFound();
+      branch = { branchId };
+    }
     const limit = full ? 100 : 5;
     const zone = await organizationZone(tenant.organizationId).catch(() => null);
     const orgWide = tenant.branchScope.type === 'all';
-    const body: Record<string, unknown> = { role: tenant.role };
+    const body: Record<string, unknown> = { role: tenant.role, branchId: rawBranch ?? null };
     const today = zone ? await ledgerToday(tenant.organizationId) : null;
     const range = today && zone ? dayRange(today, zone) : null;
 
@@ -193,6 +212,7 @@ export function createFocusRouter() {
                   $match: {
                     organizationId: tenant.organizationId,
                     practitionerId: actor.practitionerId,
+                    ...branch,
                     startAt: { $gte: range.start, $lt: range.end },
                   },
                 },
@@ -227,14 +247,14 @@ export function createFocusRouter() {
 
     // Front desk: arrivals, queue, charges to invoice, own cashier session.
     if (tenantCan(tenant, 'appointment.front_desk') && range) {
-      const scope = branchOwnedFilter(tenant, practitionerFilter);
+      const scope = { ...branchOwnedFilter(tenant, practitionerFilter), ...branch };
       const [byStatus, pendingCharges, session] = await Promise.all([
         AppointmentModel.aggregate<{ _id: string; n: number }>([
           { $match: { ...scope, startAt: { $gte: range.start, $lt: range.end } } },
           { $group: { _id: '$status', n: { $sum: 1 } } },
         ]),
         tenantCan(tenant, 'finance.charge.create')
-          ? ChargeModel.countDocuments(branchOwnedFilter(tenant, { status: 'pending' as const }))
+          ? ChargeModel.countDocuments({ ...branchOwnedFilter(tenant, { status: 'pending' as const }), ...branch })
           : Promise.resolve(null),
         tenantCan(tenant, 'cash.session.operate')
           ? CashSessionModel.findOne({ organizationId: tenant.organizationId, status: 'open', openedBy: tenant.userId }).select('number').lean()
@@ -255,11 +275,11 @@ export function createFocusRouter() {
       const settings = await settingsOf(tenant.organizationId);
       const [receivable, advances, payablesSoon, openSessions] = await Promise.all([
         InvoiceModel.aggregate<{ v: number }>([
-          { $match: { organizationId: tenant.organizationId, status: 'issued' } },
+          { $match: { organizationId: tenant.organizationId, ...branch, status: 'issued' } },
           { $group: { _id: null, v: { $sum: { $subtract: ['$total', { $add: ['$paid', '$credited'] }] } } } },
         ]),
         PaymentModel.aggregate<{ v: number }>([
-          { $match: { organizationId: tenant.organizationId, status: 'active' } },
+          { $match: { organizationId: tenant.organizationId, ...branch, status: 'active' } },
           { $group: { _id: null, v: { $sum: { $subtract: ['$amount', { $add: ['$allocated', '$refunded'] }] } } } },
         ]),
         today
@@ -267,6 +287,7 @@ export function createFocusRouter() {
               {
                 $match: {
                   organizationId: tenant.organizationId,
+                  ...branch,
                   status: 'posted',
                   dueDate: { $lte: addDays(today, 7) },
                   $expr: { $gt: ['$total', { $add: ['$paid', '$credited'] }] },
@@ -275,7 +296,7 @@ export function createFocusRouter() {
               { $group: { _id: null, v: { $sum: { $subtract: ['$total', { $add: ['$paid', '$credited'] }] } }, n: { $sum: 1 } } },
             ])
           : Promise.resolve([]),
-        CashSessionModel.countDocuments({ organizationId: tenant.organizationId, status: 'open' }),
+        CashSessionModel.countDocuments({ organizationId: tenant.organizationId, ...branch, status: 'open' }),
       ]);
       let monthToClose: string | null = null;
       if (settings && today) {
@@ -297,18 +318,28 @@ export function createFocusRouter() {
         entriesToday,
         commitmentsDue,
         staffFundsOverdue,
+        // Ledger-level items (the month to close, today's entries, commitments, staff funds) belong to
+        // the organization as a whole; the amounts above follow the chosen branch.
+        organizationLevel: ['monthToClose', 'entriesToday', 'commitmentsDue', 'staffFundsOverdue'],
       };
     }
 
     // Installment plans with an installment past due (patient finance, branch scope).
-    if (tenantCan(tenant, 'finance.account.read') && today) body.installmentsOverdue = await overdueInstallmentPlans(tenant, today);
+    if (tenantCan(tenant, 'finance.account.read') && today) body.installmentsOverdue = await overdueInstallmentPlans(tenant, today, branch.branchId);
 
     // Approvals waiting for this user.
     const approvals: Record<string, number> = {};
     if (tenantCan(tenant, 'purchase.approve')) {
-      approvals.purchaseRequests = await PurchaseRequestModel.countDocuments(branchOwnedFilter(tenant, { status: 'submitted' as const }));
+      approvals.purchaseRequests = await PurchaseRequestModel.countDocuments({
+        ...branchOwnedFilter(tenant, { status: 'submitted' as const }),
+        ...branch,
+      });
       if (orgWide)
-        approvals.directBills = await SupplierBillModel.countDocuments({ organizationId: tenant.organizationId, status: 'awaiting_approval' });
+        approvals.directBills = await SupplierBillModel.countDocuments({
+          organizationId: tenant.organizationId,
+          ...branch,
+          status: 'awaiting_approval',
+        });
     }
     if (tenantCan(tenant, 'compensation.approve') && orgWide)
       approvals.settlements = await SettlementModel.countDocuments({ organizationId: tenant.organizationId, status: 'draft' });
@@ -316,7 +347,7 @@ export function createFocusRouter() {
 
     // Stock: what to reorder and what is about to expire (counts; the stock page has the detail).
     if (tenantCan(tenant, 'inventory.manage') && today) {
-      const scope = tenant.branchScope.type === 'selected' ? { branchId: { $in: tenant.branchScope.branchIds } } : {};
+      const scope = branch.branchId ? branch : tenant.branchScope.type === 'selected' ? { branchId: { $in: tenant.branchScope.branchIds } } : {};
       const [reorder, expiring] = await Promise.all([
         orgWide
           ? StockItemModel.countDocuments({
@@ -333,11 +364,12 @@ export function createFocusRouter() {
           expiry: { $type: 'string', $lte: addDays(today, 30) },
         }),
       ]);
-      body.stock = { reorder, expiring };
+      // Reorder levels are set per item for the whole organization; expiry follows the branch.
+      body.stock = { reorder, expiring, organizationLevel: ['reorder'] };
     }
     // Equipment whose maintenance is due within 14 days (or overdue), and equipment out of service.
     if (tenantCan(tenant, 'asset.manage') && today) {
-      const scope = tenant.branchScope.type === 'selected' ? { branchId: { $in: tenant.branchScope.branchIds } } : {};
+      const scope = branch.branchId ? branch : tenant.branchScope.type === 'selected' ? { branchId: { $in: tenant.branchScope.branchIds } } : {};
       const [due, outOfService] = await Promise.all([
         AssetModel.countDocuments({
           organizationId: tenant.organizationId,

@@ -45,10 +45,10 @@ describe("today's focus", () => {
     expect(books.clinical).toBeUndefined();
     const owner = await focus(c.owner);
     expect(owner.approvals).toMatchObject({ purchaseRequests: 0, directBills: 0, settlements: 0 });
-    expect(owner.stock).toEqual({ reorder: 0, expiring: 0 });
+    expect(owner.stock).toEqual({ reorder: 0, expiring: 0, organizationLevel: ['reorder'] });
     expect(owner.clinical).toBeUndefined();
     const viewer = await focus(c.viewer);
-    expect(Object.keys(viewer)).toEqual(['role']);
+    expect(Object.keys(viewer)).toEqual(['role', 'branchId']);
     // The doctor's own specialty is part of the workspace, not of their access.
     expect((await c.doctor.agent.get(url(''))).body.membership.practitionerSpecialty).toBe('dentistry');
   });
@@ -93,5 +93,31 @@ describe("today's focus", () => {
     // Another dentist does not see this doctor's patients; the owner gets no clinical section.
     expect((await focus(c.doctor2)).clinical.worklist.total).toBe(0);
     expect((await focus(c.owner)).clinical).toBeUndefined();
+  });
+
+  it("follows the branch chosen in the header, never beyond the member's branches", async () => {
+    const patient = await createPatient(c.receptionistB, c.orgId, c.branchB);
+    await bookOk(c.receptionistB, c.orgId, {
+      patientId: patient,
+      practitionerId: c.practitioner,
+      branchId: c.branchB,
+      date: '2026-11-10',
+      time: '16:00',
+    });
+    const at = async (who: Client, branchId?: string) => who.agent.get(url('/workspace/focus')).query(branchId ? { branchId } : {});
+    const all = (await at(c.owner)).body;
+    const inB = (await at(c.owner, c.branchB)).body;
+    const inA = (await at(c.owner, c.branchA)).body;
+    expect(inB.branchId).toBe(c.branchB);
+    expect(all.branchId).toBeNull();
+    // Branch figures add up to the organization's, and the chosen branch only counts its own.
+    expect(inA.frontDesk.expected + inB.frontDesk.expected).toBe(all.frontDesk.expected);
+    expect(inB.frontDesk.expected).toBeGreaterThanOrEqual(1);
+    expect(inB.finance.organizationLevel).toContain('monthToClose');
+    // A receptionist of branch B may narrow to B, not look at A; foreign or malformed ids are refused.
+    expect((await at(c.receptionistB, c.branchB)).status).toBe(200);
+    expect((await at(c.receptionistB, c.branchA)).status).toBe(404);
+    expect((await at(c.owner, '65f0a0a0a0a0a0a0a0a0a0a0')).status).toBe(404);
+    expect((await at(c.owner, 'not-an-id')).status).toBe(400);
   });
 });

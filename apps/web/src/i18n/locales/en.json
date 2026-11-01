@@ -4327,7 +4327,8 @@
       "sessions": "Show open cash sessions"
     },
     "scopeAll": "Now · all branches you can access",
-    "scopeAllNotSelected": "Now · all branches you can access, not only the branch chosen at the top"
+    "scopeBranch": "Now · {{branch}}",
+    "orgLevelNote": "Amounts are for this branch. The month to close, today's entries, commitments and staff funds are for the whole organization."
   },
   "assets": {
     "title": "Equipment and maintenance",

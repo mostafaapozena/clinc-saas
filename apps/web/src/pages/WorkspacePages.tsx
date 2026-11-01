@@ -9,7 +9,7 @@ import { useSpecialtyNames } from '../lib/specialties';
 import { formatMoney } from '../lib/finance';
 import { useFormatters } from '../lib/format';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
-import { orgKeys, useOrg } from '../org/context';
+import { orgKeys, useBranchFilter, useOrg } from '../org/context';
 
 // Role- and specialty-aware workspace (docs/architecture/SPECIALTY_WORKSPACES.md): what this person
 // should look at first today. Sections come from the API only for permissions that allow them; a
@@ -61,7 +61,9 @@ export type Focus = {
 
 function useFocus(full = false) {
   const { orgId, selectedSpecialty } = useOrg();
-  const params = { full: full ? '1' : undefined, specialty: selectedSpecialty !== 'all' ? selectedSpecialty : undefined };
+  // The branch chosen in the header narrows the figures (the API keeps the member's branch limits).
+  const branchId = useBranchFilter();
+  const params = { full: full ? '1' : undefined, specialty: selectedSpecialty !== 'all' ? selectedSpecialty : undefined, branchId };
   return useQuery({
     queryKey: [...orgKeys.all(orgId), 'focus', params],
     queryFn: ({ signal }) => api<Focus>(`/orgs/${orgId}/workspace/focus${query(params)}`, { signal }),
@@ -117,7 +119,9 @@ function WorklistRows({ worklist, compact }: { worklist: NonNullable<NonNullable
 /** "Today's focus" on the home page; nothing is shown that the role cannot use. */
 export function FocusPanel() {
   const { t } = useTranslation();
-  const { orgId, selectedBranchId } = useOrg();
+  const { orgId, branches } = useOrg();
+  const branchId = useBranchFilter();
+  const branchName = branches.find((b) => b.id === branchId)?.name;
   const money = useMoney();
   const focus = useFocus();
   if (!focus.isSuccess) return null;
@@ -127,6 +131,9 @@ export function FocusPanel() {
   return (
     <section className="card focus-panel" aria-labelledby="focus-title" data-testid="focus-panel">
       <h2 id="focus-title">{t('workspace.focusTitle')}</h2>
+      <p className="muted small" data-testid="focus-scope">
+        {branchName ? t('workspace.scopeBranch', { branch: branchName }) : t('workspace.scopeAll')}
+      </p>
       {f.clinical && (
         <div className="focus-group">
           <h3>{t(`workspace.clinicalTitle.${f.clinical.worklist?.kind ?? 'general'}`)}</h3>
@@ -195,9 +202,11 @@ export function FocusPanel() {
       {f.finance && f.finance.ledger && (
         <div className="focus-group">
           <h3>{t('workspace.financeTitle')}</h3>
-          <p className="muted small" data-testid="finance-scope">
-            {selectedBranchId === 'all' ? t('workspace.scopeAll') : t('workspace.scopeAllNotSelected')}
-          </p>
+          {branchName && (
+            <p className="muted small" data-testid="finance-scope">
+              {t('workspace.orgLevelNote')}
+            </p>
+          )}
           <dl className="metrics metrics--compact">
             <Metric
               icon="wallet"
