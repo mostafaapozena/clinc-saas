@@ -617,11 +617,11 @@ export function CashSessionPage() {
   const canClose = s.status === 'open';
   return (
     <>
-      <PageHeader title={t('cash.sessionTitle', { number: s.number })} subtitle={displayName(t, cashAccount.name)}>
-        <Link className="button button--secondary" to={`/app/${orgId}/cash`}>
-          {t('cash.backToCash')}
-        </Link>
-      </PageHeader>
+      <PageHeader
+        back={{ to: `/app/${orgId}/cash`, label: t('cash.backToCash') }}
+        title={t('cash.sessionTitle', { number: s.number })}
+        subtitle={displayName(t, cashAccount.name)}
+      />
       <AccountingNav />
       <CardGrid wide>
         <section className="card" aria-labelledby="session-summary-title">
@@ -757,11 +757,11 @@ export function BankStatementPage() {
   const st = data.data;
   return (
     <>
-      <PageHeader title={t('cash.statementTitle')} subtitle={displayName(t, st.account.name)}>
-        <Link className="button button--secondary" to={`/app/${orgId}/cash`}>
-          {t('cash.backToCash')}
-        </Link>
-      </PageHeader>
+      <PageHeader
+        back={{ to: `/app/${orgId}/cash`, label: t('cash.backToCash') }}
+        title={t('cash.statementTitle')}
+        subtitle={displayName(t, st.account.name)}
+      />
       <AccountingNav />
       <Notice kind="info">{t('cash.noBankConnection')}</Notice>
       <form

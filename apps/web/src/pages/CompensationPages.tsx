@@ -363,11 +363,7 @@ export function SettlementPage() {
             <DateText value={s.periodFrom} /> – <DateText value={s.periodTo} />
           </>
         }
-      >
-        <Link className="button button--secondary" to={`/app/${orgId}/compensation`}>
-          {t('compensation.back')}
-        </Link>
-      </PageHeader>
+      ></PageHeader>
       <section className="card" aria-labelledby="settlement-lines-title">
         <div className="section-header">
           <h2 id="settlement-lines-title">{t('compensation.lines')}</h2>

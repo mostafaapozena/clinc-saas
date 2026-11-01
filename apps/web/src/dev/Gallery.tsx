@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Icon } from '../components/Icon';
 import { Metric } from '../components/Metric';
 import { PageHeader } from '../components/PageHeader';
 import { ConfirmAction, DataTable, DateText, DescriptionList, FilterBar, Money, Pagination, Quantity, Skeleton } from '../components/data';
@@ -35,6 +36,66 @@ export function Gallery() {
         <ThemeSwitcher />
         <LanguageSwitcher />
       </PageHeader>
+
+      <section className="card" aria-labelledby="g-patterns">
+        <h2 id="g-patterns">Page patterns (docs/UI_PAGE_PATTERNS.md)</h2>
+        <h3>Header: back link, secondary actions, one primary action with an icon</h3>
+        <PageHeader title="Supplier · Medical Supplies Co." subtitle="Detail page" back={{ to: '/dev/gallery', label: 'Suppliers' }}>
+          <button type="button" className="button button--secondary">
+            Print
+          </button>
+          <button type="button" className="button button--primary">
+            <Icon name="plus" /> New purchase order
+          </button>
+        </PageHeader>
+        <CardGrid wide>
+          <section className="card" aria-labelledby="g-detail">
+            <h3 id="g-detail">Detail: description list, status, consequential action last</h3>
+            <DescriptionList
+              items={[
+                { label: 'Status', value: <Badge tone="success">Active</Badge> },
+                { label: 'Payment terms', value: '30 days' },
+                { label: 'Since', value: <DateText value="2026-01-15" /> },
+              ]}
+            />
+            <ConfirmAction
+              label="Archive supplier"
+              message="New orders will not offer this supplier. Existing documents are kept."
+              onConfirm={() => {}}
+            />
+          </section>
+          <form className="card" aria-labelledby="g-form" onSubmit={(e) => e.preventDefault()}>
+            <h3 id="g-form">Create / edit: fields, then one action row</h3>
+            <div className="form-grid">
+              <Field id="g-supplier" label="Supplier name" hint="As on their invoices.">
+                <input id="g-supplier" required />
+              </Field>
+              <Field id="g-terms" label="Payment terms (days)" error="Enter a whole number of days.">
+                <input id="g-terms" inputMode="numeric" defaultValue="3o" />
+              </Field>
+            </div>
+            <ActionBar>
+              <button type="submit" className="button button--primary">
+                Save supplier
+              </button>
+              <button type="button" className="button button--secondary">
+                Cancel
+              </button>
+            </ActionBar>
+          </form>
+        </CardGrid>
+        <h3>Grouped module tabs: related pages share a primary tab with a second row</h3>
+        <ModuleTabs
+          label="Grouped example"
+          groups={{ books: 'Books' }}
+          items={[
+            { to: '/dev/gallery/sample-overview', label: 'Overview', end: true },
+            { to: '/dev/gallery', label: 'Journal', group: 'books', end: true },
+            { to: '/dev/gallery/sample-chart', label: 'Chart of accounts', group: 'books' },
+            { to: '/dev/gallery/sample-periods', label: 'Periods' },
+          ]}
+        />
+      </section>
 
       <section className="card" aria-labelledby="g-tabs">
         <h2 id="g-tabs">ModuleTabs</h2>
