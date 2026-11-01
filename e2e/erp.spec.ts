@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
-import { expect, test, type Page } from '@playwright/test';
+import { type Page } from '@playwright/test';
+import { expect, test } from './fixtures';
 import { login, orgIdFromUrl, watchBrowserErrors } from './helpers';
 
 // Connected ERP journeys (docs/ERP_EXECUTION_PLAN.md, milestone G) against the seeded synthetic

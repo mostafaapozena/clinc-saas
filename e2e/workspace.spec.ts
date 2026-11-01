@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 import { login, orgIdFromUrl, watchBrowserErrors } from './helpers';
 
 const NOUR = 'عيادات النور (تجريبي)';

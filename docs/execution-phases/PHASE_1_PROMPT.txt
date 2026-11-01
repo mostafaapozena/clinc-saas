@@ -1,0 +1,99 @@
+You are implementing PHASE 1 only for raclinic by Devware: complete the shared frontend foundation and eliminate design drift.
+
+Read these project references first:
+- docs/execution-phases/00_START_HERE.md
+- docs/execution-phases/01_FRONTEND_FOUNDATION.md
+- Existing docs/delivery-plan/ documents, especially the current-state audit, backlog and next-phase brief.
+- Applicable AGENTS.md, DESIGN_SYSTEM.md, UI_PAGE_PATTERNS.md and docs/UI_REMEDIATION_TRACKER.md.
+
+If the supplied phase files have not yet been placed in the repository, copy them into docs/execution-phases/ without replacing docs/delivery-plan/.
+Do not claim to have read missing files. Locate them, use the attached references, and record any remaining limitation.
+
+BASELINE
+The owner's Phase 0 report audited main at 74ad659. Documentation was in PR #39 on docs/phase-0-delivery-plan at 621de78. PRs #34–#38 reportedly merged and verify passed with 953 unit tests and 71 e2e tests.
+Inspect the actual current main, working tree, PR state and documentation before proceeding. These identifiers are historical context, not an instruction to reset or checkout over current work.
+Preserve unfinished changes. Read the Phase 0 documentation branch if not merged; do not block merely because its PR is open.
+Create a crosswalk between this phase's UI-01…UI-11 and original P1-01…P1-13. Never assume the IDs match.
+
+AUTHORIZATION
+Implement this phase autonomously, including ordinary reversible refactoring, appropriate dev dependencies, tests, documentation and relevant PRs.
+Do not pause for routine implementation choices. Respect tool permissions, repository policy and branch protections.
+Use the Codespace for runtime and verification. Do not install the application stack on the owner's computer.
+Do not implement Phase 2–6, add business modules, change branding, enable clinical privileges, deploy production, or expose private ports publicly.
+The authorized exception to UI-only work is the bounded branch-scope API correction and date-sensitive test repair specified below.
+
+REQUIRED OUTCOME
+Reuse and adopt the existing design system throughout affected current pages, rather than creating another parallel design system or performing a new visual redesign.
+The approved identity stays intact. Finish migration and consistency, not just component creation.
+
+FIRST, ESTABLISH AND RECORD THE BASELINE
+Confirm actual adoption of components and outstanding gaps. Reported counts:
+33 raw tables versus 3 DataTable instances; 81 raw form-actions and zero ActionBar adoption; 12 raw filters; 7 useMoney copies; 47 duplicate CSS selectors; operator file of 1,943 lines without shared components.
+Counts are diagnostic evidence, not a requirement to replace every semantic HTML table mechanically.
+Create docs/execution-phases/PHASE_1_IMPLEMENTATION.md with task status, owner/reviewer role, acceptance evidence, exceptions and commit links. Keep one current STATUS.md entry.
+
+IMPLEMENT IN REVIEWABLE BATCHES
+1. Repair the midnight-sensitive front-desk test. Inspect its actual cause. The report suggests Riyadh-based synthetic “today” changes at 21:00 UTC during the journey. Make fixtures and tested time deterministic where suitable. Prove relevant behavior across the boundary; do not skip the test, hide the failure with retries, or change correct product time semantics.
+2. Consolidate tokens and reorganize CSS by component, preserving intentional theme/responsive overrides and approved visual appearance.
+3. Define/adopt list, detail, create and edit page patterns; consistent primary-action placement and hierarchy; shared ActionBar and form patterns.
+4. Adopt shared tables, pagination, filters and Money/Date/Quantity helpers across appropriate modules. Keep server sorting correct across paginated datasets; preserve allowed URL state and avoid sensitive text in URLs. Document justified exceptions.
+5. Refactor the operator console into coherent components and migrate its patterns. Preserve admin/support boundaries and all backend authorization. Never grant access to clinical records as part of this work.
+6. Align public-site tokens with shared foundations while preserving distinct marketing layouts.
+7. Fix the reports navigation and chart layout issues described by the owner.
+8. Clarify dashboard hierarchy, zero/empty/unconfigured states and meaningful drill-downs.
+9. Implement selected-branch scope for the “Today” dashboard in API and UI. Preserve authorized-branch limits and all-branches behavior. Test unauthorized branch IDs and organization switching.
+10. Finish verification, component-gallery examples, adoption documentation and phase closure report.
+
+OWNER'S SPECIFIC UX REQUIREMENTS
+- Arabic typography feels oversized in some screens. Inspect hierarchy, line height, density and wrapping. Use a coherent type scale; do not indiscriminately shrink everything.
+- Buttons must have consistent sizes, alignment, gaps and predictable action grouping.
+- Icons must be centered, correctly sized and visibly separated from labels.
+- Avoid narrow columns that break names, emails or labels letter by letter.
+- Reports tabs currently appear to scroll endlessly or loop in Arabic and English. Reproduce, identify the cause and fix it. Do not assume the cause without inspecting behavior.
+- If the number of categories makes the tab strip confusing, use clear primary categories and secondary navigation. Preserve deep links, keyboard access and filters. No endless carousel, duplicated tabs or page-wide overflow.
+- Improve chart composition using actual data. Select useful chart types; show scope, dates, units, sources and accessible table alternatives. Do not add decorative fake charts or promise real-time data without support.
+- Zero can be meaningful. Distinguish zero activity from unconfigured, unavailable, loading and irrelevant. Do not hide all zero cards automatically.
+- Maintain comfortable whitespace and coherent responsive grids without making useful information excessively sparse.
+- Monetary values must never animate through misleading intermediate amounts.
+
+QUALITY AND NON-REGRESSION
+Preserve business semantics, financial records, audit history, clinical record finalization, tenancy, permissions, API validation, session and subscription behavior.
+Do not create ledger adjustments to make dashboard figures match. Label document versus posted-ledger sources accurately.
+Preserve date-only values without UTC shifts and distinguish timestamps, organization time and user locale.
+Use shared accessible form hints/errors, stable IDs, keyboard navigation, visible focus and reduced-motion support.
+New components/patterns must be documented in the dev-only gallery and absent from production where appropriate.
+Keep the new-page rules enforceable with focused tests, existing safeguards and PR review guidance. Do not add tests that merely mirror implementation details.
+
+VERIFICATION
+Run meaningful targeted checks per batch, then npm run verify on the delivered code and verify CI on the final PR head.
+Review Arabic/English, RTL/LTR, light/dark, widths 360/390/768/1024/1366/1920, and actual 200% browser zoom.
+No unintended page horizontal scrolling; document legitimate internal table overflow.
+Cover owner, admin, doctor, reception, accountant, viewer, and operator admin/support according to actual permissions.
+Use axe plus keyboard checks; perform manual screen-reader and Arabic-locale date-picker checks if the environment supports them. Report unperformed checks honestly and do not call a materially unverified acceptance item complete.
+Use representative Firefox/WebKit journeys in addition to Chromium; state exact coverage.
+Capture synthetic-data before/after screenshots for key corrected layouts, including reports, cash/banks, team, settings, operator and mobile.
+
+GIT AND PREVIEW
+Use reviewable PRs/batches and do not force-push or bypass checks.
+Apply the owner's existing merge authorization only to relevant verified phase work when repository policy permits; otherwise leave a ready PR and state the precise blocking condition.
+A previous merge authorization is not authorization for production deployment.
+At delivery, start the private preview from the exact delivered revision and verify frontend/API health and representative authenticated flows through the actual URL where possible.
+Do not treat a GitHub login redirect as proof of authenticated application testing.
+Record actual branch/commit, URLs, CI and any forwarding limitation. Keep ports private.
+
+DELIVER IN ARABIC
+- What already existed and was preserved.
+- What was migrated/fixed, mapped to task IDs.
+- Before/after adoption and justified remaining exceptions.
+- Verification and exact commits.
+- Known limitations and whether each blocks phase closure.
+- Screenshot index.
+- PR/merge state.
+- Working public-site, /login and /operator preview links.
+- Updated PHASE_1_IMPLEMENTATION.md and STATUS.md.
+- Whether Phase 1 is closed or still partial.
+
+Do not call the phase complete solely because tests pass or shared components exist.
+Finish all authorized Phase 1 work. If one item is blocked, complete independent items and identify the exact remaining dependency.
+Do not automatically begin Phase 2 or VPS deployment. The next assignment will be issued separately.
+

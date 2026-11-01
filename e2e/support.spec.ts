@@ -1,4 +1,5 @@
-import { expect, test, type Page } from '@playwright/test';
+import { type Page } from '@playwright/test';
+import { expect, test } from './fixtures';
 import { DEMO_PASSWORD, login, orgIdFromUrl, watchBrowserErrors } from './helpers';
 
 // Support requests and account recovery against the seeded synthetic data. Email goes to the

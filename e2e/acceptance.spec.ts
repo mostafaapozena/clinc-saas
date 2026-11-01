@@ -1,4 +1,5 @@
-import { expect, test, type APIRequestContext, type Page } from '@playwright/test';
+import { type APIRequestContext, type Page } from '@playwright/test';
+import { expect, test } from './fixtures';
 import { DEMO_PASSWORD, login, orgIdFromUrl, watchBrowserErrors } from './helpers';
 
 // Milestone 6 — integrated acceptance (docs/ACCEPTANCE.md). Connected journeys that cross module

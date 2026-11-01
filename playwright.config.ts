@@ -12,6 +12,17 @@ const mongoBaseUri = process.env.MONGODB_TEST_URI ?? 'mongodb://localhost:27017/
 // A fresh random password for the demo accounts of this run only (inherited by test workers).
 process.env.E2E_DEMO_PASSWORD ??= randomBytes(12).toString('base64url');
 
+// Every run happens at the same time of day, 10:00 UTC (12:00 in Cairo, 13:00 in Riyadh), whenever
+// it starts: the API (CLOCK_OFFSET_MS) and every browser context (e2e/fixtures.ts) share one shifted
+// clock, so data seeded for "today" never crosses a local midnight during the run. Real time-of-day
+// behaviour is tested in the API suite with a pinned clock. E2E_CLOCK_UTC=HH:MM[:SS] rehearses
+// another time (for example the Riyadh midnight boundary).
+if (process.env.E2E_CLOCK_OFFSET_MS === undefined) {
+  const [h = 10, m = 0, s = 0] = (process.env.E2E_CLOCK_UTC ?? '10:00').split(':').map(Number);
+  const real = new Date();
+  process.env.E2E_CLOCK_OFFSET_MS = String(Date.UTC(real.getUTCFullYear(), real.getUTCMonth(), real.getUTCDate(), h, m, s) - real.getTime());
+}
+
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: false,
@@ -46,6 +57,7 @@ export default defineConfig({
         BILLING_PROVIDER: 'simulator',
         // Development mail sink (milestone 5): nothing is ever sent from tests.
         MAIL_PROVIDER: 'dev_sink',
+        CLOCK_OFFSET_MS: process.env.E2E_CLOCK_OFFSET_MS,
       },
       reuseExistingServer: false,
       timeout: 90_000,

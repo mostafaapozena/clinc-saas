@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 import { login, logout, watchBrowserErrors } from './helpers';
 
 test('registration → organization onboarding → workspace, then sign out and back in', async ({ page }) => {

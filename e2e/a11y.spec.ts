@@ -1,5 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test, type Page } from '@playwright/test';
+import { type Page } from '@playwright/test';
+import { expect, test } from './fixtures';
 import { login, orgIdFromUrl } from './helpers';
 
 // Automated accessibility checks (WCAG 2.1 A/AA rules axe can decide) on the main workspace pages,
