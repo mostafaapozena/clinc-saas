@@ -16,6 +16,7 @@ import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { orgKeys, useBranchFilter, useOrg } from '../org/context';
 import { ActionBar } from '../components/layout';
 import { DataTable, FilterBar, Pagination } from '../components/data';
+import { Icon } from '../components/Icon';
 
 const PAGE_SIZE = 20;
 
@@ -57,7 +58,7 @@ export function PatientsPage() {
       <PageHeader title={t('patients.title')} subtitle={t('patients.subtitle')}>
         {can('patient.create') && !creating && (
           <button type="button" className="button button--primary" ref={newButton} onClick={() => setCreating(true)}>
-            {t('patients.new')}
+            <Icon name="plus" /> {t('patients.new')}
           </button>
         )}
       </PageHeader>

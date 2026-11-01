@@ -18,6 +18,7 @@ import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { orgKeys, useOrg } from '../org/context';
 import { ConfirmAction } from '../components/data';
 import { ActionBar, CardGrid } from '../components/layout';
+import { Icon } from '../components/Icon';
 
 export function PatientDetailPage() {
   const { t } = useTranslation();
@@ -59,7 +60,7 @@ export function PatientDetailPage() {
       <PatientContextHeader patient={p}>
         {can('appointment.book') && (
           <Link className="button button--primary" to={`/app/${orgId}/appointments/new?patientId=${p.id}`}>
-            {t('appointments.book')}
+            <Icon name="plus" /> {t('appointments.book')}
           </Link>
         )}
       </PatientContextHeader>

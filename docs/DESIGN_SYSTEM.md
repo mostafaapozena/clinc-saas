@@ -2,11 +2,12 @@
 
 This document is the contract for every workspace and operator screen.
 
-- **Identity (unchanged):** navy, turquoise and coral tokens in `styles.css :root`; Alexandria for Arabic and Inter for English (both self-hosted); the existing logo assets; Arabic RTL by default and English LTR; light, dark and system themes; reduced motion respected.
-- **Implementation:** `apps/web/src/components/layout.tsx` (layout primitives), `components/ChartCard.tsx`, `components/Metric.tsx`, `components/ui.tsx`, and the "Design-system contracts" section at the end of `workspace.css`.
+- **Identity (unchanged):** navy, turquoise and coral tokens; Alexandria for Arabic and Inter for English (both self-hosted); the existing logo assets; Arabic RTL by default and English LTR; light, dark and system themes; reduced motion respected.
+- **Tokens:** `apps/web/src/tokens.css` is the one place tokens are defined (light, dark, system dark, phones, print, English). Display sizes are language tokens: Arabic (Alexandria renders larger) one step smaller than English. The public site inherits the palette and states only its own values.
+- **Implementation:** `components/layout.tsx` (`ActionBar`, `CardGrid`, `MetricGrid`, `ModuleTabs` with groups), `components/data.tsx` (`DataTable`, `Pagination`, `FilterBar`, `Money`, `DateText`, `Quantity`, `ConfirmAction`, `Skeleton`, `DescriptionList`), `lib/money.ts`, `components/PageHeader.tsx` (`back`, `help`), `components/ChartCard.tsx` (`wide`), `components/Metric.tsx`, `components/ui.tsx` (`Field`, `Badge`, `EmptyState` with `action`).
 - **Guards:**
-  - `apps/web/src/design-system.test.ts` (static rules);
-  - `e2e/layout.spec.ts` (geometry);
+  - `apps/web/src/design-system.test.ts` (no raw action rows, grids, metric lists, filters or tone badges; money only through `lib/money.ts`; tokens only in `tokens.css`; duplicate selectors may not grow);
+  - `e2e/layout.spec.ts` (geometry) and `e2e/a11y.spec.ts` (axe);
   - [docs/UI_CONTRIBUTION_CHECKLIST.md](UI_CONTRIBUTION_CHECKLIST.md).
 
 ## 1. Tokens

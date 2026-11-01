@@ -14,6 +14,23 @@ Compose new pages from these patterns, built from the primitives in [DESIGN_SYST
 | **Settings** | One card per concern, each with its own save action; risky actions (reset) last, with preview and confirmation | `pages/SettingsPage.tsx` |
 | **Confirmation / error recovery** | `role="alertdialog"` panel with focused heading → consequence in plain words → confirm and cancel; errors use `Notice` with the error-code message and keep the entered values | Invoice issue confirmation, `components/SettingsReset.tsx` |
 
+## Page header and actions (Phase 1, UI-03)
+
+One rule for every page; examples in the dev-only gallery (`/dev/gallery`, "Page patterns").
+
+- **Where you are:** `PageHeader` title, then the subtitle. A detail page passes `back` (the list it belongs to) — a link above the title, never a button among the actions. Static policy text goes in `help`, never a banner.
+- **One primary action** per page, at the end of the header, filled (`button--primary`), with a leading icon when it creates (`plus`). It is the page's main task: "Book appointment", "New patient", "Save".
+- **Secondary actions** (navigate, print, open a related page) are `button--secondary` and come before the primary one in reading order. A page may have none.
+- **Consequential actions** (suspend, archive, cancel, void) are never in the header: they sit with the record they change, through `ConfirmAction` (danger tone, the consequence in words, focus on cancel).
+- **Action rows** inside cards are `ActionBar`: primary first in reading order, then secondary; one size per row; buttons never stretch.
+
+| Pattern | Composition |
+| --- | --- |
+| **List** | `PageHeader` (+ primary create action) → `ModuleTabs` if the module has pages → `FilterBar` → `DataTable` (typed columns, `numeric` amounts) or a `data-list` of cards → `Pagination` → `EmptyState` with the next step |
+| **Detail** | `PageHeader` with `back`, status `Badge` and actions → `DescriptionList` card → related records → consequential actions last, through `ConfirmAction` |
+| **Create** | A card or page titled with the verb ("New supplier"); `Field` for every input (label, hint, error, required) → `ActionBar` (primary "Save"/"Create", secondary "Cancel") → `Notice` for errors, keeping what was typed. Multi-step or multi-line entities get their own page |
+| **Edit** | The same form as create, filled; the primary action says what it saves; leaving with unsaved changes asks first (`useUnsavedSections` on pages of independent sections) |
+
 ## Lists, filters and tables
 
 The reference is the Inventory pilot (`pages/InventoryPages.tsx`): stock, items and moves.

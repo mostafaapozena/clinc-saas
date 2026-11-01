@@ -705,11 +705,11 @@ export function EntryPage() {
   const reversible = ['manual', 'opening', 'voucher'].includes(e.source.type) && !e.reversedBy && !e.reversalOf;
   return (
     <>
-      <PageHeader title={t('accounting.entryTitle', { number: e.number })} subtitle={sourceLabel(t, e.source)}>
-        <Link className="button button--secondary" to={`/app/${orgId}/accounting/entries`}>
-          {t('accounting.backToJournal')}
-        </Link>
-      </PageHeader>
+      <PageHeader
+        back={{ to: `/app/${orgId}/accounting/entries`, label: t('accounting.backToJournal') }}
+        title={t('accounting.entryTitle', { number: e.number })}
+        subtitle={sourceLabel(t, e.source)}
+      />
       <AccountingNav />
       <section className="card" aria-labelledby="entry-detail-title">
         <h2 id="entry-detail-title" className="visually-hidden">

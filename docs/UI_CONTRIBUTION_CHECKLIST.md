@@ -3,7 +3,7 @@
 Check every item before opening a PR that adds or changes a screen.
 
 ## Structure
-- [ ] The page follows a pattern in [UI_PAGE_PATTERNS.md](UI_PAGE_PATTERNS.md) and uses `PageHeader`.
+- [ ] The page follows a pattern in [UI_PAGE_PATTERNS.md](UI_PAGE_PATTERNS.md) and uses `PageHeader`: `back` for a detail page, at most one primary action (with an icon when it creates), consequential actions with the record through `ConfirmAction`.
 - [ ] Card rows use `CardGrid`. Equal heights only with `equal`, for parallel cards.
 - [ ] Figures use `MetricGrid` + `Metric`. Financial figures state their source in `hint`.
 - [ ] An icon beside text that can wrap uses `IconLabel` / `ReportLink`, never an icon plus a `<br>`.
