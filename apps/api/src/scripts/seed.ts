@@ -6,9 +6,11 @@ import { ensureIndexes } from '../db/models.js';
 import { seedDemoData } from '../modules/demo/demo.seed.js';
 import { seedPlatformData } from '../modules/platform/platform.seed.js';
 import { seedSpecialties } from '../modules/specialties/specialty.seed.js';
+import { setClockOffset } from '../time/clock.js';
 
 // Usage: npm run seed [-- --reset]   (development and tests only)
 const env = loadEnv();
+setClockOffset(env.CLOCK_OFFSET_MS);
 const reset = process.argv.includes('--reset');
 
 if (env.NODE_ENV === 'production') {

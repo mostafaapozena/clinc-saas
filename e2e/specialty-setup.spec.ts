@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
-import { expect, test, type Page } from '@playwright/test';
+import { type Page } from '@playwright/test';
+import { expect, test } from './fixtures';
 import { watchBrowserErrors } from './helpers';
 
 // Specialty selection → real setup → the specialty's own workspace (docs/architecture/MODULES.md).

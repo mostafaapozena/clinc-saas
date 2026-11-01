@@ -88,7 +88,8 @@ describe('public website', () => {
     expect(screen.getByRole('heading', { name: 'غير متاح بعد' })).toBeInTheDocument();
     expect(screen.getByText(/لم تُعلن الأسعار وخطط الاشتراك بعد/)).toBeInTheDocument();
     expectOnlyKnownLinks();
-    expect(document.querySelector('meta[name="robots"]')).toHaveAttribute('content', 'noindex, nofollow');
+    // The page's metadata is written by an effect after the first render; wait for it rather than racing it.
+    await waitFor(() => expect(document.querySelector('meta[name="robots"]')).toHaveAttribute('content', 'noindex, nofollow'));
     expect(document.title).toBe('إدارة المواعيد والاستقبال وملفات المرضى · raclinic');
     const faq = JSON.parse(document.querySelector('script[type="application/ld+json"]')?.textContent ?? '{}');
     expect(faq['@type']).toBe('FAQPage');
@@ -130,7 +131,8 @@ describe('public website', () => {
     expect(await screen.findByTestId('solution-create')).toHaveAttribute('href', '/start?type=medical_center');
     await router.navigate('/solutions/radiology');
     expect(await screen.findByRole('heading', { level: 1, name: 'الصفحة غير موجودة' })).toBeInTheDocument();
-    expect(document.querySelector('meta[name="robots"]')).toHaveAttribute('content', 'noindex, nofollow');
+    // The page's metadata is written by an effect after the first render; wait for it rather than racing it.
+    await waitFor(() => expect(document.querySelector('meta[name="robots"]')).toHaveAttribute('content', 'noindex, nofollow'));
     expect(document.querySelector('link[rel="canonical"]')).toBeNull();
   });
 });

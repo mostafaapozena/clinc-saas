@@ -69,6 +69,8 @@ const envSchema = z
     RATE_LIMIT_STORE: z.enum(['mongo', 'memory']).default('mongo'),
     // Load-test process metrics (event loop, memory, CPU) at /api/health/metrics; refused in production.
     OPS_METRICS: z.stringbool().default(false),
+    // Browser tests only: shifts the scheduling clock (time/clock.ts) so a run happens at a fixed time of day.
+    CLOCK_OFFSET_MS: z.coerce.number().int().default(0),
   })
   .superRefine((env, ctx) => {
     if (env.NODE_ENV === 'production' && !env.SESSION_COOKIE_SECURE) {
@@ -96,6 +98,9 @@ const envSchema = z
     }
     if (env.NODE_ENV === 'production' && env.MAIL_PROVIDER !== 'none' && !env.APP_BASE_URL) {
       ctx.addIssue({ code: 'custom', path: ['APP_BASE_URL'], message: 'is required in production when mail is enabled' });
+    }
+    if (env.NODE_ENV !== 'test' && env.CLOCK_OFFSET_MS !== 0) {
+      ctx.addIssue({ code: 'custom', path: ['CLOCK_OFFSET_MS'], message: 'is for browser tests only (NODE_ENV=test)' });
     }
     if ((env.SUPPORT_HOURS_AR === undefined) !== (env.SUPPORT_HOURS_EN === undefined)) {
       ctx.addIssue({ code: 'custom', path: ['SUPPORT_HOURS_EN'], message: 'set both SUPPORT_HOURS_AR and SUPPORT_HOURS_EN, or neither' });

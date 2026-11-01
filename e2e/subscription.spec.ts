@@ -1,4 +1,5 @@
-import { expect, test, type Page } from '@playwright/test';
+import { type Page } from '@playwright/test';
+import { expect, test } from './fixtures';
 import { DEMO_PASSWORD, login, orgIdFromUrl, watchBrowserErrors } from './helpers';
 
 // Platform subscriptions and the operator console against the seeded synthetic data. Payments go

@@ -1,4 +1,5 @@
-import { expect, test, type Page } from '@playwright/test';
+import { type Page } from '@playwright/test';
+import { expect, test } from './fixtures';
 import { login, logout, orgIdFromUrl, watchBrowserErrors } from './helpers';
 
 // Clinical visit records against the seeded synthetic demo data (reset on every run):

@@ -453,3 +453,25 @@ describe('organization time zone', () => {
     expect((await c.owner.agent.get(`/api/v1/orgs/${c.orgId}`)).body.organization.timeZone).toBe('Africa/Cairo');
   });
 });
+
+describe("the queue follows the organization's day", () => {
+  it("keeps a Riyadh arrival in today's queue until local midnight (21:00 UTC) and not after", async () => {
+    const r = await buildClinic(app, 'ryd', 'Asia/Riyadh');
+    const patientId = await createPatient(r.receptionist, r.orgId, r.branchA);
+    const booked = await bookOk(r.receptionist, r.orgId, { practitionerId: r.practitioner, branchId: r.branchA, date: TODAY, time: '13:00', patientId: patientId! });
+    pinClock('2026-11-10T09:50:00Z'); // 12:50 in Riyadh
+    await act(r.receptionist, r.orgId, booked.id, 'check_in', booked.version);
+    const queueAt = async (iso: string) => {
+      pinClock(iso);
+      const res = await r.receptionist.agent.get(`/api/v1/orgs/${r.orgId}/queue`).query({ branchId: r.branchA });
+      expect(res.status, JSON.stringify(res.body)).toBe(200);
+      return res.body as { date: string; waiting: { id: string }[] };
+    };
+    const before = await queueAt('2026-11-10T20:59:00Z'); // 23:59 in Riyadh
+    expect(before.date).toBe('2026-11-10');
+    expect(before.waiting.map((a) => a.id)).toContain(booked.id);
+    const after = await queueAt('2026-11-10T21:01:00Z'); // 00:01 the next day in Riyadh
+    expect(after.date).toBe('2026-11-11');
+    expect(after.waiting.map((a) => a.id)).not.toContain(booked.id);
+  });
+});

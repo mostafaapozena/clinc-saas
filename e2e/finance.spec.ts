@@ -1,4 +1,5 @@
-import { expect, test, type Page } from '@playwright/test';
+import { type Page } from '@playwright/test';
+import { expect, test } from './fixtures';
 import { login, orgIdFromUrl, watchBrowserErrors } from './helpers';
 
 // Clinic finances against the seeded synthetic data (EGP catalog in demo-nour). Prices are examples.

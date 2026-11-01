@@ -1,4 +1,5 @@
-import { expect, test, type APIRequestContext, type Page } from '@playwright/test';
+import { type APIRequestContext, type Page } from '@playwright/test';
+import { expect, test } from './fixtures';
 import { login, orgIdFromUrl, watchBrowserErrors } from './helpers';
 
 /** The supported zone with the most time left today, so "book today" always has free slots. */

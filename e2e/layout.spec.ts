@@ -1,4 +1,5 @@
-import { expect, test, type Page } from '@playwright/test';
+import { type Page } from '@playwright/test';
+import { expect, test } from './fixtures';
 import { login, orgIdFromUrl, watchBrowserErrors } from './helpers';
 
 // Layout contracts of the design system (docs/DESIGN_SYSTEM.md, docs/DESIGN_SYSTEM_REMEDIATION.md).

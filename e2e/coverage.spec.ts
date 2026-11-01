@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
-import { expect, test, type APIRequestContext, type Browser } from '@playwright/test';
+import { type APIRequestContext, type Browser } from '@playwright/test';
+import { expect, test } from './fixtures';
 import { watchBrowserErrors } from './helpers';
 
 // Clinical coverage end to end, in a fresh organization created through the API (synthetic data):

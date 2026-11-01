@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 import { watchBrowserErrors } from './helpers';
 
 test('status page shows a live API and database connection in Arabic RTL', async ({ page }) => {

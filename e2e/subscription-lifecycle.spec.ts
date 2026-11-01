@@ -1,4 +1,5 @@
-import { expect, test, type Page } from '@playwright/test';
+import { type Page } from '@playwright/test';
+import { expect, test } from './fixtures';
 import { DEMO_PASSWORD, watchBrowserErrors } from './helpers';
 
 // Subscription lifecycle in the browser: an operator offers a trial on a plan; a new owner (English)

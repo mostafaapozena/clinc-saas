@@ -5,8 +5,10 @@ import { connectDatabase, disconnectDatabase } from './db/connection.js';
 import { ensureIndexes } from './db/models.js';
 import { createLogger } from './logger.js';
 import { lifecycle } from './modules/health/lifecycle.js';
+import { setClockOffset } from './time/clock.js';
 
 const env = loadEnv();
+setClockOffset(env.CLOCK_OFFSET_MS);
 const logger = createLogger(env);
 
 try {
