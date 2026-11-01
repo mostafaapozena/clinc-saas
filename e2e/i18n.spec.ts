@@ -26,13 +26,13 @@ test('Arabic uses RTL and Alexandria; English uses LTR and Inter; fonts are self
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('تسجيل الدخول');
   const arabic = await typography(page);
   expect(arabic).toMatchObject({ lang: 'ar', dir: 'rtl', alexandria: true });
-  expect(arabic.family).toMatch(/^"Alexandria Variable"/);
+  expect(arabic.family).toMatch(/^"?Alexandria Variable"?,/);
 
   await page.getByRole('button', { name: 'English' }).click();
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Sign in');
   const english = await typography(page);
   expect(english).toMatchObject({ lang: 'en', dir: 'ltr', inter: true });
-  expect(english.family).toMatch(/^"Inter Variable"/);
+  expect(english.family).toMatch(/^"?Inter Variable"?,/);
 
   // The choice persists across reloads.
   await page.reload();

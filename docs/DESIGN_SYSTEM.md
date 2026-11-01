@@ -132,7 +132,7 @@ Numbers and amounts use `<bdi dir="ltr">` where mixed with Arabic text. Table am
 | ≤640 | Drawer | At most two rows | One column; metrics one or two | Records stack; statements scroll |
 | 641–900 | Drawer | One row | Two columns | Statements keep columns |
 | 901–1023 | Fixed | May wrap | Two to three | Full |
-| ≥1024 | Fixed | One row (chooser captions become hidden labels) | Up to three cards, six metrics | Full, statement width capped |
+| ≥1024 | Fixed | One row (chooser captions become hidden labels; up to 1279px the choosers shrink and the organization and account names end in an ellipsis) | Up to three cards, six metrics | Full, statement width capped |
 
 `--topbar-h` is measured at run time and feeds `scroll-padding-block-start`, so anchors and focus never land under the sticky bar. The page never scrolls sideways; wide content scrolls inside its own container.
 

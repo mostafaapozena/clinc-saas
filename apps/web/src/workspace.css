@@ -2103,6 +2103,28 @@ textarea {
   }
 }
 
+/* Small laptops (and 200% zoom of a wide window): the choosers and the account name shrink, with an
+   ellipsis, before the one-row header can push the page sideways (Phase 1, UI-11). */
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .topbar .switcher {
+    flex: 0 1 auto;
+  }
+
+  /* A read-only organization name gives way first, so the choices stay readable. */
+  .topbar .switcher--static {
+    flex-shrink: 6;
+    min-inline-size: 5rem;
+  }
+
+  .topbar .switcher select {
+    min-inline-size: 7.5rem;
+  }
+
+  .topbar .user-name {
+    max-inline-size: 6rem;
+  }
+}
+
 /* List rows adapt to their own container, not the window (UX-001, UX-015): when a row is narrow,
    the actions move under the content instead of squeezing the title to a sliver. */
 .data-list {
