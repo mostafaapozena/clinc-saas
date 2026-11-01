@@ -219,7 +219,8 @@ export function Quantity({ value, unit, signed }: { value: number; unit?: string
 
 /**
  * A consequential action confirmed in place: the first press shows what will happen with a
- * confirm and a cancel button (focus moves to cancel), the second press acts.
+ * confirm and a cancel button (focus moves to cancel), the second press acts. Cancel or Escape
+ * closes it and puts focus back on the button that opened it.
  */
 export function ConfirmAction({
   label,
@@ -242,13 +243,24 @@ export function ConfirmAction({
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const cancelRef = useRef<HTMLButtonElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const returnFocus = useRef(false);
   useEffect(() => {
     if (open) cancelRef.current?.focus();
+    else if (returnFocus.current) {
+      returnFocus.current = false;
+      triggerRef.current?.focus();
+    }
   }, [open]);
+  const close = () => {
+    returnFocus.current = true;
+    setOpen(false);
+  };
   const tone = danger ? 'button button--danger' : 'button button--primary';
   if (!open)
     return (
       <button
+        ref={triggerRef}
         type="button"
         className={danger ? 'button button--danger-outline' : 'button button--secondary'}
         onClick={() => setOpen(true)}
@@ -258,7 +270,16 @@ export function ConfirmAction({
       </button>
     );
   return (
-    <div className="confirm-panel" role="group" aria-label={ariaLabel ?? label}>
+    <div
+      className="confirm-panel"
+      role="group"
+      aria-label={ariaLabel ?? label}
+      onKeyDown={(e) => {
+        if (e.key !== 'Escape') return;
+        e.stopPropagation();
+        close();
+      }}
+    >
       <p>{message}</p>
       <ActionBar>
         <button
@@ -267,12 +288,12 @@ export function ConfirmAction({
           disabled={pending}
           onClick={() => {
             onConfirm();
-            setOpen(false);
+            close();
           }}
         >
           {confirmLabel ?? label}
         </button>
-        <button ref={cancelRef} type="button" className="button button--secondary" onClick={() => setOpen(false)}>
+        <button ref={cancelRef} type="button" className="button button--secondary" onClick={close}>
           {t('common.cancel')}
         </button>
       </ActionBar>

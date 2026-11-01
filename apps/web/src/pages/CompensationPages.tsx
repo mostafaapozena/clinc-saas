@@ -12,7 +12,7 @@ import { moneyInput, parseMoney } from '../lib/finance';
 import { showToast } from '../lib/toast';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { useOrg } from '../org/context';
-import { DateText } from '../components/data';
+import { DataTable, DateText } from '../components/data';
 import { useOrgMoney } from '../lib/money';
 import { ActionBar, CardGrid } from '../components/layout';
 
@@ -372,32 +372,25 @@ export function SettlementPage() {
         {s.lines.length === 0 ? (
           <EmptyState icon="inbox">{t('compensation.noLines')}</EmptyState>
         ) : (
-          <div className="table-wrap">
-            <table className="data-table" data-testid="settlement-lines">
-              <thead>
-                <tr>
-                  <th scope="col">{t('compensation.date')}</th>
-                  <th scope="col">{t('compensation.item')}</th>
-                  <th scope="col">{t('compensation.base')}</th>
-                  <th scope="col">{t('compensation.fee')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {s.lines.map((l) => (
-                  <tr key={l.sourceKey}>
-                    <td data-label={t('compensation.date')}>
-                      <DateText value={l.date} />
-                    </td>
-                    <td data-label={t('compensation.item')}>
-                      {t(`compensation.sources.${l.sourceType}`)} · <bdi dir="auto">{l.description}</bdi>
-                    </td>
-                    <td data-label={t('compensation.base')}>{money(l.base)}</td>
-                    <td data-label={t('compensation.fee')}>{money(l.amount)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <DataTable
+            testId="settlement-lines"
+            rows={s.lines}
+            rowKey={(l) => l.sourceKey}
+            columns={[
+              { key: 'date', label: t('compensation.date'), cell: (l) => <DateText value={l.date} /> },
+              {
+                key: 'item',
+                label: t('compensation.item'),
+                cell: (l) => (
+                  <>
+                    {t(`compensation.sources.${l.sourceType}`)} · <bdi dir="auto">{l.description}</bdi>
+                  </>
+                ),
+              },
+              { key: 'base', label: t('compensation.base'), numeric: true, cell: (l) => money(l.base) },
+              { key: 'fee', label: t('compensation.fee'), numeric: true, cell: (l) => money(l.amount) },
+            ]}
+          />
         )}
         <dl className="details">
           <dt>{t('compensation.computed')}</dt>

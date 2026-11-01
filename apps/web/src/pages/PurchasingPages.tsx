@@ -29,7 +29,7 @@ import { showToast } from '../lib/toast';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { useOrg } from '../org/context';
 import { csvMoney, downloadCsv } from '../lib/csv';
-import { ConfirmAction, DataTable, DateText } from '../components/data';
+import { ConfirmAction, DataTable, DateText, Quantity } from '../components/data';
 import { useOrgMoney } from '../lib/money';
 
 // Suppliers, purchasing and payables (docs/architecture/PURCHASING.md): request → approval → RFQ →
@@ -1118,38 +1118,42 @@ export function PurchaseOrderPage() {
           <h2 id="order-lines-title">{t('purchasing.lines')}</h2>
           <span className={statusBadge(o.status)}>{t(`purchasing.orderStatus.${o.status}`)}</span>
         </div>
-        <div className="table-wrap">
-          <table className="data-table" data-testid="order-lines">
-            <thead>
-              <tr>
-                <th scope="col">{t('purchasing.itemOrService')}</th>
-                <th scope="col">{t('purchasing.qty')}</th>
-                <th scope="col">{t('purchasing.unitPrice')}</th>
-                <th scope="col">{t('purchasing.receivedCol')}</th>
-                <th scope="col">{t('purchasing.billedCol')}</th>
-                <th scope="col">{t('purchasing.returnedCol')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {o.lines.map((l, i) => (
-                <tr key={i}>
-                  <td data-label={t('purchasing.itemOrService')}>{l.description}</td>
-                  <td data-label={t('purchasing.qty')}>
-                    {l.qty} {l.unit}
-                  </td>
-                  <td data-label={t('purchasing.unitPrice')}>{money(l.unitPrice)}</td>
-                  <td data-label={t('purchasing.receivedCol')}>{l.received}</td>
-                  <td data-label={t('purchasing.billedCol')}>{l.billed}</td>
-                  <td data-label={t('purchasing.returnedCol')}>{l.returned}</td>
-                </tr>
-              ))}
-              <tr className="row-total">
-                <th scope="row">{t('purchasing.total')}</th>
-                <td colSpan={5}>{money(o.total)}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <DataTable
+          testId="order-lines"
+          rows={o.lines.map((l, index) => ({ ...l, index }))}
+          rowKey={(l) => String(l.index)}
+          columns={[
+            { key: 'item', label: t('purchasing.itemOrService'), cell: (l) => l.description },
+            { key: 'qty', label: t('purchasing.qty'), numeric: true, cell: (l) => <Quantity value={l.qty} unit={l.unit} /> },
+            { key: 'unitPrice', label: t('purchasing.unitPrice'), numeric: true, cell: (l) => money(l.unitPrice) },
+            {
+              key: 'received',
+              label: t('purchasing.receivedCol'),
+              numeric: true,
+              cell: (l) => (l.received === undefined ? '' : <Quantity value={l.received} />),
+            },
+            {
+              key: 'billed',
+              label: t('purchasing.billedCol'),
+              numeric: true,
+              cell: (l) => (l.billed === undefined ? '' : <Quantity value={l.billed} />),
+            },
+            {
+              key: 'returned',
+              label: t('purchasing.returnedCol'),
+              numeric: true,
+              cell: (l) => (l.returned === undefined ? '' : <Quantity value={l.returned} />),
+            },
+          ]}
+          footer={
+            <tr className="row-total">
+              <th scope="row">{t('purchasing.total')}</th>
+              <td colSpan={5} className="num">
+                {money(o.total)}
+              </td>
+            </tr>
+          }
+        />
         {can('purchase.order.manage') && ['draft', 'confirmed', 'received'].includes(o.status) && (
           <div className="inline-form">
             {o.status === 'draft' && (
