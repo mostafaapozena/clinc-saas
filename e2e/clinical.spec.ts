@@ -141,7 +141,8 @@ test('late entry for a completed visit, listed in the doctor’s timeline for th
   errors.expectNone();
 });
 
-test('two tabs: the stale save gets a conflict and nothing is overwritten (English)', async ({ page }) => {
+test('two tabs: the stale save gets a conflict and nothing is overwritten (English)', async ({ page, restoreLanguage }) => {
+  restoreLanguage('doctor.nour@demo.test', 'ar');
   const errors = watchBrowserErrors(page);
   await login(page, 'doctor.nour@demo.test');
   const orgId = orgIdFromUrl(page);
@@ -168,7 +169,7 @@ test('two tabs: the stale save gets a conflict and nothing is overwritten (Engli
   await expect(second.getByLabel('Relevant history', { exact: true })).toHaveValue(`${MARK} tab A`);
   await expect(second.getByTestId('conflict')).toHaveCount(0);
   await second.close();
-  // The language choice is saved to the account: restore Arabic for the other tests.
+  // Switching back is part of the journey; the saved preference is also restored by the fixture.
   await page.getByRole('button', { name: 'العربية' }).click();
   await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
   errors.expectNone();

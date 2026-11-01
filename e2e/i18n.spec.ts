@@ -44,7 +44,8 @@ test('Arabic uses RTL and Alexandria; English uses LTR and Inter; fonts are self
   browser.expectNone();
 });
 
-test('the language preference is saved to the account and localized formatting follows it', async ({ page }) => {
+test('the language preference is saved to the account and localized formatting follows it', async ({ page, restoreLanguage }) => {
+  restoreLanguage('viewer.nour@demo.test', 'en');
   // The seeded viewer prefers English.
   await login(page, 'viewer.nour@demo.test');
   await expect(page.locator('html')).toHaveAttribute('dir', 'ltr');
@@ -96,7 +97,8 @@ test('English from the public site carries through sign-up and onboarding; ?lang
   await context.close();
 });
 
-test('mobile layout works in both languages @mobile', async ({ page }) => {
+test('mobile layout works in both languages @mobile', async ({ page, restoreLanguage }) => {
+  restoreLanguage('reception.nour@demo.test', 'ar');
   const browser = watchBrowserErrors(page);
   await login(page, 'reception.nour@demo.test');
 

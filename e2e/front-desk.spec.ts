@@ -196,7 +196,8 @@ test('restricted roles only see what their role and branches allow', async ({ pa
   await expect(page.getByRole('button', { name: 'تعديل' })).toHaveCount(0);
 });
 
-test('appointments in English are LTR with Inter; Arabic is RTL with Alexandria', async ({ page }) => {
+test('appointments in English are LTR with Inter; Arabic is RTL with Alexandria', async ({ page, restoreLanguage }) => {
+  restoreLanguage('owner.nour@demo.test', 'ar');
   const browserErrors = watchBrowserErrors(page);
   await login(page, 'owner.nour@demo.test');
   await page.getByRole('navigation').getByRole('link', { name: 'المواعيد' }).click();

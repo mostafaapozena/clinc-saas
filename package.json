@@ -18,6 +18,7 @@
     "typecheck": "tsc --noEmit -p apps/api && tsc --noEmit -p apps/web && tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
     "test:e2e": "playwright test",
+    "test:e2e:browsers": "node scripts/e2e-browsers.mjs",
     "seed": "npm run seed -w @clinc/api",
     "db:check": "npm run db:check -w @clinc/api",
     "verify": "npm run lint && npm run typecheck && npm run test && npm run build && npm run test:e2e",
