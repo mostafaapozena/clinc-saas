@@ -25,7 +25,7 @@ Check every item before opening a PR that adds or changes a screen.
 - [ ] Loading, error, empty and populated states exist; an empty state offers the next step when the viewer can take one. Long Arabic and English labels do not overlap or clip.
 - [ ] Form fields use `Field` (label, hint, error, required). A disabled submit says why next to it.
 - [ ] Every string is in `ar.json` and `en.json` (the key test checks this).
-- [ ] RTL and LTR, light and dark checked. No page-level horizontal scroll at 360, 768 or 1366px.
+- [ ] RTL and LTR, light and dark checked. No page-level horizontal scroll at 360, 768, 1024 or 1366px.
 
 ## Access
 - [ ] Keyboard: every action is reachable, focus is visible, tabs and menus respond to arrows and Escape where expected.

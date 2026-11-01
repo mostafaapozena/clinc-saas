@@ -202,13 +202,13 @@ test('appointments in English are LTR with Inter; Arabic is RTL with Alexandria'
   await page.getByRole('navigation').getByRole('link', { name: 'المواعيد' }).click();
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('المواعيد');
   const font = () => page.evaluate(() => getComputedStyle(document.body).fontFamily);
-  expect(await font()).toMatch(/^"Alexandria Variable"/);
+  expect(await font()).toMatch(/^"?Alexandria Variable"?,/);
   await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
 
   await page.getByRole('button', { name: 'English' }).click();
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Appointments');
   await expect(page.locator('html')).toHaveAttribute('dir', 'ltr');
-  expect(await font()).toMatch(/^"Inter Variable"/);
+  expect(await font()).toMatch(/^"?Inter Variable"?,/);
   await expect(page.getByRole('button', { name: '7 days' })).toBeVisible();
   await page.getByRole('button', { name: '7 days' }).click();
   await expect(page.getByTestId('schedule-day')).toHaveCount(7);

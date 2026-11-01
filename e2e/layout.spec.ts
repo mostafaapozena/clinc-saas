@@ -117,6 +117,21 @@ test('small phones: appointments and statements do not overflow the page at 360p
   errors.expectNone();
 });
 
+test('small laptops: the one-row header never pushes the page sideways, in either language (UI-11)', async ({ page }) => {
+  await page.setViewportSize({ width: 1024, height: 800 });
+  await login(page, 'owner.nour@demo.test');
+  const home = page.url();
+  for (const lang of ['ar', 'en']) {
+    await page.goto(`${home}?lang=${lang}`);
+    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html')).toHaveAttribute('lang', lang);
+    for (const width of [1024, 1100, 1180, 1280]) {
+      await page.setViewportSize({ width, height: 800 });
+      expect(await noOverflow(page), `${lang} ${width}px`).toBeLessThanOrEqual(1);
+    }
+  }
+});
+
 test('detail pages keep their place: patient context tabs, back links, booking says what is missing (UX-017, UX-018)', async ({ page }) => {
   const errors = watchBrowserErrors(page);
   await page.setViewportSize({ width: 1366, height: 900 });

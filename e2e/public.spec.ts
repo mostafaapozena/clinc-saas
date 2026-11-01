@@ -10,7 +10,7 @@ test('public site to workspace: solution → registration → multi-specialty se
   const errors = watchBrowserErrors(page);
   await page.goto('/');
   await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
-  expect(await bodyFont(page)).toMatch(/^"Alexandria Variable"/);
+  expect(await bodyFont(page)).toMatch(/^"?Alexandria Variable"?,/);
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex, nofollow');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('عيادتك منظَّمة من أول حجز حتى آخر زيارة');
 
@@ -134,7 +134,7 @@ test('English public pages are LTR with Inter and the choice persists', async ({
   await page.goto('/solutions?lang=en');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Solutions');
   await expect(page.locator('html')).toHaveAttribute('dir', 'ltr');
-  expect(await bodyFont(page)).toMatch(/^"Inter Variable"/);
+  expect(await bodyFont(page)).toMatch(/^"?Inter Variable"?,/);
   await page.goto('/custom-solutions');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Custom projects');
   await page.getByRole('button', { name: 'العربية' }).click();
