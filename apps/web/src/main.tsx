@@ -8,6 +8,7 @@ import { createQueryClient } from './auth/session';
 import './i18n';
 import { initTheme } from './lib/theme';
 import { routes } from './routes/routes';
+import './tokens.css';
 import './styles.css';
 import './workspace.css';
 

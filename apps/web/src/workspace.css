@@ -5,18 +5,6 @@
  * light mint tints for selected and informative surfaces. Public marketing pages are not
  * affected (they live under .site). Every animation is a transition that reduced motion turns off.
  */
-:root {
-  --mint: #e8f8f5; /* derived: turquoise tint for selected and informative surfaces */
-  --shadow-sm: 0 1px 2px rgb(18 38 64 / 6%);
-  --shadow-md: 0 8px 24px rgb(18 38 64 / 10%);
-  --ease: 0.15s ease;
-}
-
-:root[data-theme='dark'] {
-  --mint: #143a3d;
-  --shadow-sm: 0 1px 2px rgb(0 0 0 / 30%);
-  --shadow-md: 0 8px 24px rgb(0 0 0 / 35%);
-}
 
 /* ---------- Page headings ---------- */
 :is(.content, .operator-main) > .page-header {
@@ -26,7 +14,7 @@
 }
 
 :is(.content, .operator-main) h1 {
-  font-size: clamp(1.4rem, 1.15rem + 0.7vw, 1.75rem);
+  font-size: var(--fs-page-title);
   font-weight: 700;
 }
 
@@ -300,8 +288,6 @@
 
 /* Confirmation panels read as a dialog: a raised surface with the primary edge. */
 .confirm-panel {
-  background: var(--surface);
-  border: 1px solid var(--border);
   border-inline-start: 4px solid var(--primary);
   box-shadow: var(--shadow-md);
 }
@@ -319,6 +305,7 @@
 }
 
 .nav-group-title {
+  padding-inline: 12px;
   letter-spacing: 0.02em;
 }
 
@@ -366,12 +353,7 @@
 /* ---------- Operator console ---------- */
 .operator-header {
   background: var(--surface);
-  border-block-end: 1px solid var(--border);
   box-shadow: var(--shadow-sm);
-}
-
-.operator-main {
-  padding-block-start: 20px;
 }
 
 /* A tab bar: one row that scrolls sideways on narrow screens instead of wrapping. */
@@ -379,9 +361,6 @@
   flex-wrap: nowrap;
   gap: 2px;
   padding-block-end: 0;
-  margin-block-end: 20px;
-  overflow-x: auto;
-  scrollbar-width: thin;
 }
 
 .operator-nav .nav-link {
@@ -438,16 +417,6 @@
 
 /* Layout rhythm: one gutter scale and one content width for the workspace and the console. The
    content is centered in the space beside the sidebar, so wide screens are not empty on one side. */
-:root {
-  --gutter: clamp(16px, 2.4vw, 32px);
-  --content-max: 1280px;
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 20px;
-  --space-6: 24px;
-}
 
 .content {
   max-inline-size: var(--content-max);
@@ -461,11 +430,8 @@
 }
 
 .operator-main {
+  padding-block-start: 20px;
   max-inline-size: var(--content-max);
-  padding-inline: var(--gutter);
-}
-
-.operator-header {
   padding-inline: var(--gutter);
 }
 
@@ -543,9 +509,14 @@
   }
 }
 
-/* Compact groups keep tile-sized metrics: one metric is one tile, not a full-width band (UI-09). */
+/* Compact groups: a full group fills the row, a single metric stays tile-sized (at most 22rem), never
+   a full-width band (UI-09). */
 .metrics--compact {
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 170px), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr));
+}
+
+.metrics--compact > .metric {
+  max-inline-size: 22rem;
 }
 
 .metrics--auto {
@@ -556,7 +527,6 @@
   --metric-tone: var(--text);
   position: relative;
   display: grid;
-  grid-template-rows: auto 1fr;
   gap: 10px;
   min-inline-size: 0;
   padding: 14px 16px;
@@ -619,7 +589,6 @@
 
 .metric-label {
   min-inline-size: 0;
-  overflow-wrap: anywhere;
 }
 
 .metric dd {
@@ -632,7 +601,7 @@
 }
 
 .metric-value {
-  font-size: 1.75rem;
+  font-size: var(--fs-metric);
   font-weight: 700;
   line-height: 1.1;
   color: var(--metric-tone);
@@ -836,7 +805,7 @@
   }
 
   .metric-value {
-    font-size: 1.5rem;
+    font-size: var(--fs-metric-phone);
   }
 
   .metric-icon {
@@ -898,9 +867,6 @@
 /* ---------- Queue cards (UX-024) ----------
    The card, not the window, decides the layout: when it is narrow the actions move under the
    details instead of covering them, and the details line wraps. */
-.queue-item {
-  container-type: inline-size;
-}
 
 .queue-main .muted.small {
   overflow-wrap: anywhere;
@@ -924,6 +890,7 @@
 }
 
 .queue-item {
+  container-type: inline-size;
   display: block;
 }
 
@@ -1216,13 +1183,6 @@
    `gap`; no sibling-margin rule targets their items (a `.card + .card` margin had pushed the
    second card of every card row 16px lower).
    ====================================================================================== */
-:root {
-  --space-8: 32px;
-  --space-inset: var(--space-5);
-  --stack-related: var(--space-2);
-  --stack-group: var(--space-4);
-  --stack-page: var(--space-5);
-}
 
 /* Page level: the direct children of the workspace and operator content are separated by one
    page gap — header, notices, toolbars, results, cards, pagination. */
@@ -1316,19 +1276,14 @@
 }
 
 /* Operator header and tab bar follow the same gutter as the page. */
-.operator-header {
-  padding-block: var(--space-3);
-}
 
 .operator-nav {
+  overflow-x: auto;
+  scrollbar-width: thin;
   margin-block-end: 0;
 }
 
 @media (max-width: 640px) {
-  :root {
-    --space-inset: var(--space-4);
-    --stack-page: var(--space-4);
-  }
 
   .card {
     padding: var(--space-inset);
@@ -1353,12 +1308,15 @@
 
 /* The operator header lines up with the content column below it, not with the window edges. */
 .operator-header {
+  border-block-end: 1px solid var(--border);
+  padding-block: var(--space-3);
   padding-inline: max(var(--gutter), calc((100% - var(--content-max)) / 2 + var(--gutter)));
 }
 
 /* Metric cards narrower than ~170px (phones, six-up rows): icon above the label, and labels wrap
    between words, never inside one. */
 .metric {
+  grid-template-rows: auto 1fr;
   container-type: inline-size;
 }
 
@@ -1518,18 +1476,10 @@
    Design-system contracts (phase 18, docs/DESIGN_SYSTEM.md). These rules belong to the shared
    primitives in components/layout.tsx; pages do not override them.
    ================================================================================================= */
-:root {
-  --control-sm: 32px;
-  --control-md: 40px;
-  --control-lg: 48px;
-  --touch-min: 44px;
-  --gap-inline-icon: 8px;
-  --gap-icon-text: 12px;
-  --icon-box: 36px;
-}
 
 /* The sticky top bar never hides a heading that is scrolled or focused into view (F-08). */
 html {
+  scrollbar-gutter: stable;
   scroll-padding-block-start: var(--topbar-h, 96px);
 }
 
@@ -1714,11 +1664,6 @@ html {
     flex-wrap: nowrap;
   }
 
-  .topbar .switcher {
-    min-inline-size: 140px;
-    flex: 0 1 200px;
-  }
-
   .topbar .switcher-label {
     position: absolute;
     inline-size: 1px;
@@ -1730,33 +1675,6 @@ html {
 }
 
 /* ---------- Charts (components/ChartCard.tsx) ---------- */
-:root {
-  --chart-1: var(--brand-teal-text);
-  --chart-2: #2563eb;
-  --chart-3: var(--brand-coral);
-  --chart-4: #7c3aed;
-  --chart-5: #ca8a04;
-  --chart-grid: color-mix(in srgb, var(--border) 70%, transparent);
-  --chart-axis: var(--border);
-}
-
-:root[data-theme='dark'] {
-  --chart-1: var(--brand-turquoise);
-  --chart-2: #60a5fa;
-  --chart-3: #fb8f78;
-  --chart-4: #a78bfa;
-  --chart-5: #facc15;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) {
-    --chart-1: var(--brand-turquoise);
-    --chart-2: #60a5fa;
-    --chart-3: #fb8f78;
-    --chart-4: #a78bfa;
-    --chart-5: #facc15;
-  }
-}
 
 /* Charts in one row answer parallel questions: they share a height (an explicit equal row). */
 .chart-grid {
@@ -2117,27 +2035,6 @@ circle.chart-stroke-5 {
    UX foundations (phase 19, docs/DESIGN_SYSTEM.md §1). Typography, control boundaries, touch sizes,
    badge tones and list rows that adapt to their container.
    ================================================================================================= */
-:root {
-  --fs-h1: 1.625rem;
-  --fs-h2: 1.25rem;
-  --fs-h3: 1.0625rem;
-  --fs-h4: 1rem;
-  --fs-body: 1rem;
-  --fs-sm: 0.875rem;
-  --fs-xs: 0.8125rem;
-  /* Form-control boundaries need 3:1 against the surface (WCAG 1.4.11); --border stays for dividers. */
-  --border-strong: #8193a6;
-}
-
-:root[data-theme='dark'] {
-  --border-strong: #5f7896;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) {
-    --border-strong: #5f7896;
-  }
-}
 
 /* Card titles inside a card are h2/h3 by outline but read as card titles, never larger than h2. */
 .card h3 {

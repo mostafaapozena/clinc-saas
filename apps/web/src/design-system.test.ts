@@ -1,5 +1,6 @@
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
+import postcss from 'postcss';
 import { describe, expect, it } from 'vitest';
 import ar from './i18n/locales/ar.json';
 import en from './i18n/locales/en.json';
@@ -44,6 +45,38 @@ describe('design-system guards', () => {
   it('puts icons beside wrapping text only through IconLabel / ReportLink (no line breaks inside links)', () => {
     const offenders = files.filter((f) => /<Link[^>]*>[^]*?<br \/>[^]*?<\/Link>/.test(f.text)).map((f) => f.path);
     expect(offenders).toEqual([]);
+  });
+});
+
+describe('stylesheets (UI-02)', () => {
+  const sheet = (name: string) => postcss.parse(readFileSync(join(ROOT, name), 'utf8'));
+
+  it('defines design tokens on the document root only in tokens.css', () => {
+    const offenders: string[] = [];
+    for (const name of ['styles.css', 'workspace.css', 'public/public.css']) {
+      sheet(name).walkRules((rule) => {
+        if (!/^:root/.test(rule.selector)) return;
+        rule.walkDecls((d) => {
+          if (d.prop.startsWith('--')) offenders.push(`${name}: ${d.prop}`);
+        });
+      });
+    }
+    expect(offenders).toEqual([]);
+  });
+
+  it('adds no new duplicate selectors (same selector, same media context); 28 order-dependent groups remain', () => {
+    const groups = new Map<string, number>();
+    for (const name of ['styles.css', 'workspace.css']) {
+      sheet(name).walkRules((rule) => {
+        if (rule.parent?.type === 'atrule' && (rule.parent as postcss.AtRule).name === 'keyframes') return;
+        const media: string[] = [];
+        for (let p = rule.parent; p && p.type !== 'root'; p = p.parent) if (p.type === 'atrule') media.unshift((p as postcss.AtRule).params);
+        const key = `${media.join('/')}|${rule.selector.replace(/\s+/g, ' ')}`;
+        groups.set(key, (groups.get(key) ?? 0) + 1);
+      });
+    }
+    // Lower this number when a group is consolidated; it may never grow.
+    expect([...groups.values()].filter((n) => n > 1).length).toBeLessThanOrEqual(28);
   });
 });
 
