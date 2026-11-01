@@ -29,7 +29,7 @@ import { showToast } from '../lib/toast';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { useOrg } from '../org/context';
 import { csvMoney, downloadCsv } from '../lib/csv';
-import { ConfirmAction, DateText } from '../components/data';
+import { ConfirmAction, DataTable, DateText } from '../components/data';
 import { useOrgMoney } from '../lib/money';
 
 // Suppliers, purchasing and payables (docs/architecture/PURCHASING.md): request → approval → RFQ →
@@ -1521,34 +1521,21 @@ export function BillsPage() {
           {aging.data.rows.length === 0 ? (
             <EmptyState icon="check">{t('purchasing.nothingOwed')}</EmptyState>
           ) : (
-            <div className="table-wrap">
-              <table className="data-table" data-testid="payables-aging">
-                <thead>
-                  <tr>
-                    <th scope="col">{t('purchasing.supplier')}</th>
-                    {buckets.map((b) => (
-                      <th key={b} scope="col">
-                        {t(`purchasing.buckets.${b}`)}
-                      </th>
-                    ))}
-                    <th scope="col">{t('purchasing.total')}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {aging.data.rows.map((r) => (
-                    <tr key={r.supplierId}>
-                      <td data-label={t('purchasing.supplier')}>{r.name}</td>
-                      {buckets.map((b) => (
-                        <td key={b} data-label={t(`purchasing.buckets.${b}`)}>
-                          {r[b] ? money(r[b]) : ''}
-                        </td>
-                      ))}
-                      <td data-label={t('purchasing.total')}>{money(r.total)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <DataTable
+              testId="payables-aging"
+              rows={aging.data.rows}
+              rowKey={(r) => r.supplierId}
+              columns={[
+                { key: 'supplier', label: t('purchasing.supplier'), cell: (r) => r.name },
+                ...buckets.map((b) => ({
+                  key: b,
+                  label: t(`purchasing.buckets.${b}`),
+                  numeric: true,
+                  cell: (r: (typeof aging.data.rows)[number]) => (r[b] ? money(r[b]) : ''),
+                })),
+                { key: 'total', label: t('purchasing.total'), numeric: true, cell: (r) => money(r.total) },
+              ]}
+            />
           )}
         </section>
       )}

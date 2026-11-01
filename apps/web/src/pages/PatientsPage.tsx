@@ -15,7 +15,7 @@ import type { Page, Patient, PatientSummary } from '../lib/types';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { orgKeys, useBranchFilter, useOrg } from '../org/context';
 import { ActionBar } from '../components/layout';
-import { FilterBar } from '../components/data';
+import { DataTable, FilterBar, Pagination } from '../components/data';
 
 const PAGE_SIZE = 20;
 
@@ -47,7 +47,6 @@ export function PatientsPage() {
       previousQuery?.queryKey[3] && (previousQuery.queryKey[3] as { branchId?: string }).branchId === branchFilter ? previous : undefined,
   });
   const branchName = new Map(branches.map((b) => [b.id, b.name]));
-  const pages = list.data ? Math.max(1, Math.ceil(list.data.total / PAGE_SIZE)) : 1;
   const resetPage = <T,>(fn: (v: T) => void) => (v: T) => {
     fn(v);
     setPage(1);
@@ -104,52 +103,40 @@ export function PatientsPage() {
         {list.isSuccess && list.data.data.length === 0 && <EmptyState icon="search">{q ? t('patients.noMatches') : t('patients.empty')}</EmptyState>}
         {list.isSuccess && list.data.data.length > 0 && (
           <>
-            <table className="data-table" aria-label={t('patients.listTitle')}>
-              <thead>
-                <tr>
-                  <th scope="col">{t('patients.number')}</th>
-                  <th scope="col">{t('patients.fullName')}</th>
-                  <th scope="col">{t('patients.phone')}</th>
-                  <th scope="col">{t('patients.branches')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {list.data.data.map((p) => (
-                  <tr key={p.id} data-testid="patient-row">
-                    <td data-label={t('patients.number')}>{fmt.number(p.patientNumber)}</td>
-                    <td data-label={t('patients.fullName')}>
-                      <Link to={`/app/${orgId}/patients/${p.id}`}>{p.fullName}</Link>
-                    </td>
-                    <td data-label={t('patients.phone')}>
-                      <span dir="ltr">{p.phone.e164}</span>
-                    </td>
-                    <td data-label={t('patients.branches')}>
-                      <span className="chip-row">
-                        {p.registrations.map((r) => (
-                          <span key={r.branchId} className={`badge badge--branch${r.status === 'active' ? '' : ' badge--branch-archived'}`}>
-                            {branchName.get(r.branchId) ?? '—'}
-                            {r.status === 'archived' && ` (${t('patients.archived')})`}
-                          </span>
-                        ))}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            <nav className="pagination" aria-label={t('common.pagination')}>
-              <button type="button" className="button button--secondary" disabled={page <= 1} onClick={() => setPage((n) => n - 1)}>
-                {t('common.previous')}
-              </button>
-              <span className="muted" aria-live="polite">
-                {list.data.totalCapped
-                  ? t('patients.pageOfCapped', { page: fmt.number(page), pages: fmt.number(pages), total: fmt.number(list.data.total) })
-                  : t('common.pageOf', { page: fmt.number(page), pages: fmt.number(pages), total: fmt.number(list.data.total) })}
-              </span>
-              <button type="button" className="button button--secondary" disabled={page >= pages} onClick={() => setPage((n) => n + 1)}>
-                {t('common.next')}
-              </button>
-            </nav>
+            <DataTable
+              caption={t('patients.listTitle')}
+              rows={list.data.data}
+              rowKey={(p) => p.id}
+              rowTestId={() => 'patient-row'}
+              columns={[
+                { key: 'number', label: t('patients.number'), cell: (p) => fmt.number(p.patientNumber) },
+                { key: 'name', label: t('patients.fullName'), cell: (p) => <Link to={`/app/${orgId}/patients/${p.id}`}>{p.fullName}</Link> },
+                { key: 'phone', label: t('patients.phone'), cell: (p) => <span dir="ltr">{p.phone.e164}</span> },
+                {
+                  key: 'branches',
+                  label: t('patients.branches'),
+                  cell: (p) => (
+                    <span className="chip-row">
+                      {p.registrations.map((r) => (
+                        <span key={r.branchId} className={`badge badge--branch${r.status === 'active' ? '' : ' badge--branch-archived'}`}>
+                          {branchName.get(r.branchId) ?? '—'}
+                          {r.status === 'archived' && ` (${t('patients.archived')})`}
+                        </span>
+                      ))}
+                    </span>
+                  ),
+                },
+              ]}
+            />
+            {/* Sorting and paging are server-side; the search stays out of the address (it may be a name or a phone). */}
+            <Pagination
+              always
+              page={page}
+              pageSize={PAGE_SIZE}
+              total={list.data.total}
+              onPage={setPage}
+              summary={list.data.totalCapped ? (position) => t('patients.pageOfCapped', position) : undefined}
+            />
           </>
         )}
       </section>

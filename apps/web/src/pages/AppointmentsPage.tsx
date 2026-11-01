@@ -12,7 +12,7 @@ import { addDays, datesFrom, isValidDateInput, localDateOf, todayIn } from '../l
 import { APPOINTMENT_STATUSES, type Appointment, type AppointmentStatus, type Practitioner } from '../lib/types';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { orgKeys, useBranchFilter, useOrg, useSpecialtyFilter } from '../org/context';
-import { FilterBar } from '../components/data';
+import { DataTable, FilterBar } from '../components/data';
 
 type View = 'day' | 'week';
 
@@ -182,27 +182,28 @@ function Schedule({
             {items.length === 0 ? (
               <EmptyState icon="calendar">{t('appointments.emptyDay')}</EmptyState>
             ) : view === 'day' ? (
-              <table className="data-table" aria-label={t('appointments.dayTable')}>
-                <thead>
-                  <tr>
-                    <th scope="col">{t('appointments.time')}</th>
-                    <th scope="col">{t('appointments.patient')}</th>
-                    <th scope="col">{t('appointments.practitioner')}</th>
-                    <th scope="col">{t('appointments.statusLabel')}</th>
-                    <th scope="col">{t('appointments.actions')}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {items.map((a) => (
-                    <tr key={a.id} data-testid="appointment-row">
-                      <td data-label={t('appointments.time')}>
-                        <Link to={`/app/${orgId}/appointments/${a.id}`}>
-                          <bdi dir="ltr">
-                            {fmt.time(a.startAt, zone)}–{fmt.time(a.endAt, zone)}
-                          </bdi>
-                        </Link>
-                      </td>
-                      <td data-label={t('appointments.patient')}>
+              <DataTable
+                caption={t('appointments.dayTable')}
+                rows={items}
+                rowKey={(a) => a.id}
+                rowTestId={() => 'appointment-row'}
+                columns={[
+                  {
+                    key: 'time',
+                    label: t('appointments.time'),
+                    cell: (a) => (
+                      <Link to={`/app/${orgId}/appointments/${a.id}`}>
+                        <bdi dir="ltr">
+                          {fmt.time(a.startAt, zone)}–{fmt.time(a.endAt, zone)}
+                        </bdi>
+                      </Link>
+                    ),
+                  },
+                  {
+                    key: 'patient',
+                    label: t('appointments.patient'),
+                    cell: (a) => (
+                      <>
                         {a.patient?.fullName ?? '—'}
                         {a.patient && (
                           <span className="muted small">
@@ -210,18 +211,14 @@ function Schedule({
                             <bdi dir="ltr">#{fmt.number(a.patient.patientNumber)}</bdi>
                           </span>
                         )}
-                      </td>
-                      <td data-label={t('appointments.practitioner')}>{a.practitioner?.displayName ?? '—'}</td>
-                      <td data-label={t('appointments.statusLabel')}>
-                        <StatusBadge status={a.status} />
-                      </td>
-                      <td data-label={t('appointments.actions')}>
-                        <AppointmentActions appointment={a} compact />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                      </>
+                    ),
+                  },
+                  { key: 'practitioner', label: t('appointments.practitioner'), cell: (a) => a.practitioner?.displayName ?? '—' },
+                  { key: 'status', label: t('appointments.statusLabel'), cell: (a) => <StatusBadge status={a.status} /> },
+                  { key: 'actions', label: t('appointments.actions'), cell: (a) => <AppointmentActions appointment={a} compact /> },
+                ]}
+              />
             ) : (
               <ul className="week-list">
                 {items.map((a) => (

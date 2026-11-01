@@ -16,7 +16,7 @@ import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { useOrg } from '../org/context';
 import { AccountingNav } from './AccountingPages';
 import { ActionBar, MetricGrid } from '../components/layout';
-import { FilterBar } from '../components/data';
+import { DataTable, FilterBar } from '../components/data';
 
 // Budgets, budget against actual, cash flow and recurring commitments
 // (docs/architecture/PLANNING.md). Everything here reads the posted ledger; nothing posts.
@@ -332,38 +332,37 @@ function VarianceReport({ year, branchId }: { year: number; branchId: string }) 
             <Metric icon="chart" label={t('planning.variance.resultBudget')} value={d.totals.result.budget} format={(v) => money(v, d.currency)} />
             <Metric icon="wallet" label={t('planning.variance.resultActual')} value={d.totals.result.actual} format={(v) => money(v, d.currency)} />
           </MetricGrid>
-          <div className="table-wrap">
-            <table className="data-table" data-testid="budget-vs-actual">
-              <thead>
-                <tr>
-                  <th scope="col">{t('accounting.account')}</th>
-                  <th scope="col">{t('planning.variance.budget')}</th>
-                  <th scope="col">{t('planning.variance.actual')}</th>
-                  <th scope="col">{t('planning.variance.variance')}</th>
-                  <th scope="col">{t('planning.variance.used')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {d.rows.map((r) => (
-                  <tr key={r.account.id}>
-                    <td data-label={t('accounting.account')}>
-                      <bdi dir="ltr">{r.account.code}</bdi> {accountName(t, r.account)}
-                      {r.unbudgeted && <Badge tone="warning"> {t('planning.variance.unbudgeted')}</Badge>}
-                    </td>
-                    <td data-label={t('planning.variance.budget')}>{money(r.budget, d.currency)}</td>
-                    <td data-label={t('planning.variance.actual')}>{money(r.actual, d.currency)}</td>
-                    <td data-label={t('planning.variance.variance')}>
-                      <span className={r.favourable ? 'badge badge--success' : 'badge badge--danger'}>{money(r.variance, d.currency)}</span>
-                      <span className="visually-hidden">
-                        {r.favourable ? t('planning.variance.favourable') : t('planning.variance.unfavourable')}
-                      </span>
-                    </td>
-                    <td data-label={t('planning.variance.used')}>{r.usedPercent === null ? '—' : `${r.usedPercent}%`}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <DataTable
+            testId="budget-vs-actual"
+            rows={d.rows}
+            rowKey={(r) => r.account.id}
+            columns={[
+              {
+                key: 'account',
+                label: t('accounting.account'),
+                cell: (r) => (
+                  <>
+                    <bdi dir="ltr">{r.account.code}</bdi> {accountName(t, r.account)}
+                    {r.unbudgeted && <Badge tone="warning"> {t('planning.variance.unbudgeted')}</Badge>}
+                  </>
+                ),
+              },
+              { key: 'budget', label: t('planning.variance.budget'), numeric: true, cell: (r) => money(r.budget, d.currency) },
+              { key: 'actual', label: t('planning.variance.actual'), numeric: true, cell: (r) => money(r.actual, d.currency) },
+              {
+                key: 'variance',
+                label: t('planning.variance.variance'),
+                numeric: true,
+                cell: (r) => (
+                  <>
+                    <Badge tone={r.favourable ? 'success' : 'danger'}>{money(r.variance, d.currency)}</Badge>
+                    <span className="visually-hidden">{r.favourable ? t('planning.variance.favourable') : t('planning.variance.unfavourable')}</span>
+                  </>
+                ),
+              },
+              { key: 'used', label: t('planning.variance.used'), numeric: true, cell: (r) => (r.usedPercent === null ? '—' : `${r.usedPercent}%`) },
+            ]}
+          />
         </>
       )}
     </section>

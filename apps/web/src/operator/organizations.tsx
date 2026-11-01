@@ -12,6 +12,7 @@ import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { PriceText, SubscriptionStatusBadge } from '../components/subscription';
 import { ActionBar, CardGrid } from '../components/layout';
 import { useOperator, useArrow } from './shared';
+import { DataTable } from '../components/data';
 
 // --- Organizations ---------------------------------------------------------------------------
 
@@ -84,44 +85,40 @@ export function OperatorOrganizationsPage() {
         </EmptyState>
       )}
       {list.isSuccess && list.data.data.length > 0 && (
-        <div className="table-wrap">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>{t('operator.organizations.name')}</th>
-                <th>{t('operator.organizations.created')}</th>
-                <th>{t('operator.organizations.type')}</th>
-                <th>{t('operator.organizations.subscriptionKind')}</th>
-                <th>{t('subscription.statusLabel')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {list.data.data.map((o) => (
-                <tr key={o.id}>
-                  <td data-label={t('operator.organizations.name')}>
-                    <span>
-                      <Link to={`/operator/organizations/${o.id}`}>{o.name}</Link>{' '}
-                      {/* Same-named organizations are told apart by the end of their id. */}
-                      <bdi className="muted small" title={o.id}>
-                        {o.id.slice(-6)}
-                      </bdi>
-                    </span>
-                  </td>
-                  <td data-label={t('operator.organizations.created')}>{fmt.date(o.createdAt)}</td>
-                  <td data-label={t('operator.organizations.type')}>
-                    {o.type ? t(`onboarding.types.${o.type}.title`, { defaultValue: o.type }) : '—'}
-                  </td>
-                  <td data-label={t('operator.organizations.subscriptionKind')}>
-                    {o.subscription ? t(`subscription.kind.${o.subscription.kind}`) : '—'}
-                  </td>
-                  <td data-label={t('subscription.statusLabel')}>
-                    <SubscriptionStatusBadge status={o.subscription?.effectiveStatus ?? 'none'} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <DataTable
+          rows={list.data.data}
+          rowKey={(o) => o.id}
+          columns={[
+            {
+              key: 'name',
+              label: t('operator.organizations.name'),
+              cell: (o) => (
+                <span>
+                  <Link to={`/operator/organizations/${o.id}`}>{o.name}</Link> {/* Same-named organizations are told apart by the end of their id. */}
+                  <bdi className="muted small" title={o.id}>
+                    {o.id.slice(-6)}
+                  </bdi>
+                </span>
+              ),
+            },
+            { key: 'created', label: t('operator.organizations.created'), cell: (o) => fmt.date(o.createdAt) },
+            {
+              key: 'type',
+              label: t('operator.organizations.type'),
+              cell: (o) => (o.type ? t(`onboarding.types.${o.type}.title`, { defaultValue: o.type }) : '—'),
+            },
+            {
+              key: 'kind',
+              label: t('operator.organizations.subscriptionKind'),
+              cell: (o) => (o.subscription ? t(`subscription.kind.${o.subscription.kind}`) : '—'),
+            },
+            {
+              key: 'status',
+              label: t('subscription.statusLabel'),
+              cell: (o) => <SubscriptionStatusBadge status={o.subscription?.effectiveStatus ?? 'none'} />,
+            },
+          ]}
+        />
       )}
     </>
   );

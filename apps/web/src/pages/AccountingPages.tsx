@@ -5,7 +5,7 @@ import { Link, useParams, useSearchParams } from 'react-router';
 import { Metric } from '../components/Metric';
 import { ActionBar, CardGrid, MetricGrid, ModuleTabs } from '../components/layout';
 import { PageHeader } from '../components/PageHeader';
-import { EmptyState, ErrorState, Field, Loading, Notice } from '../components/ui';
+import { Badge, EmptyState, ErrorState, Field, Loading, Notice } from '../components/ui';
 import {
   ACCOUNT_TYPES,
   accountName,
@@ -28,7 +28,7 @@ import { useOrg } from '../org/context';
 import { csvMoney, downloadCsv } from '../lib/csv';
 import { useMoney } from '../lib/money';
 import { useAccountingSettings } from '../lib/useAccounting';
-import { ConfirmAction, DateText, FilterBar, Pagination } from '../components/data';
+import { ConfirmAction, DataTable, DateText, FilterBar, Pagination } from '../components/data';
 import { pageParam, useUrlState } from '../lib/useUrlState';
 
 // General ledger (docs/architecture/ACCOUNTING.md): setup, journal, chart of accounts, statements
@@ -643,42 +643,31 @@ export function JournalPage() {
           {entries.isSuccess && entries.data.data.length === 0 && <EmptyState icon="book">{t('accounting.noEntries')}</EmptyState>}
           {entries.isSuccess && entries.data.data.length > 0 && (
             <>
-              <div className="table-wrap">
-                <table className="data-table" data-testid="journal-entries">
-                  <thead>
-                    <tr>
-                      <th scope="col">{t('accounting.number')}</th>
-                      <th scope="col">{t('accounting.date')}</th>
-                      <th scope="col">{t('accounting.journal')}</th>
-                      <th scope="col">{t('accounting.event')}</th>
-                      <th scope="col">{t('accounting.memo')}</th>
-                      <th scope="col">{t('accounting.amount')}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {entries.data.data.map((e) => (
-                      <tr key={e.id}>
-                        <td data-label={t('accounting.number')}>
-                          <Link to={`/app/${orgId}/accounting/entries/${e.id}`}>
-                            <bdi dir="ltr">{e.number}</bdi>
-                          </Link>
-                          {e.reversedBy && <span className="badge">{t('accounting.reversed')}</span>}
-                          {e.reversalOf && <span className="badge">{t('accounting.reversal')}</span>}
-                        </td>
-                        <td data-label={t('accounting.date')}>
-                          <DateText value={e.date} />
-                        </td>
-                        <td data-label={t('accounting.journal')}>{t(`accounting.journals.${e.journal}`)}</td>
-                        <td data-label={t('accounting.event')}>{sourceLabel(t, e.source)}</td>
-                        <td data-label={t('accounting.memo')}>
-                          <bdi dir="auto">{e.memo}</bdi>
-                        </td>
-                        <td data-label={t('accounting.amount')}>{money(e.total, e.currency)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <DataTable
+                testId="journal-entries"
+                rows={entries.data.data}
+                rowKey={(e) => e.id}
+                columns={[
+                  {
+                    key: 'number',
+                    label: t('accounting.number'),
+                    cell: (e) => (
+                      <>
+                        <Link to={`/app/${orgId}/accounting/entries/${e.id}`}>
+                          <bdi dir="ltr">{e.number}</bdi>
+                        </Link>
+                        {e.reversedBy && <Badge>{t('accounting.reversed')}</Badge>}
+                        {e.reversalOf && <Badge>{t('accounting.reversal')}</Badge>}
+                      </>
+                    ),
+                  },
+                  { key: 'date', label: t('accounting.date'), cell: (e) => <DateText value={e.date} /> },
+                  { key: 'journal', label: t('accounting.journal'), cell: (e) => t(`accounting.journals.${e.journal}`) },
+                  { key: 'event', label: t('accounting.event'), cell: (e) => sourceLabel(t, e.source) },
+                  { key: 'memo', label: t('accounting.memo'), cell: (e) => <bdi dir="auto">{e.memo}</bdi> },
+                  { key: 'amount', label: t('accounting.amount'), numeric: true, cell: (e) => money(e.total, e.currency) },
+                ]}
+              />
               <Pagination page={page} pageSize={entries.data.pageSize} total={entries.data.total} onPage={(p) => url.set({ page: p > 1 ? p : null })} />
             </>
           )}
@@ -882,53 +871,48 @@ export function ChartPage() {
           <h2 id="chart-title" className="visually-hidden">
             {t('accounting.chartTitle')}
           </h2>
-          <div className="table-wrap">
-            <table className="data-table" data-testid="chart-of-accounts">
-              <thead>
-                <tr>
-                  <th scope="col">{t('accounting.code')}</th>
-                  <th scope="col">{t('accounting.account')}</th>
-                  <th scope="col">{t('accounting.type')}</th>
-                  <th scope="col" className="num">{t('accounting.balance')}</th>
-                  <th scope="col">
-                    <span className="visually-hidden">{t('common.actions')}</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {list.map((a) => (
-                  <tr key={a.id} className={a.isGroup ? 'row-group' : a.status === 'archived' ? 'row-muted' : undefined}>
-                    <td data-label={t('accounting.code')}>
-                      <bdi dir="ltr">{a.code}</bdi>
-                    </td>
-                    <td data-label={t('accounting.account')} style={{ paddingInlineStart: `${12 + depth(a) * 16}px` }}>
-                      {accountName(t, a)}
-                      {a.status === 'archived' && <span className="badge">{t('accounting.archived')}</span>}
-                    </td>
-                    <td data-label={t('accounting.type')}>{t(`accounting.types.${a.type}`)}</td>
-                    <td className="num" data-label={t('accounting.balance')}>{a.isGroup ? '' : money(a.balance ?? 0, currency)}</td>
-                    <td>
-                      {can('accounting.manage') && !a.isGroup && !a.templateKey && (
-                        a.status === 'active' ? (
-                          <ConfirmAction
-                            label={t('accounting.archive')}
-                            message={t('accounting.archiveMessage', { name: accountName(t, a) })}
-                            confirmLabel={t('accounting.archiveConfirm')}
-                            pending={archive.isPending}
-                            onConfirm={() => archive.mutate(a)}
-                          />
-                        ) : (
-                          <button type="button" className="button button--ghost" disabled={archive.isPending} onClick={() => archive.mutate(a)}>
-                            {t('accounting.restore')}
-                          </button>
-                        )
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <DataTable
+            testId="chart-of-accounts"
+            rows={list}
+            rowKey={(a) => a.id}
+            rowClassName={(a) => (a.isGroup ? 'row-group' : a.status === 'archived' ? 'row-muted' : undefined)}
+            columns={[
+              { key: 'code', label: t('accounting.code'), cell: (a) => <bdi dir="ltr">{a.code}</bdi> },
+              {
+                key: 'account',
+                label: t('accounting.account'),
+                // The tree depth is an indent of the name, not of the cell.
+                cell: (a) => (
+                  <span style={{ paddingInlineStart: `${depth(a) * 16}px` }}>
+                    {accountName(t, a)}
+                    {a.status === 'archived' && <Badge>{t('accounting.archived')}</Badge>}
+                  </span>
+                ),
+              },
+              { key: 'type', label: t('accounting.type'), cell: (a) => t(`accounting.types.${a.type}`) },
+              { key: 'balance', label: t('accounting.balance'), numeric: true, cell: (a) => (a.isGroup ? '' : money(a.balance ?? 0, currency)) },
+              {
+                key: 'actions',
+                label: t('common.actions'),
+                cell: (a) =>
+                  can('accounting.manage') && !a.isGroup && !a.templateKey ? (
+                    a.status === 'active' ? (
+                      <ConfirmAction
+                        label={t('accounting.archive')}
+                        message={t('accounting.archiveMessage', { name: accountName(t, a) })}
+                        confirmLabel={t('accounting.archiveConfirm')}
+                        pending={archive.isPending}
+                        onConfirm={() => archive.mutate(a)}
+                      />
+                    ) : (
+                      <button type="button" className="button button--ghost" disabled={archive.isPending} onClick={() => archive.mutate(a)}>
+                        {t('accounting.restore')}
+                      </button>
+                    )
+                  ) : null,
+              },
+            ]}
+          />
         </section>
       )}
       {accounts.isSuccess && can('accounting.manage') && (
