@@ -9,7 +9,7 @@ import { errorMessage } from '../lib/errors';
 import { useFormatters } from '../lib/format';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { orgKeys, useOrg } from '../org/context';
-import { FilterBar } from '../components/data';
+import { DataTable, FilterBar } from '../components/data';
 
 const ACTIONS = [
   'encounter.created',
@@ -75,32 +75,26 @@ export function ClinicalAuditPage() {
       {events.isError && <ErrorState message={errorMessage(t, events.error)} onRetry={() => void events.refetch()} />}
       {events.isSuccess && rows.length === 0 && <EmptyState icon="shield">{t('clinicalAudit.empty')}</EmptyState>}
       {rows.length > 0 && (
-        <div className="table-wrap">
-          <table className="data-table" data-testid="clinical-audit">
-            <thead>
-              <tr>
-                <th scope="col">{t('clinicalAudit.time')}</th>
-                <th scope="col">{t('clinicalAudit.actor')}</th>
-                <th scope="col">{t('clinicalAudit.action')}</th>
-                <th scope="col">{t('clinicalAudit.patient')}</th>
-                <th scope="col">{t('clinicalAudit.details')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((e) => (
-                <tr key={e.id}>
-                  <td>{fmt.dateTime(e.createdAt, zone)}</td>
-                  <td>
-                    {e.actor.displayName} <span className="muted small">({t(`roles.${e.actor.role}`)})</span>
-                  </td>
-                  <td>{t(`clinicalAudit.actions.${e.action}`)}</td>
-                  <td>{e.patientNumber !== null ? `#${fmt.number(e.patientNumber)}` : '—'}</td>
-                  <td className="muted small">{details(t, e) || '—'}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <DataTable
+          testId="clinical-audit"
+          rows={rows}
+          rowKey={(e) => e.id}
+          columns={[
+            { key: 'time', label: t('clinicalAudit.time'), cell: (e) => fmt.dateTime(e.createdAt, zone) },
+            {
+              key: 'actor',
+              label: t('clinicalAudit.actor'),
+              cell: (e) => (
+                <>
+                  {e.actor.displayName} <span className="muted small">({t(`roles.${e.actor.role}`)})</span>
+                </>
+              ),
+            },
+            { key: 'action', label: t('clinicalAudit.action'), cell: (e) => t(`clinicalAudit.actions.${e.action}`) },
+            { key: 'patient', label: t('clinicalAudit.patient'), cell: (e) => (e.patientNumber !== null ? `#${fmt.number(e.patientNumber)}` : '—') },
+            { key: 'details', label: t('clinicalAudit.details'), cell: (e) => <span className="muted small">{details(t, e) || '—'}</span> },
+          ]}
+        />
       )}
       {events.hasNextPage && (
         <button type="button" className="button button--secondary" disabled={events.isFetchingNextPage} onClick={() => void events.fetchNextPage()}>

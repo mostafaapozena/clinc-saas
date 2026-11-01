@@ -25,7 +25,7 @@ import { useOrg } from '../org/context';
 import { useMoney } from '../lib/money';
 import { useAccountingSettings } from '../lib/useAccounting';
 import { AccountingNav } from './AccountingPages';
-import { DateText } from '../components/data';
+import { DataTable, DateText } from '../components/data';
 import { ActionBar, CardGrid } from '../components/layout';
 
 // Cashboxes, bank accounts, cashier sessions, vouchers and bank reconciliation
@@ -534,36 +534,35 @@ export function CashPage() {
       {configured && sessions.isSuccess && sessions.data.sessions.length > 0 && (
         <section className="card" aria-labelledby="sessions-title">
           <h2 id="sessions-title">{can('cash.session.review') ? t('cash.allSessions') : t('cash.mySessions')}</h2>
-          <div className="table-wrap">
-            <table className="data-table" data-testid="cash-sessions">
-              <thead>
-                <tr>
-                  <th scope="col">{t('cash.session')}</th>
-                  <th scope="col">{t('cash.cashier')}</th>
-                  <th scope="col">{t('cash.opened')}</th>
-                  <th scope="col">{t('cash.statusLabel')}</th>
-                  <th scope="col">{t('cash.difference')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {sessions.data.sessions.map((s) => (
-                  <tr key={s.id}>
-                    <td data-label={t('cash.session')}>
-                      <Link to={`/app/${orgId}/cash/sessions/${s.id}`}>
-                        <bdi dir="ltr">{s.number}</bdi>
-                      </Link>
-                    </td>
-                    <td data-label={t('cash.cashier')}>{s.openedByName ?? '—'}</td>
-                    <td data-label={t('cash.opened')}>{fmt.date(s.openedAt)}</td>
-                    <td data-label={t('cash.statusLabel')}>
-                      <span className={s.status === 'open' ? 'badge badge--active' : 'badge'}>{t(`cash.status.${s.status}`)}</span>
-                    </td>
-                    <td data-label={t('cash.difference')}>{s.difference === null ? '' : money(s.difference, currency)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <DataTable
+            testId="cash-sessions"
+            rows={sessions.data.sessions}
+            rowKey={(s) => s.id}
+            columns={[
+              {
+                key: 'session',
+                label: t('cash.session'),
+                cell: (s) => (
+                  <Link to={`/app/${orgId}/cash/sessions/${s.id}`}>
+                    <bdi dir="ltr">{s.number}</bdi>
+                  </Link>
+                ),
+              },
+              { key: 'cashier', label: t('cash.cashier'), cell: (s) => s.openedByName ?? '—' },
+              { key: 'opened', label: t('cash.opened'), cell: (s) => fmt.date(s.openedAt) },
+              {
+                key: 'status',
+                label: t('cash.statusLabel'),
+                cell: (s) => <span className={s.status === 'open' ? 'badge badge--active' : 'badge'}>{t(`cash.status.${s.status}`)}</span>,
+              },
+              {
+                key: 'difference',
+                label: t('cash.difference'),
+                numeric: true,
+                cell: (s) => (s.difference === null ? '' : money(s.difference, currency)),
+              },
+            ]}
+          />
         </section>
       )}
       {vouchers.isSuccess && vouchers.data.vouchers.length > 0 && (
@@ -673,30 +672,24 @@ export function CashSessionPage() {
         {movements.length === 0 ? (
           <EmptyState icon="cash">{t('cash.noMovements')}</EmptyState>
         ) : (
-          <div className="table-wrap">
-            <table className="data-table" data-testid="session-movements">
-              <thead>
-                <tr>
-                  <th scope="col">{t('accounting.number')}</th>
-                  <th scope="col">{t('accounting.event')}</th>
-                  <th scope="col">{t('cash.amount')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {movements.map((m) => (
-                  <tr key={m.entryId}>
-                    <td data-label={t('accounting.number')}>
-                      <bdi dir="ltr">{m.number}</bdi>
-                    </td>
-                    <td data-label={t('accounting.event')}>
-                      {sourceLabel(t, { type: m.sourceType, event: m.event })} <bdi dir="ltr">{m.memo}</bdi>
-                    </td>
-                    <td data-label={t('cash.amount')}>{money(m.amount, currency)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <DataTable
+            testId="session-movements"
+            rows={movements}
+            rowKey={(m) => m.entryId}
+            columns={[
+              { key: 'number', label: t('accounting.number'), cell: (m) => <bdi dir="ltr">{m.number}</bdi> },
+              {
+                key: 'event',
+                label: t('accounting.event'),
+                cell: (m) => (
+                  <>
+                    {sourceLabel(t, { type: m.sourceType, event: m.event })} <bdi dir="ltr">{m.memo}</bdi>
+                  </>
+                ),
+              },
+              { key: 'amount', label: t('cash.amount'), numeric: true, cell: (m) => money(m.amount, currency) },
+            ]}
+          />
         )}
       </section>
     </>
@@ -800,65 +793,54 @@ export function BankStatementPage() {
         {st.lines.length === 0 ? (
           <EmptyState icon="inbox">{t('cash.noLines')}</EmptyState>
         ) : (
-          <div className="table-wrap">
-            <table className="data-table" data-testid="statement-lines">
-              <thead>
-                <tr>
-                  <th scope="col">{t('accounting.date')}</th>
-                  <th scope="col">{t('cash.description')}</th>
-                  <th scope="col">{t('cash.amount')}</th>
-                  <th scope="col">{t('cash.match')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {st.lines.map((l) => {
+          <DataTable
+            testId="statement-lines"
+            rows={st.lines}
+            rowKey={(l) => l.id}
+            columns={[
+              { key: 'date', label: t('accounting.date'), cell: (l) => <DateText value={l.date} /> },
+              {
+                key: 'description',
+                label: t('cash.description'),
+                cell: (l) => (
+                  <>
+                    <bdi dir="auto">{l.description}</bdi> {l.reference && <bdi dir="ltr">{l.reference}</bdi>}
+                  </>
+                ),
+              },
+              { key: 'amount', label: t('cash.amount'), numeric: true, cell: (l) => money(l.amount, currency) },
+              {
+                key: 'match',
+                label: t('cash.match'),
+                cell: (l) => {
                   const candidates = st.unmatchedEntries.filter((e) => e.amount === l.amount);
-                  return (
-                    <tr key={l.id}>
-                      <td data-label={t('accounting.date')}>
-                        <DateText value={l.date} />
-                      </td>
-                      <td data-label={t('cash.description')}>
-                        <bdi dir="auto">{l.description}</bdi> {l.reference && <bdi dir="ltr">{l.reference}</bdi>}
-                      </td>
-                      <td data-label={t('cash.amount')}>{money(l.amount, currency)}</td>
-                      <td data-label={t('cash.match')}>
-                        {l.status === 'matched' ? (
-                          <>
-                            <span className="badge badge--active">{t('cash.matched')}</span>{' '}
-                            <button type="button" className="button button--ghost" onClick={() => unmatch.mutate(l.id)}>
-                              {t('cash.unmatch')}
-                            </button>
-                          </>
-                        ) : candidates.length === 0 ? (
-                          <span className="muted">{t('cash.noCandidate')}</span>
-                        ) : (
-                          <select
-                            aria-label={t('cash.matchWith', { date: l.date })}
-                            defaultValue=""
-                            onChange={(e) =>
-                              e.target.value &&
-                              match.mutate({
-                                lineId: l.id,
-                                entryId: e.target.value,
-                              })
-                            }
-                          >
-                            <option value="">{t('cash.chooseEntry')}</option>
-                            {candidates.map((c) => (
-                              <option key={c.entryId} value={c.entryId}>
-                                {c.number} · {c.date} · {c.memo}
-                              </option>
-                            ))}
-                          </select>
-                        )}
-                      </td>
-                    </tr>
+                  return l.status === 'matched' ? (
+                    <>
+                      <span className="badge badge--active">{t('cash.matched')}</span>{' '}
+                      <button type="button" className="button button--ghost" onClick={() => unmatch.mutate(l.id)}>
+                        {t('cash.unmatch')}
+                      </button>
+                    </>
+                  ) : candidates.length === 0 ? (
+                    <span className="muted">{t('cash.noCandidate')}</span>
+                  ) : (
+                    <select
+                      aria-label={t('cash.matchWith', { date: l.date })}
+                      defaultValue=""
+                      onChange={(e) => e.target.value && match.mutate({ lineId: l.id, entryId: e.target.value })}
+                    >
+                      <option value="">{t('cash.chooseEntry')}</option>
+                      {candidates.map((c) => (
+                        <option key={c.entryId} value={c.entryId}>
+                          {c.number} · {c.date} · {c.memo}
+                        </option>
+                      ))}
+                    </select>
                   );
-                })}
-              </tbody>
-            </table>
-          </div>
+                },
+              },
+            ]}
+          />
         )}
       </section>
     </>

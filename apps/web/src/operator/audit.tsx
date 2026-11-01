@@ -7,7 +7,7 @@ import { errorMessage } from '../lib/errors';
 import { useFormatters } from '../lib/format';
 import { opApi, opKeys } from '../lib/operator';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
-import { FilterBar } from '../components/data';
+import { DataTable, FilterBar } from '../components/data';
 
 type AuditRow = {
   id: string;
@@ -54,47 +54,43 @@ export function OperatorAuditPage() {
             actor={actorFilter}
             onActor={setActorFilter}
           />
-          <div className="table-wrap">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>{t('operator.audit.time')}</th>
-                  <th>{t('operator.audit.actor')}</th>
-                  <th>{t('operator.audit.action')}</th>
-                  <th>{t('operator.audit.target')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {audit.data.data
-                  .filter((e) => !(hideSignIns && e.action === 'operator.signed_in'))
-                  .filter((e) => !actionFilter || e.action === actionFilter)
-                  .filter((e) => !actorFilter || (e.operator ?? e.actor) === actorFilter)
-                  .map((e) => (
-                    <tr key={e.id}>
-                      <td data-label={t('operator.audit.time')}>{fmt.dateTime(e.at, Intl.DateTimeFormat().resolvedOptions().timeZone)}</td>
-                      <td data-label={t('operator.audit.actor')}>{e.operator ?? t(`operator.actor.${e.actor}`)}</td>
-                      <td data-label={t('operator.audit.action')}>
-                        {/* The code stays available as a tooltip for support staff. */}
-                        <span title={e.action}>{t(`operator.audit.actions.${e.action}`, { defaultValue: e.action })}</span>
-                        {e.changes.apply === false && <span className="muted small"> ({t('operator.audit.dryRun')})</span>}
-                      </td>
-                      <td data-label={t('operator.audit.target')}>
-                        {e.target.id === 'all' ? (
-                          t(`operator.audit.allTargets.${e.target.type}`, { defaultValue: t('operator.audit.all') })
-                        ) : (
-                          <>
-                            {t(`operator.audit.targets.${e.target.type}`, { defaultValue: e.target.type })}{' '}
-                            <bdi className="muted small" title={e.target.id}>
-                              {e.target.id.slice(-6)}
-                            </bdi>
-                          </>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-              </tbody>
-            </table>
-          </div>
+          <DataTable
+            rows={audit.data.data
+              .filter((e) => !(hideSignIns && e.action === 'operator.signed_in'))
+              .filter((e) => !actionFilter || e.action === actionFilter)
+              .filter((e) => !actorFilter || (e.operator ?? e.actor) === actorFilter)}
+            rowKey={(e) => e.id}
+            columns={[
+              { key: 'time', label: t('operator.audit.time'), cell: (e) => fmt.dateTime(e.at, Intl.DateTimeFormat().resolvedOptions().timeZone) },
+              { key: 'actor', label: t('operator.audit.actor'), cell: (e) => e.operator ?? t(`operator.actor.${e.actor}`) },
+              {
+                key: 'action',
+                label: t('operator.audit.action'),
+                cell: (e) => (
+                  <>
+                    {/* The code stays available as a tooltip for support staff. */}
+                    <span title={e.action}>{t(`operator.audit.actions.${e.action}`, { defaultValue: e.action })}</span>
+                    {e.changes.apply === false && <span className="muted small"> ({t('operator.audit.dryRun')})</span>}
+                  </>
+                ),
+              },
+              {
+                key: 'target',
+                label: t('operator.audit.target'),
+                cell: (e) =>
+                  e.target.id === 'all' ? (
+                    t(`operator.audit.allTargets.${e.target.type}`, { defaultValue: t('operator.audit.all') })
+                  ) : (
+                    <>
+                      {t(`operator.audit.targets.${e.target.type}`, { defaultValue: e.target.type })}{' '}
+                      <bdi className="muted small" title={e.target.id}>
+                        {e.target.id.slice(-6)}
+                      </bdi>
+                    </>
+                  ),
+              },
+            ]}
+          />
           {audit.data.next && (
             <button type="button" className="button button--secondary" onClick={() => setPages([...pages, audit.data.next!])}>
               {t('operator.audit.more')}

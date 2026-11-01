@@ -34,6 +34,8 @@ export function DataTable<T>({
   sort,
   onSort,
   rowClassName,
+  rowTestId,
+  footer,
   scroll,
 }: {
   columns: (Column<T> | false | null | undefined)[];
@@ -44,6 +46,9 @@ export function DataTable<T>({
   sort?: Sort;
   onSort?: (sort: Sort) => void;
   rowClassName?: (row: T) => string | undefined;
+  rowTestId?: (row: T) => string | undefined;
+  /** Totals rows (`<tr className="row-total">…`), rendered in the table footer. */
+  footer?: ReactNode;
   /** Keep the columns and scroll sideways on phones (statements), instead of stacking rows. */
   scroll?: boolean;
 }) {
@@ -88,7 +93,7 @@ export function DataTable<T>({
         </thead>
         <tbody>
           {rows.map((row) => (
-            <tr key={rowKey(row)} className={rowClassName?.(row)}>
+            <tr key={rowKey(row)} className={rowClassName?.(row)} data-testid={rowTestId?.(row)}>
               {cols.map((c) => (
                 <td key={c.key} data-label={c.label} className={c.numeric ? 'num' : undefined}>
                   {c.cell(row)}
@@ -97,24 +102,42 @@ export function DataTable<T>({
             </tr>
           ))}
         </tbody>
+        {footer && <tfoot>{footer}</tfoot>}
       </table>
     </div>
   );
 }
 
 /** Previous / next with the position, for server-paginated collections. */
-export function Pagination({ page, pageSize, total, onPage }: { page: number; pageSize: number; total: number; onPage: (page: number) => void }) {
+export function Pagination({
+  page,
+  pageSize,
+  total,
+  onPage,
+  summary,
+  always,
+}: {
+  page: number;
+  pageSize: number;
+  total: number;
+  onPage: (page: number) => void;
+  /** Replaces "page x of y (n results)", e.g. when the total is capped. */
+  summary?: (position: { page: string; pages: string; total: string }) => ReactNode;
+  /** Shown even when everything fits on one page. */
+  always?: boolean;
+}) {
   const { t } = useTranslation();
   const fmt = useFormatters();
   const pages = Math.max(1, Math.ceil(total / pageSize));
-  if (total <= pageSize && page <= 1) return null;
+  if (!always && total <= pageSize && page <= 1) return null;
+  const position = { page: fmt.number(page), pages: fmt.number(pages), total: fmt.number(total) };
   return (
     <nav className="pagination" aria-label={t('common.pagination')}>
       <button type="button" className="button button--secondary" disabled={page <= 1} onClick={() => onPage(page - 1)}>
         {t('common.previous')}
       </button>
       <span className="muted" aria-live="polite">
-        {t('common.pageOf', { page: fmt.number(page), pages: fmt.number(pages), total: fmt.number(total) })}
+        {summary ? summary(position) : t('common.pageOf', position)}
       </span>
       <button type="button" className="button button--secondary" disabled={page >= pages} onClick={() => onPage(page + 1)}>
         {t('common.next')}
