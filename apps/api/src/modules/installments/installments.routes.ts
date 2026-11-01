@@ -333,8 +333,8 @@ export function createInstallmentsRouter() {
 }
 
 /** Active plans with an installment past due (for "Today's focus"), within the caller's scope. */
-export async function overdueInstallmentPlans(tenant: TenantContext, today: string) {
-  const rows = await InstallmentPlanModel.find(branchOwnedFilter(tenant, { status: 'active' as const }))
+export async function overdueInstallmentPlans(tenant: TenantContext, today: string, branchId?: Types.ObjectId) {
+  const rows = await InstallmentPlanModel.find({ ...branchOwnedFilter(tenant, { status: 'active' as const }), ...(branchId ? { branchId } : {}) })
     .select('invoiceId schedule baseline total')
     .lean<Lean<InstallmentPlan>[]>();
   if (rows.length === 0) return 0;

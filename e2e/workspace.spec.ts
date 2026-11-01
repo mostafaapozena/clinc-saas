@@ -120,3 +120,20 @@ test('owners and admins manage branches; search stays within the organization', 
   await expect(page.getByTestId('branch-row')).toHaveCount(1);
   browser.expectNone();
 });
+
+test("today's focus follows the header branch and resets with the organization (UI-10)", async ({ page }) => {
+  const errors = watchBrowserErrors(page);
+  await login(page, 'multi@demo.test');
+  if ((await page.getByTestId('home-org-name').textContent()) !== 'عيادات النور (تجريبي)') {
+    await page.locator('#org-switcher').selectOption({ label: 'عيادات النور (تجريبي)' });
+  }
+  await expect(page.getByTestId('focus-scope')).toHaveText('الآن · كل الفروع التي تصل إليها');
+  await page.locator('#branch-switcher').selectOption({ label: 'فرع المعادي' });
+  await expect(page.getByTestId('focus-scope')).toHaveText('الآن · فرع المعادي');
+  // Another organization never inherits this branch (its API would refuse it).
+  await page.locator('#org-switcher').selectOption({ label: 'مركز الشفاء (تجريبي)' });
+  await expect(page.getByTestId('home-org-name')).toHaveText('مركز الشفاء (تجريبي)');
+  await expect(page.getByTestId('focus-scope')).toBeVisible();
+  await expect(page.getByTestId('focus-scope')).not.toContainText('فرع المعادي');
+  errors.expectNone();
+});
