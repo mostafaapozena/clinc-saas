@@ -109,10 +109,17 @@ test('small phones: appointments and statements do not overflow the page at 360p
   await page.setViewportSize({ width: 360, height: 780 });
   await login(page, 'owner.nour@demo.test');
   const org = orgIdFromUrl(page);
-  for (const path of ['/appointments', '/accounting/reports?report=balanceSheet', '/reports']) {
+  for (const path of ['/appointments', '/accounting/reports?report=balanceSheet', '/accounting/reports?report=trialBalance', '/reports']) {
     await page.goto(`/app/${org}${path}`);
     await page.waitForLoadState('networkidle');
     expect(await noOverflow(page), path).toBeLessThanOrEqual(1);
+    // Statements and ledgers keep real table columns on phones and scroll inside their card; only
+    // record lists stack into labelled cards.
+    const scrollCells = await page
+      .locator('.data-table--scroll :is(th, td)')
+      .evaluateAll((cells) => cells.filter((c) => getComputedStyle(c).display !== 'table-cell').length);
+    expect(scrollCells, `${path}: statement cells that are not table cells`).toBe(0);
+    if (path.endsWith('trialBalance')) expect(await page.locator('.data-table--scroll tbody td').count()).toBeGreaterThan(0);
   }
   errors.expectNone();
 });

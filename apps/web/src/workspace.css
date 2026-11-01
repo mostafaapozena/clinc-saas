@@ -11,6 +11,7 @@
   padding-block-end: 16px;
   margin-block-end: 20px;
   border-block-end: 1px solid var(--border);
+  align-items: center;
 }
 
 :is(.content, .operator-main) h1 {
@@ -183,12 +184,6 @@
 }
 
 /* Lists of rows (inquiries, support requests, contact messages). */
-.data-row {
-  background: var(--surface);
-  transition:
-    border-color var(--ease),
-    box-shadow var(--ease);
-}
 
 .data-row:hover {
   border-color: color-mix(in srgb, var(--brand-turquoise) 55%, var(--border));
@@ -196,11 +191,6 @@
 }
 
 /* ---------- Status labels ---------- */
-.badge {
-  font-weight: 600;
-  line-height: 1.7;
-  white-space: nowrap;
-}
 
 /* A dot before state badges, so the state is not carried by color and wording alone. */
 .badge:is([class*='badge--status-'], [class*='badge--subscription-'], [class*='badge--support-'], [class*='badge--coverage-'], .badge--active, .badge--inactive, .badge--suspended, .badge--connected, .badge--degraded, .badge--unreachable)::before {
@@ -233,13 +223,6 @@
 :is(.content, .operator-main) > .loading {
   justify-content: center;
   padding-block: 48px;
-}
-
-.empty-state {
-  padding: 28px 16px;
-  background: transparent;
-  border: 1px dashed var(--border);
-  border-radius: 12px;
 }
 
 /* A neutral "nothing here" mark above the message (decorative). */
@@ -286,40 +269,18 @@
   color: var(--muted);
 }
 
-/* Confirmation panels read as a dialog: a raised surface with the primary edge. */
-.confirm-panel {
-  border-inline-start: 4px solid var(--primary);
-  box-shadow: var(--shadow-md);
-}
-
 /* ---------- Workspace shell ---------- */
-.nav-link {
-  transition:
-    background-color var(--ease),
-    color var(--ease);
-}
 
 .nav-link.active {
+  box-shadow: inset 3px 0 0 var(--brand-turquoise);
+  font-weight: 600;
   color: var(--text);
   background: var(--mint);
-}
-
-.nav-group-title {
-  padding-inline: 12px;
-  letter-spacing: 0.02em;
 }
 
 :lang(en) .nav-group-title {
   text-transform: uppercase;
   letter-spacing: 0.06em;
-}
-
-.topbar {
-  box-shadow: var(--shadow-sm);
-}
-
-.stat {
-  border: 1px solid transparent;
 }
 
 .stats--today .stat {
@@ -351,17 +312,6 @@
 }
 
 /* ---------- Operator console ---------- */
-.operator-header {
-  background: var(--surface);
-  box-shadow: var(--shadow-sm);
-}
-
-/* A tab bar: one row that scrolls sideways on narrow screens instead of wrapping. */
-.operator-nav {
-  flex-wrap: nowrap;
-  gap: 2px;
-  padding-block-end: 0;
-}
 
 .operator-nav .nav-link {
   flex-shrink: 0;
@@ -401,10 +351,6 @@
   box-shadow: var(--shadow-sm);
 }
 
-.operator-main .stat > strong {
-  color: var(--text);
-}
-
 @media (prefers-reduced-motion: reduce) {
   :is(.shell, .public-layout) *,
   .data-row,
@@ -415,41 +361,11 @@
 
 /* ---------- UI polish (phase 15, docs/UI_POLISH_IMPLEMENTATION.md) ---------- */
 
-/* Layout rhythm: one gutter scale and one content width for the workspace and the console. The
-   content is centered in the space beside the sidebar, so wide screens are not empty on one side. */
-
-.content {
-  max-inline-size: var(--content-max);
-  margin-inline: auto;
-  padding: var(--space-6) var(--gutter) 40px;
-  padding-inline: max(var(--gutter), env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px));
-}
-
-.topbar {
-  padding-inline: max(var(--gutter), env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px));
-}
-
-.operator-main {
-  padding-block-start: 20px;
-  max-inline-size: var(--content-max);
-  padding-inline: var(--gutter);
-}
-
 /* Page heading and its main action on one baseline; the action never squeezes the title. */
-:is(.content, .operator-main) > .page-header {
-  align-items: center;
-}
 
 :is(.content, .operator-main) > .page-header > div:first-child {
   flex: 1 1 280px;
   min-inline-size: 0;
-}
-
-/* Card rows: each card keeps its own height and starts at the top of the row, so a short card
-   never ends in an empty band. Rows of genuinely parallel cards opt in with .card-grid--equal. */
-.card-grid {
-  align-items: start;
-  gap: var(--space-4);
 }
 
 /* A card or section title with its icon. */
@@ -533,6 +449,8 @@
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 12px;
+  grid-template-rows: auto 1fr;
+  container-type: inline-size;
 }
 
 .metric--info {
@@ -589,6 +507,8 @@
 
 .metric-label {
   min-inline-size: 0;
+  overflow-wrap: break-word;
+  hyphens: auto;
 }
 
 .metric dd {
@@ -706,12 +626,6 @@
 }
 
 /* ---------- Notices with an icon, so meaning never relies on color alone (ICN-07) ---------- */
-.notice {
-  display: grid;
-  grid-template-columns: 18px minmax(0, 1fr);
-  column-gap: 10px;
-  align-items: start;
-}
 
 .notice > * {
   grid-column: 2;
@@ -725,14 +639,6 @@
   content: '';
   background: currentColor;
   mask: var(--notice-icon) center / contain no-repeat;
-}
-
-.notice--info {
-  --notice-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M12 11v6M12 7.5h.01'/%3E%3C/svg%3E");
-}
-
-.notice--success {
-  --notice-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M8 12.5l2.7 2.7L16 10'/%3E%3C/svg%3E");
 }
 
 .notice--warning,
@@ -757,11 +663,6 @@
 }
 
 /* Field errors start with the same warning mark (ICN-10). */
-.field-error {
-  display: flex;
-  align-items: flex-start;
-  gap: 6px;
-}
 
 .field-error::before {
   flex: none;
@@ -887,11 +788,6 @@
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 12px;
-}
-
-.queue-item {
-  container-type: inline-size;
-  display: block;
 }
 
 /* ---------- Visit record: actions stay in reach on a long draft (UX-033) ---------- */
@@ -1022,7 +918,6 @@
   justify-self: start;
 }
 
-
 /* ---------- Header choosers with one option show the value (UX-027) ---------- */
 .switcher--static .switcher-value {
   display: block;
@@ -1065,19 +960,20 @@
     display: inline;
   }
 
-  /* Stacked appointment cards: label and value side by side, closer together. */
-  .data-table td {
+  /* Stacked record cards: label and value side by side, closer together. Statements and ledgers
+     (--scroll) keep their table columns and scroll sideways instead (F-10). */
+  .data-table:not(.data-table--scroll) td {
     display: grid;
     grid-template-columns: minmax(88px, 30%) minmax(0, 1fr);
     align-items: center;
     gap: 8px;
   }
 
-  .data-table td > * {
+  .data-table:not(.data-table--scroll) td > * {
     justify-self: start;
   }
 
-  .data-table tr {
+  .data-table:not(.data-table--scroll) tr {
     padding: 6px 12px;
   }
 }
@@ -1248,10 +1144,6 @@
 
 /* Rows of cards and results: the same inner padding everywhere, room between the title line and
    the metadata line, and the end column aligned. */
-.data-row {
-  padding: var(--space-3) var(--space-4);
-  column-gap: var(--space-4);
-}
 
 .data-main {
   gap: var(--space-1);
@@ -1262,29 +1154,14 @@
   margin-block-start: var(--stack-group);
 }
 
-/* Actions: buttons in a row keep related spacing and wrap as a group; an action row after the
-   content it acts on gets group spacing (handled by the card rhythm above). */
-.form-actions,
-.row-actions {
-  gap: var(--stack-related);
-}
-
 /* Section headers inside cards: title and its action on one line, the action never touching. */
 .section-header {
   gap: var(--space-3) var(--space-4);
   margin-block-end: 0;
-}
-
-/* Operator header and tab bar follow the same gutter as the page. */
-
-.operator-nav {
-  overflow-x: auto;
-  scrollbar-width: thin;
-  margin-block-end: 0;
+  align-items: center;
 }
 
 @media (max-width: 640px) {
-
   .card {
     padding: var(--space-inset);
   }
@@ -1306,24 +1183,8 @@
   margin-block: 0;
 }
 
-/* The operator header lines up with the content column below it, not with the window edges. */
-.operator-header {
-  border-block-end: 1px solid var(--border);
-  padding-block: var(--space-3);
-  padding-inline: max(var(--gutter), calc((100% - var(--content-max)) / 2 + var(--gutter)));
-}
-
 /* Metric cards narrower than ~170px (phones, six-up rows): icon above the label, and labels wrap
    between words, never inside one. */
-.metric {
-  grid-template-rows: auto 1fr;
-  container-type: inline-size;
-}
-
-.metric-label {
-  overflow-wrap: break-word;
-  hyphens: auto;
-}
 
 @container (max-width: 170px) {
   .metric dt {
@@ -1338,17 +1199,11 @@
   max-inline-size: 32rem;
 }
 
-/* Card titles line up with the control beside them (Edit, a segmented filter). */
-.section-header {
-  align-items: center;
-}
-
 /* Reference numbers (invoice, receipt, request) never break inside; the words around them wrap. */
 .data-table bdi[dir='ltr'],
 .data-row bdi[dir='ltr'] {
   white-space: nowrap;
 }
-
 
 /* ERP module sub-navigation (accounting, cash and banks, later purchasing and stock). */
 .module-nav {
@@ -2008,7 +1863,6 @@ circle.chart-stroke-5 {
   padding: var(--space-4);
 }
 
-
 /* ---------- Home: context section, collapsed under the day's work (F-13) ---------- */
 .home-context > summary {
   display: flex;
@@ -2127,9 +1981,6 @@ textarea {
 
 /* List rows adapt to their own container, not the window (UX-001, UX-015): when a row is narrow,
    the actions move under the content instead of squeezing the title to a sliver. */
-.data-list {
-  container-type: inline-size;
-}
 
 @container (max-width: 760px) {
   .data-row {
@@ -2214,15 +2065,6 @@ textarea {
   margin-block-start: var(--space-2);
 }
 
-.confirm-panel {
-  display: grid;
-  gap: var(--space-3);
-  padding: var(--space-4);
-  background: var(--bad-bg);
-  border: 1px solid var(--bad);
-  border-radius: 10px;
-}
-
 .confirm-panel > p {
   margin: 0;
 }
@@ -2259,11 +2101,6 @@ textarea {
   50% {
     opacity: 0.5;
   }
-}
-
-/* Filters keep their natural width: one filter is one column, not a full-width field. */
-.filters {
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
 }
 
 /* The reason a submit button is disabled, on its own line under the actions (UX-017). */
