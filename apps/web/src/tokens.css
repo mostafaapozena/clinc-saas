@@ -1,0 +1,157 @@
+/* Design tokens of the web app: the one place colours, spacing, type, sizes and chart colours are
+   defined (docs/DESIGN_SYSTEM.md §1). styles.css and workspace.css use them and never define them.
+   Order matters where two contexts match together (system dark and explicit dark): it follows the
+   original cascade. Generated from the previous scattered :root blocks in Phase 1 (UI-02). */
+
+:root {
+  --brand-navy: #122640;
+  --brand-navy-symbol: #1a3553;
+  --brand-turquoise: #3ecaba;
+  --brand-coral: #fb7254;
+  --brand-teal-text: #0e7a6f;
+  --bg: #f5f8fa;
+  --surface: #ffffff;
+  --surface-muted: #edf3f6;
+  --text: var(--brand-navy);
+  --muted: #556677;
+  --border: #d8e1e8;
+  --primary: var(--brand-navy-symbol);
+  --primary-strong: var(--brand-navy);
+  --primary-contrast: #ffffff;
+  --link: var(--brand-teal-text);
+  --accent: var(--brand-turquoise);
+  --ok: #15803d;
+  --ok-bg: #dcfce7;
+  --warn: #a16207;
+  --warn-bg: #fef9c3;
+  --bad: #b91c1c;
+  --bad-bg: #fee2e2;
+  --neutral-bg: #e5ecf0;
+  --focus: #2563eb;
+  --radius: 12px;
+  --sidebar-width: 248px;
+  --font-ar: 'Alexandria Variable', 'Alexandria', Tahoma, sans-serif;
+  --font-en: 'Inter Variable', 'Inter', system-ui, sans-serif;
+  --info: #1d4ed8;
+  --info-bg: #e6effc;
+  --mint: #e8f8f5;
+  --shadow-sm: 0 1px 2px rgb(18 38 64 / 6%);
+  --shadow-md: 0 8px 24px rgb(18 38 64 / 10%);
+  --ease: 0.15s ease;
+  --gutter: clamp(16px, 2.4vw, 32px);
+  --content-max: 1280px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-inset: var(--space-5);
+  --stack-related: var(--space-2);
+  --stack-group: var(--space-4);
+  --stack-page: var(--space-5);
+  --control-sm: 32px;
+  --control-md: 40px;
+  --control-lg: 48px;
+  --touch-min: 44px;
+  --gap-inline-icon: 8px;
+  --gap-icon-text: 12px;
+  --icon-box: 36px;
+  --chart-1: var(--brand-teal-text);
+  --chart-2: #2563eb;
+  --chart-3: var(--brand-coral);
+  --chart-4: #7c3aed;
+  --chart-5: #ca8a04;
+  --chart-grid: color-mix(in srgb, var(--border) 70%, transparent);
+  --chart-axis: var(--border);
+  /* Display sizes are set for Arabic (Alexandria renders larger than Inter at the same size); English
+     restores its own below. Body and small text are the same in both languages. */
+  --fs-page-title: clamp(1.3rem, 1.1rem + 0.5vw, 1.5rem);
+  --fs-metric: 1.5rem;
+  --fs-metric-phone: 1.3125rem;
+  --fs-h1: 1.5rem;
+  --fs-h2: 1.125rem;
+  --fs-h3: 1.0625rem;
+  --fs-h4: 1rem;
+  --fs-body: 1rem;
+  --fs-sm: 0.875rem;
+  --fs-xs: 0.8125rem;
+  --border-strong: #8193a6;
+}
+
+:root[data-theme='dark'] {
+  --bg: #0d1b2e;
+  --surface: #13253c;
+  --surface-muted: #192f4a;
+  --text: #e6eef5;
+  --muted: #9fb2c4;
+  --border: #2a4260;
+  --primary: var(--brand-turquoise);
+  --primary-strong: #7fdfd4;
+  --primary-contrast: var(--brand-navy);
+  --link: #7fdfd4;
+  --accent: var(--brand-turquoise);
+  --ok: #4ade80;
+  --ok-bg: #12331f;
+  --warn: #facc15;
+  --warn-bg: #3a3110;
+  --bad: #f87171;
+  --bad-bg: #3d1717;
+  --neutral-bg: #22354d;
+  --focus: #93c5fd;
+  --info: #93c5fd;
+  --info-bg: #172f52;
+  --mint: #143a3d;
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 30%);
+  --shadow-md: 0 8px 24px rgb(0 0 0 / 35%);
+  --chart-1: var(--brand-turquoise);
+  --chart-2: #60a5fa;
+  --chart-3: #fb8f78;
+  --chart-4: #a78bfa;
+  --chart-5: #facc15;
+  --border-strong: #5f7896;
+}
+
+@media (max-width: 640px) {
+  :root {
+    --space-inset: var(--space-4);
+    --stack-page: var(--space-4);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --chart-1: var(--brand-turquoise);
+    --chart-2: #60a5fa;
+    --chart-3: #fb8f78;
+    --chart-4: #a78bfa;
+    --chart-5: #facc15;
+    --border-strong: #5f7896;
+  }
+}
+
+/* Printing: black on white whatever the theme. */
+@media print {
+  :root,
+  :root[data-theme='dark'] {
+    --bg: #ffffff;
+    --surface: #ffffff;
+    --surface-muted: #f3f6f8;
+    --text: #000000;
+    --muted: #444444;
+    --border: #c9d2da;
+    --primary: var(--brand-navy-symbol);
+    --primary-contrast: #ffffff;
+    --link: #000000;
+  }
+}
+
+/* English (Inter): the display sizes of the original scale. */
+:root:lang(en) {
+  --fs-page-title: clamp(1.4rem, 1.15rem + 0.7vw, 1.75rem);
+  --fs-metric: 1.75rem;
+  --fs-metric-phone: 1.5rem;
+  --fs-h1: 1.625rem;
+  --fs-h2: 1.25rem;
+}

@@ -8,26 +8,8 @@
  * product preview, grouped navigation with descriptions, and a dark navy footer.
  */
 .site {
-  /* Light palette (the site keeps its own copy so the workspace tokens can evolve separately). */
-  --bg: #f5f8fa;
-  --surface: #ffffff;
-  --surface-muted: #edf3f6;
-  --text: var(--brand-navy);
-  --muted: #556677;
-  --border: #d8e1e8;
-  --primary: var(--brand-navy-symbol);
-  --primary-strong: var(--brand-navy);
-  --primary-contrast: #ffffff;
+  /* The palette comes from tokens.css (shared with the app); the site states only what differs. */
   --link: var(--site-em);
-  --accent: var(--brand-turquoise);
-  --ok: #15803d;
-  --ok-bg: #dcfce7;
-  --warn: #a16207;
-  --warn-bg: #fef9c3;
-  --bad: #b91c1c;
-  --bad-bg: #fee2e2;
-  --neutral-bg: #e5ecf0;
-  --focus: #2563eb;
 
   /* Site-only tokens */
   --site-max: 1200px;
@@ -73,24 +55,11 @@
  * (≥ 7:1 on --surface) with dark tinted tiles. Product screenshots stay light images in a frame.
  */
 [data-theme='dark'] .site {
-  --bg: #0d1b2e;
+  /* Kept: the light .site block points --link at --site-em, so the dark value is restated here. */
+  --link: #7fdfd4;
   --surface: #11223a;
-  --surface-muted: #192f4a;
-  --text: #e6eef5;
   --muted: #a5b7c8;
   --border: #284060;
-  --primary: var(--brand-turquoise);
-  --primary-strong: #7fdfd4;
-  --primary-contrast: var(--brand-navy);
-  --link: #7fdfd4;
-  --ok: #4ade80;
-  --ok-bg: #12331f;
-  --warn: #facc15;
-  --warn-bg: #3a3110;
-  --bad: #f87171;
-  --bad-bg: #3d1717;
-  --neutral-bg: #22354d;
-  --focus: #93c5fd;
 
   --site-mint: #10323a;
   --site-navy: #081322;

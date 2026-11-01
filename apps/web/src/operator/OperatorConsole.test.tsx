@@ -38,9 +38,33 @@ describe('platform audit', () => {
       ...base,
       'GET /api/v1/platform/audit': {
         data: [
-          { id: '1', at: '2026-10-27T02:08:00.000Z', actor: 'operator', operator: 'Op', action: 'billing.reconciliation_run', target: { type: 'subscription', id: 'all' }, changes: { apply: false } },
-          { id: '2', at: '2026-10-27T01:51:00.000Z', actor: 'operator', operator: 'Op', action: 'operator.signed_in', target: { type: 'operator', id: 'c4e3ec8d1234' }, changes: {} },
-          { id: '3', at: '2026-10-27T01:50:00.000Z', actor: 'system', operator: null, action: 'some.new_code', target: { type: 'thing', id: 'x1234567' }, changes: {} },
+          {
+            id: '1',
+            at: '2026-10-27T02:08:00.000Z',
+            actor: 'operator',
+            operator: 'Op',
+            action: 'billing.reconciliation_run',
+            target: { type: 'subscription', id: 'all' },
+            changes: { apply: false },
+          },
+          {
+            id: '2',
+            at: '2026-10-27T01:51:00.000Z',
+            actor: 'operator',
+            operator: 'Op',
+            action: 'operator.signed_in',
+            target: { type: 'operator', id: 'c4e3ec8d1234' },
+            changes: {},
+          },
+          {
+            id: '3',
+            at: '2026-10-27T01:50:00.000Z',
+            actor: 'system',
+            operator: null,
+            action: 'some.new_code',
+            target: { type: 'thing', id: 'x1234567' },
+            changes: {},
+          },
         ],
         next: null,
       },
@@ -92,10 +116,19 @@ describe('list state in the URL', () => {
 
   it('labels organization cells, shows the organization type and tells same-named ones apart', async () => {
     const row = (id: string) => ({ id, name: 'عيادة المعاينة', type: 'clinic', createdAt: '2026-10-20T00:00:00.000Z', subscription: null });
-    renderRouteWith({ ...base, 'GET /api/v1/platform/organizations': { data: [row('a'.repeat(18) + '111111'), row('a'.repeat(18) + '222222')] } }, '/operator/organizations');
+    renderRouteWith(
+      { ...base, 'GET /api/v1/platform/organizations': { data: [row('a'.repeat(18) + '111111'), row('a'.repeat(18) + '222222')] } },
+      '/operator/organizations',
+    );
     const rows = (await screen.findAllByRole('link', { name: 'عيادة المعاينة' })).map((l) => l.closest('tr')!);
     expect(rows.map((r) => r.textContent)).toEqual([expect.stringContaining('111111'), expect.stringContaining('222222')]);
-    expect([...rows[0]!.querySelectorAll('td')].map((td) => td.dataset.label)).toEqual(['المنشأة', 'أُنشئت', 'نوع المنشأة', 'نوع الاشتراك', 'الحالة']);
+    expect([...rows[0]!.querySelectorAll('td')].map((td) => td.dataset.label)).toEqual([
+      'المنشأة',
+      'أُنشئت',
+      'نوع المنشأة',
+      'نوع الاشتراك',
+      'الحالة',
+    ]);
   });
 });
 
