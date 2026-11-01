@@ -20,10 +20,11 @@ Check every item before opening a PR that adds or changes a screen.
 - [ ] No margins between siblings. Gaps come from the container.
 - [ ] Buttons use a size (`sm`, default, `lg`). In-table actions are small. No stretched buttons.
 - [ ] No literal colors, widths or font sizes outside the tokens.
+- [ ] A component's rule is edited where it lives, not restated further down; breakpoints and states are their own rules (DESIGN_SYSTEM.md §1 "Stylesheets").
 
 ## States and languages
 - [ ] Loading, error, empty and populated states exist; an empty state offers the next step when the viewer can take one. Long Arabic and English labels do not overlap or clip.
-- [ ] Form fields use `Field` (label, hint, error, required). A disabled submit says why next to it.
+- [ ] Form fields use `Field` (label, hint, error, required). A disabled submit says why next to it. A native date input outside `Field` shows `DateEcho` and names it in `aria-describedby`.
 - [ ] Every string is in `ar.json` and `en.json` (the key test checks this).
 - [ ] RTL and LTR, light and dark checked. No page-level horizontal scroll at 360, 768, 1024 or 1366px.
 
