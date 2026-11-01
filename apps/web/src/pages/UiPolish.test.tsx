@@ -171,4 +171,44 @@ describe('dashboard', () => {
     expect(within(card as HTMLElement).getByText('في الانتظار')).toBeInTheDocument();
     expect(card.querySelector('.metric-icon svg')).not.toBeNull();
   });
+
+  it('says once that there are no appointments today, with the next step, instead of six zeros (UI-09)', async () => {
+    mockApi({
+      ...shell('receptionist', FRONT_DESK),
+      [`GET /api/v1/orgs/${ORG}/dashboard`]: { date: todayIn(ZONE), counts: { scheduled: 0, waiting: 0, inProgress: 0, completed: 0, noShow: 0, cancelled: 0 } },
+    });
+    renderRoute(`/app/${ORG}`);
+    expect(await screen.findByTestId('today-none')).toBeInTheDocument();
+    expect(screen.queryByTestId('today-waiting')).toBeNull();
+    const empty = screen.getByTestId('today-none').closest('.empty-state') as HTMLElement;
+    expect(within(empty).getByRole('link', { name: 'حجز موعد' })).toHaveAttribute('href', `/app/${ORG}/appointments/new`);
+  });
+
+  it('tells apart accounting not set up, and a focus that failed to load (UI-09)', async () => {
+    const ACCOUNTANT: Permission[] = ['organization.read', 'branch.read', 'dashboard.read', 'accounting.read'];
+    mockApi({
+      ...shell('accountant', ACCOUNTANT),
+      [`GET /api/v1/orgs/${ORG}/dashboard`]: { date: todayIn(ZONE), counts: { scheduled: 1, waiting: 0, inProgress: 0, completed: 0, noShow: 0, cancelled: 0 } },
+      [`GET /api/v1/orgs/${ORG}/workspace/focus`]: {
+        role: 'accountant',
+        branchId: null,
+        finance: { ledger: false, openReceivables: 0, unallocatedReceipts: 0, payablesDueSoon: { amount: 0, bills: 0 }, openCashSessions: 0, monthToClose: null },
+      },
+    });
+    renderRoute(`/app/${ORG}`);
+    const unconfigured = await screen.findByTestId('finance-unconfigured');
+    expect(within(unconfigured).getByRole('link', { name: 'إعداد المحاسبة' })).toHaveAttribute('href', `/app/${ORG}/accounting`);
+  });
+
+  it('shows a retry when the focus cannot load, instead of hiding it (UI-09)', async () => {
+    mockApi({
+      ...shell('receptionist', FRONT_DESK),
+      [`GET /api/v1/orgs/${ORG}/dashboard`]: { date: todayIn(ZONE), counts: { scheduled: 1, waiting: 0, inProgress: 0, completed: 0, noShow: 0, cancelled: 0 } },
+      [`GET /api/v1/orgs/${ORG}/workspace/focus`]: () => Response.json({ error: { code: 'INTERNAL', message: 'x' } }, { status: 500 }),
+    });
+    renderRoute(`/app/${ORG}`);
+    // The query retries before it reports a failure.
+    const panel = await screen.findByTestId('focus-panel', {}, { timeout: 10_000 });
+    expect(await within(panel).findByRole('button', { name: 'إعادة المحاولة' })).toBeInTheDocument();
+  });
 });

@@ -22,14 +22,26 @@ function niceMax(values: number[]) {
   return Math.ceil(max / p) * p;
 }
 
-function Bars({ labels, series, rtl }: { labels: string[]; series: ChartSeries[]; rtl: boolean }) {
+type Plot = { labels: string[]; series: ChartSeries[]; rtl: boolean; w: number; format: (v: number) => string };
+
+/** The value of the top gridline, so the axis states its unit (currency). */
+function Scale({ max, y, w, rtl, format }: { max: number; y: (v: number) => number; w: number; rtl: boolean; format: (v: number) => string }) {
+  return (
+    <text className="chart-label chart-scale" x={rtl ? w - PAD.side : PAD.side} y={y(max) - 4} textAnchor="start">
+      {format(max)}
+    </text>
+  );
+}
+
+function Bars({ labels, series, rtl, w, format }: Plot) {
   const max = niceMax(series.flatMap((s) => s.values));
-  const slot = (W - PAD.side * 2) / labels.length;
+  const slot = (w - PAD.side * 2) / labels.length;
   const bar = Math.min(28, (slot * 0.7) / series.length);
   const y = (v: number) => H - PAD.bottom - (v / max) * (H - PAD.top - PAD.bottom);
   return (
     <>
-      <line className="chart-axis" x1={PAD.side} x2={W - PAD.side} y1={H - PAD.bottom} y2={H - PAD.bottom} />
+      <Scale max={max} y={y} w={w} rtl={rtl} format={format} />
+      <line className="chart-axis" x1={PAD.side} x2={w - PAD.side} y1={H - PAD.bottom} y2={H - PAD.bottom} />
       {labels.map((label, i) => {
         const index = rtl ? labels.length - 1 - i : i;
         const x0 = PAD.side + index * slot + (slot - bar * series.length) / 2;
@@ -56,17 +68,18 @@ function Bars({ labels, series, rtl }: { labels: string[]; series: ChartSeries[]
   );
 }
 
-function Lines({ labels, series, rtl }: { labels: string[]; series: ChartSeries[]; rtl: boolean }) {
+function Lines({ labels, series, rtl, w, format }: Plot) {
   const max = niceMax(series.flatMap((s) => s.values));
-  const step = labels.length > 1 ? (W - PAD.side * 4) / (labels.length - 1) : 0;
+  const step = labels.length > 1 ? (w - PAD.side * 4) / (labels.length - 1) : 0;
   const x = (i: number) => PAD.side * 2 + (rtl ? labels.length - 1 - i : i) * step;
   const y = (v: number) => H - PAD.bottom - (v / max) * (H - PAD.top - PAD.bottom);
   return (
     <>
       {[0.5, 1].map((f) => (
-        <line key={f} className="chart-gridline" x1={PAD.side} x2={W - PAD.side} y1={y(max * f)} y2={y(max * f)} />
+        <line key={f} className="chart-gridline" x1={PAD.side} x2={w - PAD.side} y1={y(max * f)} y2={y(max * f)} />
       ))}
-      <line className="chart-axis" x1={PAD.side} x2={W - PAD.side} y1={H - PAD.bottom} y2={H - PAD.bottom} />
+      <Scale max={max} y={y} w={w} rtl={rtl} format={format} />
+      <line className="chart-axis" x1={PAD.side} x2={w - PAD.side} y1={H - PAD.bottom} y2={H - PAD.bottom} />
       {series.map((s, k) => (
         <g key={s.key} className={`chart-stroke-${k + 1}`}>
           <polyline fill="none" strokeWidth={2.5} points={s.values.map((v, i) => `${x(i)},${y(v)}`).join(' ')} />
@@ -138,6 +151,7 @@ export function ChartCard({
   loading,
   error,
   testId,
+  wide,
 }: {
   title: string;
   icon?: IconName;
@@ -152,18 +166,21 @@ export function ChartCard({
   loading?: boolean;
   error?: ReactNode;
   testId?: string;
+  /** A time series that spans its row: drawn wider so its points do not crowd (UI-08). */
+  wide?: boolean;
 }) {
   const { t, i18n } = useTranslation();
   const [table, setTable] = useState(false);
   const id = useId();
   const rtl = i18n.dir() === 'rtl';
+  const w = wide && (kind === 'line' || kind === 'bar') ? W * 2 : W;
   const hasData = series.some((s) => s.values.some((v) => v !== 0));
   const donutTotal = kind === 'donut' ? (series[0]?.values ?? []).reduce((s, v) => s + v, 0) : 0;
   // One non-zero part is not a composition: show the figure, not a 100% ring (UX-022).
   const parts = kind === 'donut' ? (series[0]?.values ?? []).flatMap((v, i) => (v !== 0 ? [i] : [])) : [];
   const single = parts.length === 1 ? parts[0]! : null;
   return (
-    <section className="card chart-card" aria-labelledby={`${id}-title`} data-testid={testId}>
+    <section className={wide ? 'card chart-card chart-card--wide' : 'card chart-card'} aria-labelledby={`${id}-title`} data-testid={testId}>
       <div className="chart-head">
         <h3 id={`${id}-title`} className="card-title">
           {icon && <Icon name={icon} aria-hidden="true" />}
@@ -220,9 +237,9 @@ export function ChartCard({
       ) : (
         <>
           <div className={`chart-body chart-body--${kind}`}>
-            <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`${title}: ${t('charts.summary', { count: labels.length })}`} className="chart-svg">
-              {kind === 'bar' && <Bars labels={labels} series={series} rtl={rtl} />}
-              {kind === 'line' && <Lines labels={labels} series={series} rtl={rtl} />}
+            <svg viewBox={`0 0 ${w} ${H}`} role="img" aria-label={`${title}: ${t('charts.summary', { count: labels.length })}`} className="chart-svg">
+              {kind === 'bar' && <Bars labels={labels} series={series} rtl={rtl} w={w} format={format} />}
+              {kind === 'line' && <Lines labels={labels} series={series} rtl={rtl} w={w} format={format} />}
               {kind === 'donut' && <Donut values={series[0]?.values ?? []} />}
             </svg>
             {kind === 'donut' && (

@@ -65,18 +65,21 @@ export function AccountingNav() {
           {
             to: `/app/${orgId}/accounting/entries`,
             label: t('accounting.nav.journal'),
+            group: 'books',
           },
           {
             to: `/app/${orgId}/accounting/accounts`,
             label: t('accounting.nav.chart'),
+            group: 'books',
           },
           {
             to: `/app/${orgId}/accounting/reports`,
             label: t('accounting.nav.reports'),
+            group: 'statements',
           },
-          { to: `/app/${orgId}/accounting/cash-flow`, label: t('accounting.nav.cashFlow') },
-          { to: `/app/${orgId}/accounting/budgets`, label: t('accounting.nav.budgets') },
-          { to: `/app/${orgId}/accounting/commitments`, label: t('accounting.nav.commitments') },
+          { to: `/app/${orgId}/accounting/cash-flow`, label: t('accounting.nav.cashFlow'), group: 'statements' },
+          { to: `/app/${orgId}/accounting/budgets`, label: t('accounting.nav.budgets'), group: 'planning' },
+          { to: `/app/${orgId}/accounting/commitments`, label: t('accounting.nav.commitments'), group: 'planning' },
           { to: `/app/${orgId}/accounting/staff-funds`, label: t('accounting.nav.staffFunds') },
         ]
       : []),
@@ -90,7 +93,9 @@ export function AccountingNav() {
       : []),
     ...(can('cash.session.operate') && moduleOn('cash') ? [{ to: `/app/${orgId}/cash`, label: t('accounting.nav.cash') }] : []),
   ];
-  return <ModuleTabs items={items} label={t('accounting.nav.label')} />;
+  // Ten pages in one row overflowed every width: related pages share a primary tab (UI-08).
+  const groups = { books: t('accounting.nav.groups.books'), statements: t('accounting.nav.groups.statements'), planning: t('accounting.nav.groups.planning') };
+  return <ModuleTabs items={items} label={t('accounting.nav.label')} groups={groups} />;
 }
 
 /** Shown instead of a ledger page until accounting is set up. */
