@@ -25,9 +25,13 @@ test('reports center: icons keep their gap, cards start at the top, categories s
   );
   expect(gaps.length).toBeGreaterThan(3);
   for (const g of gaps) expect(Math.abs(g - 12)).toBeLessThanOrEqual(1);
-  // F-05: the category tabs are a single row.
-  const tops = await page.locator('.report-category').evaluateAll((tabs) => new Set(tabs.map((t) => Math.round(t.getBoundingClientRect().top))).size);
-  expect(tops).toBe(1);
+  // UI-08: every category is visible without sideways scrolling (a grid of at most two rows here).
+  const strip = await page.locator('.report-categories').evaluate((e) => ({
+    overflow: e.scrollWidth - e.clientWidth,
+    rows: new Set([...e.children].map((c) => Math.round(c.getBoundingClientRect().top))).size,
+  }));
+  expect(strip.overflow).toBeLessThanOrEqual(1);
+  expect(strip.rows).toBeLessThanOrEqual(2);
   // F-04: four key figures sit on one row at this width.
   const kpiTops = await page.locator('[data-testid="report-kpis"] .metric').evaluateAll((m) => new Set(m.map((e) => Math.round(e.getBoundingClientRect().top))).size);
   expect(kpiTops).toBe(1);
@@ -191,4 +195,27 @@ test('phones: every control in the page is at least 44px tall (UX-025) @mobile',
 test('the first HTML paints a loading mark instead of a blank page (UX-029)', async ({ request }) => {
   const html = await (await request.get('/')).text();
   expect(html).toContain('class="boot"');
+});
+
+test('module tabs stay where the viewer scrolls them, and grouped pages get a second row (UI-08) @mobile', async ({ page }) => {
+  const errors = watchBrowserErrors(page);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await login(page, 'owner.nour@demo.test');
+  const org = orgIdFromUrl(page);
+  for (const lang of ['ar', 'en']) {
+    await page.goto(`/app/${org}/accounting/entries?lang=${lang}`);
+    const nav = page.locator('.module-nav');
+    await expect(nav.locator('.module-nav-link.active')).toBeVisible();
+    // The previous version re-centred the active tab on every render, so a manual scroll snapped back.
+    const before = await nav.evaluate((e) => e.scrollLeft);
+    await nav.evaluate((e) => e.scrollBy({ left: document.dir === 'rtl' ? -120 : 120, behavior: 'instant' }));
+    const moved = await nav.evaluate((e) => e.scrollLeft);
+    expect(Math.abs(moved - before)).toBeGreaterThan(20);
+    await page.waitForTimeout(600);
+    expect(await nav.evaluate((e) => e.scrollLeft)).toBe(moved);
+    // Journal and chart of accounts share the "Books" tab; their own row names the current page.
+    await expect(page.locator('.module-subnav .module-subnav-link.active')).toHaveAttribute('href', new RegExp('/accounting/entries$'));
+    await expect(page.locator('.module-subnav .module-subnav-link')).toHaveCount(2);
+  }
+  errors.expectNone();
 });

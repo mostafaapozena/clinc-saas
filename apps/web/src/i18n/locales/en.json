@@ -275,7 +275,8 @@
         "booking": "Book the first appointment"
       }
     },
-    "context": "Your organization, access and branch"
+    "context": "Your organization, access and branch",
+    "noAppointmentsToday": "No appointments today in this scope."
   },
   "branches": {
     "title": "Branches",
@@ -3398,7 +3399,12 @@
       "cashFlow": "Cash flow",
       "budgets": "Budgets",
       "commitments": "Recurring commitments",
-      "staffFunds": "Advances and custody"
+      "staffFunds": "Advances and custody",
+      "groups": {
+        "books": "Books",
+        "statements": "Financial statements",
+        "planning": "Planning"
+      }
     },
     "notSetUp": "Accounting is not set up for this organization yet.",
     "goToSetup": "Go to setup",
@@ -4328,7 +4334,9 @@
     },
     "scopeAll": "Now · all branches you can access",
     "scopeBranch": "Now · {{branch}}",
-    "orgLevelNote": "Amounts are for this branch. The month to close, today's entries, commitments and staff funds are for the whole organization."
+    "orgLevelNote": "Amounts are for this branch. The month to close, today's entries, commitments and staff funds are for the whole organization.",
+    "accountingNotSetUp": "Accounting is not set up yet, so there are no financial figures here.",
+    "setUpAccounting": "Set up accounting"
   },
   "assets": {
     "title": "Equipment and maintenance",

@@ -9,6 +9,7 @@ import { useSpecialtyNames } from '../lib/specialties';
 import { formatMoney } from '../lib/finance';
 import { useFormatters } from '../lib/format';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
+import { errorMessage } from '../lib/errors';
 import { orgKeys, useBranchFilter, useOrg } from '../org/context';
 
 // Role- and specialty-aware workspace (docs/architecture/SPECIALTY_WORKSPACES.md): what this person
@@ -124,6 +125,14 @@ export function FocusPanel() {
   const branchName = branches.find((b) => b.id === branchId)?.name;
   const money = useMoney();
   const focus = useFocus();
+  // Unavailable is not the same as nothing to do: a failed load says so and offers a retry (UI-09).
+  if (focus.isError)
+    return (
+      <section className="card focus-panel" aria-labelledby="focus-title" data-testid="focus-panel">
+        <h2 id="focus-title">{t('workspace.focusTitle')}</h2>
+        <ErrorState message={errorMessage(t, focus.error)} onRetry={() => void focus.refetch()} />
+      </section>
+    );
   if (!focus.isSuccess) return null;
   const f = focus.data;
   const approvals = f.approvals ? (f.approvals.purchaseRequests ?? 0) + (f.approvals.directBills ?? 0) + (f.approvals.settlements ?? 0) : 0;
@@ -197,6 +206,15 @@ export function FocusPanel() {
               <Link to={`/app/${orgId}/cash`}>{t('workspace.noSession')}</Link>
             )}
           </p>
+        </div>
+      )}
+      {/* Not set up yet is a state of its own, with the way to set it up (UI-09). */}
+      {f.finance && !f.finance.ledger && (
+        <div className="focus-group" data-testid="finance-unconfigured">
+          <h3>{t('workspace.financeTitle')}</h3>
+          <EmptyState icon="book" action={<Link to={`/app/${orgId}/accounting`}>{t('workspace.setUpAccounting')}</Link>}>
+            {t('workspace.accountingNotSetUp')}
+          </EmptyState>
         </div>
       )}
       {f.finance && f.finance.ledger && (

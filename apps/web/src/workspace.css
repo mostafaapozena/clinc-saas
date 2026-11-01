@@ -543,8 +543,9 @@
   }
 }
 
+/* Compact groups keep tile-sized metrics: one metric is one tile, not a full-width band (UI-09). */
 .metrics--compact {
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 170px), 1fr));
 }
 
 .metrics--auto {
@@ -1426,6 +1427,35 @@
   border-color: var(--primary);
 }
 
+/* The pages of the active group, under the module tabs: a quieter, underlined row that wraps. */
+.module-subnav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-5);
+  border-block-end: 1px solid var(--border);
+}
+
+.module-subnav-link {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--control-sm, 32px);
+  padding-block: var(--space-1);
+  color: var(--muted);
+  text-decoration: none;
+  border-block-end: 2px solid transparent;
+  margin-block-end: -1px;
+}
+
+.module-subnav-link:hover {
+  color: var(--text);
+}
+
+.module-subnav-link.active {
+  font-weight: 600;
+  color: var(--text);
+  border-block-end-color: var(--primary);
+}
+
 .segmented--wrap {
   flex-wrap: wrap;
 }
@@ -1740,6 +1770,19 @@ html {
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
 }
 
+/* A time series spans its row; the charts after it share the next one (UI-08). */
+.chart-card--wide {
+  grid-column: 1 / -1;
+}
+
+.chart-card--wide .chart-svg {
+  max-block-size: 260px;
+}
+
+.chart-scale {
+  font-variant-numeric: tabular-nums;
+}
+
 .chart-card {
   display: grid;
   align-content: start;
@@ -1960,26 +2003,33 @@ circle.chart-stroke-5 {
   background: transparent;
 }
 
+/* Report categories are all visible at once (UI-08): a grid of two columns on phones and three from
+   tablets, never a sideways-scrolling strip that hides categories. */
 .report-categories {
-  display: flex;
-  gap: var(--space-3);
-  overflow-x: auto;
-  padding-block-end: 4px;
-  scrollbar-width: thin;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+@media (min-width: 768px) {
+  .report-categories {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-3);
+  }
 }
 
 .report-category {
-  display: inline-flex;
-  flex: 1 1 auto;
+  display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: var(--space-3);
-  min-block-size: 52px;
+  min-block-size: 48px;
   padding: var(--space-2) var(--space-4);
   font: inherit;
   font-weight: 600;
+  line-height: 1.35;
+  text-align: start;
   color: var(--text);
-  white-space: nowrap;
   cursor: pointer;
   background: var(--surface);
   border: 1px solid var(--border);
@@ -2442,7 +2492,7 @@ textarea {
 
 /* Phones: the phase 19 controls (back link, page help, settings sections, disclosures) reach 44px too. */
 @media (max-width: 767px) {
-  .content :is(summary, .page-back, .settings-nav-link, .sort-button) {
+  .content :is(summary, .page-back, .settings-nav-link, .sort-button, .module-subnav-link) {
     min-block-size: var(--touch-min);
   }
 }

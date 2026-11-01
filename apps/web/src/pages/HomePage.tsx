@@ -10,7 +10,7 @@ import { CardGrid, MetricGrid } from '../components/layout';
 import { PageHeader } from '../components/PageHeader';
 import { SpecialtySummaryCard } from '../components/specialty';
 import { TimeZoneRequired } from '../components/scheduling';
-import { ErrorState, Loading } from '../components/ui';
+import { EmptyState, ErrorState, Loading } from '../components/ui';
 import { api, query } from '../lib/api';
 import { errorMessage } from '../lib/errors';
 import { useFormatters } from '../lib/format';
@@ -204,7 +204,21 @@ function TodayCounts() {
       </div>
       {counts.isPending && <Loading />}
       {counts.isError && <ErrorState message={errorMessage(t, counts.error)} onRetry={() => void counts.refetch()} />}
-      {counts.isSuccess && (
+      {/* Zero is meaningful: a day without appointments says so once, with the next step, instead of
+          six tiles of zero (UI-09). Any activity shows every status, zeros included. */}
+      {counts.isSuccess && Object.values(counts.data.counts).every((n) => n === 0) && (
+        <EmptyState
+          icon="calendar"
+          action={
+            detail.membership.permissions.includes('appointment.book') ? (
+              <Link to={`/app/${orgId}/appointments/new`}>{t('appointments.book')}</Link>
+            ) : undefined
+          }
+        >
+          <span data-testid="today-none">{t('home.noAppointmentsToday')}</span>
+        </EmptyState>
+      )}
+      {counts.isSuccess && Object.values(counts.data.counts).some((n) => n > 0) && (
         <dl className="metrics metrics--six">
           {COUNTS.map(({ key, icon, tone, status }) => (
             <Metric

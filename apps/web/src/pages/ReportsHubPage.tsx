@@ -176,8 +176,9 @@ function FinancialSection({
           hint={t('reportsHub.source.invoiceDiscounts')}
         />
       </MetricGrid>
-      <div className="chart-grid">
+      <div className="chart-grid chart-grid--two">
         <ChartCard
+          wide
           testId="chart-trend"
           title={t('reportsHub.charts.trend')}
           icon="activity"
