@@ -14,6 +14,8 @@ import { useFormatters } from '../lib/format';
 import type { Page, Patient, PatientSummary } from '../lib/types';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { orgKeys, useBranchFilter, useOrg } from '../org/context';
+import { ActionBar } from '../components/layout';
+import { FilterBar } from '../components/data';
 
 const PAGE_SIZE = 20;
 
@@ -66,7 +68,7 @@ export function PatientsPage() {
         <div className="section-header">
           <h2 id="patients-list-title">{t('patients.listTitle')}</h2>
         </div>
-        <div className="filters">
+        <FilterBar>
           <Field id="patient-search" label={t('patients.search')}>
             <input
               id="patient-search"
@@ -91,7 +93,7 @@ export function PatientsPage() {
               <option value="number">{t('patients.sortBy.number')}</option>
             </select>
           </Field>
-        </div>
+        </FilterBar>
         {/* Only when "all branches" is really a choice for this user (UX-027). */}
         {branchFilter && detail.membership.branchScope.type === 'all' && (
           <p className="muted small">{t('patients.branchFilterNote', { branch: branchName.get(branchFilter) ?? '' })}</p>
@@ -231,14 +233,14 @@ function CreatePatient({ onCancel }: { onCancel: () => void }) {
             ))}
           </select>
         </Field>
-        <div className="form-actions">
+        <ActionBar>
           <button type="submit" className="button button--primary" disabled={create.isPending}>
             {create.isPending ? t('common.saving') : t('patients.create')}
           </button>
           <button type="button" className="button button--secondary" onClick={onCancel}>
             {t('common.cancel')}
           </button>
-        </div>
+        </ActionBar>
       </form>
     </section>
   );

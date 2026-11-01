@@ -4,7 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { api, query } from '../lib/api';
 import { newRequestKey, type Encounter } from '../lib/clinical';
 import { errorMessage } from '../lib/errors';
-import { formatMoney, type FinanceService } from '../lib/finance';
+import { type FinanceService } from '../lib/finance';
+import { useMoney } from '../lib/money';
 import { orgKeys, useOrg } from '../org/context';
 import { Field, Notice } from './ui';
 
@@ -53,7 +54,8 @@ function ChargeItem({
   item: { id: string; tooth: string | null; description: string; kind: 'procedure' | 'plan_item' };
   charged: ChargeStatus | undefined;
 }) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
+  const money = useMoney();
   const { orgId } = useOrg();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
@@ -116,7 +118,7 @@ function ChargeItem({
               <option value="">{t('common.choose')}</option>
               {services.data?.map((s) => (
                 <option key={s.id} value={s.id}>
-                  {s.name} — {formatMoney(s.price, s.currency, i18n.language)}
+                  {s.name} — {money(s.price, s.currency)}
                 </option>
               ))}
             </select>

@@ -9,6 +9,7 @@ import { errorMessage } from '../lib/errors';
 import { useFormatters } from '../lib/format';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { orgKeys, useOrg } from '../org/context';
+import { FilterBar } from '../components/data';
 
 const ACTIONS = [
   'encounter.created',
@@ -58,7 +59,7 @@ export function ClinicalAuditPage() {
     <>
       <PageHeader title={t('clinicalAudit.title')} subtitle={t('clinicalAudit.subtitle')} />
       <Notice kind="info">{t('clinicalAudit.metadataOnly')}</Notice>
-      <div className="filters">
+      <FilterBar>
         <Field id="audit-action" label={t('clinicalAudit.action')}>
           <select id="audit-action" value={action} onChange={(e) => setAction(e.target.value)}>
             <option value="">{t('clinicalAudit.allActions')}</option>
@@ -69,7 +70,7 @@ export function ClinicalAuditPage() {
             ))}
           </select>
         </Field>
-      </div>
+      </FilterBar>
       {events.isPending && <Loading />}
       {events.isError && <ErrorState message={errorMessage(t, events.error)} onRetry={() => void events.refetch()} />}
       {events.isSuccess && rows.length === 0 && <EmptyState icon="shield">{t('clinicalAudit.empty')}</EmptyState>}

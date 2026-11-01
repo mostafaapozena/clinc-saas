@@ -12,6 +12,7 @@ import { usePageMeta } from '../lib/pageMeta';
 import { PHONE_COUNTRIES, type PhoneCountry } from '../lib/types';
 import { Breadcrumb, IconTile } from './shared';
 import { SPECIALTY_SOLUTION_CODES, inquiryPath } from './solutions';
+import { ActionBar } from '../components/layout';
 
 const INTENTS = ['demo', 'question', 'other'] as const;
 type Intent = (typeof INTENTS)[number];
@@ -269,12 +270,12 @@ export function ContactPage() {
                       </Field>
                     </div>
                   </fieldset>
-                  <div className="form-actions">
+                  <ActionBar>
                     <span />
                     <button type="submit" className="button button--primary button--large">
                       {t('site.contact.next')} <Icon name="arrowForward" />
                     </button>
-                  </div>
+                  </ActionBar>
                 </>
               ) : (
                 <>
@@ -304,14 +305,14 @@ export function ContactPage() {
                       {...describedBy('contact-message', errors.message, t('site.contact.messageHint'))}
                     />
                   </Field>
-                  <div className="form-actions">
+                  <ActionBar>
                     <button type="button" className="button button--ghost" onClick={() => setStep(1)}>
                       <Icon name="arrowBack" /> {t('site.contact.back')}
                     </button>
                     <button type="submit" className="button button--primary button--large" disabled={send.isPending}>
                       {send.isPending ? t('site.inquiry.submitting') : t('site.contact.submit')}
                     </button>
-                  </div>
+                  </ActionBar>
                 </>
               )}
             </form>

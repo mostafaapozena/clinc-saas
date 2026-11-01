@@ -12,6 +12,7 @@ import { useSpecialtyNames } from '../lib/specialties';
 import type { Branch } from '../lib/types';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { orgKeys, useOrg } from '../org/context';
+import { ActionBar } from '../components/layout';
 
 export function BranchesPage() {
   const { t } = useTranslation();
@@ -245,14 +246,14 @@ function EditBranchRow({ branch, onDone }: { branch: Branch; onDone: (savedName?
             onChange={setCodes}
           />
         )}
-        <div className="form-actions">
+        <ActionBar>
           <button type="submit" className="button button--primary" disabled={save.isPending}>
             {save.isPending ? t('common.saving') : t('common.save')}
           </button>
           <button type="button" className="button button--secondary" onClick={() => onDone()}>
             {t('common.cancel')}
           </button>
-        </div>
+        </ActionBar>
       </form>
     </li>
   );

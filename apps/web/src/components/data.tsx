@@ -2,6 +2,7 @@ import { Fragment, useEffect, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { formatMoney } from '../lib/finance';
 import { useFormatters } from '../lib/format';
+import { ActionBar } from './layout';
 
 // Data display components of the design system (docs/DESIGN_SYSTEM.md §4): tables, pagination,
 // filters, key/value lists, money, dates and confirmations. Pages use these instead of assembling
@@ -123,10 +124,20 @@ export function Pagination({ page, pageSize, total, onPage }: { page: number; pa
 }
 
 /** Filters above a list: one responsive row, and a reset when any filter is set. */
-export function FilterBar({ children, active, onReset }: { children: ReactNode; active?: boolean; onReset?: () => void }) {
+export function FilterBar({
+  children,
+  active,
+  onReset,
+  className,
+}: {
+  children: ReactNode;
+  active?: boolean;
+  onReset?: () => void;
+  className?: string;
+}) {
   const { t } = useTranslation();
   return (
-    <div className="filters" role="group" aria-label={t('common.filters')}>
+    <div className={className ? `filters ${className}` : 'filters'} role="group" aria-label={t('common.filters')}>
       {children}
       {active && onReset && (
         <div className="filters-reset">
@@ -226,7 +237,7 @@ export function ConfirmAction({
   return (
     <div className="confirm-panel" role="group" aria-label={ariaLabel ?? label}>
       <p>{message}</p>
-      <div className="form-actions form-actions--start">
+      <ActionBar>
         <button
           type="button"
           className={tone}
@@ -241,7 +252,7 @@ export function ConfirmAction({
         <button ref={cancelRef} type="button" className="button button--secondary" onClick={() => setOpen(false)}>
           {t('common.cancel')}
         </button>
-      </div>
+      </ActionBar>
     </div>
   );
 }

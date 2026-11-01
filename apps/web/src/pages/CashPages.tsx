@@ -22,9 +22,11 @@ import { useFormatters } from '../lib/format';
 import { showToast } from '../lib/toast';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { useOrg } from '../org/context';
-import { useAccountingSettings, useMoney } from '../lib/useAccounting';
+import { useMoney } from '../lib/money';
+import { useAccountingSettings } from '../lib/useAccounting';
 import { AccountingNav } from './AccountingPages';
 import { DateText } from '../components/data';
+import { ActionBar, CardGrid } from '../components/layout';
 
 // Cashboxes, bank accounts, cashier sessions, vouchers and bank reconciliation
 // (docs/architecture/ACCOUNTING.md, "Cash and banks"). The API computes every expected amount.
@@ -143,11 +145,11 @@ function OpenSessionForm({ boxes }: { boxes: CashAccount[] }) {
         <input id="session-note" maxLength={300} value={note} onChange={(e) => setNote(e.target.value)} />
       </Field>
       {open.isError && <Notice kind="error">{errorMessage(t, open.error)}</Notice>}
-      <div className="form-actions">
+      <ActionBar>
         <button type="submit" className="button button--primary" disabled={open.isPending}>
           {t('cash.openSession')}
         </button>
-      </div>
+      </ActionBar>
     </form>
   );
 }
@@ -205,11 +207,11 @@ function CloseSessionForm({ session, expected, currency }: { session: CashSessio
         </Notice>
       )}
       {close.isError && <Notice kind="error">{errorMessage(t, close.error)}</Notice>}
-      <div className="form-actions">
+      <ActionBar>
         <button type="submit" className="button button--primary" disabled={close.isPending || value === null}>
           {t('cash.closeSession')}
         </button>
-      </div>
+      </ActionBar>
     </form>
   );
 }
@@ -383,11 +385,11 @@ function VoucherForm({ boxes, accounts }: { boxes: CashAccount[]; accounts: Ledg
         </Field>
       </div>
       {save.isError && <Notice kind="error">{errorMessage(t, save.error)}</Notice>}
-      <div className="form-actions">
+      <ActionBar>
         <button type="submit" className="button button--primary" disabled={save.isPending}>
           {t('cash.saveVoucher')}
         </button>
-      </div>
+      </ActionBar>
     </form>
   );
 }
@@ -442,11 +444,11 @@ function AddCashAccountForm() {
         </select>
       </Field>
       {add.isError && <Notice kind="error">{errorMessage(t, add.error)}</Notice>}
-      <div className="form-actions">
+      <ActionBar>
         <button type="submit" className="button button--secondary" disabled={add.isPending}>
           {t('cash.addAccount')}
         </button>
-      </div>
+      </ActionBar>
     </form>
   );
 }
@@ -494,7 +496,7 @@ export function CashPage() {
       )}
       {boxes.isError && <ErrorState message={errorMessage(t, boxes.error)} onRetry={() => boxes.refetch()} />}
       {configured && boxes.isSuccess && sessions.isSuccess && (
-        <div className="card-grid card-grid--wide">
+        <CardGrid wide>
           <MySessionCard boxes={boxes.data.accounts} sessions={sessions.data.sessions} currency={currency} />
           <section className="card" aria-labelledby="cash-accounts-title">
             <h2 id="cash-accounts-title">{t('cash.accounts')}</h2>
@@ -524,7 +526,7 @@ export function CashPage() {
             )}
             {can('accounting.manage') && orgWide && <AddCashAccountForm />}
           </section>
-        </div>
+        </CardGrid>
       )}
       {configured && can('cash.voucher.create') && boxes.isSuccess && ledger.isSuccess && (
         <VoucherForm boxes={boxes.data.accounts} accounts={ledger.data.accounts} />
@@ -622,7 +624,7 @@ export function CashSessionPage() {
         </Link>
       </PageHeader>
       <AccountingNav />
-      <div className="card-grid card-grid--wide">
+      <CardGrid wide>
         <section className="card" aria-labelledby="session-summary-title">
           <h2 id="session-summary-title">{t('cash.summary')}</h2>
           <dl className="details">
@@ -665,7 +667,7 @@ export function CashSessionPage() {
             <CloseSessionForm session={s} expected={expectedNow} currency={currency} />
           </section>
         )}
-      </div>
+      </CardGrid>
       <section className="card" aria-labelledby="movements-title">
         <h2 id="movements-title">{t('cash.movements')}</h2>
         {movements.length === 0 ? (
@@ -782,11 +784,11 @@ export function BankStatementPage() {
           <textarea id="statement-csv" rows={5} dir="ltr" required value={csv} onChange={(e) => setCsv(e.target.value)} />
         </Field>
         {importLines.isError && <Notice kind="error">{errorMessage(t, importLines.error)}</Notice>}
-        <div className="form-actions">
+        <ActionBar>
           <button type="submit" className="button button--primary" disabled={importLines.isPending}>
             {t('cash.import')}
           </button>
-        </div>
+        </ActionBar>
       </form>
       <section className="card" aria-labelledby="lines-title">
         <h2 id="lines-title">{t('cash.statementLines')}</h2>

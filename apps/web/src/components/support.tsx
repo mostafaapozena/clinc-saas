@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { errorMessage } from '../lib/errors';
 import { useFormatters } from '../lib/format';
 import { Field, Notice } from './ui';
+import { ActionBar } from './layout';
 
 // A support conversation, shared by the clinic's support page and the operator queue.
 
@@ -77,12 +78,12 @@ export function SupportConversation({
         <Field id="support-reply" label={t('support.reply')}>
           <textarea id="support-reply" rows={3} maxLength={2000} value={body} onChange={(e) => setBody(e.target.value)} />
         </Field>
-        <div className="form-actions">
+        <ActionBar>
           <button type="submit" className="button button--primary" disabled={replying || !body.trim()}>
             {t('support.sendReply')}
           </button>
           {extraActions}
-        </div>
+        </ActionBar>
       </form>
     </section>
   );

@@ -14,6 +14,7 @@ import { todayIn } from '../lib/time';
 import type { Practitioner, ScheduleException, WeeklyInterval } from '../lib/types';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { orgKeys, useOrg } from '../org/context';
+import { ActionBar } from '../components/layout';
 
 const WEEK_ORDER = [6, 0, 1, 2, 3, 4, 5]; // Saturday first, as in Egypt and Saudi Arabia
 
@@ -232,7 +233,7 @@ function WeeklySchedule({ practitioner, editable }: { practitioner: Practitioner
               </button>
             </div>
           ))}
-          <div className="form-actions">
+          <ActionBar>
             <button
               type="button"
               className="button button--secondary"
@@ -247,7 +248,7 @@ function WeeklySchedule({ practitioner, editable }: { practitioner: Practitioner
             <button type="button" className="button button--secondary" onClick={() => setEditing(false)}>
               {t('common.cancel')}
             </button>
-          </div>
+          </ActionBar>
         </form>
       )}
     </section>

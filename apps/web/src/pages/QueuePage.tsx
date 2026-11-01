@@ -13,6 +13,8 @@ import { todayIn } from '../lib/time';
 import type { Appointment, Practitioner } from '../lib/types';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { orgKeys, useBranchFilter, useOrg, useSpecialtyFilter } from '../org/context';
+import { CardGrid } from '../components/layout';
+import { FilterBar } from '../components/data';
 
 const REFRESH_MS = 30_000;
 
@@ -65,7 +67,7 @@ export function QueuePage() {
     <>
       <PageHeader title={t('queue.title')} subtitle={t('queue.subtitle')} />
       {(practitioners.data?.length ?? 0) > 1 && (
-        <div className="filters">
+        <FilterBar>
           <Field id="queue-practitioner" label={t('appointments.practitioner')}>
             <select id="queue-practitioner" value={practitionerId} onChange={(e) => setPractitionerId(e.target.value)}>
               <option value="">{t('appointments.allPractitioners')}</option>
@@ -76,15 +78,15 @@ export function QueuePage() {
               ))}
             </select>
           </Field>
-        </div>
+        </FilterBar>
       )}
       {queue.isPending && <Loading />}
       {queue.isError && <ErrorState message={errorMessage(t, queue.error)} onRetry={() => void queue.refetch()} />}
       {queue.isSuccess && (
-        <div className="card-grid card-grid--wide">
+        <CardGrid wide>
           <QueueSection id="waiting" title={t('queue.waiting')} empty={t('queue.noneWaiting')} items={queue.data.waiting} timeLabel="arrival" />
           <QueueSection id="in-progress" title={t('queue.inProgress')} empty={t('queue.noneInProgress')} items={queue.data.inProgress} timeLabel="started" />
-        </div>
+        </CardGrid>
       )}
       {can('appointment.front_desk') && expected.isSuccess && (
         <QueueSection id="expected" title={t('queue.expected')} empty={t('queue.noneExpected')} items={expected.data} timeLabel="scheduled" />

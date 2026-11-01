@@ -3,17 +3,20 @@ import { Fragment, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Metric } from '../components/Metric';
 import { PageHeader } from '../components/PageHeader';
-import { EmptyState, ErrorState, Field, Loading, Notice } from '../components/ui';
+import { Badge, EmptyState, ErrorState, Field, Loading, Notice } from '../components/ui';
 import { accountName, accountingKeys, type AccountType } from '../lib/accounting';
 import { api, query } from '../lib/api';
 import { csvMoney, downloadCsv } from '../lib/csv';
 import { errorMessage } from '../lib/errors';
 import { moneyInput, parseMoney } from '../lib/finance';
 import { showToast } from '../lib/toast';
-import { useAccountingSettings, useMoney } from '../lib/useAccounting';
+import { useMoney } from '../lib/money';
+import { useAccountingSettings } from '../lib/useAccounting';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { useOrg } from '../org/context';
 import { AccountingNav } from './AccountingPages';
+import { ActionBar, MetricGrid } from '../components/layout';
+import { FilterBar } from '../components/data';
 
 // Budgets, budget against actual, cash flow and recurring commitments
 // (docs/architecture/PLANNING.md). Everything here reads the posted ledger; nothing posts.
@@ -250,7 +253,7 @@ function BudgetEditor({ data, year, branchId }: { data: BudgetResponse; year: nu
       </p>
       {save.isError && <Notice kind="error">{errorMessage(t, save.error)}</Notice>}
       {transition.isError && <Notice kind="error">{errorMessage(t, transition.error)}</Notice>}
-      <div className="form-actions">
+      <ActionBar>
         {editable && (
           <button type="button" className="button button--primary" disabled={save.isPending} onClick={() => save.mutate()}>
             {t('planning.budget.save')}
@@ -266,7 +269,7 @@ function BudgetEditor({ data, year, branchId }: { data: BudgetResponse; year: nu
             {approved ? t('planning.budget.reopen') : t('planning.budget.approve')}
           </button>
         )}
-      </div>
+      </ActionBar>
     </section>
   );
 }
@@ -308,7 +311,7 @@ function VarianceReport({ year, branchId }: { year: number; branchId: string }) 
           </button>
         )}
       </div>
-      <div className="filters">
+      <FilterBar>
         <Field id="variance-through" label={t('planning.variance.through')}>
           <select id="variance-through" value={through || String(d?.through ?? '')} onChange={(e) => setThrough(e.target.value)}>
             {MONTHS.map((i) => (
@@ -318,17 +321,17 @@ function VarianceReport({ year, branchId }: { year: number; branchId: string }) 
             ))}
           </select>
         </Field>
-      </div>
+      </FilterBar>
       {report.isPending && <Loading />}
       {report.isError && <ErrorState message={errorMessage(t, report.error)} onRetry={() => report.refetch()} />}
       {d && !d.budget && <Notice kind="info">{t('planning.variance.noBudget')}</Notice>}
       {d && d.rows.length === 0 && <EmptyState icon="book">{t('accounting.noMovements')}</EmptyState>}
       {d && d.rows.length > 0 && (
         <>
-          <dl className="metrics metrics--compact">
+          <MetricGrid columns="compact">
             <Metric icon="chart" label={t('planning.variance.resultBudget')} value={d.totals.result.budget} format={(v) => money(v, d.currency)} />
             <Metric icon="wallet" label={t('planning.variance.resultActual')} value={d.totals.result.actual} format={(v) => money(v, d.currency)} />
-          </dl>
+          </MetricGrid>
           <div className="table-wrap">
             <table className="data-table" data-testid="budget-vs-actual">
               <thead>
@@ -345,7 +348,7 @@ function VarianceReport({ year, branchId }: { year: number; branchId: string }) 
                   <tr key={r.account.id}>
                     <td data-label={t('accounting.account')}>
                       <bdi dir="ltr">{r.account.code}</bdi> {accountName(t, r.account)}
-                      {r.unbudgeted && <span className="badge badge--warning"> {t('planning.variance.unbudgeted')}</span>}
+                      {r.unbudgeted && <Badge tone="warning"> {t('planning.variance.unbudgeted')}</Badge>}
                     </td>
                     <td data-label={t('planning.variance.budget')}>{money(r.budget, d.currency)}</td>
                     <td data-label={t('planning.variance.actual')}>{money(r.actual, d.currency)}</td>
@@ -392,7 +395,7 @@ export function BudgetsPage() {
           <h2 id="budget-filters" className="visually-hidden">
             {t('accounting.reportFilters')}
           </h2>
-          <div className="filters">
+          <FilterBar>
             <Field id="budget-year" label={t('planning.budget.year')}>
               <select id="budget-year" value={y} onChange={(e) => setYear(Number(e.target.value))}>
                 {[y - 1, y, y + 1].map((v) => (
@@ -412,7 +415,7 @@ export function BudgetsPage() {
                 ))}
               </select>
             </Field>
-          </div>
+          </FilterBar>
         </section>
       )}
       {budget.isPending && budget.fetchStatus !== 'idle' && <Loading />}
@@ -451,14 +454,14 @@ export function CashFlowPage() {
         <h2 id="cash-flow-filters" className="visually-hidden">
           {t('accounting.reportFilters')}
         </h2>
-        <div className="filters">
+        <FilterBar>
           <Field id="cf-from" label={t('accounting.from')}>
             <input id="cf-from" type="date" value={params.from} onChange={(e) => setFrom(e.target.value)} />
           </Field>
           <Field id="cf-to" label={t('accounting.to')}>
             <input id="cf-to" type="date" value={params.to} onChange={(e) => setTo(e.target.value)} />
           </Field>
-        </div>
+        </FilterBar>
       </section>
       {report.isPending && report.fetchStatus !== 'idle' && <Loading />}
       {report.isError && <ErrorState message={errorMessage(t, report.error)} onRetry={() => report.refetch()} />}
@@ -496,11 +499,11 @@ export function CashFlowPage() {
           <span className={d.reconciled ? 'badge badge--success' : 'badge badge--danger'}>
             {d.reconciled ? t('planning.cashFlow.reconciled') : t('planning.cashFlow.notReconciled')}
           </span>
-          <dl className="metrics metrics--compact">
+          <MetricGrid columns="compact">
             <Metric icon="cash" label={t('planning.cashFlow.opening')} value={d.opening} format={(v) => money(v, d.currency)} />
             <Metric icon="chart" label={t('planning.cashFlow.net')} value={d.net} format={(v) => money(v, d.currency)} />
             <Metric icon="cash" label={t('planning.cashFlow.closing')} value={d.closing} format={(v) => money(v, d.currency)} />
-          </dl>
+          </MetricGrid>
           {d.sections.map((s) => (
             <div key={s.activity} className="table-wrap">
               <table className="data-table">
@@ -680,11 +683,11 @@ function AddCommitment({ accounts, onDone }: { accounts: AccountRef[]; onDone: (
         </Field>
       </div>
       {add.isError && <Notice kind="error">{errorMessage(t, add.error)}</Notice>}
-      <div className="form-actions">
+      <ActionBar>
         <button type="submit" className="button button--primary" disabled={add.isPending}>
           {t('planning.commitments.add')}
         </button>
-      </div>
+      </ActionBar>
     </form>
   );
 }

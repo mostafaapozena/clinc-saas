@@ -6,6 +6,7 @@ import { errorMessage } from '../lib/errors';
 import { showToast } from '../lib/toast';
 import { orgKeys, useOrg } from '../org/context';
 import { Notice } from './ui';
+import { ActionBar } from './layout';
 
 const ERP_MODULES = ['accounting', 'cash', 'inventory', 'purchasing', 'compensation', 'assets'] as const;
 const REQUIRES: Partial<Record<(typeof ERP_MODULES)[number], (typeof ERP_MODULES)[number]>> = { cash: 'accounting', compensation: 'accounting' };
@@ -45,11 +46,11 @@ export function ModuleSettings() {
         ))}
       </div>
       {save.isError && <Notice kind="error">{errorMessage(t, save.error)}</Notice>}
-      <div className="form-actions">
+      <ActionBar>
         <button type="button" className="button button--primary" disabled={save.isPending} onClick={() => save.mutate()}>
           {t('common.save')}
         </button>
-      </div>
+      </ActionBar>
     </section>
   );
 }

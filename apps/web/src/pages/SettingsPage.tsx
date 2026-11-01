@@ -17,6 +17,7 @@ import { DEFAULT_TIME_ZONE, ORGANIZATION_TYPES, TIME_ZONES, type OrganizationTyp
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { useUnsavedSections } from '../lib/useUnsavedSections';
 import { orgKeys, useOrg } from '../org/context';
+import { ActionBar } from '../components/layout';
 
 export function SettingsPage() {
   const { t } = useTranslation();
@@ -73,14 +74,14 @@ export function SettingsPage() {
         <div className="confirm-panel" role="alertdialog" aria-labelledby="settings-leave-title">
           <h3 id="settings-leave-title">{t('settings.leaveTitle')}</h3>
           <p>{t('settings.leaveBody')}</p>
-          <div className="form-actions form-actions--start">
+          <ActionBar>
             <button type="button" className="button button--primary" onClick={() => blocker.reset?.()}>
               {t('clinical.stay')}
             </button>
             <button type="button" className="button button--danger" onClick={() => blocker.proceed?.()}>
               {t('clinical.leave')}
             </button>
-          </div>
+          </ActionBar>
         </div>
       )}
       <section className="card" aria-labelledby="org-settings-title">
@@ -236,11 +237,11 @@ function SpecialtySettings() {
             ))}
           </div>
         )}
-        <div className="form-actions">
+        <ActionBar>
           <button type="submit" className="button button--primary" disabled={codes.length === 0 || save.isPending}>
             {save.isPending ? t('common.saving') : t('settings.saveSpecialties')}
           </button>
-        </div>
+        </ActionBar>
       </form>
     </section>
   );

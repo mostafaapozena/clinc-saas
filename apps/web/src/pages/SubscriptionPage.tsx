@@ -7,11 +7,12 @@ import { PriceText, SubscriptionStatusBadge } from '../components/subscription';
 import { EmptyState, ErrorState, Loading, Notice } from '../components/ui';
 import { api } from '../lib/api';
 import { errorMessage } from '../lib/errors';
-import { formatMoney } from '../lib/finance';
 import { useFormatters } from '../lib/format';
 import { planName, type BillingPolicy, type Checkout, type Plan, type Subscription, type Usage } from '../lib/operator';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { useOrg } from '../org/context';
+import { ActionBar, CardGrid } from '../components/layout';
+import { Money } from '../components/data';
 
 // The organization's platform subscription (what the clinic has with raclinic) — separate from the
 // clinic's own finances. Payments, where enabled, go through a clearly labelled SIMULATOR only.
@@ -71,14 +72,14 @@ function CancelPanel({ sub, onDone }: { sub: Subscription; onDone: () => void })
         <input type="checkbox" checked={understood} onChange={(e) => setUnderstood(e.target.checked)} /> {t('subscription.cancel.understand')}
       </label>
       {cancel.isError && <Notice kind="error">{errorMessage(t, cancel.error)}</Notice>}
-      <div className="form-actions">
+      <ActionBar>
         <button type="button" className="button button--danger" disabled={!understood || cancel.isPending} onClick={() => cancel.mutate()}>
           {t('subscription.cancel.confirm')}
         </button>
         <button type="button" className="button button--secondary" onClick={() => setOpen(false)}>
           {t('subscription.cancel.keep')}
         </button>
-      </div>
+      </ActionBar>
     </div>
   );
 }
@@ -144,7 +145,7 @@ export function SubscriptionPage() {
       ) : (
         <Notice kind="info">{t('subscription.noProvider')}</Notice>
       )}
-      <div className="card-grid card-grid--wide">
+      <CardGrid wide>
         <section className="card" aria-labelledby="subscription-current-title">
           <h2 id="subscription-current-title">{t('subscription.current')}</h2>
           {!sub ? (
@@ -241,7 +242,7 @@ export function SubscriptionPage() {
           </ul>
           <p className="muted small">{t(`subscription.enforcement.${enforcement}`)}</p>
         </section>
-      </div>
+      </CardGrid>
       <section className="card" aria-labelledby="subscription-plans-title">
         <h2 id="subscription-plans-title">{t('subscription.plans')}</h2>
         {checkout.isError && <Notice kind="error">{errorMessage(t, checkout.error)}</Notice>}
@@ -313,7 +314,7 @@ function limitsSummary(t: (key: string, o?: Record<string, unknown>) => string, 
 
 /** SIMULATOR checkout: stands in for a provider's hosted payment page. No card details, no money. */
 export function SimulatorCheckoutPage() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { orgId } = useOrg();
   const { checkoutId = '' } = useParams();
   const fmt = useFormatters();
@@ -349,7 +350,7 @@ export function SimulatorCheckoutPage() {
           </dd>
           <dt>{t('subscription.price')}</dt>
           <dd>
-            {formatMoney(c.price.amountMinor, c.price.currency, i18n.resolvedLanguage ?? 'ar')} /{' '}
+            <Money minor={c.price.amountMinor} currency={c.price.currency} /> /{' '}
             {t(`subscription.interval.${c.price.interval}`)}
           </dd>
           <dt>{t('subscription.statusLabel')}</dt>
@@ -365,7 +366,7 @@ export function SimulatorCheckoutPage() {
         </dl>
         {simulate.isError && <Notice kind="error">{errorMessage(t, simulate.error)}</Notice>}
         {c.status === 'open' ? (
-          <div className="form-actions">
+          <ActionBar>
             <button
               type="button"
               className="button button--primary"
@@ -382,7 +383,7 @@ export function SimulatorCheckoutPage() {
             >
               {t('subscription.simulateFailure')}
             </button>
-          </div>
+          </ActionBar>
         ) : (
           <Notice kind={c.status === 'completed' ? 'success' : 'info'}>{t(`subscription.checkoutResult.${c.status}`)}</Notice>
         )}

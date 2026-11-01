@@ -12,6 +12,7 @@ import { useFormatters } from '../lib/format';
 import type { Appointment } from '../lib/types';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { orgKeys, useOrg } from '../org/context';
+import { CardGrid } from '../components/layout';
 
 export function AppointmentDetailPage() {
   const { t } = useTranslation();
@@ -66,7 +67,7 @@ export function AppointmentDetailPage() {
       </PageHeader>
       {fresh && state?.booked && <Notice kind="success">{t('booking.booked')}</Notice>}
       {fresh && state?.rescheduled && <Notice kind="success">{t('booking.rescheduled')}</Notice>}
-      <div className="card-grid card-grid--wide">
+      <CardGrid wide>
         <section className="card" aria-labelledby="appointment-info-title">
           <h2 id="appointment-info-title">{t('appointments.information')}</h2>
           <dl className="details">
@@ -133,7 +134,7 @@ export function AppointmentDetailPage() {
           {!['scheduled', 'checked_in', 'in_progress'].includes(a.status) && <p className="muted">{t('appointments.finalState')}</p>}
         </section>
         <VisitRecordCard appointment={a} />
-      </div>
+      </CardGrid>
     </>
   );
 }

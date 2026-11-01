@@ -10,6 +10,7 @@ import { showToast } from '../lib/toast';
 import type { Appointment, AppointmentStatus, Page, PatientSummary, Slot, StatusAction } from '../lib/types';
 import { orgKeys, useOrg } from '../org/context';
 import { EmptyState, ErrorState, Field, Loading, Notice } from './ui';
+import { ActionBar } from './layout';
 
 export function StatusBadge({ status }: { status: AppointmentStatus }) {
   const { t } = useTranslation();
@@ -87,14 +88,14 @@ export function AppointmentActions({ appointment, compact = false }: { appointme
               onChange={(e) => setReason(e.target.value)}
             />
           </Field>
-          <div className="form-actions">
+          <ActionBar>
             <button type="submit" className="button button--danger" disabled={run.isPending || (reasonRequired && !reason.trim())}>
               {t('appointments.confirmCancel')}
             </button>
             <button type="button" className="button button--secondary" onClick={() => setCancelling(false)}>
               {t('common.back')}
             </button>
-          </div>
+          </ActionBar>
         </form>
       ) : (
         <div className="row-actions">

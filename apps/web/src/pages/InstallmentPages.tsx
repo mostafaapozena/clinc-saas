@@ -7,11 +7,13 @@ import { EmptyState, ErrorState, Field, Loading, Notice } from '../components/ui
 import { api, query } from '../lib/api';
 import { newRequestKey } from '../lib/clinical';
 import { errorMessage } from '../lib/errors';
-import { formatMoney, moneyInput, parseMoney } from '../lib/finance';
+import { moneyInput, parseMoney } from '../lib/finance';
 import { showToast } from '../lib/toast';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { orgKeys, useOrg } from '../org/context';
 import { DateText } from '../components/data';
+import { ActionBar } from '../components/layout';
+import { useCurrencyMoney } from '../lib/money';
 
 // Installment plans, rescheduling and bad-debt write-offs on patient invoices
 // (docs/architecture/INSTALLMENTS.md). The plan only schedules the open balance: receipts are
@@ -59,11 +61,6 @@ function generateSchedule(total: number, count: number, firstDue: string): Item[
   }));
 }
 
-function useMoney(currency: string) {
-  const { i18n } = useTranslation();
-  return (minor: number) => formatMoney(minor, currency, i18n.language);
-}
-
 function ScheduleEditor({
   total,
   currency,
@@ -80,7 +77,7 @@ function ScheduleEditor({
   withReason?: boolean;
 }) {
   const { t } = useTranslation();
-  const money = useMoney(currency);
+  const money = useCurrencyMoney(currency);
   const [count, setCount] = useState('3');
   const [firstDue, setFirstDue] = useState('');
   const [items, setItems] = useState<Item[]>([]);
@@ -155,11 +152,11 @@ function ScheduleEditor({
           <input id="ip-reason" required minLength={3} maxLength={300} value={reason} onChange={(e) => setReason(e.target.value)} />
         </Field>
       )}
-      <div className="form-actions">
+      <ActionBar>
         <button type="submit" className="button button--primary" disabled={pending || items.length === 0 || sum !== total}>
           {submitLabel}
         </button>
-      </div>
+      </ActionBar>
     </form>
   );
 }
@@ -167,7 +164,7 @@ function ScheduleEditor({
 function WriteOff({ invoiceId, balance, currency, onDone }: { invoiceId: string; balance: number; currency: string; onDone: () => void }) {
   const { t } = useTranslation();
   const { orgId } = useOrg();
-  const money = useMoney(currency);
+  const money = useCurrencyMoney(currency);
   const [amount, setAmount] = useState(() => moneyInput(balance));
   const [reason, setReason] = useState('');
   const [key, setKey] = useState(newRequestKey);
@@ -199,18 +196,18 @@ function WriteOff({ invoiceId, balance, currency, onDone }: { invoiceId: string;
         </Field>
       </div>
       {run.isError && <Notice kind="error">{errorMessage(t, run.error)}</Notice>}
-      <div className="form-actions">
+      <ActionBar>
         <button type="submit" className="button button--secondary" disabled={run.isPending}>
           {t('installments.writeOff')}
         </button>
-      </div>
+      </ActionBar>
     </form>
   );
 }
 
 function PlanTable({ plan, currency }: { plan: Plan; currency: string }) {
   const { t } = useTranslation();
-  const money = useMoney(currency);
+  const money = useCurrencyMoney(currency);
   return (
     <div className="table-wrap">
       <table className="data-table" data-testid="installment-schedule">
@@ -245,7 +242,7 @@ function PlanTable({ plan, currency }: { plan: Plan; currency: string }) {
 export function InvoiceInstallments({ invoice }: { invoice: { id: string; status: string; balance: number; currency: string } }) {
   const { t } = useTranslation();
   const { orgId, can } = useOrg();
-  const money = useMoney(invoice.currency);
+  const money = useCurrencyMoney(invoice.currency);
   const queryClient = useQueryClient();
   const [mode, setMode] = useState<'reschedule' | 'writeOff' | null>(null);
   const params = { invoiceId: invoice.id };

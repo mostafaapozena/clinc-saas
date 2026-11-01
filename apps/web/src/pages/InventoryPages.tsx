@@ -6,7 +6,7 @@ import { Link } from 'react-router';
 import { Metric } from '../components/Metric';
 import { PageHeader } from '../components/PageHeader';
 import { DataTable, DateText, FilterBar, Money, Pagination, Quantity } from '../components/data';
-import { CardGrid, MetricGrid, ModuleTabs } from '../components/layout';
+import { ActionBar, CardGrid, MetricGrid, ModuleTabs } from '../components/layout';
 import { Badge, EmptyState, ErrorState, Field, Loading, Notice } from '../components/ui';
 import { api, query } from '../lib/api';
 import { newRequestKey } from '../lib/clinical';
@@ -229,11 +229,11 @@ function OperationForm({ items, warehouses }: { items: StockItem[]; warehouses: 
         </Field>
       </div>
       {save.isError && <Notice kind="error">{errorMessage(t, save.error)}</Notice>}
-      <div className="form-actions">
+      <ActionBar>
         <button type="submit" className="button button--primary" disabled={save.isPending || !itemId || n === null}>
           {t('inventory.save')}
         </button>
-      </div>
+      </ActionBar>
     </form>
   );
 }
@@ -477,11 +477,11 @@ function AddItemForm() {
         </Field>
       </div>
       {add.isError && <Notice kind="error">{errorMessage(t, add.error)}</Notice>}
-      <div className="form-actions">
+      <ActionBar>
         <button type="submit" className="button button--primary" disabled={add.isPending}>
           {t('inventory.addItem')}
         </button>
-      </div>
+      </ActionBar>
     </form>
   );
 }
@@ -522,11 +522,11 @@ function AddWarehouseForm() {
         </select>
       </Field>
       {add.isError && <Notice kind="error">{errorMessage(t, add.error)}</Notice>}
-      <div className="form-actions">
+      <ActionBar>
         <button type="submit" className="button button--secondary" disabled={add.isPending}>
           {t('inventory.addWarehouse')}
         </button>
-      </div>
+      </ActionBar>
     </form>
   );
 }

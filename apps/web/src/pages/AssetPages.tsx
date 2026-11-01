@@ -3,15 +3,17 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router';
 import { PageHeader } from '../components/PageHeader';
-import { EmptyState, ErrorState, Field, Loading, Notice } from '../components/ui';
+import { Badge, EmptyState, ErrorState, Field, Loading, Notice } from '../components/ui';
 import { api } from '../lib/api';
 import { errorMessage } from '../lib/errors';
-import { formatMoney, parseMoney } from '../lib/finance';
+import { parseMoney } from '../lib/finance';
 import { useFormatters } from '../lib/format';
 import { showToast } from '../lib/toast';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
-import { orgKeys, useOrg } from '../org/context';
+import { useOrg } from '../org/context';
 import { DateText } from '../components/data';
+import { ActionBar } from '../components/layout';
+import { useOrgMoney } from '../lib/money';
 
 // Equipment register and maintenance (docs/architecture/ASSETS.md). Costs come from the supplier
 // bill or cash voucher they were paid with; this page never records a cost twice.
@@ -56,16 +58,6 @@ type MaintenanceRecord = {
 };
 const keys = { all: (orgId: string) => ['org', orgId, 'assets'] as const, one: (orgId: string, id: string) => ['org', orgId, 'assets', id] as const };
 const badge = (s: Asset['status']) => (s === 'active' ? 'badge badge--active' : s === 'out_of_service' ? 'badge badge--suspended' : 'badge');
-
-function useMoney() {
-  const { i18n } = useTranslation();
-  const { orgId } = useOrg();
-  const settings = useQuery({
-    queryKey: orgKeys.financeSettings(orgId),
-    queryFn: ({ signal }) => api<{ currency: string | null }>(`/orgs/${orgId}/finance/settings`, { signal }),
-  });
-  return (minor: number) => (settings.data?.currency ? formatMoney(minor, settings.data.currency, i18n.language) : String(minor));
-}
 
 function AddAssetForm() {
   const { t } = useTranslation();
@@ -149,11 +141,11 @@ function AddAssetForm() {
         </Field>
       </div>
       {add.isError && <Notice kind="error">{errorMessage(t, add.error)}</Notice>}
-      <div className="form-actions">
+      <ActionBar>
         <button type="submit" className="button button--primary" disabled={add.isPending}>
           {t('assets.add')}
         </button>
-      </div>
+      </ActionBar>
     </form>
   );
 }
@@ -162,7 +154,7 @@ function AddAssetForm() {
 function DepreciationRun() {
   const { t } = useTranslation();
   const { orgId } = useOrg();
-  const money = useMoney();
+  const { money } = useOrgMoney();
   const queryClient = useQueryClient();
   const schedule = useQuery({
     queryKey: [...keys.all(orgId), 'depreciation'],
@@ -208,7 +200,7 @@ function DepreciationRun() {
 function DepreciationCard({ asset }: { asset: Asset }) {
   const { t } = useTranslation();
   const { orgId, can } = useOrg();
-  const money = useMoney();
+  const { money } = useOrgMoney();
   const queryClient = useQueryClient();
   const [life, setLife] = useState('');
   const [residual, setResidual] = useState('');
@@ -268,11 +260,11 @@ function DepreciationCard({ asset }: { asset: Asset }) {
             </Field>
           </div>
           {save.isError && <Notice kind="error">{errorMessage(t, save.error)}</Notice>}
-          <div className="form-actions">
+          <ActionBar>
             <button type="submit" className="button button--primary" disabled={save.isPending}>
               {t('assets.depreciation.save')}
             </button>
-          </div>
+          </ActionBar>
         </form>
       )}
     </section>
@@ -313,7 +305,7 @@ export function AssetsPage() {
                     {a.nextMaintenanceDue && ` · ${t('assets.nextDue', { date: a.nextMaintenanceDue })}`}
                   </p>
                 </div>
-                {a.maintenanceDue && <span className="badge badge--warning">{t('assets.maintenanceDue')}</span>}
+                {a.maintenanceDue && <Badge tone="warning">{t('assets.maintenanceDue')}</Badge>}
                 <span className={badge(a.status)}>{t(`assets.status.${a.status}`)}</span>
               </li>
             ))}
@@ -330,7 +322,7 @@ export function AssetPage() {
   const { t } = useTranslation();
   const { orgId, can, branches } = useOrg();
   const { assetId = '' } = useParams();
-  const money = useMoney();
+  const { money } = useOrgMoney();
   const fmt = useFormatters();
   const queryClient = useQueryClient();
   const view = useQuery({
@@ -435,11 +427,11 @@ export function AssetPage() {
             <span>{t('assets.markOutOfService')}</span>
           </label>
           {log.isError && <Notice kind="error">{errorMessage(t, log.error)}</Notice>}
-          <div className="form-actions">
+          <ActionBar>
             <button type="submit" className="button button--primary" disabled={log.isPending}>
               {t('assets.save')}
             </button>
-          </div>
+          </ActionBar>
         </form>
       )}
       <section className="card" aria-labelledby="history-title">

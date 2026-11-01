@@ -11,6 +11,7 @@ import { errorMessage } from '../lib/errors';
 import { useFormatters } from '../lib/format';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { orgKeys, useOrg } from '../org/context';
+import { CardGrid } from '../components/layout';
 
 /** Coverage the doctor gave (with revoke) and received (with the records it opens). */
 export function CoveragePage() {
@@ -29,7 +30,7 @@ export function CoveragePage() {
       {list.isPending && <Loading />}
       {list.isError && <ErrorState message={errorMessage(t, list.error)} onRetry={() => void list.refetch()} />}
       {list.isSuccess && (
-        <div className="card-grid card-grid--wide">
+        <CardGrid wide>
           <section className="card" aria-labelledby="coverage-received-title">
             <h2 id="coverage-received-title">{t('coverage.received')}</h2>
             {list.data.received.length === 0 ? (
@@ -55,7 +56,7 @@ export function CoveragePage() {
               </ul>
             )}
           </section>
-        </div>
+        </CardGrid>
       )}
     </>
   );

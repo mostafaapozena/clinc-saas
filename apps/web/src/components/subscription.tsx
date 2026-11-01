@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
-import { formatMoney } from '../lib/finance';
 import type { PlanPrice } from '../lib/operator';
+import { Money } from './data';
 
 // Shared by the clinic subscription page and the operator console.
 
@@ -10,10 +10,10 @@ export function SubscriptionStatusBadge({ status }: { status: string }) {
 }
 
 export function PriceText({ price }: { price: PlanPrice }) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   return (
     <>
-      {formatMoney(price.amountMinor, price.currency, i18n.resolvedLanguage ?? 'ar')} / {t(`subscription.interval.${price.interval}`)}
+      <Money minor={price.amountMinor} currency={price.currency} /> / {t(`subscription.interval.${price.interval}`)}
     </>
   );
 }

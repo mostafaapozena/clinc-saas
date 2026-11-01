@@ -3,14 +3,15 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { Metric } from '../components/Metric';
 import { PageHeader } from '../components/PageHeader';
-import { EmptyState, ErrorState, Loading } from '../components/ui';
+import { Badge, EmptyState, ErrorState, Loading } from '../components/ui';
 import { api, query } from '../lib/api';
 import { useSpecialtyNames } from '../lib/specialties';
-import { formatMoney } from '../lib/finance';
 import { useFormatters } from '../lib/format';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { errorMessage } from '../lib/errors';
 import { orgKeys, useBranchFilter, useOrg } from '../org/context';
+import { MetricGrid } from '../components/layout';
+import { useOrgMoney } from '../lib/money';
 
 // Role- and specialty-aware workspace (docs/architecture/SPECIALTY_WORKSPACES.md): what this person
 // should look at first today. Sections come from the API only for permissions that allow them; a
@@ -71,16 +72,6 @@ function useFocus(full = false) {
   });
 }
 
-function useMoney() {
-  const { i18n } = useTranslation();
-  const { orgId } = useOrg();
-  const settings = useQuery({
-    queryKey: orgKeys.financeSettings(orgId),
-    queryFn: ({ signal }) => api<{ currency: string | null }>(`/orgs/${orgId}/finance/settings`, { signal }),
-  });
-  return (minor: number) => (settings.data?.currency ? formatMoney(minor, settings.data.currency, i18n.language) : String(minor));
-}
-
 const WORKLIST_ICON = { dentistry: 'tooth', physiotherapy: 'activity', ent: 'ear' } as const;
 
 function WorklistRows({ worklist, compact }: { worklist: NonNullable<NonNullable<Focus['clinical']>['worklist']>; compact: boolean }) {
@@ -105,7 +96,7 @@ function WorklistRows({ worklist, compact }: { worklist: NonNullable<NonNullable
               {i.nextVisit ? ` · ${t('workspace.worklist.nextVisit', { date: fmt.date(i.nextVisit) })}` : ''}
             </p>
           </div>
-          {worklist.kind === 'ent' && <span className="badge badge--warning">{t('workspace.worklist.noFollowUpBooked')}</span>}
+          {worklist.kind === 'ent' && <Badge tone="warning">{t('workspace.worklist.noFollowUpBooked')}</Badge>}
         </li>
       ))}
       {compact && worklist.total > worklist.items.length && (
@@ -123,7 +114,7 @@ export function FocusPanel() {
   const { orgId, branches } = useOrg();
   const branchId = useBranchFilter();
   const branchName = branches.find((b) => b.id === branchId)?.name;
-  const money = useMoney();
+  const { money } = useOrgMoney();
   const focus = useFocus();
   // Unavailable is not the same as nothing to do: a failed load says so and offers a retry (UI-09).
   if (focus.isError)
@@ -146,7 +137,7 @@ export function FocusPanel() {
       {f.clinical && (
         <div className="focus-group">
           <h3>{t(`workspace.clinicalTitle.${f.clinical.worklist?.kind ?? 'general'}`)}</h3>
-          <dl className="metrics metrics--compact">
+          <MetricGrid columns="compact">
             <Metric
               icon="calendar"
               label={t('workspace.myVisitsToday')}
@@ -178,14 +169,14 @@ export function FocusPanel() {
                 linkLabel={t(`nav.worklist.${f.clinical.worklist.kind}`)}
               />
             )}
-          </dl>
+          </MetricGrid>
           {f.clinical.worklist && <WorklistRows worklist={f.clinical.worklist} compact />}
         </div>
       )}
       {f.frontDesk && (
         <div className="focus-group">
           <h3>{t('workspace.frontDeskTitle')}</h3>
-          <dl className="metrics metrics--compact">
+          <MetricGrid columns="compact">
             {f.frontDesk.pendingCharges !== null && (
               <Metric
                 icon="wallet"
@@ -196,7 +187,7 @@ export function FocusPanel() {
                 linkLabel={t('workspace.links.chargesToInvoice')}
               />
             )}
-          </dl>
+          </MetricGrid>
           <p className="muted">
             {f.frontDesk.cashSession ? (
               <Link to={`/app/${orgId}/cash/sessions/${f.frontDesk.cashSession.id}`}>
@@ -225,7 +216,7 @@ export function FocusPanel() {
               {t('workspace.orgLevelNote')}
             </p>
           )}
-          <dl className="metrics metrics--compact">
+          <MetricGrid columns="compact">
             <Metric
               icon="wallet"
               label={t('workspace.openReceivables')}
@@ -252,7 +243,7 @@ export function FocusPanel() {
               to={`/app/${orgId}/cash`}
               linkLabel={t('workspace.links.sessions')}
             />
-          </dl>
+          </MetricGrid>
           {f.finance.monthToClose && (
             <p>
               <Link to={`/app/${orgId}/accounting/periods`}>{t('workspace.monthToClose', { month: f.finance.monthToClose })}</Link>

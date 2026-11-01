@@ -6,6 +6,7 @@ import { errorMessage } from '../lib/errors';
 import { showToast } from '../lib/toast';
 import { orgKeys, useOrg } from '../org/context';
 import { Field, Notice } from './ui';
+import { ActionBar } from './layout';
 
 // Safe reset of organization settings (docs/architecture/SETTINGS_RESET.md): preview, confirm with
 // the organization's name, snapshot, apply; every reset can be restored once from its snapshot.
@@ -77,11 +78,11 @@ export function SettingsReset() {
           </label>
         ))}
       </fieldset>
-      <div className="form-actions">
+      <ActionBar>
         <button type="button" className="button button--secondary" disabled={sections.length === 0 || load.isPending} onClick={() => load.mutate()}>
           {t('settingsReset.preview')}
         </button>
-      </div>
+      </ActionBar>
       {load.isError && <Notice kind="error">{errorMessage(t, load.error)}</Notice>}
       {preview && (
         <div className="stack" data-testid="reset-preview">
@@ -109,11 +110,11 @@ export function SettingsReset() {
         </Field>
       )}
       {preview && preview.changes.length > 0 && (
-        <div className="form-actions">
+        <ActionBar>
           <button type="button" className="button button--danger" disabled={!nameOk || reset.isPending} onClick={() => reset.mutate()}>
             {t('settingsReset.confirm')}
           </button>
-        </div>
+        </ActionBar>
       )}
       {reset.isError && <Notice kind="error">{errorMessage(t, reset.error)}</Notice>}
       {snapshots.data && snapshots.data.snapshots.length > 0 && (

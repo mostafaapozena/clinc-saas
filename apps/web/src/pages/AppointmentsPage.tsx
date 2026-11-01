@@ -12,6 +12,7 @@ import { addDays, datesFrom, isValidDateInput, localDateOf, todayIn } from '../l
 import { APPOINTMENT_STATUSES, type Appointment, type AppointmentStatus, type Practitioner } from '../lib/types';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { orgKeys, useBranchFilter, useOrg, useSpecialtyFilter } from '../org/context';
+import { FilterBar } from '../components/data';
 
 type View = 'day' | 'week';
 
@@ -99,7 +100,7 @@ export function AppointmentsPage() {
             </button>
           </div>
         </div>
-        <div className="filters">
+        <FilterBar>
           {can('practitioner.read') && (practitioners.data?.length ?? 0) > 1 && (
             <Field id="filter-practitioner" label={t('appointments.practitioner')}>
               <select id="filter-practitioner" value={practitionerId} onChange={(e) => setPractitionerId(e.target.value)}>
@@ -122,7 +123,7 @@ export function AppointmentsPage() {
               ))}
             </select>
           </Field>
-        </div>
+        </FilterBar>
       </section>
 
       <Schedule view={view} from={from} to={to} practitionerId={practitionerId} status={status} branchId={branchFilter} />
