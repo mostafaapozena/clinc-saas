@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { type Page } from '@playwright/test';
-import { expect, test } from './fixtures';
+import { expect, test, testNow } from './fixtures';
 import { login, orgIdFromUrl, watchBrowserErrors } from './helpers';
 
 // Connected ERP journeys (docs/ERP_EXECUTION_PLAN.md, milestone G) against the seeded synthetic
@@ -116,7 +116,7 @@ test('B + C: supplies are requested, ordered, received into stock, billed and pa
     supplierId: supplier.id,
     supplierReference: `E2E-${randomUUID().slice(0, 8)}`,
     orderId: order.order.id,
-    billDate: new Date().toISOString().slice(0, 10),
+    billDate: testNow().toISOString().slice(0, 10),
     lines: [{ orderLineIndex: 0, qty: 1, unitPrice: 15000 }],
   });
   await call(page, 'post', `${o}/purchasing/payments`, {

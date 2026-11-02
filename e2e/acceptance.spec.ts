@@ -1,5 +1,5 @@
 import { type APIRequestContext, type Page } from '@playwright/test';
-import { expect, test } from './fixtures';
+import { expect, test, testNow } from './fixtures';
 import { DEMO_PASSWORD, login, orgIdFromUrl, watchBrowserErrors } from './helpers';
 
 // Milestone 6 — integrated acceptance (docs/ACCEPTANCE.md). Connected journeys that cross module
@@ -11,7 +11,7 @@ const MARK = 'E2E-ACCEPTANCE-SYNTHETIC';
 function zoneWithMostTimeLeft(): string {
   const left = (zone: string) => {
     const [h = 0, m = 0] = new Intl.DateTimeFormat('en-GB', { timeZone: zone, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
-      .format(new Date())
+      .format(testNow())
       .split(':')
       .map(Number);
     return 24 * 60 - (h * 60 + m);

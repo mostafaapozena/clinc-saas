@@ -17,10 +17,16 @@ process.env.E2E_DEMO_PASSWORD ??= randomBytes(12).toString('base64url');
 // clock, so data seeded for "today" never crosses a local midnight during the run. Real time-of-day
 // behaviour is tested in the API suite with a pinned clock. E2E_CLOCK_UTC=HH:MM[:SS] rehearses
 // another time (for example the Riyadh midnight boundary).
+//
+// The shift only moves forward, to the next such time (0 to 24 hours ahead): the run's clock is never
+// behind the real one. Cookie expiry (the browser) and TTL indexes (MongoDB) are judged by real time,
+// so a session issued on a clock hours behind would be born expired (an 8-hour operator session after
+// 18:00 UTC). Specs compute dates with `testNow()` (e2e/fixtures.ts), never the real clock.
 if (process.env.E2E_CLOCK_OFFSET_MS === undefined) {
   const [h = 10, m = 0, s = 0] = (process.env.E2E_CLOCK_UTC ?? '10:00').split(':').map(Number);
   const real = new Date();
-  process.env.E2E_CLOCK_OFFSET_MS = String(Date.UTC(real.getUTCFullYear(), real.getUTCMonth(), real.getUTCDate(), h, m, s) - real.getTime());
+  const sameDay = Date.UTC(real.getUTCFullYear(), real.getUTCMonth(), real.getUTCDate(), h, m, s) - real.getTime();
+  process.env.E2E_CLOCK_OFFSET_MS = String(sameDay >= 0 ? sameDay : sameDay + 86_400_000);
 }
 
 export default defineConfig({

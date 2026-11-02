@@ -9,6 +9,13 @@ export { expect } from '@playwright/test';
 
 const offset = Number(process.env.E2E_CLOCK_OFFSET_MS ?? 0);
 
+/**
+ * The run's clock in the test process. A spec that computes "today", a time of day or a business
+ * date (to query the API or fill a form) uses this, never `new Date()`: the run's day is often not
+ * the real day (the shift moves forward to the next 10:00 UTC). Unique names may keep `Date.now()`.
+ */
+export const testNow = () => new Date(Date.now() + offset);
+
 async function shiftClock(context: BrowserContext) {
   // Time keeps flowing from the shifted start; only its origin moves.
   if (offset) await context.clock.install({ time: new Date(Date.now() + offset) });

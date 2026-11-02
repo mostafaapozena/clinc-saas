@@ -1,12 +1,12 @@
 import { type APIRequestContext, type Page } from '@playwright/test';
-import { expect, test } from './fixtures';
+import { expect, test, testNow } from './fixtures';
 import { login, orgIdFromUrl, watchBrowserErrors } from './helpers';
 
 /** The supported zone with the most time left today, so "book today" always has free slots. */
 function zoneWithMostTimeLeft(): string {
   const left = (zone: string) => {
     const [h = 0, m = 0] = new Intl.DateTimeFormat('en-GB', { timeZone: zone, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
-      .format(new Date())
+      .format(testNow())
       .split(':')
       .map(Number);
     return 24 * 60 - (h * 60 + m);
@@ -15,7 +15,7 @@ function zoneWithMostTimeLeft(): string {
 }
 
 function localDate(zone: string, offsetDays = 0): string {
-  const today = new Intl.DateTimeFormat('en-CA', { timeZone: zone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+  const today = new Intl.DateTimeFormat('en-CA', { timeZone: zone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(testNow());
   const d = new Date(`${today}T00:00:00Z`);
   d.setUTCDate(d.getUTCDate() + offsetDays);
   return d.toISOString().slice(0, 10);

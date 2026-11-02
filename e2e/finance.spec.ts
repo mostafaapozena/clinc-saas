@@ -1,5 +1,5 @@
 import { type Page } from '@playwright/test';
-import { expect, test } from './fixtures';
+import { expect, test, testNow } from './fixtures';
 import { login, orgIdFromUrl, watchBrowserErrors } from './helpers';
 
 // Clinic finances against the seeded synthetic data (EGP catalog in demo-nour). Prices are examples.
@@ -71,7 +71,7 @@ test('a doctor charges a recorded procedure; the accountant bills it without see
   await login(page, 'doctor.nour@demo.test');
   const orgId = orgIdFromUrl(page);
   // Yesterday's finalized dental visit of Sara Adel (seeded with a procedure on tooth 26).
-  const yesterday = new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Cairo', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(Date.now() - 86_400_000));
+  const yesterday = new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Cairo', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(testNow().getTime() - 86_400_000));
   const list = (await (await page.request.get(`/api/v1/orgs/${orgId}/appointments?from=${yesterday}&to=${yesterday}&status=completed`)).json()) as {
     data: { id: string; patient: { id: string; fullName: string } | null }[];
   };

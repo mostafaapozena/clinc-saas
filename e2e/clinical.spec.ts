@@ -1,5 +1,5 @@
 import { type Page } from '@playwright/test';
-import { expect, test } from './fixtures';
+import { expect, test, testNow } from './fixtures';
 import { login, logout, orgIdFromUrl, watchBrowserErrors } from './helpers';
 
 // Clinical visit records against the seeded synthetic demo data (reset on every run):
@@ -9,7 +9,7 @@ import { login, logout, orgIdFromUrl, watchBrowserErrors } from './helpers';
 const MARK = 'E2E-SYNTHETIC';
 
 const cairoToday = () =>
-  new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Cairo', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+  new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Cairo', year: 'numeric', month: '2-digit', day: '2-digit' }).format(testNow());
 
 /** Today's appointment of the signed-in user for a patient, found through the API the page itself uses. */
 async function todaysAppointment(page: Page, orgId: string, patientName: string, status: string): Promise<string> {
