@@ -1,5 +1,5 @@
 import { type Page } from '@playwright/test';
-import { expect, test } from './fixtures';
+import { expect, test, testNow } from './fixtures';
 import { login, logout, orgIdFromUrl, watchBrowserErrors } from './helpers';
 
 // Clinical visit records against the seeded synthetic demo data (reset on every run):
@@ -9,7 +9,7 @@ import { login, logout, orgIdFromUrl, watchBrowserErrors } from './helpers';
 const MARK = 'E2E-SYNTHETIC';
 
 const cairoToday = () =>
-  new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Cairo', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+  new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Cairo', year: 'numeric', month: '2-digit', day: '2-digit' }).format(testNow());
 
 /** Today's appointment of the signed-in user for a patient, found through the API the page itself uses. */
 async function todaysAppointment(page: Page, orgId: string, patientName: string, status: string): Promise<string> {
@@ -141,7 +141,8 @@ test('late entry for a completed visit, listed in the doctor’s timeline for th
   errors.expectNone();
 });
 
-test('two tabs: the stale save gets a conflict and nothing is overwritten (English)', async ({ page }) => {
+test('two tabs: the stale save gets a conflict and nothing is overwritten (English)', async ({ page, restoreLanguage }) => {
+  restoreLanguage('doctor.nour@demo.test', 'ar');
   const errors = watchBrowserErrors(page);
   await login(page, 'doctor.nour@demo.test');
   const orgId = orgIdFromUrl(page);
@@ -168,7 +169,7 @@ test('two tabs: the stale save gets a conflict and nothing is overwritten (Engli
   await expect(second.getByLabel('Relevant history', { exact: true })).toHaveValue(`${MARK} tab A`);
   await expect(second.getByTestId('conflict')).toHaveCount(0);
   await second.close();
-  // The language choice is saved to the account: restore Arabic for the other tests.
+  // Switching back is part of the journey; the saved preference is also restored by the fixture.
   await page.getByRole('button', { name: 'العربية' }).click();
   await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
   errors.expectNone();

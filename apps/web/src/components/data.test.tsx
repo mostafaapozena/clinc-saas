@@ -106,6 +106,19 @@ describe('ConfirmAction', () => {
     fireEvent.click(screen.getByRole('button', { name: 'أرشفة الصنف' }));
     expect(onConfirm).toHaveBeenCalledOnce();
   });
+
+  it('Escape and cancel close without acting and return focus to the button that opened it', () => {
+    const onConfirm = vi.fn();
+    render(<ConfirmAction label="أرشفة الصنف" message="لن يظهر الصنف في العمليات الجديدة." onConfirm={onConfirm} />);
+    fireEvent.click(screen.getByRole('button', { name: 'أرشفة الصنف' }));
+    fireEvent.keyDown(screen.getByRole('button', { name: 'إلغاء' }), { key: 'Escape' });
+    expect(screen.queryByText('لن يظهر الصنف في العمليات الجديدة.')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'أرشفة الصنف' })).toHaveFocus();
+    fireEvent.click(screen.getByRole('button', { name: 'أرشفة الصنف' }));
+    fireEvent.click(screen.getByRole('button', { name: 'إلغاء' }));
+    expect(screen.getByRole('button', { name: 'أرشفة الصنف' })).toHaveFocus();
+    expect(onConfirm).not.toHaveBeenCalled();
+  });
 });
 
 describe('useUrlState', () => {

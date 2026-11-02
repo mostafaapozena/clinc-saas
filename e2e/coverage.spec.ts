@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { type APIRequestContext, type Browser } from '@playwright/test';
-import { expect, test } from './fixtures';
+import { expect, test, testNow } from './fixtures';
 import { watchBrowserErrors } from './helpers';
 
 // Clinical coverage end to end, in a fresh organization created through the API (synthetic data):
@@ -12,14 +12,14 @@ const MARK = 'E2E-COVERAGE-SYNTHETIC';
 function zoneWithMostTimeLeft(): string {
   const left = (zone: string) => {
     const [h = 0, m = 0] = new Intl.DateTimeFormat('en-GB', { timeZone: zone, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
-      .format(new Date())
+      .format(testNow())
       .split(':')
       .map(Number);
     return 24 * 60 - (h * 60 + m);
   };
   return ['Africa/Cairo', 'Asia/Riyadh', 'Asia/Dubai'].sort((a, b) => left(b) - left(a))[0] ?? 'Africa/Cairo';
 }
-const todayIn = (zone: string) => new Intl.DateTimeFormat('en-CA', { timeZone: zone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+const todayIn = (zone: string) => new Intl.DateTimeFormat('en-CA', { timeZone: zone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(testNow());
 
 async function person(browser: Browser, label: string, displayName: string) {
   const context = await browser.newContext();

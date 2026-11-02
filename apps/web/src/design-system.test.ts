@@ -30,7 +30,8 @@ describe('design-system guards', () => {
   });
 
   it('lays out actions, card rows, metric lists, filters and tone badges through the primitives (UI-04)', () => {
-    const raw = /className="(?:form-actions|card-grid|filters)[" ]|<dl className="metrics|className="badge badge--(?:success|warning|danger|info|neutral)"/;
+    const raw =
+      /className="(?:form-actions|card-grid|filters)[" ]|<dl className="metrics|className="badge badge--(?:success|warning|danger|info|neutral)"/;
     const allowed = new Set(['components/layout.tsx', 'components/data.tsx', 'components/ui.tsx']);
     const offenders = files.filter((f) => !allowed.has(f.path) && raw.test(f.text)).map((f) => f.path);
     expect(offenders).toEqual([]);
@@ -64,25 +65,34 @@ describe('stylesheets (UI-02)', () => {
     expect(offenders).toEqual([]);
   });
 
-  it('adds no new duplicate selectors (same selector, same media context); 28 order-dependent groups remain', () => {
-    const groups = new Map<string, number>();
-    for (const name of ['styles.css', 'workspace.css']) {
+  // One home per selector: a component's rule is declared once for each context (no at-rule, a
+  // breakpoint, a container size, reduced motion, print). Responsive, theme and state differences
+  // are separate rules in their own context or with their own selector (:hover, [dir='rtl'],
+  // .card-grid--equal), never a second copy of the same rule further down that wins by source order.
+  // To change a component, edit its rule; docs/DESIGN_SYSTEM.md §1 "Stylesheets".
+  it('declares each selector once per context across styles.css and workspace.css', () => {
+    const seen = new Map<string, string[]>();
+    for (const name of ['styles.css', 'workspace.css', 'public/public.css']) {
       sheet(name).walkRules((rule) => {
         if (rule.parent?.type === 'atrule' && (rule.parent as postcss.AtRule).name === 'keyframes') return;
-        const media: string[] = [];
-        for (let p = rule.parent; p && p.type !== 'root'; p = p.parent) if (p.type === 'atrule') media.unshift((p as postcss.AtRule).params);
-        const key = `${media.join('/')}|${rule.selector.replace(/\s+/g, ' ')}`;
-        groups.set(key, (groups.get(key) ?? 0) + 1);
+        const context: string[] = [];
+        for (let p = rule.parent; p && p.type !== 'root'; p = p.parent)
+          if (p.type === 'atrule') context.unshift(`@${(p as postcss.AtRule).name} ${(p as postcss.AtRule).params}`);
+        // The public site is its own stylesheet scope (.site): it is compared with itself only.
+        const scope = name === 'public/public.css' ? 'site' : 'app';
+        const key = `${scope}|${context.join(' / ')}|${rule.selector.replace(/\s+/g, ' ')}`;
+        seen.set(key, [...(seen.get(key) ?? []), `${name}:${rule.source?.start?.line}`]);
       });
     }
-    // Lower this number when a group is consolidated; it may never grow.
-    expect([...groups.values()].filter((n) => n > 1).length).toBeLessThanOrEqual(28);
+    const duplicates = [...seen].filter(([, at]) => at.length > 1).map(([key, at]) => `${key.split('|').slice(1).join(' ')} (${at.join(', ')})`);
+    expect(duplicates).toEqual([]);
   });
 });
 
 describe('translation keys', () => {
   const has = (dict: unknown, key: string) => {
-    const get = (k: string) => k.split('.').reduce<unknown>((node, part) => (node && typeof node === 'object' ? (node as Record<string, unknown>)[part] : undefined), dict);
+    const get = (k: string) =>
+      k.split('.').reduce<unknown>((node, part) => (node && typeof node === 'object' ? (node as Record<string, unknown>)[part] : undefined), dict);
     // Strings, plural forms, or lists read with returnObjects.
     return get(key) !== undefined || typeof get(`${key}_one`) === 'string' || typeof get(`${key}_other`) === 'string';
   };
@@ -92,7 +102,11 @@ describe('translation keys', () => {
       for (const m of f.text.matchAll(/\bt\('([a-zA-Z][\w-]*(?:\.[\w-]+)+)'(\s*,\s*\{[^}]*defaultValue)?/g)) {
         if (m[2]) continue; // a defaultValue is the documented fallback
         const key = m[1]!;
-        for (const [lang, dict] of [['ar', ar], ['en', en]] as const) if (!has(dict, key)) missing.push(`${lang}:${key} (${f.path})`);
+        for (const [lang, dict] of [
+          ['ar', ar],
+          ['en', en],
+        ] as const)
+          if (!has(dict, key)) missing.push(`${lang}:${key} (${f.path})`);
       }
     }
     expect([...new Set(missing)]).toEqual([]);

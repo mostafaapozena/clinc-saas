@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { PageHeader } from '../components/PageHeader';
-import { EmptyState, ErrorState, Field, Loading, Notice } from '../components/ui';
+import { DateEcho, EmptyState, ErrorState, Field, Loading, Notice } from '../components/ui';
 import { api, query } from '../lib/api';
 import { newRequestKey } from '../lib/clinical';
 import { errorMessage } from '../lib/errors';
@@ -11,7 +11,7 @@ import { moneyInput, parseMoney } from '../lib/finance';
 import { showToast } from '../lib/toast';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { orgKeys, useOrg } from '../org/context';
-import { DateText } from '../components/data';
+import { DataTable, DateText } from '../components/data';
 import { ActionBar } from '../components/layout';
 import { useCurrencyMoney } from '../lib/money';
 
@@ -126,10 +126,12 @@ function ScheduleEditor({
                   <td>
                     <input
                       aria-label={`${t('installments.dueDate')} ${i + 1}`}
+                      aria-describedby={`due-${i}-day`}
                       type="date"
                       value={it.dueDate}
                       onChange={(e) => setItems((cur) => cur.map((x, j) => (j === i ? { ...x, dueDate: e.target.value } : x)))}
                     />
+                    <DateEcho id={`due-${i}-day`} value={it.dueDate} />
                   </td>
                   <td>
                     <input
@@ -209,32 +211,17 @@ function PlanTable({ plan, currency }: { plan: Plan; currency: string }) {
   const { t } = useTranslation();
   const money = useCurrencyMoney(currency);
   return (
-    <div className="table-wrap">
-      <table className="data-table" data-testid="installment-schedule">
-        <thead>
-          <tr>
-            <th scope="col">{t('installments.dueDate')}</th>
-            <th scope="col">{t('installments.amount')}</th>
-            <th scope="col">{t('installments.covered')}</th>
-            <th scope="col">{t('installments.state')}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {plan.schedule.map((s, i) => (
-            <tr key={i}>
-              <td data-label={t('installments.dueDate')}>
-                <DateText value={s.dueDate} />
-              </td>
-              <td data-label={t('installments.amount')}>{money(s.amount)}</td>
-              <td data-label={t('installments.covered')}>{money(s.covered)}</td>
-              <td data-label={t('installments.state')}>
-                <span className={badge[s.state]}>{t(`installments.states.${s.state}`)}</span>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <DataTable
+      testId="installment-schedule"
+      rows={plan.schedule.map((s, index) => ({ ...s, index }))}
+      rowKey={(s) => String(s.index)}
+      columns={[
+        { key: 'dueDate', label: t('installments.dueDate'), cell: (s) => <DateText value={s.dueDate} /> },
+        { key: 'amount', label: t('installments.amount'), numeric: true, cell: (s) => money(s.amount) },
+        { key: 'covered', label: t('installments.covered'), numeric: true, cell: (s) => money(s.covered) },
+        { key: 'state', label: t('installments.state'), cell: (s) => <span className={badge[s.state]}>{t(`installments.states.${s.state}`)}</span> },
+      ]}
+    />
   );
 }
 

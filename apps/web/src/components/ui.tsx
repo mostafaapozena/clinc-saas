@@ -1,6 +1,7 @@
 import { Children, cloneElement, isValidElement, type ReactNode } from 'react';
 import { Icon, type IconName } from './Icon';
 import { useTranslation } from 'react-i18next';
+import { useFormatters } from '../lib/format';
 
 /**
  * A labelled form control. The label is tied to the control by `id`; the hint and the error are
@@ -25,10 +26,13 @@ export function Field({
 }) {
   const hintId = hint && !error ? `${id}-hint` : undefined;
   const errorId = error ? `${id}-error` : undefined;
+  const date =
+    Children.count(children) === 1 && isValidElement<Record<string, unknown>>(children) ? dateValueOf(children.type, children.props) : null;
+  const dateId = date ? `${id}-date` : undefined;
   let control = children;
   if (Children.count(children) === 1 && isValidElement<Record<string, unknown>>(children)) {
     const own = typeof children.props['aria-describedby'] === 'string' ? (children.props['aria-describedby'] as string) : '';
-    const describedBy = [...new Set([...own.split(' '), hintId, errorId].filter(Boolean))].join(' ');
+    const describedBy = [...new Set([...own.split(' '), dateId, hintId, errorId].filter(Boolean))].join(' ');
     control = cloneElement(children, {
       ...(describedBy ? { 'aria-describedby': describedBy } : {}),
       ...(error ? { 'aria-invalid': true } : {}),
@@ -42,6 +46,7 @@ export function Field({
         {label}
       </label>
       {control}
+      {date && <DateEcho id={dateId} value={date} />}
       {hintId && (
         <p className="field-hint" id={hintId}>
           {hint}
@@ -53,6 +58,30 @@ export function Field({
         </p>
       )}
     </div>
+  );
+}
+
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+
+/** The value of a controlled native date input, when it holds a full date. */
+function dateValueOf(type: unknown, props: Record<string, unknown>): string | null {
+  return type === 'input' && props.type === 'date' && typeof props.value === 'string' && ISO_DATE.test(props.value) ? props.value : null;
+}
+
+/**
+ * The chosen date with its weekday and month by name, in the UI language ("الأربعاء، 4 مارس 2026").
+ * A native date field shows its value in the browser's own format, so 03/04/2026 can be 4 March or
+ * 3 April depending on the browser's language, not the app's; this line states the day the app
+ * understood. `Field` adds it under every controlled date input and names it in aria-describedby.
+ */
+export function DateEcho({ id, value, inline }: { id?: string; value: string; inline?: boolean }) {
+  const fmt = useFormatters();
+  if (!ISO_DATE.test(value)) return null;
+  const Tag = inline ? 'span' : 'p';
+  return (
+    <Tag className="field-hint date-echo" id={id}>
+      {fmt.localDate(value)}
+    </Tag>
   );
 }
 

@@ -19,7 +19,7 @@ import { showToast } from '../lib/toast';
 import type { Page, PatientSummary } from '../lib/types';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { orgKeys, useOrg } from '../org/context';
-import { ConfirmAction } from '../components/data';
+import { ConfirmAction, DataTable } from '../components/data';
 import { ActionBar, CardGrid } from '../components/layout';
 import { useMoney } from '../lib/money';
 
@@ -531,32 +531,27 @@ export function PatientAccountPage() {
           <h2 id="statement-title">{t('finance.statement')}</h2>
           {statement.isSuccess && statement.data.entries.length === 0 && <EmptyState icon="file">{t('finance.noEntries')}</EmptyState>}
           {statement.isSuccess && statement.data.entries.length > 0 && (
-            <div className="table-wrap">
-              <table className="data-table" data-testid="statement">
-                <thead>
-                  <tr>
-                    <th scope="col">{t('finance.date')}</th>
-                    <th scope="col">{t('finance.document')}</th>
-                    <th scope="col">{t('finance.debit')}</th>
-                    <th scope="col">{t('finance.credit')}</th>
-                    <th scope="col">{t('finance.runningBalance')}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {statement.data.entries.map((e, i) => (
-                    <tr key={i}>
-                      <td>{fmt.date(e.at)}</td>
-                      <td>
-                        {t(`finance.entryTypes.${e.type}`)} <bdi dir="ltr">{e.number}</bdi>
-                      </td>
-                      <td>{e.debit ? money(e.debit, e.currency) : ''}</td>
-                      <td>{e.credit ? money(e.credit, e.currency) : ''}</td>
-                      <td>{money(e.balance, e.currency)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <DataTable
+              testId="statement"
+              scroll
+              rows={statement.data.entries.map((e, index) => ({ ...e, index }))}
+              rowKey={(e) => String(e.index)}
+              columns={[
+                { key: 'at', label: t('finance.date'), cell: (e) => fmt.date(e.at) },
+                {
+                  key: 'document',
+                  label: t('finance.document'),
+                  cell: (e) => (
+                    <>
+                      {t(`finance.entryTypes.${e.type}`)} <bdi dir="ltr">{e.number}</bdi>
+                    </>
+                  ),
+                },
+                { key: 'debit', label: t('finance.debit'), numeric: true, cell: (e) => (e.debit ? money(e.debit, e.currency) : '') },
+                { key: 'credit', label: t('finance.credit'), numeric: true, cell: (e) => (e.credit ? money(e.credit, e.currency) : '') },
+                { key: 'balance', label: t('finance.runningBalance'), numeric: true, cell: (e) => money(e.balance, e.currency) },
+              ]}
+            />
           )}
         </section>
       </CardGrid>
@@ -1067,31 +1062,21 @@ export function InvoicePage() {
 
 function InvoiceTable({ invoice: inv, money }: { invoice: Invoice; money: ReturnType<typeof useMoney> }) {
   const { t } = useTranslation();
+  const fmt = useFormatters();
   return (
     <section className="card" aria-labelledby="invoice-lines-title">
       <h2 id="invoice-lines-title">{t('finance.lines')}</h2>
-      <div className="table-wrap">
-        <table className="data-table" data-testid="invoice-lines">
-          <thead>
-            <tr>
-              <th scope="col">{t('finance.service')}</th>
-              <th scope="col">{t('finance.quantity')}</th>
-              <th scope="col">{t('finance.unitPrice')}</th>
-              <th scope="col">{t('finance.amount')}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {inv.lines.map((l) => (
-              <tr key={l.chargeId}>
-                <td>{l.description}</td>
-                <td>{l.quantity}</td>
-                <td>{money(l.unitPrice, inv.currency)}</td>
-                <td>{money(l.amount, inv.currency)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <DataTable
+        testId="invoice-lines"
+        rows={inv.lines}
+        rowKey={(l) => l.chargeId}
+        columns={[
+          { key: 'service', label: t('finance.service'), cell: (l) => l.description },
+          { key: 'quantity', label: t('finance.quantity'), numeric: true, cell: (l) => fmt.number(l.quantity) },
+          { key: 'unitPrice', label: t('finance.unitPrice'), numeric: true, cell: (l) => money(l.unitPrice, inv.currency) },
+          { key: 'amount', label: t('finance.amount'), numeric: true, cell: (l) => money(l.amount, inv.currency) },
+        ]}
+      />
       <dl className="details invoice-totals">
         <div>
           <dt>{t('finance.subtotal')}</dt>

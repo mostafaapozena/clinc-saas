@@ -133,6 +133,7 @@
 .site-header-inner {
   display: flex;
   align-items: center;
+  gap: 8px 10px;
   inline-size: min(var(--site-max), 100%);
   min-block-size: 68px;
   margin-inline: auto;
@@ -152,7 +153,6 @@
   align-items: center;
   gap: 2px;
   margin: 0;
-  margin-inline-start: 12px;
   padding: 0;
   list-style: none;
 }
@@ -167,7 +167,7 @@
   align-items: center;
   gap: 4px;
   min-block-size: 40px;
-  padding: 8px 12px;
+  padding: 8px;
   font: inherit;
   font-size: 0.95rem;
   font-weight: 500;
@@ -202,7 +202,7 @@
 .site-header-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   margin-inline-start: auto;
 }
 
@@ -1895,25 +1895,8 @@
 }
 
 /* Every entry — sign-in included — stays in the bar at desktop widths without a horizontal
-   scroll (UX-002, UX-003): compact spacing and a short language label ("EN" / "ع"), whose full name
+   scroll (UX-002, UX-003): compact spacing (set on the header rules above) and a short language label ("EN" / "ع"), whose full name
    stays the accessible label. Measured in Arabic, the wider language: 9 px to spare at 1200 px. */
-.site-header-inner {
-  gap: 8px 10px;
-}
-
-.site-nav {
-  margin-inline-start: 0;
-}
-
-.site-nav-link,
-.site-nav-trigger {
-  padding-inline: 8px;
-}
-
-.site-header-actions {
-  gap: 6px;
-}
-
 .site-header-actions .button {
   padding-inline: 12px;
 }

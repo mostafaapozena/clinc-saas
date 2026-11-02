@@ -6,11 +6,23 @@ This document is the contract for every workspace and operator screen.
 - **Tokens:** `apps/web/src/tokens.css` is the one place tokens are defined (light, dark, system dark, phones, print, English). Display sizes are language tokens: Arabic (Alexandria renders larger) one step smaller than English. The public site inherits the palette and states only its own values.
 - **Implementation:** `components/layout.tsx` (`ActionBar`, `CardGrid`, `MetricGrid`, `ModuleTabs` with groups), `components/data.tsx` (`DataTable`, `Pagination`, `FilterBar`, `Money`, `DateText`, `Quantity`, `ConfirmAction`, `Skeleton`, `DescriptionList`), `lib/money.ts`, `components/PageHeader.tsx` (`back`, `help`), `components/ChartCard.tsx` (`wide`), `components/Metric.tsx`, `components/ui.tsx` (`Field`, `Badge`, `EmptyState` with `action`).
 - **Guards:**
-  - `apps/web/src/design-system.test.ts` (no raw action rows, grids, metric lists, filters or tone badges; money only through `lib/money.ts`; tokens only in `tokens.css`; duplicate selectors may not grow);
+  - `apps/web/src/design-system.test.ts` (no raw action rows, grids, metric lists, filters or tone badges; money only through `lib/money.ts`; tokens only in `tokens.css`; each selector declared once per context);
   - `e2e/layout.spec.ts` (geometry) and `e2e/a11y.spec.ts` (axe);
   - [docs/UI_CONTRIBUTION_CHECKLIST.md](UI_CONTRIBUTION_CHECKLIST.md).
 
 ## 1. Tokens
+
+### Stylesheets
+
+| File | Holds |
+| --- | --- |
+| `tokens.css` (imported first) | Every design token, for light, dark, system dark, phones, print and English |
+| `styles.css` | Foundations, then one section per component (buttons, forms, feedback, cards and badges, lists, shell, tables, operator console). A component's base rule lives here |
+| `workspace.css` | Page patterns and contextual refinements: containers, breakpoints, states, motion, print |
+| `public/public.css` | The public site (`.site`), its own scope |
+
+**One home per selector.** A selector is declared once in each context (no at-rule, one breakpoint, one container size, reduced motion, print). Breakpoints, themes, states and direction are separate rules with their own context or selector (`@media`, `:hover`, `[dir='rtl']`, `.card-grid--equal`), never a second copy of the same rule further down that wins by source order. To change a component, edit its rule; the stylesheet guard fails on a repeated selector.
+
 
 ### Spacing
 
@@ -100,13 +112,13 @@ Numbers and amounts use `<bdi dir="ltr">` where mixed with Arabic text. Table am
 | `FilterBar` | `data.tsx` | The filters of a list in one responsive row, with a reset when any filter is set. Values are kept with `useUrlState` (`lib/useUrlState.ts`). |
 | `DescriptionList` | `data.tsx` | Label / value pairs of a record (the `.details` grid). |
 | `Money`, `DateText`, `Quantity` | `data.tsx` | The only way to show an amount, a date or a quantity: UI-language digits, the year on calendar dates, tabular figures, a dash when there is no value. Never print an ISO date or a raw number with a unit. |
-| `ConfirmAction` | `data.tsx` | A consequential action confirmed in place: the consequence in plain words, a danger-toned confirm and a cancel that receives focus. |
+| `ConfirmAction` | `data.tsx` | A consequential action confirmed in place: the consequence in plain words, a danger-toned confirm and a cancel that receives focus. Cancel or Escape closes it and returns focus to the button that opened it. |
 | `Skeleton` | `data.tsx` | Placeholder lines inside an already drawn page frame. |
 | `Badge` | `ui.tsx` | Status by meaning (see §1). |
 | `StatementTable` | `AccountingPages.tsx` | One fixed-layout table per statement: section header rows, totals, amounts `.num`, currency in the header, width up to 960px. |
 | `ChartCard` | `ChartCard.tsx` | Title, context line (period, currency, source), inline SVG chart, legend, "show as table" alternative, and loading, empty and error states. |
 | `EmptyState` / `Loading` / `ErrorState` / `Notice` | `ui.tsx` | Always used instead of hand-written blocks. `EmptyState` takes an `action` (the next step) when the viewer can take one. |
-| `Field` | `ui.tsx` | Label, hint and error wiring: the control gets `aria-describedby` for the hint and the error, `aria-invalid` on error and `aria-required` when the field is required. |
+| `Field` | `ui.tsx` | Label, hint and error wiring: the control gets `aria-describedby` for the hint and the error, `aria-invalid` on error and `aria-required` when the field is required. A controlled date input also gets the chosen day by name under it (`DateEcho`, also in its description), because the native field shows the date in the browser's format, not the app's. |
 | Forms | `form` / `.form-grid` | Grid forms keep their natural row height (`align-content: start`). |
 
 ## 3. Charts and report data rules

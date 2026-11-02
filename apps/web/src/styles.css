@@ -266,6 +266,9 @@ input[aria-invalid='true'] {
   margin: 0;
   font-size: 0.875rem;
   color: var(--bad);
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
 }
 
 .fieldset {
@@ -297,11 +300,14 @@ input[aria-invalid='true'] {
   align-items: end;
 }
 
+/* Actions: buttons in a row keep related spacing and wrap as a group; an action row after the
+   content it acts on gets group spacing (the card rhythm). */
 .form-actions,
 .row-actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  gap: var(--stack-related);
 }
 
 /* ---------- Feedback ---------- */
@@ -310,6 +316,10 @@ input[aria-invalid='true'] {
   padding: 12px 16px;
   border-radius: 8px;
   border-inline-start: 4px solid currentColor;
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  column-gap: 10px;
+  align-items: start;
 }
 
 .notice p {
@@ -319,6 +329,7 @@ input[aria-invalid='true'] {
 .notice--success {
   color: var(--ok);
   background: var(--ok-bg);
+  --notice-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M8 12.5l2.7 2.7L16 10'/%3E%3C/svg%3E");
 }
 
 .notice--error {
@@ -329,6 +340,7 @@ input[aria-invalid='true'] {
 .notice--info {
   color: var(--text);
   background: var(--surface-muted);
+  --notice-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M12 11v6M12 7.5h.01'/%3E%3C/svg%3E");
 }
 
 .loading {
@@ -363,6 +375,10 @@ input[aria-invalid='true'] {
   margin: 0;
   color: var(--muted);
   text-align: center;
+  padding: 28px 16px;
+  background: transparent;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
 }
 
 /* ---------- Cards, badges, lists ---------- */
@@ -378,9 +394,13 @@ input[aria-invalid='true'] {
   margin-block-end: 16px;
 }
 
+/* Card rows: each card keeps its own height and starts at the top of the row, so a short card
+   never ends in an empty band. Rows of genuinely parallel cards opt in with .card-grid--equal. */
 .card-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  align-items: start;
+  gap: var(--space-4);
 }
 
 .stack {
@@ -400,6 +420,9 @@ input[aria-invalid='true'] {
   font-size: 0.85rem;
   border-radius: 999px;
   background: var(--neutral-bg);
+  font-weight: 600;
+  line-height: 1.7;
+  white-space: nowrap;
 }
 
 .badge--connected,
@@ -492,6 +515,7 @@ input[aria-invalid='true'] {
 .data-list {
   display: grid;
   gap: 10px;
+  container-type: inline-size;
 }
 
 /* Main content takes the space; the state (badges, metadata) and the actions hug the end, so a
@@ -503,11 +527,16 @@ input[aria-invalid='true'] {
   gap: 8px 16px;
   border: 1px solid var(--border);
   border-radius: 10px;
+  background: var(--surface);
+  transition:
+    border-color var(--ease),
+    box-shadow var(--ease);
+  padding: var(--space-3) var(--space-4);
+  column-gap: var(--space-4);
 }
 
 .data-row--editing {
   display: block;
-  background: var(--surface-muted);
 }
 
 .data-main,
@@ -766,10 +795,8 @@ input[aria-invalid='true'] {
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--muted);
-}
-
-.nav-link.active {
-  box-shadow: inset 3px 0 0 var(--brand-turquoise);
+  padding-inline: 12px;
+  letter-spacing: 0.02em;
 }
 
 [dir='rtl'] .nav-link.active {
@@ -784,14 +811,13 @@ input[aria-invalid='true'] {
   color: var(--text);
   text-decoration: none;
   border-radius: 8px;
+  transition:
+    background-color var(--ease),
+    color var(--ease);
 }
 
 .nav-link:hover {
   background: var(--surface-muted);
-}
-
-.nav-link.active {
-  font-weight: 600;
 }
 
 .shell-main {
@@ -811,6 +837,8 @@ input[aria-invalid='true'] {
   padding: 10px 24px;
   background: var(--surface);
   border-block-end: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  padding-inline: max(var(--gutter), env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px));
 }
 
 .switcher {
@@ -889,8 +917,14 @@ input[aria-invalid='true'] {
   background: var(--surface-muted);
 }
 
+/* Layout rhythm: one gutter scale and one content width for the workspace and the console. The
+   content is centered in the space beside the sidebar, so wide screens are not empty on one side. */
 .content {
   inline-size: 100%;
+  max-inline-size: var(--content-max);
+  margin-inline: auto;
+  padding: var(--space-6) var(--gutter) 40px;
+  padding-inline: max(var(--gutter), env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px));
 }
 
 .content:focus {
@@ -941,7 +975,9 @@ input[aria-invalid='true'] {
   }
 
   .topbar {
-    padding: 8px 16px;
+    padding-block: 8px;
+    position: static;
+    gap: 8px;
   }
 
   .switcher {
@@ -958,10 +994,6 @@ input[aria-invalid='true'] {
 
   .user-name {
     display: none;
-  }
-
-  .content {
-    padding: 16px;
   }
 
   .data-row {
@@ -1003,8 +1035,10 @@ input[aria-invalid='true'] {
   align-items: end;
 }
 
+/* Filters keep their natural width: one filter is one column, not a full-width field. */
 .filters {
   margin-block-end: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
 }
 
 .toolbar {
@@ -1265,12 +1299,11 @@ input[aria-invalid='true'] {
 }
 
 .queue-item {
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 12px;
   padding: 12px;
   border: 1px solid var(--border);
   border-radius: 10px;
+  container-type: inline-size;
+  display: block;
 }
 
 .queue-position {
@@ -1311,6 +1344,7 @@ input[aria-invalid='true'] {
   padding: 10px 12px;
   background: var(--surface-muted);
   border-radius: 10px;
+  border: 1px solid transparent;
 }
 
 .stat--waiting dd {
@@ -1378,15 +1412,6 @@ input[aria-invalid='true'] {
     content: attr(data-label);
     font-weight: 600;
     color: var(--muted);
-  }
-
-  .queue-item {
-    grid-template-columns: auto minmax(0, 1fr);
-  }
-
-  .queue-item > .row-actions,
-  .queue-item > .stack-sm {
-    grid-column: 1 / -1;
   }
 
   .interval-row {
@@ -1630,8 +1655,16 @@ input[aria-invalid='true'] {
   gap: 8px;
 }
 
+/* A consequential action confirmed in place: a raised, danger-toned panel (ConfirmAction). */
 .confirm-panel {
   margin-top: 16px;
+  box-shadow: var(--shadow-md);
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--bad-bg);
+  border: 1px solid var(--bad);
+  border-radius: 10px;
 }
 
 .confirm-panel h3 {
@@ -1868,8 +1901,28 @@ input[aria-invalid='true'] {
 
 /* Platform operator console (milestone 4) */
 .operator-brand { display: inline-flex; align-items: center; gap: 0.75rem; }
-.operator-main { max-width: 72rem; width: 100%; margin-inline: auto; }
-.operator-nav { display: flex; border-block-end: 1px solid var(--border, #d9dee5); }
+
+/* The console's content column: the same width and gutter as the workspace. */
+.operator-main {
+  inline-size: 100%;
+  max-inline-size: var(--content-max);
+  margin-inline: auto;
+  padding-block-start: 20px;
+  padding-inline: var(--gutter);
+}
+
+/* A tab bar: one row that scrolls sideways on narrow screens instead of wrapping. */
+.operator-nav {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 2px;
+  margin-block-end: 0;
+  padding-block-end: 0;
+  overflow-x: auto;
+  border-block-end: 1px solid var(--border);
+  scrollbar-width: thin;
+}
+
 .operator-nav .nav-link[aria-current='page'] { font-weight: 700; text-decoration: underline; }
 .badge--subscription-active, .badge--checkout-completed, .badge--plan-status-active { background: var(--ok-bg); color: var(--ok); }
 .badge--subscription-past_due, .badge--subscription-restricted, .badge--checkout-failed { background: var(--warn-bg); color: var(--warn); }
@@ -1926,9 +1979,14 @@ h1[tabindex='-1']:focus {
   min-inline-size: 0;
 }
 
-/* Operator console */
+/* Operator console. The header lines up with the content column below it, not with the window edges. */
 .operator-header {
   flex-wrap: wrap;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  border-block-end: 1px solid var(--border);
+  padding-block: var(--space-3);
+  padding-inline: max(var(--gutter), calc((100% - var(--content-max)) / 2 + var(--gutter)));
 }
 
 .operator-header-actions {
@@ -1949,6 +2007,7 @@ h1[tabindex='-1']:focus {
 .operator-main .stat > strong {
   display: block;
   font-size: 1.6rem;
+  color: var(--text);
 }
 
 .operator-actions {
@@ -1985,11 +2044,6 @@ h1[tabindex='-1']:focus {
 
 /* Workspace header on small screens: compact, and it scrolls away with the page. */
 @media (max-width: 900px) {
-  .topbar {
-    position: static;
-    gap: 8px;
-  }
-
   .switcher-label {
     position: absolute;
     inline-size: 1px;

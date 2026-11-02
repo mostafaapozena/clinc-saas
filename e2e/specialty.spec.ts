@@ -1,12 +1,12 @@
 import { type Page } from '@playwright/test';
-import { expect, test } from './fixtures';
+import { expect, test, testNow } from './fixtures';
 import { login, orgIdFromUrl, watchBrowserErrors } from './helpers';
 
 // Specialty workspaces against the seeded synthetic data (reset every run). Uses appointments no
 // other spec touches: a06 (dentistry, Dr. Hala), b08 (physiotherapy, Dr. Sami, Alexandria), c01 (ENT, Dr. Reem).
 const MARK = 'E2E-SPECIALTY-SYNTHETIC';
 
-const localToday = (zone: string) => new Intl.DateTimeFormat('en-CA', { timeZone: zone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+const localToday = (zone: string) => new Intl.DateTimeFormat('en-CA', { timeZone: zone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(testNow());
 
 async function todaysAppointment(page: Page, orgId: string, zone: string, patientName: string) {
   const today = localToday(zone);

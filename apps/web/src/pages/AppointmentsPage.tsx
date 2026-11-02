@@ -4,7 +4,7 @@ import { Link, useSearchParams } from 'react-router';
 import { Icon } from '../components/Icon';
 import { PageHeader } from '../components/PageHeader';
 import { AppointmentActions, StatusBadge, TimeZoneRequired } from '../components/scheduling';
-import { EmptyState, ErrorState, Field, Loading, Notice } from '../components/ui';
+import { DateEcho, EmptyState, ErrorState, Field, Loading, Notice } from '../components/ui';
 import { api, query } from '../lib/api';
 import { errorMessage } from '../lib/errors';
 import { useFormatters, zoneLabel } from '../lib/format';
@@ -91,7 +91,14 @@ export function AppointmentsPage() {
             <label htmlFor="schedule-date" className="visually-hidden">
               {t('appointments.date')}
             </label>
-            <input id="schedule-date" type="date" value={date} onChange={(e) => isValidDateInput(e.target.value) && setDate(e.target.value)} />
+            <input
+              id="schedule-date"
+              type="date"
+              value={date}
+              aria-describedby="schedule-date-day"
+              onChange={(e) => isValidDateInput(e.target.value) && setDate(e.target.value)}
+            />
+            <DateEcho id="schedule-date-day" value={date} inline />
             <button type="button" className="icon-button" aria-label={t('appointments.next')} onClick={() => setDate(addDays(date, step))}>
               <Icon name="arrowForward" />
             </button>
